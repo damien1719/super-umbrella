@@ -50,13 +50,6 @@ jobs:
         working-directory: frontend
         run: pnpm build
 
-      # Optionnel : stocker l’artefact frontend
-      - name: Upload frontend build
-        uses: actions/upload-artifact@v3
-        with:
-          name: frontend-dist
-          path: frontend/dist
-
   deploy-fly:
     name: Deploy to Fly.io
     needs: ci
