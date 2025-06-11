@@ -2,11 +2,9 @@ name: CI & Deploy
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   ci:
@@ -27,26 +25,37 @@ jobs:
       - name: Install pnpm
         run: npm install -g pnpm
 
-      - name: Install dependencies
+      # BACKEND: install, lint & test
+      - name: Install dependencies (backend)
+        working-directory: backend
         run: pnpm install
-
-      - name: Run tests
+      - name: Lint backend
+        working-directory: backend
+        run: pnpm lint
+      - name: Run tests (backend)
+        working-directory: backend
         run: pnpm test
 
-      - name: Run lint
+      # FRONTEND: install, lint, test & build
+      - name: Install dependencies (frontend)
+        working-directory: frontend
+        run: pnpm install
+      - name: Lint frontend
+        working-directory: frontend
         run: pnpm lint
-
-      - name: Build
+      - name: Run tests (frontend)
+        working-directory: frontend
+        run: pnpm test
+      - name: Build frontend
+        working-directory: frontend
         run: pnpm build
 
-      # Optionnel : stocker l’artefact pour les jobs de déploiement
-      - name: Upload build artifact
+      # Optionnel : stocker l’artefact frontend
+      - name: Upload frontend build
         uses: actions/upload-artifact@v3
         with:
-          name: build-output
-          path: |
-            ./apps/backend/dist
-            ./apps/frontend/dist
+          name: frontend-dist
+          path: frontend/dist
 
   deploy-fly:
     name: Deploy to Fly.io
@@ -54,18 +63,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Download build artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: build-output
-          path: .
       - name: Deploy with flyctl
         uses: superfly/flyctl-actions@v1
         with:
           args: deploy --config fly.toml --dockerfile Dockerfile
 
   deploy-vercel:
-    name: Deploy to Vercel
+    name: Deploy frontend to Vercel
     needs: ci
     runs-on: ubuntu-latest
     steps:
@@ -78,5 +82,5 @@ jobs:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          working-directory: apps/frontend
+          working-directory: frontend
           prod: true
