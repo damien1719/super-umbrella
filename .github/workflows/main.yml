@@ -25,10 +25,11 @@ jobs:
       - name: Install pnpm
         run: npm install -g pnpm
 
-      # BACKEND: install, lint & test
-      - name: Install dependencies (backend)
-        working-directory: backend
+      # Install workspace dependencies once
+      - name: Install dependencies
         run: pnpm install
+
+      # BACKEND: lint & test
       - name: Lint backend
         working-directory: backend
         run: pnpm lint
@@ -36,10 +37,7 @@ jobs:
         working-directory: backend
         run: pnpm test
 
-      # FRONTEND: install, lint, test & build
-      - name: Install dependencies (frontend)
-        working-directory: frontend
-        run: pnpm install
+      # FRONTEND: lint, test & build
       - name: Lint frontend
         working-directory: frontend
         run: pnpm lint
