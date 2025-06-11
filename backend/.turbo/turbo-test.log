@@ -3,7 +3,7 @@
 > backend@1.0.0 test /Users/mossuz/Documents/Documents personnels/super-umbrella/backend
 > cross-env NODE_ENV=test jest --coverage
 
-(node:28277) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(node:32015) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
 (Use `node --trace-warnings ...` to show where the warning was created)
 [1m[2mDetermining test suites to run...[22m[22m[999D[K
 [K[1A[999D[K
@@ -19,7 +19,7 @@
 [K[1A[K[1A  GET /health
 
 [0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mapp.test.ts[22m
-[K[1A[K[1A    [32m✓[39m [2mreturns ok (14 ms)[22m
+[K[1A[K[1A    [32m✓[39m [2mreturns ok (15 ms)[22m
 
 [0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mapp.test.ts[22m
 [K[1A[K[1A
@@ -34,6 +34,6 @@ File      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
 [1mTest Suites: [22m[1m[32m1 passed[39m[22m, 1 total
 [1mTests:       [22m[1m[32m1 passed[39m[22m, 1 total
 [1mSnapshots:   [22m0 total
-[1mTime:[22m        1.009 s
+[1mTime:[22m        1.408 s
 [2mRan all test suites[22m[2m.[22m
 [?2026h[?2026l
