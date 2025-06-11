@@ -1,3 +1,5 @@
+//MANQUE TABLE EXPLOITANT
+
 // 1. Source de données
 datasource db {
   provider   = "postgresql"
@@ -33,7 +35,7 @@ enum AmortMethode {
 model Profile {
   oid                 BigInt   @id
   prTexte             String   @db.VarChar(255)
-  nif                 String   @db.VarChar(20)
+  nif                 String   @db.VarChar(255)
   nifReadonly         Boolean  @map("nif_readonly")
   civilite            Civilite?
   nom                 String   @db.VarChar(100)
