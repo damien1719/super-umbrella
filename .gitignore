@@ -18,6 +18,8 @@ build/
 .env.production.local
 /frontend/.env
 /backend/.env
+backend/coverage/
+
 
 # Système
 .DS_Store

@@ -1,0 +1,8 @@
+
+
+> frontend@1.0.0 lint /Users/mossuz/Documents/Documents personnels/super-umbrella/frontend
+> eslint . --ext .ts,.tsx,.js,.jsx --fix
+
+Warning: React version not specified in eslint-plugin-react settings. See https://github.com/jsx-eslint/eslint-plugin-react#configuration .
+(node:27593) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

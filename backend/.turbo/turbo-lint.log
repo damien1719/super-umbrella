@@ -1,0 +1,5 @@
+
+
+> backend@1.0.0 lint /Users/mossuz/Documents/Documents personnels/super-umbrella/backend
+> eslint . --ext .ts
+
