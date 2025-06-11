@@ -1,0 +1,366 @@
+{
+    "status": 0,
+    "message": "",
+    "datas": {
+        "Profil": {
+            "Oid": 42524959,
+            "Valide": true
+        },
+        "Composants": [
+            {
+                "Oid": 142493052,
+                "Article": {
+                    "Oid": 559723,
+                    "Mnem": "IMOTERR",
+                    "prTexte": "Terrain",
+                    "Description": "Il faut toujours laisser un composant terrain, qui correspond au foncier. Cela n\u2019est pas li\u00e9 au fait d\u2019avoir un jardin.",
+                    "Groupe": "",
+                    "Famille": {
+                        "Oid": 634839,
+                        "Mnem": "JD2M_COMPOSANT",
+                        "Code": 4
+                    },
+                    "Compte": {
+                        "Oid": 67651,
+                        "Mnem": "211550",
+                        "Case": "426\/516\/Terrains"
+                    },
+                    "NonLiee": false,
+                    "DocPrixMin": -1,
+                    "DocRequired": false,
+                    "ImmoAjout": false,
+                    "ImmoGroupe": 65536,
+                    "ImmoPrixMini": 600,
+                    "CommentRequired": false,
+                    "DureeMini": -1,
+                    "DureeMaxi": -1,
+                    "DureeDefaut": -1,
+                    "DureeRequis": false,
+                    "ModeAvance": false,
+                    "ExploitantRequis": false,
+                    "PeriodeRequis": false,
+                    "ImmoAide": "",
+                    "GroupeSaisie": "",
+                    "DuplicateMonth": false
+                },
+                "Amortissable": false,
+                "Ventilation": 19.1326,
+                "MiseEnService": "2021-10-15",
+                "DateSortie": "",
+                "ValeurSortie": {
+                    "montant": 0,
+                    "devise": "EUR",
+                    "fmt": "0,00\u00a0\u20ac"
+                },
+                "CauseSortie": 0,
+                "PrixProfil": {
+                    "montant": 12924.07,
+                    "devise": "EUR",
+                    "fmt": "12\u202f924,07\u00a0\u20ac"
+                },
+                "ValeurCauseSortie": "",
+                "Status": 1
+            },
+            {
+                "Oid": 142493051,
+                "Article": {
+                    "Oid": 559851,
+                    "Mnem": "IMOGROS",
+                    "prTexte": "Gros oeuvre",
+                    "Description": "",
+                    "Groupe": "",
+                    "Famille": {
+                        "Oid": 634839,
+                        "Mnem": "JD2M_COMPOSANT",
+                        "Code": 4
+                    },
+                    "Compte": {
+                        "Oid": 67657,
+                        "Mnem": "213150",
+                        "Case": "436\/526\/Constructions"
+                    },
+                    "NonLiee": false,
+                    "DocPrixMin": -1,
+                    "DocRequired": false,
+                    "ImmoAjout": false,
+                    "ImmoGroupe": 256,
+                    "ImmoPrixMini": 600,
+                    "CommentRequired": false,
+                    "DureeMini": 5,
+                    "DureeMaxi": 99,
+                    "DureeDefaut": 0,
+                    "DureeRequis": true,
+                    "ModeAvance": false,
+                    "ExploitantRequis": false,
+                    "PeriodeRequis": false,
+                    "ImmoAide": "",
+                    "GroupeSaisie": "",
+                    "DuplicateMonth": false
+                },
+                "Amortissable": true,
+                "Ventilation": 55.996,
+                "Duree": 75,
+                "MiseEnService": "2021-10-15",
+                "DateSortie": "",
+                "ValeurSortie": {
+                    "montant": 0,
+                    "devise": "EUR",
+                    "fmt": "0,00\u00a0\u20ac"
+                },
+                "CauseSortie": 0,
+                "PrixProfil": {
+                    "montant": 37825.3,
+                    "devise": "EUR",
+                    "fmt": "37\u202f825,30\u00a0\u20ac"
+                },
+                "ValeurCauseSortie": "",
+                "Status": 1
+            },
+            {
+                "Oid": 142493048,
+                "Article": {
+                    "Oid": 559848,
+                    "Mnem": "IMOELEC",
+                    "prTexte": "Installation \u00e9lectrique",
+                    "Description": "",
+                    "Groupe": "",
+                    "Famille": {
+                        "Oid": 634839,
+                        "Mnem": "JD2M_COMPOSANT",
+                        "Code": 4
+                    },
+                    "Compte": {
+                        "Oid": 67657,
+                        "Mnem": "213150",
+                        "Case": "436\/526\/Constructions"
+                    },
+                    "NonLiee": false,
+                    "DocPrixMin": -1,
+                    "DocRequired": false,
+                    "ImmoAjout": false,
+                    "ImmoGroupe": 256,
+                    "ImmoPrixMini": 600,
+                    "CommentRequired": false,
+                    "DureeMini": 15,
+                    "DureeMaxi": 40,
+                    "DureeDefaut": 30,
+                    "DureeRequis": true,
+                    "ModeAvance": false,
+                    "ExploitantRequis": false,
+                    "PeriodeRequis": false,
+                    "ImmoAide": "",
+                    "GroupeSaisie": "",
+                    "DuplicateMonth": false
+                },
+                "Amortissable": true,
+                "Ventilation": 0,
+                "Duree": 30,
+                "MiseEnService": "2021-10-15",
+                "DateSortie": "",
+                "ValeurSortie": {
+                    "montant": 0,
+                    "devise": "EUR",
+                    "fmt": "0,00\u00a0\u20ac"
+                },
+                "CauseSortie": 0,
+                "PrixProfil": {
+                    "montant": 6536.99,
+                    "devise": "EUR",
+                    "fmt": "6\u202f536,99\u00a0\u20ac"
+                },
+                "ValeurCauseSortie": "",
+                "Status": 1
+            },
+            {
+                "Oid": 142493047,
+                "Article": {
+                    "Oid": 559849,
+                    "Mnem": "IMOETAN",
+                    "prTexte": "Etanch\u00e9it\u00e9",
+                    "Description": "",
+                    "Groupe": "",
+                    "Famille": {
+                        "Oid": 634839,
+                        "Mnem": "JD2M_COMPOSANT",
+                        "Code": 4
+                    },
+                    "Compte": {
+                        "Oid": 67657,
+                        "Mnem": "213150",
+                        "Case": "436\/526\/Constructions"
+                    },
+                    "NonLiee": false,
+                    "DocPrixMin": -1,
+                    "DocRequired": false,
+                    "ImmoAjout": false,
+                    "ImmoGroupe": 256,
+                    "ImmoPrixMini": 600,
+                    "CommentRequired": false,
+                    "DureeMini": 0,
+                    "DureeMaxi": 0,
+                    "DureeDefaut": 25,
+                    "DureeRequis": true,
+                    "ModeAvance": false,
+                    "ExploitantRequis": false,
+                    "PeriodeRequis": false,
+                    "ImmoAide": "",
+                    "GroupeSaisie": "",
+                    "DuplicateMonth": false
+                },
+                "Amortissable": true,
+                "Ventilation": 8.7105,
+                "Duree": 25,
+                "MiseEnService": "2021-10-15",
+                "DateSortie": "",
+                "ValeurSortie": {
+                    "montant": 0,
+                    "devise": "EUR",
+                    "fmt": "0,00\u00a0\u20ac"
+                },
+                "CauseSortie": 0,
+                "PrixProfil": {
+                    "montant": 5883.94,
+                    "devise": "EUR",
+                    "fmt": "5\u202f883,94\u00a0\u20ac"
+                },
+                "ValeurCauseSortie": "",
+                "Status": 1
+            },
+            {
+                "Oid": 142493049,
+                "Article": {
+                    "Oid": 559724,
+                    "Mnem": "IMOTOIT",
+                    "prTexte": "Toiture",
+                    "Description": "",
+                    "Groupe": "",
+                    "Famille": {
+                        "Oid": 634839,
+                        "Mnem": "JD2M_COMPOSANT",
+                        "Code": 4
+                    },
+                    "Compte": {
+                        "Oid": 67657,
+                        "Mnem": "213150",
+                        "Case": "436\/526\/Constructions"
+                    },
+                    "NonLiee": false,
+                    "DocPrixMin": -1,
+                    "DocRequired": false,
+                    "ImmoAjout": false,
+                    "ImmoGroupe": 256,
+                    "ImmoPrixMini": 600,
+                    "CommentRequired": false,
+                    "DureeMini": 0,
+                    "DureeMaxi": 0,
+                    "DureeDefaut": 25,
+                    "DureeRequis": true,
+                    "ModeAvance": false,
+                    "ExploitantRequis": false,
+                    "PeriodeRequis": false,
+                    "ImmoAide": "",
+                    "GroupeSaisie": "",
+                    "DuplicateMonth": false
+                },
+                "Amortissable": true,
+                "Ventilation": 9.9548,
+                "Duree": 25,
+                "MiseEnService": "2021-10-15",
+                "DateSortie": "",
+                "ValeurSortie": {
+                    "montant": 0,
+                    "devise": "EUR",
+                    "fmt": "0,00\u00a0\u20ac"
+                },
+                "CauseSortie": 0,
+                "PrixProfil": {
+                    "montant": 6724.47,
+                    "devise": "EUR",
+                    "fmt": "6\u202f724,47\u00a0\u20ac"
+                },
+                "ValeurCauseSortie": "",
+                "Status": 1
+            },
+            {
+                "Oid": 142493050,
+                "Article": {
+                    "Oid": 1479063,
+                    "Mnem": "IMOAMEC",
+                    "prTexte": "Am\u00e9nagements int\u00e9rieurs",
+                    "Description": "",
+                    "Groupe": "",
+                    "Famille": {
+                        "Oid": 634839,
+                        "Mnem": "JD2M_COMPOSANT",
+                        "Code": 4
+                    },
+                    "Compte": {
+                        "Oid": 67657,
+                        "Mnem": "213150",
+                        "Case": "436\/526\/Constructions"
+                    },
+                    "NonLiee": false,
+                    "DocPrixMin": -1,
+                    "DocRequired": false,
+                    "ImmoAjout": false,
+                    "ImmoGroupe": 256,
+                    "ImmoPrixMini": 600,
+                    "CommentRequired": false,
+                    "DureeMini": 0,
+                    "DureeMaxi": 0,
+                    "DureeDefaut": 12,
+                    "DureeRequis": true,
+                    "ModeAvance": false,
+                    "ExploitantRequis": false,
+                    "PeriodeRequis": false,
+                    "ImmoAide": "",
+                    "GroupeSaisie": "",
+                    "DuplicateMonth": false
+                },
+                "Amortissable": true,
+                "Ventilation": 6.2061,
+                "Duree": 12,
+                "MiseEnService": "2021-10-15",
+                "DateSortie": "",
+                "ValeurSortie": {
+                    "montant": 0,
+                    "devise": "EUR",
+                    "fmt": "0,00\u00a0\u20ac"
+                },
+                "CauseSortie": 0,
+                "PrixProfil": {
+                    "montant": 17863.31,
+                    "devise": "EUR",
+                    "fmt": "17\u202f863,31\u00a0\u20ac"
+                },
+                "ValeurCauseSortie": "",
+                "Status": 1
+            }
+        ],
+        "Profils": [
+            {
+                "Oid": 42524959,
+                "prTexte": "Standard B",
+                "Description": "Prend en compte le prix au m2 de votre logement apr\u00e8s travaux \u00e9ventuels afin de d\u00e9terminer la part du terrain (non amortissable) dans la valeur de votre bien. La part terrain retenue est de 15 %."
+            },
+            {
+                "Oid": 7630186,
+                "prTexte": "R\u00e9sidence principale ou sous location",
+                "Description": "Applicable pour les r\u00e9sidences principales, les sous locations ..."
+            },
+            {
+                "Oid": 1476274,
+                "prTexte": "D\u00e9membrement",
+                "Description": "La ventilation entre l'usufruit et la nue propri\u00e9t\u00e9 doit \u00eatre d\u00e9termin\u00e9e en fonction de l'age de l'usufruitier suivant le bar\u00eame de l'article 669 du CGI. La nue propri\u00e9t\u00e9 n'\u00e9tant pas inscrite au bilan elle ne s'amorti pas. L'usufruit doit \u00eatre amorti sur l'esp\u00e9rance de vie de l'usufruitier telle que calcul\u00e9e par l'INSEE."
+            },
+            {
+                "Oid": 56866736,
+                "prTexte": "Emphyt\u00e9ose Terrain",
+                "Description": "Ce profil sp\u00e9cifique ne doit \u00eatre utilis\u00e9 que lorsque le logement est construit sur un terrain qui n'est pas la propri\u00e9t\u00e9 de l'exploitant mais mis \u00e0 disposition \u00e0 travers un bail Emphyt\u00e9otique (Bail de tr\u00e8s longue dur\u00e9e). La dur\u00e9e du composant \"Droit au bail\" doit \u00eatre ajust\u00e9e pour \u00eatre fix\u00e9e \u00e0 la dur\u00e9e restant \u00e0 courrir du bail."
+            }
+        ]
+    },
+    "locale": "fr-fr",
+    "langue": "fr",
+    "version": "1.9.8"
+}

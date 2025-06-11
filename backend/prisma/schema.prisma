@@ -108,6 +108,8 @@ model Activity {
   fiscalYears   FiscalYear[]   @relation("Activity_FiscalYears")
 
   immobilisations Immobilisation[]
+  emprunts Emprunt[]
+  operations Operation[]
 
   @@map("Activity")
 }
@@ -221,6 +223,8 @@ model FiscalYear {
 
   articles   Article[]
   immobilisations Immobilisation[]
+  emprunts Emprunt[]
+  operations Operation[]
 
   @@map("fiscyear")
 }
@@ -336,7 +340,9 @@ model Logement {
 
   immobilisations Immobilisation[]
 
-  Emprunts Emprunt[]
+  emprunts  Emprunt[]  @relation("LogementEmprunts")
+  operations Operation[]
+
 
   @@map("logement")
 }
@@ -460,6 +466,8 @@ model Immobilisation {
 
   fiscalYear         FiscalYear  @relation(fields: [anneeId], references: [id])
   anneeId            BigInt
+
+  operations Operation[]
 
   @@map("immobilisation")
   @@index([activityId, anneeId])

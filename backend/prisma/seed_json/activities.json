@@ -1,0 +1,103 @@
+{
+    "status": 0,
+    "message": "",
+    "datas": [
+    {
+    "Oid": 139054534,
+    "prTexte": "MOSSUZ DAMIEN",
+    "CanModify": false,
+    "Integrale": false,
+    "RaisonSociale": "MOSSUZ DAMIEN",
+    "FormeJuridique": {
+    "Oid": 51968503,
+    "prTexte": "Entrepreneur individuel",
+    "Invalid": false
+    },
+    "CoExploitation": false,
+    "NumeroSIRET": "90187936100011",
+    "TVA": false,
+    "ROF": {
+    "Oid": 2878107,
+    "prTexte": "BIC1"
+    },
+    "ROFTVA": {
+    "Oid": null,
+    "prTexte": null
+    },
+    "ROFReadonly": true,
+    "NumeroTVA": "FR23901879361",
+    "SIE": {
+    "Oid": 29079431,
+    "Email": "sie.chartreuse-gresivaudan@dgfip.finances.gouv.fr",
+    "prTexte": "SERVICE IMPOTS DES ENTREPRISES GRENOBLE CHARTREUSE GRESI 38, Ave Rhin Et Danube 38047 Grenoble Cedex 2 France"
+    },
+    "DebutActivite": "2021-07-28",
+    "DebutRegimeReel": "",
+    "AnneeDebutCompta": 2021,
+    "PremiereAnneeOuverte": 2024,
+    "Offre": "Offre Essentielle 2024",
+    "Societe": {
+    "Oid": 37127177,
+    "prTexte": "JD2M",
+    "LogoUrl": "https:\/\/app.jedeclaremonmeuble.com\/res\/logo\/37127177\/logo.jpg?h=40&mod=1749655163"
+    },
+    "DerniereAnneeFermee": 2024,
+    "CanInitiate": false,
+    "FinActivite": "",
+    "FinActiviteCause": 0,
+    "DateCauseCessation": "",
+    "FraisAcquisition": 1,
+    "FraisAcquisitionAnnee": 2021,
+    "FraisAcquisitionLabel": "Charges (2021)",
+    "Annees": 4,
+    "AnneeCloturee": true,
+    "Adresse": {
+    "NumeroRue": "9",
+    "Adresse": "Rue Andre Maginot",
+    "AdresseComplement": "",
+    "CodePostal": "38000",
+    "Ville": "Grenoble",
+    "Etat": {
+    "prTexte": "",
+    "Mnem": null
+    },
+    "Pays": {
+    "prTexte": "France",
+    "Mnem": "FR"
+    }
+    },
+    "FraisAcquisitionConfirmer": false,
+    "FraisAcquisitionOption": false,
+    "ModifierDebutActivite": false,
+    "NbreActivite": 1,
+    "Client": {
+    "TelephoneMobile": {
+    "num": "",
+    "country": "",
+    "int": "",
+    "mobile": false,
+    "fmt": ""
+    },
+    "TelephonePerso": {
+    "num": "",
+    "country": "",
+    "int": "",
+    "mobile": false,
+    "fmt": ""
+    },
+    "TelephoneProf": {
+    "num": "",
+    "country": "",
+    "int": "",
+    "mobile": false,
+    "fmt": ""
+    }
+    },
+    "BdcEnAttentes": [],
+    "hasPaiedYear": false
+    }
+    ],
+    "locale": "fr-fr",
+    "langue": "fr",
+    "version": "1.9.8"
+    }
