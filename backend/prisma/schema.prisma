@@ -1,0 +1,554 @@
+// 1. Source de données
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl  = env("DATABASE_URL")
+}
+
+// 2. Générateur de client
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 3. Enums
+enum RegimeCode {
+  REAL
+  MICRO
+}
+
+enum Civilite {
+  M    // Monsieur
+  MM   // Madame
+}
+
+enum AmortMethode {
+  LINEAIRE
+  DEGRESSIF
+}
+
+// 4. Modèles (tables)
+
+
+//Profile
+model Profile {
+  oid                 BigInt   @id
+  prTexte             String   @db.VarChar(255)
+  nif                 String   @db.VarChar(20)
+  nifReadonly         Boolean  @map("nif_readonly")
+  civilite            Civilite?
+  nom                 String   @db.VarChar(100)
+  nomUsage            String?  @db.VarChar(100)
+  activiteReadonly    Boolean
+  prenom              String   @db.VarChar(100)
+  email               String?  @db.VarChar(255)
+  telephonePersoNum   String?  @db.VarChar(50)
+  telephoneMobileNum  String?  @db.VarChar(50)
+
+  Logement            Logement[]
+  @@map("profile")
+}
+
+
+//Activity
+model Activity {
+  id                       BigInt           @id @map("Oid")
+  prTexte                  String
+  canModify                Boolean
+  integrale                Boolean
+  raisonSociale            String
+  coExploitation           Boolean
+  numeroSIRET              String
+  tva                      Boolean
+  rofReadonly              Boolean
+  numeroTVA                String
+  debutActivite            DateTime
+  debutRegimeReel          String?
+  anneeDebutCompta         Int
+  premiereAnneeOuverte     Int
+  offre                    String
+  derniereAnneeFermee      Int
+  canInitiate              Boolean
+  finActivite              String?
+  finActiviteCause         Int
+  dateCauseCessation       String?
+  fraisAcquisition         Int
+  fraisAcquisitionAnnee    Int
+  fraisAcquisitionLabel    String
+  annees                   Int
+  anneeCloturee            Boolean
+  fraisAcquisitionConfirmer Boolean
+  fraisAcquisitionOption   Boolean
+  modifierDebutActivite    Boolean
+  nbreActivite             Int
+  hasPaiedYear             Boolean
+
+  // relations
+  formeJuridique   FormeJuridique? @relation("FormeJuridique_Activities",fields: [formeJuridiqueOid], references: [Oid])
+  formeJuridiqueOid BigInt?
+
+  rof         RoF? @relation("Entreprise_ROF", fields: [rofOid], references: [Oid])
+  rofOid      BigInt?
+
+  roftva      RoF? @relation("Entreprise_ROFTVA", fields: [roftvaOid], references: [Oid])
+  roftvaOid   BigInt?
+
+  sie         SIE? @relation(fields: [sieOid], references: [Oid])
+  sieOid      BigInt?
+
+  societe     Societe? @relation(fields: [societeOid], references: [Oid])
+  societeOid  BigInt?
+
+  adresse     Adresse? @relation(fields: [adresseId], references: [id])
+  adresseId   BigInt?
+
+  client      Client?  @relation(fields: [clientId], references: [id])
+  clientId    BigInt?
+
+  logements    Logement[]
+  fiscalYears   FiscalYear[]   @relation("Activity_FiscalYears")
+
+  immobilisations Immobilisation[]
+
+  @@map("Activity")
+}
+
+model FormeJuridique {
+  Oid      BigInt  @id
+  prTexte  String
+  invalid  Boolean
+  activities Activity[] @relation("FormeJuridique_Activities")
+}
+
+model RoF {
+  Oid                 BigInt  @id
+  prTexte             String?
+  entreprisesROF      Activity[] @relation("Entreprise_ROF")
+  entreprisesROFTVA   Activity[] @relation("Entreprise_ROFTVA")
+}
+
+model SIE {
+  Oid         BigInt @id
+  prTexte     String
+  email       String
+  activities  Activity[]
+}
+
+model Societe {
+  Oid         BigInt @id
+  prTexte     String
+  logoUrl     String
+  activities  Activity[]
+}
+
+model Adresse {
+  id                BigInt   @id @default(autoincrement())
+  numeroRue         String
+  adresse           String
+  adresseComplement String?
+  codePostal        String
+  ville             String
+  etatTexte         String?
+  etatMnem          String?
+  paysTexte         String
+  paysMnem          String
+
+  activities        Activity[]
+  logements           Logement[]
+}
+
+model Client {
+  id         BigInt @id @default(autoincrement())
+  // autres champs de contact possibles
+  activities Activity[]
+}
+
+//Fiscal Year
+model FiscalYear {
+  id                   BigInt            @id @map("Oid")
+  prTexte              String
+  anneeFiscale         Int
+  importCompta         Boolean
+  importRCSV           Boolean
+  importDCSV           Boolean
+  repriseCompta        Boolean          @map("RepriseComptabilite")
+  clotureVersion       Int
+  status               Int
+  debut                DateTime
+  fin                  DateTime
+  integrale            Boolean
+  modeAvance           Boolean
+  step                 Int
+  firstYear            Boolean          @map("FirstYear")
+  yearCount            Int              @map("YearCount")
+  hasSIRET             Boolean          @map("HasSIRET")
+  dateSoumission       String?
+  numeroOGA            String
+  reductionImpotOGA    Int              @map("ReductionImpotOGA")
+  renoncerRIOGA        Boolean
+  reductionImpotOGALabel String
+  commentairesClient   String?
+  repartitionVerifier  Boolean
+  accesOGA             Boolean
+  canCloture           Boolean          @map("CanCloture")
+  validControls        Boolean          @map("ValidControls")
+  testimonial          Boolean
+  dernierControle      DateTime         @map("DernierControle")
+
+  // Relations
+  activityId           BigInt    @map("ActiviteId")
+  activity             Activity  @relation("Activity_FiscalYears",fields: [activityId], references: [id])
+
+  //societe              Societe?         @relation(fields: [societeOid], references: [Oid])
+  //societeOid           BigInt?
+
+  //devise               Devise?          @relation(fields: [deviseOid], references: [Oid])
+  //deviseOid            BigInt?
+
+  //calendrier           Calendrier?      @relation(fields: [calendrierId], references: [id])
+  //calendrierId         BigInt?
+
+  //liasse               Liasse?          @relation(fields: [liasseOid], references: [Oid])
+  //liasseOid            BigInt?
+
+  //teletrans            Teletrans?       @relation(fields: [teletransOid], references: [Oid])
+  //teletransOid         BigInt?
+
+  //oga                  OGA?             @relation(fields: [ogaOid], references: [Oid])
+  //ogaOid               BigInt?
+
+  //reductionDetails     ReductionDetails? @relation(fields: [reductionDetailsId], references: [id])
+  //reductionDetailsId   BigInt?
+
+  articles   Article[]
+  immobilisations Immobilisation[]
+
+  @@map("fiscyear")
+}
+
+
+//model Devise {
+//  Oid              BigInt          @id
+//  prTexte          String
+//  fiscalYears      FiscalYear[]
+//}
+
+//model Calendrier {
+//  id                 BigInt          @id @default(autoincrement())
+//  delaiTeletrans     Int
+//  limiteLiasse       DateTime
+//  limiteLiasseEx     DateTime
+//  clotureBloquee     String?
+//  teletransBloquee   String?
+//  fiscalYear         FiscalYear?
+//}
+
+//model Liasse {
+//  Oid             BigInt        @id
+//  date            DateTime      @map("Date")
+//  provisoire      Boolean
+//  valide          Boolean
+//  urlLiasse       String         @map("UrlLiasse")
+//  url2042Cpro     String         @map("Url2042CPRO")
+//  urlFEC          String         @map("UrlFEC")
+//  url2042Cpros    String         @map("Url2042CPROS")
+//  fiscalYear      FiscalYear?
+//}
+
+//model Teletrans {
+//  Oid            BigInt      @id
+//  date           String       @map("Date")
+//  stateDate      String
+//  statut         Int
+//  erreurs        String?
+// nature         String?
+//  description    String?
+//  libelle        String?
+//  interchange    String
+//  emailSIE       String       @map("EmailSIE")
+//  adresseSIE     String       @map("AdresseSIE")
+//  fiscalYear     FiscalYear?
+//}
+
+//model OGA {
+//  Oid            BigInt      @id
+//  prTexte        String
+//  fiscalYears    FiscalYear[]
+//}
+
+//model ReductionDetails {
+//  id               BigInt             @id @default(autoincrement())
+//  // Colonnes can be stored as Json if needed
+//  lignes           ReductionLine[]
+//  fiscalYear       FiscalYear?
+//}
+
+//model ReductionLine {
+//  id                 BigInt              @id @default(autoincrement())
+//  critere            String
+//  detail             String
+//  eligible           Boolean
+//  mnem               String
+//  reductionDetails   ReductionDetails    @relation(fields: [reductionDetailsId], references: [id])
+//  reductionDetailsId BigInt
+//}
+
+
+//Logement
+model Logement {
+  /// Identifiant unique du logement
+  id                BigInt    @id @map("Oid")
+  /// Libellé d’affichage (adresse complète)
+  libelle           String
+  prTexte           String
+  adresseVide       Boolean
+  dateLocation      DateTime  @map("DateLocation")
+  dateVente         DateTime? @map("DateVente")
+  causeVente        Int       @map("CauseVente")
+  dateAchat         DateTime  @map("DateAchat")
+  dateApport        DateTime? @map("DateApport")
+  adresseComplete   String
+  superficie        Int
+  nbPieces          Int       @map("NbPieces")
+  classement        Int
+  immobilise        Boolean
+  dateModification  DateTime  @map("DateModification")
+  status            Int
+
+  /// Clé étrangère vers l’activité
+  activityId        BigInt    @map("ActiviteId")
+  activity          Activity  @relation(fields: [activityId], references: [id])
+
+  /// Clé étrangère vers le profil propriétaire
+  profilOid         BigInt?   @map("ProfilOid")
+  profil            Profile?  @relation(fields: [profilOid], references: [oid])
+
+  /// Prix d’acquisition
+  prixId            BigInt?   @map("Prix")
+  prix              Price?    @relation("Logement_Prix", fields: [prixId], references: [id])
+
+  /// Prix de vente
+  prixVenteId       BigInt?   @map("PrixVente")
+  prixVente         Price?    @relation("Logement_PrixVente", fields: [prixVenteId], references: [id])
+
+  /// Adresse détaillée
+  adresseId         BigInt?
+  adresse           Adresse?  @relation(fields: [adresseId], references: [id])
+
+  immobilisations Immobilisation[]
+
+  Emprunts Emprunt[]
+
+  @@map("logement")
+}
+
+model Price {
+  id               BigInt    @id @default(autoincrement())
+  montant          Decimal?  @db.Decimal(20,2)
+  devise           String
+  fmt              String
+
+  logementsAchat   Logement[] @relation("Logement_Prix")
+  logementsVente   Logement[] @relation("Logement_PrixVente")
+}
+
+
+//Articles soit le MODELE COMPTABLE
+
+model Famille {
+  id          BigInt   @id @map("familleid")
+  mnem        String   @db.VarChar(50)
+  codeFiscal  Int
+
+  Article     Article[]
+  @@map("famille")
+}
+
+model Compte {
+  id        BigInt   @id @map("compteid")
+  mnem      String   @db.VarChar(10)
+  caseCerfa String?  @db.VarChar(5)
+
+  Article   Article[]
+  @@map("compte")
+}
+
+model Article {
+  id                       BigInt      @id @map("Oid")
+  masked                   Boolean
+  mnem                     String?   @db.VarChar(20)
+  prTexte                  String    @db.VarChar(255)
+  description              String?
+  groupe                   String?
+  nonLiee                  Boolean
+  docPrixMin               Decimal?  @db.Decimal(10,2)
+  docRequired              Boolean
+  immoAjout                Boolean
+  immoGroupe               Int?
+  immoPrixMini             Decimal?  @db.Decimal(12,2)
+  commentRequired          Boolean
+  dureeMini                Int
+  dureeMaxi                Int
+  dureeDefaut              Int
+  dureeRequis              Boolean
+  modeAvance               Boolean
+  exploitantRequis         Boolean
+  periodeRequis            Boolean
+  immoAide                 String?
+  groupeSaisie             String?
+  duplicateMonth           Boolean
+
+  familleOid               BigInt
+  famille                  Famille   @relation(fields: [familleOid], references: [id])
+  compteOid                BigInt?
+  compte                   Compte?   @relation(fields: [compteOid], references: [id])
+
+  // A prior id de fiscalYear - bizarre non? 
+  fiscalYear         FiscalYear  @relation(fields: [anneeId], references: [id])
+  anneeId            BigInt
+
+  Operation                Operation[]
+  ArticleLinked_groupOid   ArticleLinked[] @relation("ArticleLinked_groupOidToArticle")
+  ArticleLinked_linkedOid  ArticleLinked[] @relation("ArticleLinked_linkedOidToArticle")
+
+  immobilisations Immobilisation[]
+
+  @@map("article")
+}
+
+model ArticleLinked {
+  groupOid  BigInt
+  linkedOid BigInt
+
+  group     Article  @relation("ArticleLinked_groupOidToArticle", fields: [groupOid], references: [id])
+  linked    Article  @relation("ArticleLinked_linkedOidToArticle", fields: [linkedOid], references: [id])
+
+  @@id([groupOid, linkedOid])
+  @@map("articlelinked")
+}
+
+
+// Immobilisation
+model Immobilisation {
+  id                 BigInt      @id @map("Oid")
+  prTexte            String      @map("prTexte")
+  libelle            String
+  dateFinalisee      DateTime?   @map("DateFinalisee")
+  miseEnService      DateTime    @map("MiseEnService")
+  duree              Int         @map("Duree")
+  dateSortie         DateTime?   @map("DateSortie")
+  valeurSortieMontant Float      @map("ValeurSortie.montant")
+  valeurSortieDevise String     @map("ValeurSortie.devise")
+  valeurSortieFmt    String     @map("ValeurSortie.fmt")
+  causeSortie        Int         @map("CauseSortie")
+  valeurCauseSortie  String?     @map("ValeurCauseSortie")
+  status             Int         @map("Status")
+
+  // Prix aplati
+  prixMontant        Float       @map("Prix.montant")
+  prixDevise         String      @map("Prix.devise")
+  prixFmt            String      @map("Prix.fmt")
+
+  // Relations
+  article            Article     @relation(fields: [articleOid], references: [id])
+  articleOid         BigInt      @map("Article.Oid")
+
+  logement           Logement    @relation(fields: [logementOid], references: [id])
+  logementOid        BigInt      @map("Logement.Oid")
+
+  activityId           BigInt    @map("ActiviteId")
+  activity             Activity  @relation(fields: [activityId], references: [id])
+
+  fiscalYear         FiscalYear  @relation(fields: [anneeId], references: [id])
+  anneeId            BigInt
+
+  @@map("immobilisation")
+  @@index([activityId, anneeId])
+}
+
+
+//Emprunt
+
+model Emprunt {
+  id                   BigInt    @id @map("Oid")
+  prTexte              String
+  libelle              String
+  logementId           BigInt
+  Logement             Logement    @relation("LogementEmprunts", fields: [logementId], references: [id])
+  dateEmprunt          DateTime?
+  dateEcheance         DateTime?
+  dateConstitution     String?
+  capitalEmprunte      Float
+  capitalInitial       Float
+  echeancesDiffere     Int
+  capitalRestant       Float
+  capitalRestantDate   DateTime?
+  commentairesClient   String?
+  partExclure          Int
+  partActive           Int
+  partVentile          Int
+  taux                 Float
+  tauxType             Int
+  echeancesInterval    Int
+  echeancesMontant     Float
+  assuranceIncluse     Boolean
+  assuranceType        Int
+  assuranceTaux        Float
+  assuranceMontant     Float
+  deviseOid            Int       @map("DeviseOid")
+  constitue            Boolean
+  status               Int
+
+  // Relations
+  activityId           BigInt
+  Activity             Activity  @relation(fields: [activityId], references: [id])
+
+  fiscalYear         FiscalYear  @relation(fields: [anneeId], references: [id])
+  anneeId            BigInt
+
+}
+
+
+// Opérations
+
+model Operation {
+  id            BigInt        @id @map("operationid")
+  libelle       String?
+  date          DateTime
+  dateEcheance  DateTime?
+  debut         DateTime?
+  fin           DateTime?
+  montantTtc    Decimal       @db.Decimal(12,2)
+  montantTva    Decimal?      @db.Decimal(12,2)
+  documentUrl   String?
+
+  // Relations
+  activityId           BigInt
+  Activity             Activity  @relation(fields: [activityId], references: [id])
+
+  fiscalYear       FiscalYear    @relation(fields: [anneeId],   references: [id])
+  anneeId          BigInt
+
+  logementId    BigInt?
+  logement      Logement?     @relation(fields: [logementId], references: [id])
+  
+  articleId     BigInt?
+  article       Article?      @relation(fields: [articleId], references: [id])
+  
+  payeurId      BigInt?
+  payeur        Payeur?       @relation(fields: [payeurId], references: [id])
+  
+  immoId        BigInt?
+  immobilisation Immobilisation? @relation(fields: [immoId], references: [id])
+
+  @@map("operation")
+}
+
+
+
+model Payeur {
+  id        BigInt    @id @map("payeurid")
+  nom       String?
+
+  Operation Operation[]
+  @@map("payeur")
+}

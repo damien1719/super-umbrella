@@ -1,0 +1,609 @@
+{
+    "status": 0,
+    "message": "",
+    "datas": [
+        {
+            "Oid": 142501563,
+            "Article": {
+                "Oid": 559852,
+                "Mnem": "IMOPLOM",
+                "prTexte": "Plomberie",
+                "Description": "",
+                "Groupe": "",
+                "Famille": {
+                    "Oid": 634839,
+                    "Mnem": "JD2M_COMPOSANT",
+                    "Code": 4
+                },
+                "Compte": {
+                    "Oid": 67657,
+                    "Mnem": "213150",
+                    "Case": "436\/526\/Constructions"
+                },
+                "NonLiee": false,
+                "DocPrixMin": -1,
+                "DocRequired": false,
+                "ImmoAjout": false,
+                "ImmoGroupe": 256,
+                "ImmoPrixMini": 600,
+                "CommentRequired": false,
+                "DureeMini": 10,
+                "DureeMaxi": 40,
+                "DureeDefaut": 20,
+                "DureeRequis": true,
+                "ModeAvance": false,
+                "ExploitantRequis": false,
+                "PeriodeRequis": false,
+                "ImmoAide": "",
+                "GroupeSaisie": "",
+                "DuplicateMonth": false
+            },
+            "prTexte": "Plomberie - Travaux de plomberie",
+            "Logement": {
+                "Oid": 142493021,
+                "prTexte": "9 rue Andr\u00e9 Maginot"
+            },
+            "Libelle": "Travaux de plomberie",
+            "Prix": {
+                "montant": 2958.39,
+                "devise": "EUR",
+                "fmt": "2\u202f958,39\u00a0\u20ac"
+            },
+            "DateFinalisee": "",
+            "MiseEnService": "2021-10-15",
+            "Duree": 20,
+            "DateSortie": "",
+            "ValeurSortie": {
+                "montant": 0,
+                "devise": "EUR",
+                "fmt": "0,00\u00a0\u20ac"
+            },
+            "CauseSortie": 0,
+            "ValeurCauseSortie": "",
+            "Status": 2
+        },
+        {
+            "Oid": 142502662,
+            "Article": {
+                "Oid": 1479063,
+                "Mnem": "IMOAMEC",
+                "prTexte": "Am\u00e9nagements int\u00e9rieurs",
+                "Description": "",
+                "Groupe": "",
+                "Famille": {
+                    "Oid": 634839,
+                    "Mnem": "JD2M_COMPOSANT",
+                    "Code": 4
+                },
+                "Compte": {
+                    "Oid": 67657,
+                    "Mnem": "213150",
+                    "Case": "436\/526\/Constructions"
+                },
+                "NonLiee": false,
+                "DocPrixMin": -1,
+                "DocRequired": false,
+                "ImmoAjout": false,
+                "ImmoGroupe": 256,
+                "ImmoPrixMini": 600,
+                "CommentRequired": false,
+                "DureeMini": 0,
+                "DureeMaxi": 0,
+                "DureeDefaut": 12,
+                "DureeRequis": true,
+                "ModeAvance": false,
+                "ExploitantRequis": false,
+                "PeriodeRequis": false,
+                "ImmoAide": "",
+                "GroupeSaisie": "",
+                "DuplicateMonth": false
+            },
+            "prTexte": "Am\u00e9nagements int\u00e9rieurs - Travaux plaquiste",
+            "Logement": {
+                "Oid": 142493021,
+                "prTexte": "9 rue Andr\u00e9 Maginot"
+            },
+            "Libelle": "Travaux plaquiste",
+            "Prix": {
+                "montant": 3724.5,
+                "devise": "EUR",
+                "fmt": "3\u202f724,50\u00a0\u20ac"
+            },
+            "DateFinalisee": "",
+            "MiseEnService": "2021-10-15",
+            "Duree": 15,
+            "DateSortie": "",
+            "ValeurSortie": {
+                "montant": 0,
+                "devise": "EUR",
+                "fmt": "0,00\u00a0\u20ac"
+            },
+            "CauseSortie": 0,
+            "ValeurCauseSortie": "",
+            "Status": 2
+        },
+        {
+            "Oid": 142503112,
+            "Article": {
+                "Oid": 1479063,
+                "Mnem": "IMOAMEC",
+                "prTexte": "Am\u00e9nagements int\u00e9rieurs",
+                "Description": "",
+                "Groupe": "",
+                "Famille": {
+                    "Oid": 634839,
+                    "Mnem": "JD2M_COMPOSANT",
+                    "Code": 4
+                },
+                "Compte": {
+                    "Oid": 67657,
+                    "Mnem": "213150",
+                    "Case": "436\/526\/Constructions"
+                },
+                "NonLiee": false,
+                "DocPrixMin": -1,
+                "DocRequired": false,
+                "ImmoAjout": false,
+                "ImmoGroupe": 256,
+                "ImmoPrixMini": 600,
+                "CommentRequired": false,
+                "DureeMini": 0,
+                "DureeMaxi": 0,
+                "DureeDefaut": 12,
+                "DureeRequis": true,
+                "ModeAvance": false,
+                "ExploitantRequis": false,
+                "PeriodeRequis": false,
+                "ImmoAide": "",
+                "GroupeSaisie": "",
+                "DuplicateMonth": false
+            },
+            "prTexte": "Am\u00e9nagements int\u00e9rieurs - Carrelage",
+            "Logement": {
+                "Oid": 142493021,
+                "prTexte": "9 rue Andr\u00e9 Maginot"
+            },
+            "Libelle": "Carrelage",
+            "Prix": {
+                "montant": 2323.8,
+                "devise": "EUR",
+                "fmt": "2\u202f323,80\u00a0\u20ac"
+            },
+            "DateFinalisee": "",
+            "MiseEnService": "2021-10-15",
+            "Duree": 10,
+            "DateSortie": "",
+            "ValeurSortie": {
+                "montant": 0,
+                "devise": "EUR",
+                "fmt": "0,00\u00a0\u20ac"
+            },
+            "CauseSortie": 0,
+            "ValeurCauseSortie": "",
+            "Status": 2
+        },
+        {
+            "Oid": 142503317,
+            "Article": {
+                "Oid": 559721,
+                "Mnem": "IMOTRAV",
+                "prTexte": "Travaux",
+                "Description": "D\u00e9pense augmentant la valeur du bien, ou sa dur\u00e9e d\u2019usage dans le temps",
+                "Groupe": "",
+                "Famille": {
+                    "Oid": 559697,
+                    "Mnem": "JD2M_IMMO",
+                    "Code": 2
+                },
+                "Compte": {
+                    "Oid": 67673,
+                    "Mnem": "218100",
+                    "Case": "456\/546\/Installations g\u00e9n\u00e9rales agencements divers"
+                },
+                "NonLiee": false,
+                "DocPrixMin": -1,
+                "DocRequired": false,
+                "ImmoAjout": false,
+                "ImmoGroupe": 256,
+                "ImmoPrixMini": 600,
+                "CommentRequired": false,
+                "DureeMini": 5,
+                "DureeMaxi": 30,
+                "DureeDefaut": 10,
+                "DureeRequis": true,
+                "ModeAvance": false,
+                "ExploitantRequis": false,
+                "PeriodeRequis": false,
+                "ImmoAide": "",
+                "GroupeSaisie": "",
+                "DuplicateMonth": false
+            },
+            "prTexte": "Travaux - Fen\u00eatres",
+            "Logement": {
+                "Oid": 142493021,
+                "prTexte": "9 rue Andr\u00e9 Maginot"
+            },
+            "Libelle": "Fen\u00eatres",
+            "Prix": {
+                "montant": 3873.6,
+                "devise": "EUR",
+                "fmt": "3\u202f873,60\u00a0\u20ac"
+            },
+            "DateFinalisee": "",
+            "MiseEnService": "2021-10-15",
+            "Duree": 25,
+            "DateSortie": "",
+            "ValeurSortie": {
+                "montant": 0,
+                "devise": "EUR",
+                "fmt": "0,00\u00a0\u20ac"
+            },
+            "CauseSortie": 0,
+            "ValeurCauseSortie": "",
+            "Status": 2
+        },
+        {
+            "Oid": 142503880,
+            "Article": {
+                "Oid": 559848,
+                "Mnem": "IMOELEC",
+                "prTexte": "Installation \u00e9lectrique",
+                "Description": "",
+                "Groupe": "",
+                "Famille": {
+                    "Oid": 634839,
+                    "Mnem": "JD2M_COMPOSANT",
+                    "Code": 4
+                },
+                "Compte": {
+                    "Oid": 67657,
+                    "Mnem": "213150",
+                    "Case": "436\/526\/Constructions"
+                },
+                "NonLiee": false,
+                "DocPrixMin": -1,
+                "DocRequired": false,
+                "ImmoAjout": false,
+                "ImmoGroupe": 256,
+                "ImmoPrixMini": 600,
+                "CommentRequired": false,
+                "DureeMini": 15,
+                "DureeMaxi": 40,
+                "DureeDefaut": 30,
+                "DureeRequis": true,
+                "ModeAvance": false,
+                "ExploitantRequis": false,
+                "PeriodeRequis": false,
+                "ImmoAide": "",
+                "GroupeSaisie": "",
+                "DuplicateMonth": false
+            },
+            "prTexte": "Installation \u00e9lectrique - Electricit\u00e9",
+            "Logement": {
+                "Oid": 142493021,
+                "prTexte": "9 rue Andr\u00e9 Maginot"
+            },
+            "Libelle": "Electricit\u00e9",
+            "Prix": {
+                "montant": 6536.99,
+                "devise": "EUR",
+                "fmt": "6\u202f536,99\u00a0\u20ac"
+            },
+            "DateFinalisee": "",
+            "MiseEnService": "2021-10-15",
+            "Duree": 30,
+            "DateSortie": "",
+            "ValeurSortie": {
+                "montant": 0,
+                "devise": "EUR",
+                "fmt": "0,00\u00a0\u20ac"
+            },
+            "CauseSortie": 0,
+            "ValeurCauseSortie": "",
+            "Status": 2
+        },
+        {
+            "Oid": 142508228,
+            "Article": {
+                "Oid": 2922555,
+                "Mnem": "IMOCUI",
+                "prTexte": "Cuisine \u00e9quip\u00e9e",
+                "Description": "",
+                "Groupe": "",
+                "Famille": {
+                    "Oid": 559697,
+                    "Mnem": "JD2M_IMMO",
+                    "Code": 2
+                },
+                "Compte": {
+                    "Oid": 67705,
+                    "Mnem": "218400",
+                    "Case": "476\/566\/Autres immobilisations corporelles"
+                },
+                "NonLiee": false,
+                "DocPrixMin": -1,
+                "DocRequired": false,
+                "ImmoAjout": false,
+                "ImmoGroupe": 8,
+                "ImmoPrixMini": 600,
+                "CommentRequired": false,
+                "DureeMini": 8,
+                "DureeMaxi": 12,
+                "DureeDefaut": 10,
+                "DureeRequis": true,
+                "ModeAvance": false,
+                "ExploitantRequis": false,
+                "PeriodeRequis": false,
+                "ImmoAide": "",
+                "GroupeSaisie": "",
+                "DuplicateMonth": false
+            },
+            "prTexte": "Cuisine \u00e9quip\u00e9e - Cuisine",
+            "Logement": {
+                "Oid": 142493021,
+                "prTexte": "9 rue Andr\u00e9 Maginot"
+            },
+            "Libelle": "Cuisine",
+            "Prix": {
+                "montant": 3197.61,
+                "devise": "EUR",
+                "fmt": "3\u202f197,61\u00a0\u20ac"
+            },
+            "DateFinalisee": "",
+            "MiseEnService": "2021-10-15",
+            "Duree": 10,
+            "DateSortie": "",
+            "ValeurSortie": {
+                "montant": 0,
+                "devise": "EUR",
+                "fmt": "0,00\u00a0\u20ac"
+            },
+            "CauseSortie": 0,
+            "ValeurCauseSortie": "",
+            "Status": 2
+        },
+        {
+            "Oid": 142755995,
+            "Article": {
+                "Oid": 2922531,
+                "Mnem": "IMOELM",
+                "prTexte": "Electrom\u00e9nager",
+                "Description": "",
+                "Groupe": "",
+                "Famille": {
+                    "Oid": 559697,
+                    "Mnem": "JD2M_IMMO",
+                    "Code": 2
+                },
+                "Compte": {
+                    "Oid": 67705,
+                    "Mnem": "218400",
+                    "Case": "476\/566\/Autres immobilisations corporelles"
+                },
+                "NonLiee": false,
+                "DocPrixMin": -1,
+                "DocRequired": false,
+                "ImmoAjout": false,
+                "ImmoGroupe": 2,
+                "ImmoPrixMini": 600,
+                "CommentRequired": false,
+                "DureeMini": 3,
+                "DureeMaxi": 9,
+                "DureeDefaut": 6,
+                "DureeRequis": true,
+                "ModeAvance": false,
+                "ExploitantRequis": false,
+                "PeriodeRequis": false,
+                "ImmoAide": "",
+                "GroupeSaisie": "",
+                "DuplicateMonth": false
+            },
+            "prTexte": "Electrom\u00e9nager - Lave linge et frigo",
+            "Logement": {
+                "Oid": 142493021,
+                "prTexte": "9 rue Andr\u00e9 Maginot"
+            },
+            "Libelle": "Lave linge et frigo",
+            "Prix": {
+                "montant": 530.96,
+                "devise": "EUR",
+                "fmt": "530,96\u00a0\u20ac"
+            },
+            "DateFinalisee": "",
+            "MiseEnService": "2021-10-15",
+            "Duree": 4,
+            "DateSortie": "",
+            "ValeurSortie": {
+                "montant": 0,
+                "devise": "EUR",
+                "fmt": "0,00\u00a0\u20ac"
+            },
+            "CauseSortie": 0,
+            "ValeurCauseSortie": "",
+            "Status": 2
+        },
+        {
+            "Oid": 143926918,
+            "Article": {
+                "Oid": 49250286,
+                "Mnem": "IMOMOI",
+                "prTexte": "Inventaire mobilier",
+                "Description": "Ensemble de mobilier \"d'occasion\" apport\u00e9 depuis le patrimoine priv\u00e9 au moment de la mise en location. Saisir les \u00e9lements ayant une valeur unitaire cons\u00e9quente de mani\u00e8re ind\u00e9pendante en utilisant l'article adapt\u00e9.",
+                "Groupe": "Equipements et entretien",
+                "Famille": {
+                    "Oid": 559697,
+                    "Mnem": "JD2M_IMMO",
+                    "Code": 2
+                },
+                "Compte": {
+                    "Oid": 67705,
+                    "Mnem": "218400",
+                    "Case": "476\/566\/Autres immobilisations corporelles"
+                },
+                "NonLiee": false,
+                "DocPrixMin": -1,
+                "DocRequired": false,
+                "ImmoAjout": true,
+                "ImmoGroupe": 1,
+                "ImmoPrixMini": 600,
+                "CommentRequired": false,
+                "DureeMini": 3,
+                "DureeMaxi": 10,
+                "DureeDefaut": 5,
+                "DureeRequis": true,
+                "ModeAvance": false,
+                "ExploitantRequis": false,
+                "PeriodeRequis": false,
+                "ImmoAide": "",
+                "GroupeSaisie": "",
+                "DuplicateMonth": false
+            },
+            "prTexte": "Inventaire mobilier - Equipement initial appartement",
+            "Logement": {
+                "Oid": 142493021,
+                "prTexte": "9 rue Andr\u00e9 Maginot"
+            },
+            "Libelle": "Equipement initial appartement",
+            "Prix": {
+                "montant": 4090.1,
+                "devise": "EUR",
+                "fmt": "4\u202f090,10\u00a0\u20ac"
+            },
+            "DateFinalisee": "",
+            "MiseEnService": "2021-10-15",
+            "Duree": 5,
+            "DateSortie": "",
+            "ValeurSortie": {
+                "montant": 0,
+                "devise": "EUR",
+                "fmt": "0,00\u00a0\u20ac"
+            },
+            "CauseSortie": 0,
+            "ValeurCauseSortie": "",
+            "Status": 2
+        },
+        {
+            "Oid": 163866091,
+            "Article": {
+                "Oid": 1479063,
+                "Mnem": "IMOAMEC",
+                "prTexte": "Am\u00e9nagements int\u00e9rieurs",
+                "Description": "",
+                "Groupe": "",
+                "Famille": {
+                    "Oid": 634839,
+                    "Mnem": "JD2M_COMPOSANT",
+                    "Code": 4
+                },
+                "Compte": {
+                    "Oid": 67657,
+                    "Mnem": "213150",
+                    "Case": "436\/526\/Constructions"
+                },
+                "NonLiee": false,
+                "DocPrixMin": -1,
+                "DocRequired": false,
+                "ImmoAjout": false,
+                "ImmoGroupe": 256,
+                "ImmoPrixMini": 600,
+                "CommentRequired": false,
+                "DureeMini": 0,
+                "DureeMaxi": 0,
+                "DureeDefaut": 12,
+                "DureeRequis": true,
+                "ModeAvance": false,
+                "ExploitantRequis": false,
+                "PeriodeRequis": false,
+                "ImmoAide": "",
+                "GroupeSaisie": "",
+                "DuplicateMonth": false
+            },
+            "prTexte": "Am\u00e9nagements int\u00e9rieurs - Enduit et peinture",
+            "Logement": {
+                "Oid": 142493021,
+                "prTexte": "9 rue Andr\u00e9 Maginot"
+            },
+            "Libelle": "Enduit et peinture",
+            "Prix": {
+                "montant": 532.5,
+                "devise": "EUR",
+                "fmt": "532,50\u00a0\u20ac"
+            },
+            "DateFinalisee": "",
+            "MiseEnService": "2021-10-15",
+            "Duree": 10,
+            "DateSortie": "",
+            "ValeurSortie": {
+                "montant": 0,
+                "devise": "EUR",
+                "fmt": "0,00\u00a0\u20ac"
+            },
+            "CauseSortie": 0,
+            "ValeurCauseSortie": "",
+            "Status": 2
+        },
+        {
+            "Oid": 163969372,
+            "Article": {
+                "Oid": 1479063,
+                "Mnem": "IMOAMEC",
+                "prTexte": "Am\u00e9nagements int\u00e9rieurs",
+                "Description": "",
+                "Groupe": "",
+                "Famille": {
+                    "Oid": 634839,
+                    "Mnem": "JD2M_COMPOSANT",
+                    "Code": 4
+                },
+                "Compte": {
+                    "Oid": 67657,
+                    "Mnem": "213150",
+                    "Case": "436\/526\/Constructions"
+                },
+                "NonLiee": false,
+                "DocPrixMin": -1,
+                "DocRequired": false,
+                "ImmoAjout": false,
+                "ImmoGroupe": 256,
+                "ImmoPrixMini": 600,
+                "CommentRequired": false,
+                "DureeMini": 0,
+                "DureeMaxi": 0,
+                "DureeDefaut": 12,
+                "DureeRequis": true,
+                "ModeAvance": false,
+                "ExploitantRequis": false,
+                "PeriodeRequis": false,
+                "ImmoAide": "",
+                "GroupeSaisie": "",
+                "DuplicateMonth": false
+            },
+            "prTexte": "Am\u00e9nagements int\u00e9rieurs - R\u00e9novation parquet",
+            "Logement": {
+                "Oid": 142493021,
+                "prTexte": "9 rue Andr\u00e9 Maginot"
+            },
+            "Libelle": "R\u00e9novation parquet",
+            "Prix": {
+                "montant": 258.3,
+                "devise": "EUR",
+                "fmt": "258,30\u00a0\u20ac"
+            },
+            "DateFinalisee": "",
+            "MiseEnService": "2021-10-15",
+            "Duree": 15,
+            "DateSortie": "",
+            "ValeurSortie": {
+                "montant": 0,
+                "devise": "EUR",
+                "fmt": "0,00\u00a0\u20ac"
+            },
+            "CauseSortie": 0,
+            "ValeurCauseSortie": "",
+            "Status": 2
+        }
+    ],
+    "locale": "fr-fr",
+    "langue": "fr",
+    "version": "1.9.8"
+}
