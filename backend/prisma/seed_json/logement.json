@@ -1,0 +1,56 @@
+{
+    "status": 0,
+    "message": "",
+    "datas": [
+        {
+            "Oid": 142493021,
+            "Libelle": "9 rue Andr\u00e9 Maginot",
+            "prTexte": "9 rue Andr\u00e9 Maginot",
+            "AdresseVide": false,
+            "ProfilOid": 42524959,
+            "TVA": false,
+            "Prix": {
+                "montant": 67550,
+                "devise": "EUR",
+                "fmt": "67\u202f550,00\u00a0\u20ac"
+            },
+            "DateLocation": "2021-10-15",
+            "DateVente": "",
+            "CauseVente": 0,
+            "PrixVente": {
+                "montant": 0,
+                "devise": "EUR",
+                "fmt": "0,00\u00a0\u20ac"
+            },
+            "LogementCible": null,
+            "PrixCauseVente": "",
+            "DateAchat": "2021-07-28",
+            "DateApport": "",
+            "Adresse": {
+                "NumeroRue": "9",
+                "Adresse": "Rue Andr\u00e9 Maginot",
+                "AdresseComplement": "1er \u00c9tage \u00c0 Gauche",
+                "CodePostal": "38000",
+                "Ville": "Grenoble",
+                "Etat": {
+                    "prTexte": "",
+                    "Mnem": null
+                },
+                "Pays": {
+                    "prTexte": "France",
+                    "Mnem": "FR"
+                }
+            },
+            "AdresseComplete": "9, Rue Andr\u00e9 Maginot 1er \u00c9tage \u00c0 Gauche 38000 Grenoble France - 1 pi\u00e8ce(s) 30 m2",
+            "Superficie": 30,
+            "NbPieces": 1,
+            "Classement": 10,
+            "Immobilise": true,
+            "DateModification": "2022-04-08T16:10:29+0000",
+            "Status": 2
+        }
+    ],
+    "locale": "fr-fr",
+    "langue": "fr",
+    "version": "1.9.8"
+}
