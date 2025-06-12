@@ -34,6 +34,9 @@ class PrismaClient {
     this.immobilisation = {
       findMany: jest.fn(),
     };
+    this.composant = {
+      findMany: jest.fn(),
+    };
     this.$disconnect = jest.fn();
   }
 }
