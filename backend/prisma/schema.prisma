@@ -46,7 +46,6 @@ model Profile {
   telephonePersoNum   String?  @db.VarChar(50)
   telephoneMobileNum  String?  @db.VarChar(50)
 
-  Logement            Logement[]
   @@map("profile")
 }
 
@@ -200,7 +199,7 @@ model FiscalYear {
 
   // Relations
   activityId           BigInt    @map("ActiviteId")
-  activity             Activity  @relation("Activity_FiscalYears",fields: [activityId], references: [id])
+  activity             Activity  @relation("Activity_FiscalYears",fields: [activityId], references: [id], onDelete: Cascade)
 
   //societe              Societe?         @relation(fields: [societeOid], references: [Oid])
   //societeOid           BigInt?
@@ -223,8 +222,8 @@ model FiscalYear {
   //reductionDetails     ReductionDetails? @relation(fields: [reductionDetailsId], references: [id])
   //reductionDetailsId   BigInt?
 
-  articles   Article[]
-  immobilisations Immobilisation[]
+  //articles   Article[]
+  //immobilisations Immobilisation[]
   emprunts Emprunt[]
   operations Operation[]
 
@@ -304,6 +303,9 @@ model Logement {
   /// Identifiant unique du logement
   id                BigInt    @id @map("Oid")
   /// Libellé d’affichage (adresse complète)
+
+  // PRofil Logement
+  profilOid         BigInt
   libelle           String
   prTexte           String
   adresseVide       Boolean
@@ -322,11 +324,12 @@ model Logement {
 
   /// Clé étrangère vers l’activité
   activityId        BigInt    @map("ActiviteId")
-  activity          Activity  @relation(fields: [activityId], references: [id])
+  activity          Activity  @relation(fields: [activityId], references: [id], onDelete: Cascade)
 
   /// Clé étrangère vers le profil propriétaire
-  profilOid         BigInt?   @map("ProfilOid")
-  profil            Profile?  @relation(fields: [profilOid], references: [oid])
+  // PROFIL LOGEMENT
+  //profilOid         BigInt?   @map("ProfilOid")
+  //profil            Profile?  @relation(fields: [profilOid], references: [oid])
 
   /// Prix d’acquisition
   prixId            BigInt?   @map("Prix")
@@ -348,6 +351,7 @@ model Logement {
 
   @@map("logement")
 }
+
 
 model Price {
   id               BigInt    @id @default(autoincrement())
@@ -374,11 +378,13 @@ model Famille {
 model Compte {
   id        BigInt   @id @map("compteid")
   mnem      String   @db.VarChar(10)
-  caseCerfa String?  @db.VarChar(5)
+  caseCerfa String?  @db.VarChar(155)
 
   Article   Article[]
   @@map("compte")
 }
+
+
 
 model Article {
   id                       BigInt      @id @map("Oid")
@@ -406,13 +412,14 @@ model Article {
   duplicateMonth           Boolean
 
   familleOid               BigInt
-  famille                  Famille   @relation(fields: [familleOid], references: [id])
+  famille                  Famille   @relation(fields: [familleOid], references: [id], onDelete: Cascade)
   compteOid                BigInt?
-  compte                   Compte?   @relation(fields: [compteOid], references: [id])
+  compte                   Compte?   @relation(fields: [compteOid], references: [id], onDelete: Cascade)
 
   // A prior id de fiscalYear - bizarre non? 
-  fiscalYear         FiscalYear  @relation(fields: [anneeId], references: [id])
-  anneeId            BigInt
+  // DEVRAIT ËTRE LIEE A ANNEE CALENDAIRE //
+  // fiscalYear         FiscalYear  @relation(fields: [anneeId], references: [id])
+  // anneeId            BigInt
 
   Operation                Operation[]
   ArticleLinked_groupOid   ArticleLinked[] @relation("ArticleLinked_groupOidToArticle")
@@ -466,13 +473,13 @@ model Immobilisation {
   activityId           BigInt    @map("ActiviteId")
   activity             Activity  @relation(fields: [activityId], references: [id])
 
-  fiscalYear         FiscalYear  @relation(fields: [anneeId], references: [id])
-  anneeId            BigInt
+  //fiscalYear         FiscalYear  @relation(fields: [anneeId], references: [id])
+  //anneeId            BigInt
 
   operations Operation[]
 
   @@map("immobilisation")
-  @@index([activityId, anneeId])
+  @@index([activityId])
 }
 
 

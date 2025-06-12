@@ -21,7 +21,8 @@ export async function seedFiscalYears() {
     'utf-8'
   );
   const { datas: actDatas } = JSON.parse(rawAct);
-  const activityId = actDatas.length > 0 ? BigInt(actDatas[0].Oid) : BigInt(0);
+  //const activityId = actDatas.length > 0 ? BigInt(actDatas[0].Oid) : BigInt(0);
+  const activityId = "139054534";
 
   await prisma.fiscalYear.deleteMany();
   for (const item of datas) {

@@ -14,15 +14,15 @@ import { seedFiscalYears } from './seeds/fiscalYears.ts';
 import { seedLogements } from './seeds/logements.ts';
 import { seedEmprunts } from './seeds/emprunts.ts';
 import { seedOperations } from './seeds/operations.ts';
+import { seedFamilles } from './seeds/familles.ts';
+import { seedComptes } from './seeds/comptes.ts';
 
-// … import des autres seedXxx
-//import { seedDernier } from './seeds/08-dernierSeed';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  // Ordre respecté (pour respecter les FK si nécessaire)
   await seedProfiles();
+
 
   await seedFormeJuridique();
   await seedRoF();
@@ -31,19 +31,21 @@ async function main() {
   await seedAdresses();
   await seedClients();
 
-  
   await seedActivities();
-
-  await seedDevises();
-  await seedCalendriers();
-  await seedLiasses();
-  await seedTeletrans();
-  await seedOGAs();
-  await seedReductionDetails();
+  //await seedDevises();
+  //await seedCalendriers();
+  //await seedLiasses();
+  //await seedTeletrans();
+  //await seedOGAs();
+  //await seedReductionDetails();
 
   await seedFiscalYears();
 
   await seedLogements();
+
+  await seedFamilles();
+  await seedComptes();
+
   await seedArticles();
   await seedImmobilisations();
   await seedEmprunts(); 
