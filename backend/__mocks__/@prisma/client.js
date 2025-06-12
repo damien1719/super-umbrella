@@ -7,6 +7,13 @@ class PrismaClient {
       update: jest.fn(),
       delete: jest.fn(),
     };
+    this.operation = {
+      create: jest.fn(),
+      findMany: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    };
     this.$disconnect = jest.fn();
   }
 }
