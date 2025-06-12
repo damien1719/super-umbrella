@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import dotenv from 'dotenv';
 import { articleRouter } from './routes/article.routes';
 import { operationRouter } from './routes/operation.routes';
+import { logementRouter } from './routes/logement.routes';
 import { errorHandler } from './middlewares/error.middleware';
 
 dotenv.config();
@@ -15,6 +16,7 @@ app.get('/health', (req: Request, res: Response) => {
 
 app.use('/api/v1/articles', articleRouter);
 app.use('/api/v1/operations', operationRouter);
+app.use('/api/v1/logements', logementRouter);
 
 app.use(errorHandler);
 
