@@ -2,6 +2,8 @@
 import { PrismaClient } from '@prisma/client';
 import { seedProfiles } from './seeds/profile.ts';
 import { seedActivities } from './seeds/activities.ts';
+import { seedFormeJuridique } from './seeds/formeJuridique.ts';
+
 
 // … import des autres seedXxx
 //import { seedDernier } from './seeds/08-dernierSeed';
@@ -11,6 +13,7 @@ const prisma = new PrismaClient();
 async function main() {
   // Ordre respecté (pour respecter les FK si nécessaire)
   await seedProfiles();
+  await seedFormeJuridique();
   await seedActivities();
   //await seedArticles();
   //await seedImmobilisations();

@@ -94,12 +94,12 @@ export async function seedActivities() {
     fraisAcquisitionOption: item.FraisAcquisitionOption,
     modifierDebutActivite: item.ModifierDebutActivite,
     nbreActivite: item.NbreActivite,
-    hasPaiedYear: item.hasPaiedYear,
+    hasPaiedYear: item.hasPaiedYear
     // relations facultatives (à seed séparément si nécessaire)
-    societeOid: BigInt(item.Societe.Oid),
-    sieOid: BigInt(item.SIE.Oid),
-    adresseId: null,
-    clientId: null,
+    //societeOid: BigInt(item.Societe.Oid),
+    //sieOid: BigInt(item.SIE.Oid),
+    //adresseId: null,
+    //clientId: null,
   }));
 
   await prisma.activity.createMany({
