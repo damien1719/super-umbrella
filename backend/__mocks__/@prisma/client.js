@@ -28,6 +28,12 @@ class PrismaClient {
       update: jest.fn(),
       delete: jest.fn(),
     };
+    this.fiscalYear = {
+      findUnique: jest.fn(),
+    };
+    this.immobilisation = {
+      findMany: jest.fn(),
+    };
     this.$disconnect = jest.fn();
   }
 }
