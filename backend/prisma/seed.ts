@@ -15,7 +15,6 @@ import { seedLogements } from './seeds/logements.ts';
 import { seedEmprunts } from './seeds/emprunts.ts';
 import { seedOperations } from './seeds/operations.ts';
 
-
 // … import des autres seedXxx
 //import { seedDernier } from './seeds/08-dernierSeed';
 
@@ -26,28 +25,29 @@ async function main() {
   await seedProfiles();
 
   await seedFormeJuridique();
-  //await seedRoF();
-  //await seedSIE();
-  //await seedSocietes();
-  //await seedAdresses();
-  //await seedClients();
+  await seedRoF();
+  await seedSIE();
+  await seedSocietes();
+  await seedAdresses();
+  await seedClients();
 
   
   await seedActivities();
-  // await seedDevises();
-  // await seedCalendriers();
-  // await seedLiasses();
-  // await seedTeletrans();
-  // await seedOGAs();
-  // await seedReductionDetails();
 
-  //await seedFiscalYears();
+  await seedDevises();
+  await seedCalendriers();
+  await seedLiasses();
+  await seedTeletrans();
+  await seedOGAs();
+  await seedReductionDetails();
 
-//await seedLogements();
+  await seedFiscalYears();
+
+  await seedLogements();
   await seedArticles();
   await seedImmobilisations();
-// await seedEmprunts(); 
-// await seedOperations();      
+  await seedEmprunts(); 
+  await seedOperations();      
 
 
 }
