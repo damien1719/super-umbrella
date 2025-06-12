@@ -1,36 +1,27 @@
 // prisma/seeds/immobilisations.ts
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export async function seedImmobilisations() {
-  const raw = fs.readFileSync(path.join(__dirname, '../seed_json/immobilisations.json'), 'utf-8');
-  const { datas } = JSON.parse(raw);
+  const files = ['immobilisations.json', 'immobilisations2.json'];
+  let all: any[] = [];
+  for (const file of files) {
+    const raw = fs.readFileSync(path.join(__dirname, '../seed_json', file), 'utf-8');
+    const parsed = JSON.parse(raw);
+    const datas = Array.isArray(parsed.datas) ? parsed.datas : parsed.datas?.Composants || [];
+    all = all.concat(datas);
+  }
 
-  // Vider la table avant d'insérer
   await prisma.immobilisation.deleteMany();
-
-  // Préparer et insérer
-  const toCreate = datas.map(item => ({
-    oid: BigInt(item.Oid),
-    articleOid: BigInt(item.Article.Oid),
-    mnem: item.Article.Mnem,
-    prTexte: item.prTexte,
-    description: item.Article.Description || '',
-    compteMnem: item.Article.Compte.Mnem,
-    prixMontant: item.Prix.montant,
-    prixDevise: item.Prix.devise,
-    miseEnService: new Date(item.MiseEnService),
-    duree: item.Duree,
-    status: item.Status,
-  }));
-
-  await prisma.immobilisation.createMany({
-    data: toCreate,
-    skipDuplicates: true,
-  });
-
-  console.log(`✅ Immobilisations seeded (${toCreate.length})`);
+  for (const item of all) {
+    await prisma.immobilisation.create({ data: item as any });
+  }
+  console.log(`✅ Immobilisations seeded (${all.length})`);
 }
+

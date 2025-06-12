@@ -3,6 +3,8 @@ import { PrismaClient } from '@prisma/client';
 import { seedProfiles } from './seeds/profile.ts';
 import { seedActivities } from './seeds/activities.ts';
 import { seedFormeJuridique } from './seeds/formeJuridique.ts';
+import { seedArticles } from './seeds/articles.ts';
+import { seedImmobilisations } from './seeds/immobilisations.ts';
 
 
 // … import des autres seedXxx
@@ -15,8 +17,8 @@ async function main() {
   await seedProfiles();
   await seedFormeJuridique();
   await seedActivities();
-  //await seedArticles();
-  //await seedImmobilisations();
+  await seedArticles();
+  await seedImmobilisations();
   // …
   //await seedDernier();
 }
