@@ -4,130 +4,33 @@
 > cross-env NODE_ENV=test jest --coverage
 
 [1m[2mDetermining test suites to run...[22m[22m[999D[K
-
-[1mTest Suites: [22m0 of 2 total
-[1mTests:       [22m0 total
-[1mSnapshots:   [22m0 total
-[1mTime:[22m        0 s, estimated 2 s[K[1A[K[1A[K[1A[K[1A[K[1A[999D[K
-
-[1mTest Suites: [22m0 of 2 total
-[1mTests:       [22m0 total
-[1mSnapshots:   [22m0 total
-[1mTime:[22m        0 s, estimated 2 s[K[1A[K[1A[K[1A[K[1A[K[1A
-[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1marticle.test.ts[22m
+[K[1A[999D[K
+[K[1A
 [0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mapp.test.ts[22m
-
-[1mTest Suites: [22m0 of 2 total
-[1mTests:       [22m0 total
-[1mSnapshots:   [22m0 total
-[1mTime:[22m        0 s, estimated 2 s[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A
-[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1marticle.test.ts[22m
+[K[1A[K[1A
 [0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mapp.test.ts[22m
-
-[1mTest Suites: [22m0 of 2 total
-[1mTests:       [22m0 total
-[1mSnapshots:   [22m0 total
-[1mTime:[22m        1 s, estimated 2 s[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A
-[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1marticle.test.ts[22m
+[K[1A[K[1A
 [0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mapp.test.ts[22m
+[K[1A[K[1A[0m[7m[1m[32m PASS [39m[22m[27m[0m [2mtests/[22m[1mapp.test.ts[22m
 
-[1mTest Suites: [22m0 of 2 total
-[1mTests:       [22m0 total
-[1mSnapshots:   [22m0 total
-[1mTime:[22m        2 s[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A
-[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1marticle.test.ts[22m
 [0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mapp.test.ts[22m
+[K[1A[K[1A  GET /health
 
-[1mTest Suites: [22m0 of 2 total
-[1mTests:       [22m0 total
-[1mSnapshots:   [22m0 total
-[1mTime:[22m        [1m[33m3 s[39m[22m[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[0m[7m[1m[31m FAIL [39m[22m[27m[0m [2mtests/[22m[1mapp.test.ts[22m
-
-[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1marticle.test.ts[22m
 [0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mapp.test.ts[22m
+[K[1A[K[1A    [32m✓[39m [2mreturns ok (39 ms)[22m
 
-[1mTest Suites: [22m0 of 2 total
-[1mTests:       [22m0 total
-[1mSnapshots:   [22m0 total
-[1mTime:[22m        [1m[33m3 s[39m[22m[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A  [1m● [22mTest suite failed to run
-
-    [96msrc/app.ts[0m:[93m17[0m:[93m9[0m - [91merror[0m[90m TS2769: [0mNo overload matches this call.
-      The last overload gave the following error.
-        Argument of type '(err: unknown, _req: Request, res: Response, _next: NextFunction) => Response<any, Record<string, any>> | undefined' is not assignable to parameter of type 'PathParams'.
-
-    [7m17[0m app.use(errorHandler);
-    [7m  [0m [91m        ~~~~~~~~~~~~[0m
-
-      [96m../node_modules/@types/express-serve-static-core/index.d.ts[0m:[93m157[0m:[93m5[0m
-        [7m157[0m     <
-        [7m   [0m [96m    ~[0m
-        [7m158[0m         P = ParamsDictionary,
-        [7m   [0m [96m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
-        [7m...[0m 
-        [7m166[0m         ...handlers: Array<RequestHandlerParams<P, ResBody, ReqBody, ReqQuery, LocalsObj>>
-        [7m   [0m [96m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
-        [7m167[0m     ): T;
-        [7m   [0m [96m~~~~~~~~~[0m
-        The last overload is declared here.
-
-
-[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1marticle.test.ts[22m
 [0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mapp.test.ts[22m
+[K[1A[K[1A
 
-[1mTest Suites: [22m0 of 2 total
-[1mTests:       [22m0 total
-[1mSnapshots:   [22m0 total
-[1mTime:[22m        [1m[33m3 s[39m[22m[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A
-[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1marticle.test.ts[22m
 [0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mapp.test.ts[22m
-
-[1mTest Suites: [22m0 of 2 total
-[1mTests:       [22m0 total
-[1mSnapshots:   [22m0 total
-[1mTime:[22m        [1m[33m3 s[39m[22m[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[0m[7m[1m[31m FAIL [39m[22m[27m[0m [2mtests/[22m[1marticle.test.ts[22m
-
-[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1marticle.test.ts[22m
-[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mapp.test.ts[22m
-
-[1mTest Suites: [22m0 of 2 total
-[1mTests:       [22m0 total
-[1mSnapshots:   [22m0 total
-[1mTime:[22m        [1m[33m3 s[39m[22m[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A  [1m● [22mTest suite failed to run
-
-    [96msrc/app.ts[0m:[93m17[0m:[93m9[0m - [91merror[0m[90m TS2769: [0mNo overload matches this call.
-      The last overload gave the following error.
-        Argument of type '(err: unknown, _req: Request, res: Response, _next: NextFunction) => Response<any, Record<string, any>> | undefined' is not assignable to parameter of type 'PathParams'.
-
-    [7m17[0m app.use(errorHandler);
-    [7m  [0m [91m        ~~~~~~~~~~~~[0m
-
-      [96m../node_modules/@types/express-serve-static-core/index.d.ts[0m:[93m157[0m:[93m5[0m
-        [7m157[0m     <
-        [7m   [0m [96m    ~[0m
-        [7m158[0m         P = ParamsDictionary,
-        [7m   [0m [96m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
-        [7m...[0m 
-        [7m166[0m         ...handlers: Array<RequestHandlerParams<P, ResBody, ReqBody, ReqQuery, LocalsObj>>
-        [7m   [0m [96m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
-        [7m167[0m     ): T;
-        [7m   [0m [96m~~~~~~~~~[0m
-        The last overload is declared here.
-
-
-[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1marticle.test.ts[22m
-[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mapp.test.ts[22m
-
-[1mTest Suites: [22m0 of 2 total
-[1mTests:       [22m0 total
-[1mSnapshots:   [22m0 total
-[1mTime:[22m        [1m[33m3 s[39m[22m[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[999D[K----------|---------|----------|---------|---------|-------------------
+[K[1A[K[1A[999D[K----------|---------|----------|---------|---------|-------------------
 File      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
 ----------|---------|----------|---------|---------|-------------------
-All files |       0 |        0 |       0 |       0 | [31;1m                 [0m 
+[32;1mAll files[0m | [32;1m    100[0m | [32;1m     100[0m | [32;1m    100[0m | [32;1m    100[0m | [33;1m                 [0m 
+[32;1m app.ts  [0m | [32;1m    100[0m | [32;1m     100[0m | [32;1m    100[0m | [32;1m    100[0m | [33;1m                 [0m 
 ----------|---------|----------|---------|---------|-------------------
-[1mTest Suites: [22m[1m[31m2 failed[39m[22m, 2 total
-[1mTests:       [22m0 total
+[1mTest Suites: [22m[1m[32m1 passed[39m[22m, 1 total
+[1mTests:       [22m[1m[32m1 passed[39m[22m, 1 total
 [1mSnapshots:   [22m0 total
-[1mTime:[22m        [1m[33m3.789 s[39m[22m
+[1mTime:[22m        3.689 s
 [2mRan all test suites[22m[2m.[22m
-[41m[30m ELIFECYCLE [39m[49m [31mTest failed. See above for more details.[39m
