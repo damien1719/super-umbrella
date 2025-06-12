@@ -1,5 +1,48 @@
 
-
 > backend@1.0.0 lint /Users/mossuz/Documents/Documents personnels/super-umbrella/backend
 > eslint . --ext .ts
 
+
+/Users/mossuz/Documents/Documents personnels/super-umbrella/backend/prisma/seeds/adresses.ts
+  26:29  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mossuz/Documents/Documents personnels/super-umbrella/backend/prisma/seeds/articles.ts
+  56:51  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mossuz/Documents/Documents personnels/super-umbrella/backend/prisma/seeds/clients.ts
+  16:29  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mossuz/Documents/Documents personnels/super-umbrella/backend/prisma/seeds/comptes.ts
+  26:51  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mossuz/Documents/Documents personnels/super-umbrella/backend/prisma/seeds/familles.ts
+  28:51  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mossuz/Documents/Documents personnels/super-umbrella/backend/prisma/seeds/fiscalYears.ts
+  23:18  error  'actDatas' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/mossuz/Documents/Documents personnels/super-umbrella/backend/prisma/seeds/formeJuridique.ts
+  15:29  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mossuz/Documents/Documents personnels/super-umbrella/backend/prisma/seeds/immobilisations.ts
+  48:51  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mossuz/Documents/Documents personnels/super-umbrella/backend/prisma/seeds/rof.ts
+  18:29  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mossuz/Documents/Documents personnels/super-umbrella/backend/prisma/seeds/sie.ts
+  18:29  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mossuz/Documents/Documents personnels/super-umbrella/backend/prisma/seeds/societes.ts
+  18:29  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mossuz/Documents/Documents personnels/super-umbrella/backend/src/middlewares/error.middleware.ts
+  8:3  error  '_next' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mossuz/Documents/Documents personnels/super-umbrella/backend/tests/article.test.ts
+  13:55  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  25:54  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 14 problems (14 errors, 0 warnings)
+
+ ELIFECYCLE  Command failed with exit code 1.

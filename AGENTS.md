@@ -7,8 +7,8 @@
 - Check the name field inside each package's package.json to confirm the right name—skip the top-level one.
 
 ## Testing Instructions
-- Run pnpm turbo run lint --filter=<project_name> to run every check defined for that package.
-- Run pnpm turbo run test --filter=<project_name> to run every check defined for that package.
+- Run pnpm run lint either in frontend or backend
+- Run pnpm run test either in frontend or backend
 - The commit should pass all tests before you merge.
 - On frontend : To focus on one step, add the Vitest pattern: pnpm --filter frontend run test -- -t "<test name>".
 - On backend : To focus on one step, run pnpm --filter backend run test -- -t "<nom du test>"
@@ -18,3 +18,4 @@
 ## PR instructions
 Title format: [<project_name>] <Title>
 
+x
