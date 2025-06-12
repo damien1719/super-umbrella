@@ -7,7 +7,12 @@ export const FiscalController = {
       const anneeId = BigInt(req.query.anneeId as string);
       const activityId = BigInt(req.query.activityId as string);
       const data = await FiscalService.compute({ anneeId, activityId });
-      res.json(data);
+      const safe = JSON.parse(
+        JSON.stringify(data, (_key, value) =>
+          typeof value === 'bigint' ? value.toString() : value
+        )
+      );
+      res.json(safe);
     } catch (e) {
       next(e);
     }

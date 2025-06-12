@@ -426,6 +426,7 @@ model Article {
   ArticleLinked_linkedOid  ArticleLinked[] @relation("ArticleLinked_linkedOidToArticle")
 
   immobilisations Immobilisation[]
+  composants Composant[]
 
   @@map("article")
 }
@@ -471,7 +472,7 @@ model Immobilisation {
   logementOid        BigInt      @map("Logement.Oid")
 
   activityId           BigInt    @map("ActiviteId")
-  activity             Activity  @relation(fields: [activityId], references: [id])
+  activity             Activity  @relation(fields: [activityId], references: [id], onDelete:Cascade)
 
   //fiscalYear         FiscalYear  @relation(fields: [anneeId], references: [id])
   //anneeId            BigInt
@@ -482,6 +483,32 @@ model Immobilisation {
   @@index([activityId])
 }
 
+// Composant - Composition du Logement (Actif)
+
+model Composant {
+  id                BigInt       @id @map("Oid")
+  amortissable      Boolean   @map("Amortissable")
+  ventilation       Float     @map("Ventilation")
+  miseEnService     DateTime  @map("MiseEnService")
+  dateSortie        DateTime? @map("DateSortie")
+  causeSortie       Int       @map("CauseSortie")
+  status            Int       @map("Status")
+
+  // PrixProfil
+  prixProfilMontant Float     @map("PrixProfil_montant")
+  prixProfilDevise  String    @map("PrixProfil_devise")
+  prixProfilFmt     String    @map("PrixProfil_fmt")
+
+  // ValeurSortie
+  valeurSortieMontant Float?  @map("ValeurSortie_montant")
+  valeurSortieDevise  String? @map("ValeurSortie_devise")
+  valeurSortieFmt     String? @map("ValeurSortie_fmt")
+
+  article           Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  articleId         BigInt       @map("ArticleOid")
+
+  @@map("Composants")
+}
 
 //Emprunt
 
@@ -517,7 +544,7 @@ model Emprunt {
 
   // Relations
   activityId           BigInt
-  Activity             Activity  @relation(fields: [activityId], references: [id])
+  Activity             Activity  @relation(fields: [activityId], references: [id], onDelete: Cascade)
 
   fiscalYear         FiscalYear  @relation(fields: [anneeId], references: [id])
   anneeId            BigInt
@@ -540,7 +567,7 @@ model Operation {
 
   // Relations
   activityId           BigInt
-  Activity             Activity  @relation(fields: [activityId], references: [id])
+  Activity             Activity  @relation(fields: [activityId], references: [id], onDelete: Cascade)
 
   fiscalYear       FiscalYear    @relation(fields: [anneeId],   references: [id])
   anneeId          BigInt

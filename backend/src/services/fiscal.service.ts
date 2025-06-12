@@ -15,7 +15,10 @@ interface ComputeOptions {
 }
 
 export const FiscalService = {
+
   async compute({ anneeId, activityId }: ComputeOptions) {
+
+    console.log("here");
     const operations = await db.operation.findMany({
       where: { anneeId, activityId },
       include: { article: { include: { famille: true } } },

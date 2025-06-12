@@ -16,6 +16,7 @@ import { seedEmprunts } from './seeds/emprunts.ts';
 import { seedOperations } from './seeds/operations.ts';
 import { seedFamilles } from './seeds/familles.ts';
 import { seedComptes } from './seeds/comptes.ts';
+import { seedComposants } from './seeds/composants.ts';
 
 
 const prisma = new PrismaClient();
@@ -49,7 +50,10 @@ async function main() {
   await seedArticles();
   await seedImmobilisations();
   await seedEmprunts(); 
-  await seedOperations();      
+  await seedOperations();  
+  
+  await seedComposants();      
+
 
 
 }
