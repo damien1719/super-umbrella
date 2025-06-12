@@ -5,6 +5,15 @@ import { seedActivities } from './seeds/activities.ts';
 import { seedFormeJuridique } from './seeds/formeJuridique.ts';
 import { seedArticles } from './seeds/articles.ts';
 import { seedImmobilisations } from './seeds/immobilisations.ts';
+import { seedRoF } from './seeds/rof.ts';
+import { seedSIE } from './seeds/sie.ts';
+import { seedSocietes } from './seeds/societes.ts';
+import { seedAdresses } from './seeds/adresses.ts';
+import { seedClients } from './seeds/clients.ts';
+import { seedFiscalYears } from './seeds/fiscalYears.ts';
+import { seedLogements } from './seeds/logements.ts';
+import { seedEmprunts } from './seeds/emprunts.ts';
+import { seedOperations } from './seeds/operations.ts';
 
 
 // … import des autres seedXxx
