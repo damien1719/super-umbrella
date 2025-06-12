@@ -14,6 +14,13 @@ class PrismaClient {
       update: jest.fn(),
       delete: jest.fn(),
     };
+    this.activity = {
+      create: jest.fn(),
+      findMany: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    };
     this.logement = {
       create: jest.fn(),
       findMany: jest.fn(),
