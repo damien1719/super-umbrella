@@ -15,12 +15,32 @@ const prisma = new PrismaClient();
 async function main() {
   // Ordre respecté (pour respecter les FK si nécessaire)
   await seedProfiles();
+
   await seedFormeJuridique();
+  //await seedRoF();
+  //await seedSIE();
+  //await seedSocietes();
+  //await seedAdresses();
+  //await seedClients();
+
+  
   await seedActivities();
+  // await seedDevises();
+  // await seedCalendriers();
+  // await seedLiasses();
+  // await seedTeletrans();
+  // await seedOGAs();
+  // await seedReductionDetails();
+
+  //await seedFiscalYears();
+
+//await seedLogements();
   await seedArticles();
   await seedImmobilisations();
-  // …
-  //await seedDernier();
+// await seedEmprunts(); 
+// await seedOperations();      
+
+
 }
 
 main()
