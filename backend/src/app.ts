@@ -4,6 +4,7 @@ import { articleRouter } from './routes/article.routes';
 import { operationRouter } from './routes/operation.routes';
 import { activityRouter } from './routes/activity.routes';
 import { logementRouter } from './routes/logement.routes';
+import { fiscalRouter } from './routes/fiscal.routes';
 import { errorHandler } from './middlewares/error.middleware';
 
 dotenv.config();
@@ -19,6 +20,7 @@ app.use('/api/v1/articles', articleRouter);
 app.use('/api/v1/operations', operationRouter);
 app.use('/api/v1/activities', activityRouter);
 app.use('/api/v1/logements', logementRouter);
+app.use('/api/v1/fiscal', fiscalRouter);
 
 app.use(errorHandler);
 
