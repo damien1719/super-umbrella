@@ -4,6 +4,9 @@ interface PrismaWithAmortissement {
   fiscalYear: {
     findUnique: (args: unknown) => Promise<{ debut: Date; fin: Date } | null>;
   };
+  logement: {
+    findMany: (args: unknown) => Promise<{ id: bigint; dateLocation: Date }[]>;
+  };
   immobilisation: {
     findMany: (args: unknown) => Promise<{
       id: bigint;
@@ -12,6 +15,18 @@ interface PrismaWithAmortissement {
       duree: number;
       miseEnService: Date;
       dateSortie: Date | null;
+      logementOid: bigint;
+    }[]>;
+  };
+  composant: {
+    findMany: (args: unknown) => Promise<{
+      id: bigint;
+      amortissable: boolean;
+      duree: number;
+      miseEnService: Date;
+      prixProfilMontant: number;
+      immobilisationId: bigint;
+      article: { prTexte: string };
     }[]>;
   };
 }
@@ -25,6 +40,7 @@ interface ComputeOptions {
 
 export interface AmortissementItem {
   id: bigint;
+  type: 'immobilisation' | 'composant';
   libelle: string;
   valeurBrute: number;
   dureeAnnees: number;
@@ -42,6 +58,13 @@ export const AmortissementService = {
     });
     if (!fiscal) throw new Error('Fiscal year not found');
 
+    const logements = await db.logement.findMany({
+      where: { activityId },
+      select: { id: true, dateLocation: true },
+    });
+    const logementMap = new Map<bigint, Date>();
+    logements.forEach(l => logementMap.set(l.id, l.dateLocation));
+
     const immobs = await db.immobilisation.findMany({
       where: { logement: { activityId } },
       select: {
@@ -51,6 +74,22 @@ export const AmortissementService = {
         duree: true,
         miseEnService: true,
         dateSortie: true,
+        logementOid: true,
+      },
+    });
+
+    const comps = await db.composant.findMany({
+      where: {
+        immobilisation: { logement: { activityId } },
+      },
+      select: {
+        id: true,
+        amortissable: true,
+        duree: true,
+        miseEnService: true,
+        prixProfilMontant: true,
+        immobilisationId: true,
+        article: { select: { prTexte: true } },
       },
     });
 
@@ -66,9 +105,33 @@ export const AmortissementService = {
       const dotation = Math.round((immo.prixMontant / immo.duree) * (prorataMois / 12));
       results.push({
         id: immo.id,
+        type: 'immobilisation',
         libelle: immo.prTexte,
         valeurBrute: immo.prixMontant,
         dureeAnnees: immo.duree,
+        debut,
+        fin,
+        prorataMois,
+        dotation,
+      });
+    }
+
+    for (const c of comps) {
+      if (!c.amortissable) continue;
+      const locDate = logementMap.get(c.immobilisationId) ?? fiscal.debut;
+      const debut = [c.miseEnService, locDate, fiscal.debut].reduce((a, b) => (a > b ? a : b));
+      const calcEnd = new Date(debut);
+      calcEnd.setFullYear(calcEnd.getFullYear() + c.duree);
+      const fin = calcEnd < fiscal.fin ? calcEnd : fiscal.fin;
+      if (debut > fin) continue;
+      const prorataMois = (fin.getFullYear() - debut.getFullYear()) * 12 + (fin.getMonth() - debut.getMonth()) + 1;
+      const dotation = Math.round((c.prixProfilMontant / c.duree) * (prorataMois / 12));
+      results.push({
+        id: c.id,
+        type: 'composant',
+        libelle: c.article.prTexte,
+        valeurBrute: c.prixProfilMontant,
+        dureeAnnees: c.duree,
         debut,
         fin,
         prorataMois,
