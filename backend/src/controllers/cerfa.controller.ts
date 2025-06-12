@@ -5,7 +5,8 @@ export const CerfaController = {
   async generate2031(req: Request, res: Response, next: NextFunction) {
     try {
       const anneeId = BigInt(req.query.anneeId as string);
-      const pdf = await CerfaService.generate2031(anneeId);
+      const activityId = BigInt(req.query.activityId as string);
+      const pdf = await CerfaService.generate2031({ anneeId, activityId });
       res
         .status(200)
         .set({

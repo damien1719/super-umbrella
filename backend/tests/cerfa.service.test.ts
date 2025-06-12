@@ -35,7 +35,7 @@ describe('CerfaService.generate2031', () => {
       storage: { from: () => ({ download: downloadMock }) },
     });
 
-    const buf = await CerfaService.generate2031(1n);
+    const buf = await CerfaService.generate2031({ anneeId: 1n, activityId: 1n });
     expect(downloadMock).toHaveBeenCalled();
     expect(Buffer.isBuffer(buf)).toBe(true);
   });

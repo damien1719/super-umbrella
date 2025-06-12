@@ -11,8 +11,13 @@ interface PrismaWithFiscalYear {
 const db = prisma as unknown as PrismaWithFiscalYear;
 
 
+interface Generate2031Options {
+  anneeId: bigint;
+  activityId: bigint;
+}
+
 export const CerfaService = {
-  async generate2031(anneeId: bigint) {
+  async generate2031({ anneeId, activityId: _activityId }: Generate2031Options) {
     const supabase = createClient(
       process.env.SUPABASE_URL ?? 'http://localhost',
       process.env.SUPABASE_KEY ?? 'key'
