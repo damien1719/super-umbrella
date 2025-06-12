@@ -22,7 +22,10 @@ export const ArticleController = {
   async get(req: Request, res: Response, next: NextFunction) {
     try {
       const article = await ArticleService.get(BigInt(req.params.id));
-      if (!article) return res.sendStatus(404);
+      if (!article) {
+        res.sendStatus(404);
+        return;
+      }
       res.json(article);
     } catch (e) {
       next(e);

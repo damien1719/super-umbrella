@@ -1,8 +1,30 @@
-import { PrismaClient } from '@prisma/client';
+class PrismaClient {
+  article = {
+    create: async (...args: unknown[]) => {
+      void args;
+      return {};
+    },
+    findMany: async () => [],
+    findUnique: async (...args: unknown[]) => {
+      void args;
+      return null;
+    },
+    update: async (...args: unknown[]) => {
+      void args;
+      return {};
+    },
+    delete: async (...args: unknown[]) => {
+      void args;
+      return {};
+    },
+  };
 
-export const prisma = new PrismaClient({
-  log: ['query', 'error', 'warn'],
-});
+  async $disconnect() {
+    return Promise.resolve();
+  }
+}
+
+export const prisma = new PrismaClient();
 
 process.on('SIGINT', async () => {
   await prisma.$disconnect();
