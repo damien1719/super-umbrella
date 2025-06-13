@@ -13,7 +13,9 @@ module.exports = [
       'node_modules/',
       'dist/',
       'prettier.config.ts',
-      'vite.config.ts'
+      'prettier.config.js',
+      'vite.config.ts',
+      'pages/'
     ]
   },
 

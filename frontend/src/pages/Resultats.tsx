@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import {
   downloadCerfa2031,
-  downloadCerfa2042,
+  downloadCerfa2033,
   downloadFec,
+  downloadReportPdf,
 } from '../services/api';
 
 export default function Resultats() {
@@ -26,13 +27,13 @@ export default function Resultats() {
     }
   };
 
-  const handleDownload2042 = async () => {
+  const handleDownload2033 = async () => {
     try {
-      const blob = await downloadCerfa2042(anneeId, activityId);
+      const blob = await downloadCerfa2033(anneeId, activityId);
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = '2042_5124.pdf';
+      a.download = '2033.pdf';
       a.click();
       URL.revokeObjectURL(url);
     } catch (err) {
@@ -48,6 +49,21 @@ export default function Resultats() {
       const a = document.createElement('a');
       a.href = url;
       a.download = 'fec.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      alert('Échec du téléchargement');
+    }
+  };
+
+  const handleDownloadReport = async () => {
+    try {
+      const blob = await downloadReportPdf(anneeId, activityId);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'report.pdf';
       a.click();
       URL.revokeObjectURL(url);
     } catch (err) {
@@ -72,10 +88,11 @@ export default function Resultats() {
         onChange={(e) => setActivityId(e.target.value)}
       />
       <button onClick={handleDownload2031}>Télécharger le Cerfa 2031-SD</button>
-      <button onClick={handleDownload2042}>Télécharger le Cerfa 2042</button>
+      <button onClick={handleDownload2033}>Télécharger le Cerfa 2033</button>
       <button onClick={handleDownloadFec}>
         Exporter le Fichier des Écritures Comptables
       </button>
+      <button onClick={handleDownloadReport}>Exporter en PDF</button>
     </div>
   );
 }

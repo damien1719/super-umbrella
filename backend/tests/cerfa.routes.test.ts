@@ -21,15 +21,15 @@ describe('GET /api/v1/cerfa/2031-sd', () => {
   });
 });
 
-describe('GET /api/v1/cerfa/2042', () => {
+describe('GET /api/v1/cerfa/2033', () => {
   it('returns pdf from service', async () => {
-    mockedService.generate2042.mockResolvedValueOnce(Buffer.from('pdf'));
+    mockedService.generate2033.mockResolvedValueOnce(Buffer.from('pdf'));
     const res = await request(app).get(
-      '/api/v1/cerfa/2042?anneeId=1&activityId=1'
+      '/api/v1/cerfa/2033?anneeId=1&activityId=1'
     );
     expect(res.status).toBe(200);
     expect(res.headers['content-type']).toBe('application/pdf');
-    expect(mockedService.generate2042).toHaveBeenCalledWith({
+    expect(mockedService.generate2033).toHaveBeenCalledWith({
       anneeId: 1n,
       activityId: 1n,
     });

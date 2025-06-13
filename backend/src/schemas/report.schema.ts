@@ -1,10 +1,8 @@
 import { z } from 'zod';
 
-export const cerfa2031QuerySchema = z.object({
+export const reportQuerySchema = z.object({
   query: z.object({
     anneeId: z.coerce.bigint(),
     activityId: z.coerce.bigint(),
   }),
 });
-
-export const cerfa2033QuerySchema = cerfa2031QuerySchema;
