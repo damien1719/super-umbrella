@@ -43,6 +43,7 @@ export async function seedComposants() {
     dateSortie: item.DateSortie ? new Date(item.DateSortie) : null,
     causeSortie: item.CauseSortie,
     status: item.Status,
+    duree: item.Duree,
 
     // PrixProfil
     prixProfilMontant: item.PrixProfil.montant,
@@ -56,6 +57,10 @@ export async function seedComposants() {
 
     // Clé étrangère Article
     articleId: BigInt(item.Article.Oid),
+
+    anneeId: BigInt(345319370),
+    activityId: BigInt(139054534),
+    logementId: BigInt(142493021),
   }));
 
   await prisma.composant.createMany({

@@ -45,6 +45,7 @@
                 },
                 "Amortissable": false,
                 "Ventilation": 19.1326,
+                "Duree": 0,
                 "MiseEnService": "2021-10-15",
                 "DateSortie": "",
                 "ValeurSortie": {

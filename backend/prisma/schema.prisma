@@ -111,6 +111,8 @@ model Activity {
   immobilisations Immobilisation[]
   emprunts Emprunt[]
   operations Operation[]
+  composants Composant[]
+
 
   @@map("Activity")
 }
@@ -226,6 +228,7 @@ model FiscalYear {
   //immobilisations Immobilisation[]
   emprunts Emprunt[]
   operations Operation[]
+  composants Composant[]
 
   @@map("fiscyear")
 }
@@ -347,7 +350,7 @@ model Logement {
 
   emprunts  Emprunt[]  @relation("LogementEmprunts")
   operations Operation[]
-
+  composants Composant[]
 
   @@map("logement")
 }
@@ -493,6 +496,7 @@ model Composant {
   dateSortie        DateTime? @map("DateSortie")
   causeSortie       Int       @map("CauseSortie")
   status            Int       @map("Status")
+  duree             Int       @map("Duree")
 
   // PrixProfil
   prixProfilMontant Float     @map("PrixProfil_montant")
@@ -504,9 +508,20 @@ model Composant {
   valeurSortieDevise  String? @map("ValeurSortie_devise")
   valeurSortieFmt     String? @map("ValeurSortie_fmt")
 
+  // Relations
   article           Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
   articleId         BigInt       @map("ArticleOid")
 
+  activityId           BigInt
+  Activity             Activity  @relation(fields: [activityId], references: [id], onDelete: Cascade)
+
+  fiscalYear         FiscalYear  @relation(fields: [anneeId], references: [id])
+  anneeId            BigInt
+
+  logementId    BigInt?
+  logement      Logement?     @relation(fields: [logementId], references: [id])  
+
+  
   @@map("Composants")
 }
 

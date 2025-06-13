@@ -79,16 +79,13 @@ export const AmortissementService = {
     });
 
     const comps = await db.composant.findMany({
-      where: {
-        immobilisation: { logement: { activityId } },
-      },
+      where: { logement: { activityId } },
       select: {
         id: true,
         amortissable: true,
         duree: true,
         miseEnService: true,
         prixProfilMontant: true,
-        immobilisationId: true,
         article: { select: { prTexte: true } },
       },
     });
