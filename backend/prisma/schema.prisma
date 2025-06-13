@@ -587,12 +587,19 @@ model Operation {
   @@map("operation")
 }
 
-
-
 model Payeur {
   id        BigInt    @id @map("payeurid")
   nom       String?
 
   Operation Operation[]
   @@map("payeur")
+}
+
+model CerfaDocument {
+  id          String   @id @default(uuid())
+  filename    String
+  bucket      String   @default("cerfa")
+  path        String   // ex. "userId/2031-sd_5028_2025-06.pdf"
+
+  @@index([bucket])
 }

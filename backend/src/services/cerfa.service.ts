@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { PDFDocument } from 'pdf-lib';
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { prisma } from '../prisma';
 
 interface PrismaWithFiscalYear {
@@ -18,10 +18,12 @@ interface Generate2031Options {
 
 export const CerfaService = {
   async generate2031({ anneeId, activityId: _activityId }: Generate2031Options) {
+      
     const supabase = createClient(
       process.env.SUPABASE_URL ?? 'http://localhost',
       process.env.SUPABASE_KEY ?? 'key'
     );
+
     const fiscal = await db.fiscalYear.findUnique({
       where: { id: anneeId },
       select: { debut: true, fin: true },
@@ -34,14 +36,27 @@ export const CerfaService = {
     if (error || !data) throw new Error('Unable to download PDF');
 
     const pdfDoc = await PDFDocument.load(await data.arrayBuffer());
-    const form = pdfDoc.getForm();
+    
     try {
-      form.getTextField('Exercice ouvert le').setText(
-        fiscal.debut.toISOString().slice(0, 10)
-      );
-      form
-        .getTextField('et clos le')
-        .setText(fiscal.fin.toISOString().slice(0, 10));
+      const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+      const page = pdfDoc.getPage(0);
+    
+      page.drawText(fiscal.debut.toISOString().slice(0, 10), {
+        x: 100,     // ← à tester / ajuster !
+        y: 500,     // ← à tester / ajuster !
+        size: 12,
+        font: helveticaFont,
+        color: rgb(0, 0, 0),
+      });
+    
+      page.drawText(fiscal.fin.toISOString().slice(0, 10), {
+        x: 100,     // ← à tester / ajuster !
+        y: 480,     // ← à tester / ajuster !
+        size: 12,
+        font: helveticaFont,
+        color: rgb(0, 0, 0),
+      });
     } catch {
       // ignore missing fields
     }

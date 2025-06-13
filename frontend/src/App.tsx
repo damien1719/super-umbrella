@@ -1,20 +1,24 @@
 import React, { useState } from 'react';
+import { downloadCerfa2031 } from "./services/api";
+
 
 export default function App() {
   const [anneeId, setAnneeId] = useState('');
   const [activityId, setActivityId] = useState('');
 
-  const download = async () => {
-    const res = await fetch(
-      `/api/v1/cerfa/2031-sd?anneeId=${anneeId}&activityId=${activityId}`
-    );
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = '2031-sd.pdf';
-    a.click();
-    URL.revokeObjectURL(url);
+  const handleDownload = async () => {
+    try {
+      const blob = await downloadCerfa2031(anneeId, activityId);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "2031-sd.pdf";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      alert("Échec du téléchargement");
+    }
   };
 
   return (
@@ -32,7 +36,7 @@ export default function App() {
         value={activityId}
         onChange={e => setActivityId(e.target.value)}
       />
-      <button onClick={download}>Télécharger le Cerfa 2031-SD</button>
+      <button onClick={handleDownload}>Télécharger le Cerfa 2031-SD</button>
     </div>
   );
 }
