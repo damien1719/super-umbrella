@@ -14,13 +14,18 @@ dotenv.config();
 
 const app = express();
 
-const allowedOrigin = process.env.FRONTEND_URL;
+const FRONTEND_PREFIX= process.env.FRONTEND_PREFIX
 
-console.log(process.env.FRONTEND_URL);
 app.use(cors({
-  origin: allowedOrigin,
-  credentials: true,
-  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
+  origin: (origin, callback) => {
+    // autorise si pas d’origin (ex : Postman) ou si l’origin commence bien par ton prefix
+    if (!origin || origin.startsWith(FRONTEND_PREFIX)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`Origin ${origin} non autorisé par CORS`));
+    }
+  },
+  credentials: true,      // si tu envoies des cookies
 }));
 
 app.use(express.json());
