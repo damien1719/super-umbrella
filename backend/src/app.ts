@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import cors from 'cors';
 import dotenv from 'dotenv';
 import { articleRouter } from './routes/article.routes';
 import { operationRouter } from './routes/operation.routes';
@@ -12,7 +13,16 @@ import { errorHandler } from './middlewares/error.middleware';
 dotenv.config();
 
 const app = express();
+
+const allowedOrigin = process.env.FRONTEND_URL;
+app.use(cors({
+  origin: allowedOrigin,
+  credentials: true,
+  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
+}));
+
 app.use(express.json());
+
 
 app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ ok: true });
