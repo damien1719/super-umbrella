@@ -13,12 +13,21 @@ const mockedAmort = AmortissementService as jest.Mocked<typeof AmortissementServ
 const mockedCerfa = CerfaService as jest.Mocked<typeof CerfaService>;
 
 describe('ReportService.generate', () => {
-  it('returns a pdf buffer', async () => {
+  it('returns a pdf buffer with fiscal table', async () => {
     mockedFiscal.compute.mockResolvedValueOnce({
-      produits: 0,
-      charges: 0,
-      resultat: 0,
-      groupes: [],
+      produits: 10,
+      charges: 5,
+      resultat: 5,
+      groupes: [
+        {
+          code: 'A',
+          label: 'Test',
+          total: 10,
+          articles: [
+            { id: 1n, label: 'Article', montant: 10 },
+          ],
+        },
+      ],
     });
     mockedAmort.compute.mockResolvedValueOnce([]);
     const doc = await PDFDocument.create();
@@ -28,6 +37,8 @@ describe('ReportService.generate', () => {
 
     const buf = await ReportService.generate({ anneeId: 1n, activityId: 1n });
     expect(Buffer.isBuffer(buf)).toBe(true);
+    const pdf = await PDFDocument.load(buf);
+    expect(pdf.getPageCount()).toBeGreaterThan(0);
     expect(mockedFiscal.compute).toHaveBeenCalled();
     expect(mockedAmort.compute).toHaveBeenCalled();
     expect(mockedCerfa.generate2031).toHaveBeenCalled();
