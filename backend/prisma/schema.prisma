@@ -618,3 +618,129 @@ model CerfaDocument {
 
   @@index([bucket])
 }
+
+
+// ---------------------  Modèle FEC  -----------------------------------
+model FECEntry {
+  // Clé technique auto-incrémentée (facilite les relations et la purge)
+  id             Int       @id @default(autoincrement())
+
+  // --- Champs obligatoires du FEC ------------------------------------
+  JournalCode    String    @db.VarChar(5)    // ex : "VT", "AC"
+  JournalLib     String    @db.VarChar(200)  // ex : "Ventes"
+  EcritureNum    String    @db.VarChar(50)   // n° d’écriture séquentiel
+  EcritureDate   DateTime  @db.Date          // AAAA-MM-JJ
+  CompteNum      String    @db.VarChar(20)   // n° PCG ou IFRS
+  CompteLib      String    @db.VarChar(200)  // libellé du compte
+  CompAuxNum     String?   @db.VarChar(20)   // (optionnel) compte auxiliaire
+  CompAuxLib     String?   @db.VarChar(200)  // (optionnel) libellé auxiliaire
+  PieceRef       String?   @db.VarChar(200)  // réf. pièce justificative
+  PieceDate      DateTime? @db.Date          // date de la pièce
+  EcritureLib    String    @db.VarChar(200)  // libellé de l’écriture
+  Debit          Decimal   @db.Decimal(18,2) // toujours renseigné (≥ 0)
+  Credit         Decimal   @db.Decimal(18,2) // toujours renseigné (≥ 0)
+  EcritureLet    String?   @db.VarChar(40)   // code de lettrage
+  DateLet        DateTime? @db.Date          // date de lettrage
+  ValidDate      DateTime? @db.Date          // date de validation
+  Montantdevise  Decimal?  @db.Decimal(18,2) // montant en devise
+  Idevise        String?   @db.Char(3)       // code ISO 4217 (ex : USD)
+
+  // ------------------ Indexes & contraintes pratiques -----------------
+  /// Garantit l’unicité d’une écriture dans un journal donné
+  @@unique([JournalCode, EcritureNum])
+
+  /// Accélère les exports par journal et par date
+  @@index([JournalCode, EcritureDate])
+
+  /// Nom physique de la table : "fec_entry"
+  @@map("fec_entry")
+}
+
+
+/// Bridge fiscal (historique « plat »)
+model FiscalBridge {
+  id                  BigInt       @id @default(autoincrement())
+  fiscalYearId        BigInt       @map("fiscal_year_id")
+  fiscalYear          FiscalYear   @relation(fields: [fiscalYearId], references: [id])
+
+  accountingResult    Decimal      @map("accounting_result") @db.Decimal(14,2)
+  addBack39c          Decimal      @map("add_back_39c")      @db.Decimal(14,2)
+  addBackOther        Decimal      @map("add_back_other")    @db.Decimal(14,2)
+  taxResult           Decimal      @map("tax_result")        @db.Decimal(14,2)
+  deficitUsed         Decimal      @map("deficit_used")      @db.Decimal(14,2)
+  deficitCreated      Decimal      @map("deficit_created")   @db.Decimal(14,2)
+
+  snapshotAt          DateTime     @map("snapshot_at")       @default(now())
+
+  @@map("fiscal_bridge")
+  @@unique([fiscalYearId, snapshotAt])
+}
+
+/// Déficits reportables (10 ans)
+model TaxLoss {
+  id                  BigInt       @id @default(autoincrement())
+  logementId          BigInt?      @map("rental_unit_id")
+  logement            Logement?    @relation(fields: [logementId], references: [id])
+
+  originFyId          BigInt       @map("origin_fy_id")
+  originFiscalYear    FiscalYear   @relation("TaxLossOrigin", fields: [originFyId], references: [id])
+
+  amountOrigin        Decimal      @map("amount_origin") @db.Decimal(14,2)
+  remaining           Decimal      @db.Decimal(14,2)
+  expiresOn           DateTime     @map("expires_on")
+
+  usages              TaxLossUsage[]
+
+  @@map("tax_losses")
+}
+
+/// Imputations de déficit (historique d’usage)
+model TaxLossUsage {
+  id                  BigInt       @id @default(autoincrement())
+  lossId              BigInt       @map("loss_id")
+  loss                TaxLoss      @relation(fields: [lossId], references: [id])
+
+  fiscalYearId        BigInt       @map("fiscal_year_id")
+  fiscalYear          FiscalYear   @relation(fields: [fiscalYearId], references: [id])
+
+  amountUsed          Decimal      @map("amount_used") @db.Decimal(14,2)
+  createdAt           DateTime     @map("created_at") @default(now())
+
+  @@map("tax_loss_usages")
+  @@index([lossId, fiscalYearId])
+}
+
+/// Stock global d’amortissements reportables (Art. 39 C)
+model DeferredDeprStock {
+  id            BigInt      @id @default(autoincrement())
+  activityId    BigInt      @map("rental_unit_id")      // ou `activity_id`
+  activity      RentalUnit  @relation(fields: [activityId], references: [id])
+
+  originFyId    BigInt      @map("origin_fy_id")
+  originFy      FiscalYear  @relation(fields: [originFyId], references: [id])
+
+  amountOrigin  Decimal     @map("amount_origin") @db.Decimal(14,2)
+  remaining     Decimal     @db.Decimal(14,2)
+
+  usages        DeprUsage[]
+
+  @@map("deferred_depr_stock")
+  @@index([activityId, originFyId])
+}
+
+/// Imputations du stock (année N)
+model DeprUsage {
+  id            BigInt      @id @default(autoincrement())
+
+  stockId       BigInt      @map("stock_id")
+  stock         DeferredDeprStock @relation(fields: [stockId], references: [id])
+
+  fiscalYearId  BigInt      @map("fiscal_year_id")
+  fiscalYear    FiscalYear  @relation(fields: [fiscalYearId], references: [id])
+
+  amountUsed    Decimal     @map("amount_used") @db.Decimal(14,2)
+  createdAt     DateTime    @map("created_at") @default(now())
+
+  @@map("depr_usages")
+  @@index([stockId, fiscalYearId])
+}
