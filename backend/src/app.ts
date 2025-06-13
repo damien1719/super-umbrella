@@ -8,16 +8,17 @@ import { logementRouter } from './routes/logement.routes';
 import { fiscalRouter } from './routes/fiscal.routes';
 import { amortissementRouter } from './routes/amortissement.routes';
 import { cerfaRouter } from './routes/cerfa.routes';
+import { fecRouter } from './routes/fec.routes';
 import { errorHandler } from './middlewares/error.middleware';
 
 dotenv.config();
 
 const app = express();
 
-const FRONTEND_PREFIX= process.env.FRONTEND_PREFIX
+const FRONTEND_PREFIX = process.env.FRONTEND_PREFIX ?? '';
 
 app.use(cors({
-  origin: (origin, callback) => {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     // autorise si pas d’origin (ex : Postman) ou si l’origin commence bien par ton prefix
     if (!origin || origin.startsWith(FRONTEND_PREFIX)) {
       callback(null, true);
@@ -40,6 +41,7 @@ app.use('/api/v1/operations', operationRouter);
 app.use('/api/v1/activities', activityRouter);
 app.use('/api/v1/logements', logementRouter);
 app.use('/api/v1/fiscal', fiscalRouter);
+app.use('/api/v1/fec', fecRouter);
 app.use('/api/v1/amortissements', amortissementRouter);
 app.use('/api/v1/cerfa', cerfaRouter);
 
