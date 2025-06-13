@@ -27,12 +27,41 @@ describe('App component', () => {
     fireEvent.change(screen.getByPlaceholderText('activityId'), {
       target: { value: '2' },
     });
-    fireEvent.click(screen.getByRole('button'));
+    fireEvent.click(screen.getByRole('button', { name: /2031/i }));
     await Promise.resolve();
     await Promise.resolve();
 
     expect(fetchMock).toHaveBeenCalledWith(
       '/api/v1/cerfa/2031-sd?anneeId=1&activityId=2'
+    );
+    expect(urlMock).toHaveBeenCalled();
+    expect(clickMock).toHaveBeenCalled();
+  });
+
+  it('telecharge le cerfa 2042 au clic', async () => {
+    const fetchMock = vi.fn(() =>
+      Promise.resolve({ blob: () => Promise.resolve(new Blob()) })
+    );
+    global.fetch = fetchMock as unknown as typeof fetch;
+    const urlMock = vi.fn(() => 'blob:url');
+    global.URL.createObjectURL = urlMock;
+    global.URL.revokeObjectURL = vi.fn();
+    const clickMock = vi.fn();
+    HTMLAnchorElement.prototype.click = clickMock;
+
+    render(<App />);
+    fireEvent.change(screen.getByPlaceholderText('anneeId'), {
+      target: { value: '1' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('activityId'), {
+      target: { value: '2' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /2042/i }));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/cerfa/2042?anneeId=1&activityId=2'
     );
     expect(urlMock).toHaveBeenCalled();
     expect(clickMock).toHaveBeenCalled();

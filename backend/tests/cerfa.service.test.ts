@@ -40,3 +40,25 @@ describe('CerfaService.generate2031', () => {
     expect(Buffer.isBuffer(buf)).toBe(true);
   });
 });
+
+describe('CerfaService.generate2042', () => {
+  it('downloads and fills pdf', async () => {
+    mockedPrisma.fiscalYear.findUnique.mockResolvedValueOnce({
+      debut: new Date('2024-01-01'),
+      fin: new Date('2024-12-31'),
+    });
+    const doc = await PDFDocument.create();
+    const pdfBytes = await doc.save();
+    const downloadMock = jest.fn().mockResolvedValue({
+      data: new Blob([pdfBytes]),
+      error: null,
+    });
+    mockedCreate.mockReturnValue({
+      storage: { from: () => ({ download: downloadMock }) },
+    });
+
+    const buf = await CerfaService.generate2042({ anneeId: 1n, activityId: 1n });
+    expect(downloadMock).toHaveBeenCalled();
+    expect(Buffer.isBuffer(buf)).toBe(true);
+  });
+});
