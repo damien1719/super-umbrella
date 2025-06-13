@@ -33,6 +33,11 @@ export const downloadCerfa2033 = (
   activityId: string | number,
 ) => fetchBlob('/api/v1/cerfa/2033', { anneeId, activityId });
 
+export const downloadCerfa2042 = (
+  anneeId: string | number,
+  activityId: string | number,
+) => fetchBlob('/api/v1/cerfa/2042', { anneeId, activityId });
+
 export const downloadFec = (
   anneeId: string | number,
   activityId: string | number,

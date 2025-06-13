@@ -110,4 +110,51 @@ export const CerfaService = {
     const bytes = await pdfDoc.save();
     return Buffer.from(bytes);
   },
+
+  async generate2042({ anneeId, activityId: _activityId }: Generate2031Options) {
+
+    const supabase = createClient(
+      process.env.SUPABASE_URL ?? 'http://localhost',
+      process.env.SUPABASE_KEY ?? 'key'
+    );
+
+    const fiscal = await db.fiscalYear.findUnique({
+      where: { id: anneeId },
+      select: { debut: true, fin: true },
+    });
+    if (!fiscal) throw new Error('Fiscal year not found');
+
+    const { data, error } = await supabase.storage
+      .from('cerfa')
+      .download('2042_5124.pdf');
+    if (error || !data) throw new Error('Unable to download PDF');
+
+    const pdfDoc = await PDFDocument.load(await data.arrayBuffer());
+
+    try {
+      const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+      const page = pdfDoc.getPage(0);
+
+      page.drawText(fiscal.debut.toISOString().slice(0, 10), {
+        x: 100,
+        y: 500,
+        size: 12,
+        font: helveticaFont,
+        color: rgb(0, 0, 0),
+      });
+
+      page.drawText(fiscal.fin.toISOString().slice(0, 10), {
+        x: 100,
+        y: 480,
+        size: 12,
+        font: helveticaFont,
+        color: rgb(0, 0, 0),
+      });
+    } catch {
+      // ignore missing fields
+    }
+    const bytes = await pdfDoc.save();
+    return Buffer.from(bytes);
+  },
 };

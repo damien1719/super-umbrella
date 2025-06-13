@@ -8,3 +8,4 @@ export const cerfa2031QuerySchema = z.object({
 });
 
 export const cerfa2033QuerySchema = cerfa2031QuerySchema;
+export const cerfa2042QuerySchema = cerfa2031QuerySchema;

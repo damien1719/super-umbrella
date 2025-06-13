@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   downloadCerfa2031,
   downloadCerfa2033,
+  downloadCerfa2042,
   downloadFec,
   downloadReportPdf,
 } from '../services/api';
@@ -34,6 +35,21 @@ export default function Resultats() {
       const a = document.createElement('a');
       a.href = url;
       a.download = '2033.pdf';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      alert('Échec du téléchargement');
+    }
+  };
+
+  const handleDownload2042 = async () => {
+    try {
+      const blob = await downloadCerfa2042(anneeId, activityId);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = '2042_5124.pdf';
       a.click();
       URL.revokeObjectURL(url);
     } catch (err) {
@@ -89,6 +105,7 @@ export default function Resultats() {
       />
       <button onClick={handleDownload2031}>Télécharger le Cerfa 2031-SD</button>
       <button onClick={handleDownload2033}>Télécharger le Cerfa 2033</button>
+      <button onClick={handleDownload2042}>Télécharger le Cerfa 2042</button>
       <button onClick={handleDownloadFec}>
         Exporter le Fichier des Écritures Comptables
       </button>
