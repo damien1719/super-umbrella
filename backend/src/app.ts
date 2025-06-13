@@ -9,6 +9,7 @@ import { fiscalRouter } from './routes/fiscal.routes';
 import { amortissementRouter } from './routes/amortissement.routes';
 import { cerfaRouter } from './routes/cerfa.routes';
 import { fecRouter } from './routes/fec.routes';
+import { reportRouter } from './routes/report.routes';
 import { errorHandler } from './middlewares/error.middleware';
 
 dotenv.config();
@@ -44,6 +45,7 @@ app.use('/api/v1/fiscal', fiscalRouter);
 app.use('/api/v1/fec', fecRouter);
 app.use('/api/v1/amortissements', amortissementRouter);
 app.use('/api/v1/cerfa', cerfaRouter);
+app.use('/api/v1/reports', reportRouter);
 
 app.use(errorHandler);
 

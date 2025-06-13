@@ -28,14 +28,19 @@ export const downloadCerfa2031 = (
   activityId: string | number,
 ) => fetchBlob('/api/v1/cerfa/2031-sd', { anneeId, activityId });
 
-export const downloadCerfa2042 = (
+export const downloadCerfa2033 = (
   anneeId: string | number,
   activityId: string | number,
-) => fetchBlob('/api/v1/cerfa/2042', { anneeId, activityId });
+) => fetchBlob('/api/v1/cerfa/2033', { anneeId, activityId });
 
 export const downloadFec = (
   anneeId: string | number,
   activityId: string | number,
 ) => fetchBlob('/api/v1/fec', { anneeId, activityId });
+
+export const downloadReportPdf = (
+  anneeId: string | number,
+  activityId: string | number,
+) => fetchBlob('/api/v1/reports/pdf', { anneeId, activityId });
 
 export { buildURL, fetchBlob };

@@ -38,7 +38,7 @@ describe('App component', () => {
     expect(clickMock).toHaveBeenCalled();
   });
 
-  it('telecharge le cerfa 2042 au clic', async () => {
+  it('telecharge le cerfa 2033 au clic', async () => {
     const fetchMock = vi.fn(() =>
       Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob()) }),
     );
@@ -56,11 +56,11 @@ describe('App component', () => {
     fireEvent.change(screen.getByPlaceholderText('activityId'), {
       target: { value: '2' },
     });
-    fireEvent.click(screen.getByRole('button', { name: /2042/i }));
+    fireEvent.click(screen.getByRole('button', { name: /2033/i }));
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
 
     expect(fetchMock).toHaveBeenCalledWith(
-      '/api/v1/cerfa/2042?anneeId=1&activityId=2',
+      '/api/v1/cerfa/2033?anneeId=1&activityId=2',
       { credentials: 'include' },
     );
     expect(urlMock).toHaveBeenCalled();
@@ -92,6 +92,35 @@ describe('App component', () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       '/api/v1/fec?anneeId=1&activityId=2',
+      { credentials: 'include' },
+    );
+    expect(urlMock).toHaveBeenCalled();
+    expect(clickMock).toHaveBeenCalled();
+  });
+
+  it('exporte le PDF complet au clic', async () => {
+    const fetchMock = vi.fn(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob()) }),
+    );
+    global.fetch = fetchMock as unknown as typeof fetch;
+    const urlMock = vi.fn(() => 'blob:url');
+    global.URL.createObjectURL = urlMock;
+    global.URL.revokeObjectURL = vi.fn();
+    const clickMock = vi.fn();
+    HTMLAnchorElement.prototype.click = clickMock;
+
+    render(<App />);
+    fireEvent.change(screen.getByPlaceholderText('anneeId'), {
+      target: { value: '1' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('activityId'), {
+      target: { value: '2' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Exporter en PDF/i }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/reports/pdf?anneeId=1&activityId=2',
       { credentials: 'include' },
     );
     expect(urlMock).toHaveBeenCalled();

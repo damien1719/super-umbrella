@@ -41,7 +41,7 @@ describe('CerfaService.generate2031', () => {
   });
 });
 
-describe('CerfaService.generate2042', () => {
+describe('CerfaService.generate2033', () => {
   it('downloads and fills pdf', async () => {
     mockedPrisma.fiscalYear.findUnique.mockResolvedValueOnce({
       debut: new Date('2024-01-01'),
@@ -57,7 +57,7 @@ describe('CerfaService.generate2042', () => {
       storage: { from: () => ({ download: downloadMock }) },
     });
 
-    const buf = await CerfaService.generate2042({ anneeId: 1n, activityId: 1n });
+    const buf = await CerfaService.generate2033({ anneeId: 1n, activityId: 1n });
     expect(downloadMock).toHaveBeenCalled();
     expect(Buffer.isBuffer(buf)).toBe(true);
   });

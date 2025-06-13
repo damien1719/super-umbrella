@@ -64,7 +64,7 @@ export const CerfaService = {
     return Buffer.from(bytes);
   },
 
-  async generate2042({ anneeId, activityId: _activityId }: Generate2031Options) {
+  async generate2033({ anneeId, activityId: _activityId }: Generate2031Options) {
 
     const supabase = createClient(
       process.env.SUPABASE_URL ?? 'http://localhost',
@@ -79,7 +79,7 @@ export const CerfaService = {
 
     const { data, error } = await supabase.storage
       .from('cerfa')
-      .download('2042_5124.pdf');
+      .download('2033.pdf');
     if (error || !data) throw new Error('Unable to download PDF');
 
     const pdfDoc = await PDFDocument.load(await data.arrayBuffer());
