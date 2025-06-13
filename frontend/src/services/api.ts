@@ -27,4 +27,9 @@ export const downloadCerfa2031 = (
   activityId: string | number
 ) => fetchBlob("/api/v1/cerfa/2031-sd", { anneeId, activityId });
 
+export const downloadCerfa2042 = (
+  anneeId: string | number,
+  activityId: string | number
+) => fetchBlob("/api/v1/cerfa/2042", { anneeId, activityId });
+
 export { buildURL, fetchBlob };

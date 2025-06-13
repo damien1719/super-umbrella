@@ -6,3 +6,5 @@ export const cerfa2031QuerySchema = z.object({
     activityId: z.coerce.bigint(),
   }),
 });
+
+export const cerfa2042QuerySchema = cerfa2031QuerySchema;
