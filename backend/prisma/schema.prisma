@@ -430,6 +430,7 @@ model Article {
 
   immobilisations Immobilisation[]
   composants Composant[]
+  empruntEcheances EmpruntEcheance[]
 
   @@map("article")
 }
@@ -563,7 +564,59 @@ model Emprunt {
 
   fiscalYear         FiscalYear  @relation(fields: [anneeId], references: [id])
   anneeId            BigInt
+}
 
+
+model EmpruntEcheance {
+  /// Identifiant de l’échéance (correspond à `"Oid"` dans le JSON)
+  id                 BigInt      @id @map("Oid")
+
+  /// Référence à l’article (Echéance emprunt)
+  articleOid         BigInt      @map("Article.Oid")
+  Article            Article     @relation(fields: [articleOid], references: [id])
+
+  /// Référence à la “Concerne” (logement / unité locative)
+  logementId         BigInt      
+  Logement           Logement    @relation(fields: [logementId], references: [id])
+
+  /// Dates
+  dateAchat          DateTime    @map("DateAchat")
+  yearAchat          Int         @map("YearAchat")
+
+  /// Libellé libre
+  libelle            String      @map("Libelle")
+
+  /// Capital
+  capitalMontant     Decimal     @map("Capital.montant")   @db.Decimal(14,2)
+  capitalDevise      String      @map("Capital.devise")
+  capitalFmt         String      @map("Capital.fmt")
+
+  /// Assurance
+  assuranceMontant   Decimal     @map("Assurance.montant") @db.Decimal(14,2)
+  assuranceDevise    String      @map("Assurance.devise")
+  assuranceFmt       String      @map("Assurance.fmt")
+
+  /// Frais
+  fraisMontant       Decimal     @map("Frais.montant")     @db.Decimal(14,2)
+  fraisDevise        String      @map("Frais.devise")
+  fraisFmt           String      @map("Frais.fmt")
+
+  /// Intérêts
+  interetsMontant    Decimal     @map("Interets.montant")  @db.Decimal(14,2)
+  interetsDevise     String      @map("Interets.devise")
+  interetsFmt        String      @map("Interets.fmt")
+
+  /// Total
+  totalMontant       Decimal     @map("Total.montant")     @db.Decimal(14,2)
+  totalDevise        String      @map("Total.devise")
+  totalFmt           String      @map("Total.fmt")
+
+  /// Indicateur d’état
+  status             Boolean     @map("Status")
+
+  @@map("echeance_emprunt")
+  @@index([articleOid])
+  @@index([concerneOid])
 }
 
 
@@ -676,25 +729,25 @@ model FiscalBridge {
   @@unique([fiscalYearId, snapshotAt])
 }
 
-/// Déficits reportables (10 ans)
+// Déficits reportables (10 ans)
 model TaxLoss {
   id                  BigInt       @id @default(autoincrement())
-  logementId          BigInt?      @map("rental_unit_id")
-  logement            Logement?    @relation(fields: [logementId], references: [id])
-
-  originFyId          BigInt       @map("origin_fy_id")
-  originFiscalYear    FiscalYear   @relation("TaxLossOrigin", fields: [originFyId], references: [id])
-
   amountOrigin        Decimal      @map("amount_origin") @db.Decimal(14,2)
   remaining           Decimal      @db.Decimal(14,2)
   expiresOn           DateTime     @map("expires_on")
+
+  activityId          BigInt    @map("ActiviteId")
+  activity            Activity  @relation(fields: [activityId], references: [id], onDelete:Cascade)
+
+  originFyId          BigInt        @map("origin_fy_id")
+  originFy            FiscalYear    @relation(fields: [originFyId], references: [id])
 
   usages              TaxLossUsage[]
 
   @@map("tax_losses")
 }
 
-/// Imputations de déficit (historique d’usage)
+// Imputations de déficit (historique d’usage)
 model TaxLossUsage {
   id                  BigInt       @id @default(autoincrement())
   lossId              BigInt       @map("loss_id")
@@ -710,30 +763,32 @@ model TaxLossUsage {
   @@index([lossId, fiscalYearId])
 }
 
-/// Stock global d’amortissements reportables (Art. 39 C)
 model DeferredDeprStock {
   id            BigInt      @id @default(autoincrement())
-  activityId    BigInt      @map("rental_unit_id")      // ou `activity_id`
-  activity      RentalUnit  @relation(fields: [activityId], references: [id])
+  immobilisationId BigInt   @map("asset_id")
+  immobilisation    Immobilisation @relation(fields: [immobilisationId], references: [id])
 
   originFyId    BigInt      @map("origin_fy_id")
   originFy      FiscalYear  @relation(fields: [originFyId], references: [id])
 
+  accountNumber String      @map("account_number") // si besoin
   amountOrigin  Decimal     @map("amount_origin") @db.Decimal(14,2)
   remaining     Decimal     @db.Decimal(14,2)
 
   usages        DeprUsage[]
 
   @@map("deferred_depr_stock")
-  @@index([activityId, originFyId])
+  @@index([originFyId])
 }
 
-/// Imputations du stock (année N)
+
 model DeprUsage {
   id            BigInt      @id @default(autoincrement())
-
-  stockId       BigInt      @map("stock_id")
+  stockId       BigInt
   stock         DeferredDeprStock @relation(fields: [stockId], references: [id])
+
+  immobilisationId BigInt   @map("asset_id")
+  immobilisation    Immobilisation @relation(fields: [immobilisationId], references: [id])
 
   fiscalYearId  BigInt      @map("fiscal_year_id")
   fiscalYear    FiscalYear  @relation(fields: [fiscalYearId], references: [id])
