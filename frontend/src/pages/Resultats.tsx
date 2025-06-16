@@ -90,7 +90,7 @@ export default function Resultats() {
 
   return (
     <div>
-      <h1>Test</h1>
+      <h1>Résultats</h1>
       <input
         type="text"
         placeholder="anneeId"
