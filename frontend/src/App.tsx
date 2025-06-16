@@ -1,5 +1,5 @@
 import './App.css';
-import Sidebar from './components/Sidebar/Sidebar';
+import Sidebar from './components/SideBar/Sidebar';
 import Dashboard from './pages/Dashboard';
 import MesBiens from './pages/MesBiens';
 import Agenda from './pages/Agenda';
