@@ -15,6 +15,8 @@ module.exports = [
       'prettier.config.ts',
       'prettier.config.js',
       'vite.config.ts',
+      'postcss.config.js',
+      'tailwind.config.js',
       'pages/'
     ]
   },
