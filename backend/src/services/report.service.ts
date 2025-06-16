@@ -23,7 +23,10 @@ export const ReportService = {
     const page1 = doc.addPage();
     const { height: h1 } = page1.getSize();
     page1.drawText('Tableau fiscal', { x: 50, y: h1 - 50, size: 16, font });
-    page1.drawText(JSON.stringify(fiscal), { x: 50, y: h1 - 80, size: 12, font });
+    page1.drawText(
+      JSON.stringify(fiscal, (_, v) => (typeof v === 'bigint' ? v.toString() : v)),
+      { x: 50, y: h1 - 80, size: 12, font },
+    );
 
     const page2 = doc.addPage();
     const { height: h2 } = page2.getSize();
