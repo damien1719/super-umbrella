@@ -46,7 +46,8 @@ module.exports = [
       'react-hooks/rules-of-hooks': 'error',
       'jsx-a11y/accessible-emoji': 'warn',
       'prettier/prettier': 'error',
-      'react/react-in-jsx-scope': 'off'
+      'react/react-in-jsx-scope': 'off',
+      'react/prop-types': 'off'
     },
   }
 ];
