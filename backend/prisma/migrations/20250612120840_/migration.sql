@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE "compte" ALTER COLUMN "caseCerfa" SET DATA TYPE VARCHAR(155);

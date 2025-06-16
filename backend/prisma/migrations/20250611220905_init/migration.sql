@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE "profile" ALTER COLUMN "nif" SET DATA TYPE VARCHAR(255);
