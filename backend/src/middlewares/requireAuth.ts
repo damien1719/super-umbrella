@@ -15,6 +15,7 @@ export function requireAuth(req, res, next) {
       issuer: 'supabase'
     })
     req.user = { id: payload.sub }
+    console.log("auth success");
     next()
   } catch {
     res.status(401).send('Invalid token')
