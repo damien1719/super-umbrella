@@ -2,16 +2,48 @@ import { create } from 'zustand';
 import { apiFetch } from '../utils/api';
 import { useAuth } from './auth';
 
-
 export interface Bien {
   id: string;
   typeBien: string;
   adresse: string;
+  codePostal: string;
+  ville: string;
+  pays: string;
+  numeroIdentifiantFiscal: string;
+  dpe: string;
+  regimeJuridique: string;
+  surfaceHabitable: number;
+  nombrePieces: number;
+  anneeConstruction: number;
+  cuisine: string;
+  nombreChambres: number;
+  nombreSejours: number;
+  nombreSallesDEau: number;
+  nombreSallesDeBains: number;
+  nombreWC: number;
+  typeChauffage: string;
+  autresTypesChauffage?: string;
+  typeEauChaude: string;
+  equipementsDivers?: string[];
+  equipementsNTIC?: string[];
+  autresPieces?: string;
+  autresInformationsComplementaires?: string;
 }
 
-type BienInput = Omit<Bien, 'id'>;
+export type BienInput = Omit<Bien, 'id'>;
 
-const API_URL = import.meta.env.VITE_API_URL as string;
+/** 
+ * Supprime les entrées à `undefined` ou `''` 
+ * pour ne pas envoyer de champs vides au back. 
+ */
+function clean<T extends object>(obj: T): Partial<T> {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([_, v]) => v != null && v !== '')
+  ) as Partial<T>;
+}
+
+const BASE_URL = import.meta.env.VITE_API_URL as string;
+const ENDPOINT = `${BASE_URL}/api/v1/biens`;
 
 interface BienState {
   items: Bien[];
@@ -21,36 +53,29 @@ interface BienState {
   remove: (id: string) => Promise<void>;
 }
 
-const API = '/api/v1/biens';
-
 export const useBienStore = create<BienState>((set) => ({
   items: [],
 
   fetchAll: async () => {
     const token = useAuth.getState().token;
-    console.log('>>> token envoyé :', token);
     if (!token) throw new Error('Non authentifié');
-    
-    const items = await apiFetch<Bien[]>(API, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+    const items = await apiFetch<Bien[]>(ENDPOINT, {
+      headers: { Authorization: `Bearer ${token}` },
     });
     set({ items });
   },
 
   create: async (data) => {
     const token = useAuth.getState().token;
-    console.log('>>> token envoyé :', token);
     if (!token) throw new Error('Non authentifié');
-
-    const bien = await apiFetch<Bien>(API, {
+    const payload = clean(data);
+    const bien = await apiFetch<Bien>(ENDPOINT, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(payload),
     });
     set((state) => ({ items: [...state.items, bien] }));
   },
@@ -58,14 +83,14 @@ export const useBienStore = create<BienState>((set) => ({
   update: async (id, data) => {
     const token = useAuth.getState().token;
     if (!token) throw new Error('Non authentifié');
-
-    const bien = await apiFetch<Bien>(`${API}/${id}`, {
+    const payload = clean(data);
+    const bien = await apiFetch<Bien>(`${ENDPOINT}/${id}`, {
       method: 'PATCH',
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(payload),
     });
     set((state) => ({
       items: state.items.map((b) => (b.id === id ? bien : b)),
@@ -75,13 +100,12 @@ export const useBienStore = create<BienState>((set) => ({
   remove: async (id) => {
     const token = useAuth.getState().token;
     if (!token) throw new Error('Non authentifié');
-
-    await apiFetch<void>(`${API}/${id}`, {
+    await apiFetch<void>(`${ENDPOINT}/${id}`, {
       method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      headers: { Authorization: `Bearer ${token}` },
     });
-    set((state) => ({ items: state.items.filter((b) => b.id !== id) }));
+    set((state) => ({
+      items: state.items.filter((b) => b.id !== id),
+    }));
   },
 }));
