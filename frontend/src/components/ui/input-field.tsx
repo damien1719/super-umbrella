@@ -6,6 +6,7 @@ interface InputFieldProps {
   onChange: (value: string) => void;
   placeholder?: string;
   required?: boolean;
+  type?: React.HTMLInputTypeAttribute;
 }
 
 export function InputField({
@@ -14,6 +15,7 @@ export function InputField({
   onChange,
   placeholder,
   required,
+  type = 'text',
 }: InputFieldProps) {
   return (
     <label className="block space-y-1">
@@ -23,6 +25,7 @@ export function InputField({
         value={value}
         placeholder={placeholder}
         required={required}
+        type={type}
         onChange={(e) => onChange(e.target.value)}
       />
     </label>

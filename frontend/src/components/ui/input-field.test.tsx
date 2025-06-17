@@ -16,4 +16,15 @@ describe('InputField', () => {
     fireEvent.change(screen.getByRole('textbox'), { target: { value: 'a' } });
     expect(onChange).toHaveBeenCalledWith('a');
   });
+
+  it('supports a custom type', () => {
+    const onChange = vi.fn();
+    render(
+      <InputField label="Age" value="" onChange={onChange} type="number" />,
+    );
+    fireEvent.change(screen.getByRole('spinbutton'), {
+      target: { value: '2' },
+    });
+    expect(onChange).toHaveBeenCalledWith('2');
+  });
 });

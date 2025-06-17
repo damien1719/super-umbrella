@@ -32,13 +32,13 @@ export interface Bien {
 
 export type BienInput = Omit<Bien, 'id'>;
 
-/** 
- * Supprime les entrées à `undefined` ou `''` 
- * pour ne pas envoyer de champs vides au back. 
+/**
+ * Supprime les entrées à `undefined` ou `''`
+ * pour ne pas envoyer de champs vides au back.
  */
 function clean<T extends object>(obj: T): Partial<T> {
   return Object.fromEntries(
-    Object.entries(obj).filter(([_, v]) => v != null && v !== '')
+    Object.entries(obj).filter(([, v]) => v != null && v !== ''),
   ) as Partial<T>;
 }
 
