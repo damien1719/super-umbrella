@@ -11,7 +11,7 @@ describe('App navigation', () => {
   it('affiche le dashboard par défaut', async () => {
     useAuth.setState({ user: { id: '1' } as any, loading: false });
     global.fetch = vi.fn(() =>
-      Promise.resolve({ ok: true, json: () => Promise.resolve([]) })
+      Promise.resolve({ ok: true, json: () => Promise.resolve([]) }),
     ) as unknown as typeof fetch;
     render(
       <BrowserRouter>
@@ -28,7 +28,7 @@ describe('App navigation', () => {
   it('active le menu MesBiens après clic', async () => {
     useAuth.setState({ user: { id: '1' } as any, loading: false });
     global.fetch = vi.fn(() =>
-      Promise.resolve({ ok: true, json: () => Promise.resolve([]) })
+      Promise.resolve({ ok: true, json: () => Promise.resolve([]) }),
     ) as unknown as typeof fetch;
     render(
       <BrowserRouter>

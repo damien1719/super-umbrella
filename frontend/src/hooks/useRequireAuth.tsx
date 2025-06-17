@@ -5,7 +5,6 @@ import { useAuth } from '../store/auth';
 export const useRequireAuth = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  console.log('here');
   useEffect(() => {
     if (!user) navigate('/login');
   }, [user]);

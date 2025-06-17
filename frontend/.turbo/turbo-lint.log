@@ -5,11 +5,9 @@
 
 Warning: React version not specified in eslint-plugin-react settings. See https://github.com/jsx-eslint/eslint-plugin-react#configuration .
 [0m[0m
-[0m[4m/Users/mossuz/Documents/Documents personnels/super-umbrella/frontend/src/App.tsx[24m[0m
-[0m  [2m13:15[22m  [31merror[39m  'Page' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
-[0m[0m
-[0m[4m/Users/mossuz/Documents/Documents personnels/super-umbrella/frontend/src/components/Sidebar.tsx[24m[0m
-[0m  [2m20:27[22m  [31merror[39m  'current' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[4m/Users/mossuz/Documents/Documents personnels/super-umbrella/frontend/src/App.test.tsx[24m[0m
+[0m  [2m12:45[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m29:45[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
 [0m[0m
 [0m[31m[1m✖ 2 problems (2 errors, 0 warnings)[22m[39m[0m
 [0m[31m[1m[22m[39m[0m

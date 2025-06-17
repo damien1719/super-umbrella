@@ -1,12 +1,9 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
-import path from 'path';
 
-export default defineConfig({
-  plugins: [react()],
+export default defineConfig({  plugins: [react()],
   resolve: {
-    extensions: ['.js', '.ts', '.jsx', '.tsx'],
-    alias: { '@supabase/supabase-js': path.resolve(__dirname, 'src/__mocks__/supabase.ts') },
+    extensions: ['.js', '.ts', '.jsx', '.tsx']
   },
   test: {
     environment: 'jsdom',

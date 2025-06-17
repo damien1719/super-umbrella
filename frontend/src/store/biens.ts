@@ -1,4 +1,7 @@
 import { create } from 'zustand';
+import { apiFetch } from '../utils/api';
+import { useAuth } from './auth';
+
 
 export interface Bien {
   id: string;
@@ -7,6 +10,8 @@ export interface Bien {
 }
 
 type BienInput = Omit<Bien, 'id'>;
+
+const API_URL = import.meta.env.VITE_API_URL as string;
 
 interface BienState {
   items: Bien[];
@@ -20,38 +25,63 @@ const API = '/api/v1/biens';
 
 export const useBienStore = create<BienState>((set) => ({
   items: [],
+
   fetchAll: async () => {
-    const res = await fetch(API, { credentials: 'include' });
-    if (!res.ok) return;
-    const items = await res.json();
+    const token = useAuth.getState().token;
+    console.log('>>> token envoyé :', token);
+    if (!token) throw new Error('Non authentifié');
+    
+    const items = await apiFetch<Bien[]>(API, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
     set({ items });
   },
+
   create: async (data) => {
-    const res = await fetch(API, {
+    const token = useAuth.getState().token;
+    console.log('>>> token envoyé :', token);
+    if (!token) throw new Error('Non authentifié');
+
+    const bien = await apiFetch<Bien>(API, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify(data),
-      credentials: 'include',
     });
-    if (!res.ok) return;
-    const bien = await res.json();
     set((state) => ({ items: [...state.items, bien] }));
   },
+
   update: async (id, data) => {
-    const res = await fetch(`${API}/${id}`, {
+    const token = useAuth.getState().token;
+    if (!token) throw new Error('Non authentifié');
+
+    const bien = await apiFetch<Bien>(`${API}/${id}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify(data),
-      credentials: 'include',
     });
-    if (!res.ok) return;
-    const bien = await res.json();
     set((state) => ({
       items: state.items.map((b) => (b.id === id ? bien : b)),
     }));
   },
+
   remove: async (id) => {
-    await fetch(`${API}/${id}`, { method: 'DELETE', credentials: 'include' });
+    const token = useAuth.getState().token;
+    if (!token) throw new Error('Non authentifié');
+
+    await apiFetch<void>(`${API}/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
     set((state) => ({ items: state.items.filter((b) => b.id !== id) }));
   },
 }));

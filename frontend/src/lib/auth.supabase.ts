@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import type { Session } from '@supabase/supabase-js';
 
 export function createAuthProvider() {
   const supabase = createClient(
@@ -13,6 +14,9 @@ export function createAuthProvider() {
       } = await supabase.auth.getUser();
       return user;
     },
+    getSession: () => supabase.auth.getSession(),
+    onAuthStateChange: (callback: (event: string, session: Session | null) => void) => 
+      supabase.auth.onAuthStateChange(callback),
     signIn: (email: string, password: string) =>
       supabase.auth
         .signInWithPassword({ email, password })
@@ -21,5 +25,7 @@ export function createAuthProvider() {
           return data.user;
         }),
     signOut: () => supabase.auth.signOut(),
+    signInWithPassword: (credentials: { email: string; password: string }) => 
+      supabase.auth.signInWithPassword(credentials)
   };
 }

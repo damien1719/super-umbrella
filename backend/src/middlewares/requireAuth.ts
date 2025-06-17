@@ -10,6 +10,8 @@ export const requireAuth: RequestHandler = (
   res,
   next
 ) => {
+
+
   if (process.env.AUTH_PROVIDER === 'fake') {
     req.user = { id: 'demo-user' }
     next()

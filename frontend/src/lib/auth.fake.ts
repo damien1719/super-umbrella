@@ -1,4 +1,4 @@
-import type { User } from '@supabase/supabase-js';
+import type { User, Session } from '@supabase/supabase-js';
 
 export function createAuthProvider() {
   const user: User = {
@@ -10,12 +10,34 @@ export function createAuthProvider() {
     created_at: new Date().toISOString(),
   };
 
+  const session: Session = {
+    access_token: 'fake-token',
+    refresh_token: 'fake-refresh-token',
+    user,
+    expires_at: Date.now() + 3600 * 1000,
+    expires_in: 3600,
+    token_type: 'bearer',
+  };
+
   console.log('here');
   console.log(user);
 
   return {
     getCurrentUser: async () => user,
-    signIn: async () => user,
-    signOut: async () => {},
+    getSession: async () => ({ data: { session } }),
+    onAuthStateChange: (callback: (event: string, session: Session | null) => void) => {
+      // Simuler un changement d'état immédiat
+      callback('SIGNED_IN', session);
+      return { data: { subscription: { unsubscribe: () => {} } } };
+    },
+    signIn: async (email: string, password: string) => {
+      if (email === 'demo@local' && password === 'demo') {
+        return user;
+      }
+      throw new Error('Identifiants invalides');
+    },
+    signOut: async () => {
+      return { error: null };
+    },
   };
 }
