@@ -3,7 +3,6 @@ import { Button } from './ui/button';
 import type { Page } from '../store/pageContext';
 
 interface SidebarProps {
-  current: Page;
   onNavigate: (page: Page) => void;
 }
 
@@ -17,7 +16,7 @@ const items: { label: string; page: Page; path: string }[] = [
   { label: 'Déclaration Fiscale', page: 'Resultats', path: '/resultats' },
 ];
 
-export function Sidebar({ current, onNavigate }: SidebarProps) {
+export function Sidebar({ onNavigate }: SidebarProps) {
   return (
     <nav className="w-48 border-r min-h-screen p-4 space-y-2">
       {items.map((item) => (

@@ -2,28 +2,42 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import App from './App';
 import { PageProvider } from './store/pageContext';
+import { BrowserRouter } from 'react-router-dom';
+import { useAuth } from './store/auth';
 
 // Tests simplifiés pour la navigation
 
 describe('App navigation', () => {
-  it('affiche le dashboard par défaut', () => {
+  it('affiche le dashboard par défaut', async () => {
+    useAuth.setState({ user: { id: '1' } as any, loading: false });
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, json: () => Promise.resolve([]) })
+    ) as unknown as typeof fetch;
     render(
-      <PageProvider>
-        <App />
-      </PageProvider>,
+      <BrowserRouter>
+        <PageProvider>
+          <App />
+        </PageProvider>
+      </BrowserRouter>,
     );
     expect(
-      screen.getByRole('heading', { name: /dashboard/i }),
+      await screen.findByRole('heading', { name: /dashboard/i }),
     ).toBeInTheDocument();
   });
 
-  it('active le menu MesBiens après clic', () => {
+  it('active le menu MesBiens après clic', async () => {
+    useAuth.setState({ user: { id: '1' } as any, loading: false });
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, json: () => Promise.resolve([]) })
+    ) as unknown as typeof fetch;
     render(
-      <PageProvider>
-        <App />
-      </PageProvider>,
+      <BrowserRouter>
+        <PageProvider>
+          <App />
+        </PageProvider>
+      </BrowserRouter>,
     );
-    const btn = screen.getByRole('button', { name: /mesbiens/i });
+    const btn = await screen.findByRole('button', { name: /mes\s?biens/i });
     fireEvent.click(btn);
     expect(btn).toHaveAttribute('data-active', 'true');
   });

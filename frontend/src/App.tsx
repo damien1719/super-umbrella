@@ -10,7 +10,6 @@ import Abonnement from './pages/Abonnement';
 import MonCompte from './pages/MonCompte';
 import Login from './pages/Login';
 import { usePageStore } from './store/pageContext';
-import type { Page } from './store/pageContext';
 import { Sidebar } from './components/Sidebar';
 
 function ProtectedLayout() {
@@ -35,7 +34,7 @@ function ProtectedLayout() {
 
   return (
     <div className="flex">
-      <Sidebar current={currentPage} onNavigate={setCurrentPage} />
+      <Sidebar onNavigate={setCurrentPage} />
       <main className="flex-1 p-4">
         <Routes>
           <Route path="/" element={<Dashboard />} />
