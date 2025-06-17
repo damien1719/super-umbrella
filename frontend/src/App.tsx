@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import AppSidebar from './components/Sidebar/AppSidebar';
-import { SidebarProvider } from './components/ui/sidebar';
+import AppSidebar from './components/SideBar/AppSidebar';
+import { SidebarProvider, SidebarInset } from './components/ui/sidebar';
 import Dashboard from './pages/Dashboard';
 import MesBiens from './pages/MesBiens';
 import Agenda from './pages/Agenda';
@@ -10,50 +10,38 @@ import MonCompte from './pages/MonCompte';
 import { PageProvider, usePageStore } from './store/pageContext';
 import type { Page } from './store/pageContext';
 
-function PageContainer({ currentPage }: { currentPage: Page }) {
-  switch (currentPage) {
-    case 'Dashboard':
-      return <Dashboard />;
-    case 'MesBiens':
-      return <MesBiens />;
-    case 'Agenda':
-      return <Agenda />;
-    case 'Resultats':
-      return <Resultats />;
-    case 'Abonnement':
-      return <Abonnement />;
-    case 'MonCompte':
-      return <MonCompte />;
-    default:
-      return null;
-  }
-}
 
 export default function App() {
-  return (
-    <PageProvider>
-      <SidebarProvider>
-        <InnerApp />
-      </SidebarProvider>
-    </PageProvider>
-  );
-}
+  const [activeSection, setActiveSection] = useState("MesBiens")
+  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false)
 
-function InnerApp() {
-  // Hooks dans le bon provider
-  const currentPage = usePageStore((s) => s.currentPage);
-  const setCurrentPage = usePageStore((s) => s.setCurrentPage);
-  const [, setIsProfileDialogOpen] = useState(false);
+  const renderActiveSection = () => {
+    switch (activeSection) {
+      case "Dashboard":
+        return <Dashboard />
+      case "MesBiens":
+        return <MesBiens />
+      case "Agenda":
+        return <Agenda />
+      case "Abonnement":
+        return <Abonnement />
+      default:
+        return <MonCompte />
+    }
+  }
 
   return (
-    <>
+    <SidebarProvider>
       <AppSidebar
-        activeSection={currentPage}
-        onSectionChange={setCurrentPage}
+        activeSection={activeSection}
+        onSectionChange={setActiveSection}
         onProfileEdit={() => setIsProfileDialogOpen(true)}
       />
-      <PageContainer currentPage={currentPage} />
-      {/* Ici tu peux gérer ton dialog de profil */}
-    </>
-  );
+      <SidebarInset>
+        <main className="flex-1 space-y-4 p-8 pt-6">{renderActiveSection()}</main>
+      </SidebarInset>
+
+
+    </SidebarProvider>
+  )
 }

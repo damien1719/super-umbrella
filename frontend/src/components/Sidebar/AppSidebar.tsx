@@ -64,8 +64,8 @@ const menuItems: { title: string; icon: LucideIcon; id: Page }[] = [
 ];
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
-  activeSection: Page;
-  onSectionChange: (section: Page) => void;
+  activeSection: string;
+  onSectionChange: (section: string) => void;
   onProfileEdit: () => void;
 }
 
