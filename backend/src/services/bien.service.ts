@@ -1,4 +1,5 @@
 import { prisma } from '../prisma';
+import type { EditBien, NewBien } from '@monorepo/shared';
 
 interface PrismaWithBien {
   bien: {
@@ -12,10 +13,8 @@ interface PrismaWithBien {
 
 const db = prisma as unknown as PrismaWithBien;
 
-type BienData = Record<string, unknown>;
-
 export const BienService = {
-  create(data: BienData) {
+  create(data: NewBien) {
     return db.bien.create({ data });
   },
 
@@ -27,7 +26,7 @@ export const BienService = {
     return db.bien.findUnique({ where: { id } });
   },
 
-  update(id: string, data: Partial<BienData>) {
+  update(id: string, data: EditBien) {
     return db.bien.update({ where: { id }, data });
   },
 
