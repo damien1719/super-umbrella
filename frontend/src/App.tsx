@@ -1,4 +1,5 @@
-import AppSidebar from './components/Sidebar/Sidebar';
+import { useState } from "react"
+import AppSidebar from './components/SideBar/AppSidebar';
 import { SidebarProvider } from './components/ui/sidebar';
 import Dashboard from './pages/Dashboard';
 import MesBiens from './pages/MesBiens';
@@ -8,9 +9,7 @@ import Abonnement from './pages/Abonnement';
 import MonCompte from './pages/MonCompte';
 import { PageProvider, usePageStore } from './store/pageContext';
 
-function PageContainer() {
-  const currentPage = usePageStore((s) => s.currentPage);
-
+function PageContainer({ currentPage }) {
   switch (currentPage) {
     case 'Dashboard':
       return <Dashboard />;
@@ -33,13 +32,27 @@ export default function App() {
   return (
     <PageProvider>
       <SidebarProvider>
-        <div className="flex h-screen">
-          <AppSidebar />
-          <main className="flex-1 p-4">
-            <PageContainer />
-          </main>
-        </div>
+        <InnerApp />
       </SidebarProvider>
     </PageProvider>
+  );
+}
+
+function InnerApp() {
+  // Hooks dans le bon provider
+  const currentPage = usePageStore((s) => s.currentPage);
+  const setCurrentPage = usePageStore((s) => s.setCurrentPage);
+  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+
+  return (
+    <>
+      <AppSidebar
+        activeSection={currentPage}
+        onSectionChange={setCurrentPage}
+        onProfileEdit={() => setIsProfileDialogOpen(true)}
+      />
+      <PageContainer currentPage={currentPage} />
+      {/* Ici tu peux gérer ton dialog de profil */}
+    </>
   );
 }
