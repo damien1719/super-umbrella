@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
+import type { User } from '@supabase/supabase-js';
 import App from './App';
 import { PageProvider } from './store/pageContext';
 import { BrowserRouter } from 'react-router-dom';
@@ -9,7 +10,7 @@ import { useAuth } from './store/auth';
 
 describe('App navigation', () => {
   it('affiche le dashboard par défaut', async () => {
-    useAuth.setState({ user: { id: '1' } as any, loading: false });
+    useAuth.setState({ user: { id: '1' } as unknown as User, loading: false });
     global.fetch = vi.fn(() =>
       Promise.resolve({ ok: true, json: () => Promise.resolve([]) }),
     ) as unknown as typeof fetch;
@@ -26,7 +27,7 @@ describe('App navigation', () => {
   });
 
   it('active le menu MesBiens après clic', async () => {
-    useAuth.setState({ user: { id: '1' } as any, loading: false });
+    useAuth.setState({ user: { id: '1' } as unknown as User, loading: false });
     global.fetch = vi.fn(() =>
       Promise.resolve({ ok: true, json: () => Promise.resolve([]) }),
     ) as unknown as typeof fetch;
