@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { UserProfile } from '@monorepo/shared';
-import { useUserProfile } from '../hooks/useUserProfile';
+import { useUserProfileStore } from '../store/userProfile';
 import { formatPhone } from '../utils/formatPhone';
 import { validateEmail } from '../utils/validateEmail';
 
 export default function MonCompte() {
   const navigate = useNavigate();
-  const { profile, loading, error, updateProfile, deleteProfile } =
-    useUserProfile();
+  const {
+    profile,
+    loading,
+    error,
+    fetchProfile,
+    updateProfile,
+    deleteProfile,
+  } = useUserProfileStore();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<UserProfile>({
     nom: '',
@@ -17,6 +23,10 @@ export default function MonCompte() {
     telephone: '',
     adresse: '',
   });
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
   // met à jour le formulaire quand le profil est chargé
   useEffect(() => {
