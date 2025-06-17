@@ -19,8 +19,6 @@ export const requireAuth: RequestHandler = (
   }
 
   const token = req.headers.authorization?.split(' ')[1]
-  console.log("token recu", token);
-
   if (!token) {
     res.status(401).send('No token')
     return

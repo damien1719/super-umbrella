@@ -6,24 +6,24 @@ export interface Bien {
   id: string;
   typeBien: string;
   adresse: string;
-  codePostal: string;
-  ville: string;
-  pays: string;
-  numeroIdentifiantFiscal: string;
-  dpe: string;
-  regimeJuridique: string;
-  surfaceHabitable: number;
-  nombrePieces: number;
-  anneeConstruction: number;
-  cuisine: string;
-  nombreChambres: number;
-  nombreSejours: number;
-  nombreSallesDEau: number;
-  nombreSallesDeBains: number;
-  nombreWC: number;
-  typeChauffage: string;
+  codePostal?: string;
+  ville?: string;
+  pays?: string;
+  numeroIdentifiantFiscal?: string;
+  dpe?: string;
+  regimeJuridique?: string;
+  surfaceHabitable?: number;
+  nombrePieces?: number;
+  anneeConstruction?: number;
+  cuisine?: string;
+  nombreChambres?: number;
+  nombreSejours?: number;
+  nombreSallesDEau?: number;
+  nombreSallesDeBains?: number;
+  nombreWC?: number;
+  typeChauffage?: string;
   autresTypesChauffage?: string;
-  typeEauChaude: string;
+  typeEauChaude?: string;
   equipementsDivers?: string[];
   equipementsNTIC?: string[];
   autresPieces?: string;
@@ -42,8 +42,10 @@ function clean<T extends object>(obj: T): Partial<T> {
   ) as Partial<T>;
 }
 
-const BASE_URL = import.meta.env.VITE_API_URL as string;
-const ENDPOINT = `${BASE_URL}/api/v1/biens`;
+//const BASE_URL = import.meta.env.VITE_API_URL as string;
+const ENDPOINT = `/api/v1/biens`;
+
+console.log("endpoint", ENDPOINT);
 
 interface BienState {
   items: Bien[];

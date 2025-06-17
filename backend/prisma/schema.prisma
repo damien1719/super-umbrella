@@ -991,33 +991,33 @@ model Bien {
   id                             String                  @id @default(uuid())
   // Type principal
   typeBien                       TypeBien
-  isColocation                   Boolean                 @default(false)
+  isColocation                   Boolean?                 @default(false)
 
   // Adresse
   adresse                        String
   complémentAdresse             String?
-  codePostal                     String
-  ville                          String
-  pays                           String
+  codePostal                     String?
+  ville                          String?
+  pays                           String?
 
   // Identifiants et diagnostics
-  numeroIdentifiantFiscal        String
-  dpe                            DPE
+  numeroIdentifiantFiscal        String?
+  dpe                            DPE?
   validiteDPE                    DateTime?
   
   // Régime copropriété / mono
-  regimeJuridique                RegimeJuridique
+  regimeJuridique                RegimeJuridique?
 
   // Descriptif pour le bail
-  surfaceHabitable               Float
-  nombrePieces                   Int
-  anneeConstruction              Int
-  cuisine                        CuisineType
-  nombreChambres                 Int
-  nombreSejours                  Int
-  nombreSallesDEau               Int
-  nombreSallesDeBains            Int
-  nombreWC                       Int
+  surfaceHabitable               Float?
+  nombrePieces                   Int?
+  anneeConstruction              Int?
+  cuisine                        CuisineType?
+  nombreChambres                 Int?
+  nombreSejours                  Int?
+  nombreSallesDEau               Int?
+  nombreSallesDeBains            Int?
+  nombreWC                       Int?
   description                    String?
 
   // Chauffage & eau chaude
