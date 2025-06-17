@@ -4,5 +4,13 @@
 > eslint . --ext .ts,.tsx,.js,.jsx --fix
 
 Warning: React version not specified in eslint-plugin-react settings. See https://github.com/jsx-eslint/eslint-plugin-react#configuration .
-(node:1792) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
-(Use `node --trace-warnings ...` to show where the warning was created)
+[0m[0m
+[0m[4m/Users/mossuz/Documents/Documents personnels/super-umbrella/frontend/src/App.tsx[24m[0m
+[0m  [2m13:15[22m  [31merror[39m  'Page' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4m/Users/mossuz/Documents/Documents personnels/super-umbrella/frontend/src/components/Sidebar.tsx[24m[0m
+[0m  [2m20:27[22m  [31merror[39m  'current' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[31m[1m✖ 2 problems (2 errors, 0 warnings)[22m[39m[0m
+[0m[31m[1m[22m[39m[0m
+[41m[30m ELIFECYCLE [39m[49m [31mCommand failed with exit code 1.[39m

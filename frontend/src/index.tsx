@@ -1,5 +1,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import './globals.css';
 import { PageProvider } from './store/pageContext';
@@ -12,8 +13,10 @@ if (!container) {
 const root = createRoot(container);
 root.render(
   <React.StrictMode>
-    <PageProvider>
-      <App />
-    </PageProvider>
+    <BrowserRouter>
+      <PageProvider>
+        <App />
+      </PageProvider>
+    </BrowserRouter>
   </React.StrictMode>,
 );
