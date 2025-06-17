@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { apiFetch } from '../utils/api';
 import { useAuth } from './auth';
+import type { NewBien, EditBien } from '@monorepo/shared';
 
 export interface Bien {
   id: string;
@@ -67,10 +68,10 @@ export const useBienStore = create<BienState>((set) => ({
     set({ items });
   },
 
-  create: async (data) => {
+  create: async (data: NewBien) => {
     const token = useAuth.getState().token;
     if (!token) throw new Error('Non authentifié');
-    const payload = clean(data);
+    const payload = clean<NewBien>(data);
     const bien = await apiFetch<Bien>(ENDPOINT, {
       method: 'POST',
       headers: {
@@ -82,10 +83,10 @@ export const useBienStore = create<BienState>((set) => ({
     set((state) => ({ items: [...state.items, bien] }));
   },
 
-  update: async (id, data) => {
+  update: async (id, data: EditBien) => {
     const token = useAuth.getState().token;
     if (!token) throw new Error('Non authentifié');
-    const payload = clean(data);
+    const payload = clean<EditBien>(data);
     const bien = await apiFetch<Bien>(`${ENDPOINT}/${id}`, {
       method: 'PATCH',
       headers: {
