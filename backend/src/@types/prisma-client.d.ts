@@ -9,5 +9,12 @@ declare module '@prisma/client' {
       update: (args: unknown) => unknown;
       delete: (args: unknown) => unknown;
     };
+    profile: {
+      create: (args: unknown) => unknown;
+      findMany: () => unknown;
+      findUnique: (args: unknown) => unknown;
+      update: (args: unknown) => unknown;
+      delete: (args: unknown) => unknown;
+    };
   }
 }
