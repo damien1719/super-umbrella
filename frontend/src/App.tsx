@@ -8,8 +8,9 @@ import Resultats from './pages/Resultats';
 import Abonnement from './pages/Abonnement';
 import MonCompte from './pages/MonCompte';
 import { PageProvider, usePageStore } from './store/pageContext';
+import type { Page } from './store/pageContext';
 
-function PageContainer({ currentPage }) {
+function PageContainer({ currentPage }: { currentPage: Page }) {
   switch (currentPage) {
     case 'Dashboard':
       return <Dashboard />;
