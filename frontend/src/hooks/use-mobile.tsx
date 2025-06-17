@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 
 /**
  * Hook to detect if the current viewport is considered mobile.
@@ -8,7 +8,7 @@ import { useState, useEffect } from "react";
 export function useIsMobile(breakpoint: number = 768): boolean {
   // Initialize state based on current window width (handles SSR by defaulting to false)
   const [isMobile, setIsMobile] = useState<boolean>(
-    typeof window !== "undefined" ? window.innerWidth < breakpoint : false
+    typeof window !== 'undefined' ? window.innerWidth < breakpoint : false,
   );
 
   useEffect(() => {
@@ -18,12 +18,12 @@ export function useIsMobile(breakpoint: number = 768): boolean {
     }
 
     // Add event listener
-    window.addEventListener("resize", handleResize);
+    window.addEventListener('resize', handleResize);
     // Call handler once to set initial state
     handleResize();
 
     // Remove event listener on cleanup
-    return () => window.removeEventListener("resize", handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, [breakpoint]);
 
   return isMobile;
