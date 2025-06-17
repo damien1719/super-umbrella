@@ -1,0 +1,30 @@
+import React from 'react';
+
+interface InputFieldProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  required?: boolean;
+}
+
+export function InputField({
+  label,
+  value,
+  onChange,
+  placeholder,
+  required,
+}: InputFieldProps) {
+  return (
+    <label className="block space-y-1">
+      <span className="text-sm font-medium">{label}</span>
+      <input
+        className="border rounded px-2 py-1 w-full"
+        value={value}
+        placeholder={placeholder}
+        required={required}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </label>
+  );
+}
