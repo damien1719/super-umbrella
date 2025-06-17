@@ -1,5 +1,5 @@
-import { useState } from "react"
-import AppSidebar from './components/SideBar/AppSidebar';
+import { useState } from 'react';
+import AppSidebar from './components/Sidebar/AppSidebar';
 import { SidebarProvider } from './components/ui/sidebar';
 import Dashboard from './pages/Dashboard';
 import MesBiens from './pages/MesBiens';
@@ -42,7 +42,7 @@ function InnerApp() {
   // Hooks dans le bon provider
   const currentPage = usePageStore((s) => s.currentPage);
   const setCurrentPage = usePageStore((s) => s.setCurrentPage);
-  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+  const [, setIsProfileDialogOpen] = useState(false);
 
   return (
     <>

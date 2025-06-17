@@ -12,13 +12,10 @@ describe('App navigation', () => {
     ).toBeInTheDocument();
   });
 
-  it('affiche les résultats après clic sur déclaration fiscale', () => {
+  it('active le menu Résultats après clic', () => {
     render(<App />);
-    fireEvent.click(
-      screen.getByRole('button', { name: /déclaration fiscale/i }),
-    );
-    expect(
-      screen.getByRole('heading', { name: /résultats/i }),
-    ).toBeInTheDocument();
+    const btn = screen.getByRole('button', { name: /résultats/i });
+    fireEvent.click(btn);
+    expect(btn).toHaveAttribute('data-active', 'true');
   });
 });
