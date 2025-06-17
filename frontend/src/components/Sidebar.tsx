@@ -11,6 +11,8 @@ const items: { label: string; page: Page }[] = [
   { label: 'MesBiens', page: 'MesBiens' },
   { label: 'Abonnement', page: 'Abonnement' },
   { label: 'Mon Agenda', page: 'Agenda' },
+  { label: 'Mon Compte', page: 'MonCompte' },
+  { label: 'Déclaration Fiscale', page: 'Resultats' },
 ];
 
 export function Sidebar({ current, onNavigate }: SidebarProps) {
