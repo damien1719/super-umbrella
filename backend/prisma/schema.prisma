@@ -35,7 +35,8 @@ enum AmortMethode {
 
 //Profile
 model Profile {
-  oid                 BigInt   @id
+  id                  BigInt   @id
+  userId              String   @unique @db.Uuid
   prTexte             String   @db.VarChar(255)
   nif                 String   @db.VarChar(255)
   nifReadonly         Boolean  @map("nif_readonly")
@@ -47,6 +48,8 @@ model Profile {
   email               String?  @db.VarChar(255)
   telephonePersoNum   String?  @db.VarChar(50)
   telephoneMobileNum  String?  @db.VarChar(50)
+
+  biens      Bien[] 
 
   @@map("profile")
   @@schema("public")
@@ -1040,6 +1043,8 @@ model Bien {
   createdAt                      DateTime                @default(now())
   updatedAt                      DateTime                @updatedAt
 
+  profileId    BigInt
+  profile      Profile   @relation(fields: [profileId], references: [id])
 
   inventaires Inventaire[]
   documents Document[]
@@ -1048,8 +1053,6 @@ model Bien {
 
   @@schema("gestion")
 }
-
-
 
 model Cave {
   id       String @id @default(uuid())
