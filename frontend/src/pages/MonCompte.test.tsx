@@ -1,0 +1,33 @@
+import { render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { describe, it, expect, vi } from 'vitest';
+import MonCompte from './MonCompte';
+
+// basic test to ensure profile is fetched and shown
+
+describe('MonCompte page', () => {
+  it('fetches and displays profile', async () => {
+    const mockProfile = {
+      nom: 'Dupont',
+      prenom: 'Jean',
+      email: 'jean@exemple.com',
+      telephone: '0102030405',
+      adresse: '1 rue ici',
+    };
+    const fetchMock = vi.fn(() =>
+      Promise.resolve({ ok: true, json: () => Promise.resolve(mockProfile) }),
+    );
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    render(
+      <MemoryRouter>
+        <MonCompte />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+
+    expect(await screen.findByDisplayValue('Dupont')).toBeInTheDocument();
+    expect(await screen.findByDisplayValue('Jean')).toBeInTheDocument();
+  });
+});
