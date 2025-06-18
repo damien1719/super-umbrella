@@ -9,14 +9,18 @@ describe('useUserProfileStore', () => {
     useAuth.setState({ token: 'tok' });
     useUserProfileStore.setState({
       profile: null,
+      profileId: null,
       loading: false,
       error: null,
+      setProfileId: () => {},
     });
     (fetch as unknown as vi.Mock).mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve({ nom: 'Doe' }),
+      json: () => Promise.resolve({ id: '123', nom: 'Doe' }),
     });
     await useUserProfileStore.getState().fetchProfile();
-    expect(useUserProfileStore.getState().profile?.nom).toBe('Doe');
+    const state = useUserProfileStore.getState();
+    expect(state.profile?.nom).toBe('Doe');
+    expect(state.profileId).toBe('123');
   });
 });

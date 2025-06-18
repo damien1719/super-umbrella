@@ -5,15 +5,19 @@ import type { UserProfile } from '@monorepo/shared';
 
 interface UserProfileState {
   profile: UserProfile | null;
+  /** Identifiant du profil pour les appels PATCH/DELETE */
+  profileId: string | null;
   loading: boolean;
   error: string | null;
   fetchProfile: () => Promise<void>;
   updateProfile: (data: Partial<UserProfile>) => Promise<UserProfile>;
   deleteProfile: () => Promise<void>;
+  setProfileId: (id: string | null) => void;
 }
 
-export const useUserProfileStore = create<UserProfileState>((set) => ({
+export const useUserProfileStore = create<UserProfileState>((set, get) => ({
   profile: null,
+  profileId: null,
   loading: false,
   error: null,
 
@@ -25,7 +29,7 @@ export const useUserProfileStore = create<UserProfileState>((set) => ({
       const profile = await apiFetch<UserProfile | null>(`/api/v1/profile/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      set({ profile, loading: false });
+      set({ profile, profileId: profile?.id ?? null, loading: false });
     } catch (e) {
       set({ error: (e as Error).message, loading: false });
       throw e;
@@ -34,16 +38,28 @@ export const useUserProfileStore = create<UserProfileState>((set) => ({
 
   updateProfile: async (data) => {
     const { token } = useAuth.getState();
+    const { profileId } = get();
     if (!token) throw new Error('Non authentifié');
+    if (!profileId) throw new Error('Profil introuvable');
     set({ loading: true, error: null });
     try {
-      console.log('🔶 updateProfile payload before send:', JSON.stringify(data));
-      const updated = await apiFetch<UserProfile>(`/api/v1/profile/}`, {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${token}` },
-        body: JSON.stringify(data),
+      console.log(
+        '🔶 updateProfile payload before send:',
+        JSON.stringify(data),
+      );
+      const updated = await apiFetch<UserProfile>(
+        `/api/v1/profile/${profileId}`,
+        {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${token}` },
+          body: JSON.stringify(data),
+        },
+      );
+      set({
+        profile: updated,
+        profileId: updated.id ?? profileId,
+        loading: false,
       });
-      set({ profile: updated, loading: false });
       return updated;
     } catch (e) {
       set({ error: (e as Error).message, loading: false });
@@ -53,17 +69,21 @@ export const useUserProfileStore = create<UserProfileState>((set) => ({
 
   deleteProfile: async () => {
     const { token } = useAuth.getState();
+    const { profileId } = get();
     if (!token) throw new Error('Non authentifié');
+    if (!profileId) throw new Error('Profil introuvable');
     set({ loading: true, error: null });
     try {
-      await apiFetch(`/api/v1/profile/`, {
+      await apiFetch(`/api/v1/profile/${profileId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
-      set({ profile: null, loading: false });
+      set({ profile: null, profileId: null, loading: false });
     } catch (e) {
       set({ error: (e as Error).message, loading: false });
       throw e;
     }
   },
+
+  setProfileId: (id) => set({ profileId: id }),
 }));
