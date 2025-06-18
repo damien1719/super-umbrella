@@ -43,10 +43,10 @@ function clean<T extends object>(obj: T): Partial<T> {
   ) as Partial<T>;
 }
 
-//const BASE_URL = import.meta.env.VITE_API_URL as string;
-const ENDPOINT = `/api/v1/biens`;
+import { useUserProfileStore } from './userProfile';
 
-console.log("endpoint", ENDPOINT);
+//const BASE_URL = import.meta.env.VITE_API_URL as string;
+const endpoint = (profileId: string) => `/api/v1/profile/${profileId}/biens`;
 
 interface BienState {
   items: Bien[];
@@ -61,8 +61,10 @@ export const useBienStore = create<BienState>((set) => ({
 
   fetchAll: async () => {
     const token = useAuth.getState().token;
+    const profileId = useUserProfileStore.getState().profileId;
     if (!token) throw new Error('Non authentifié');
-    const items = await apiFetch<Bien[]>(ENDPOINT, {
+    if (!profileId) throw new Error('Profil introuvable');
+    const items = await apiFetch<Bien[]>(endpoint(profileId), {
       headers: { Authorization: `Bearer ${token}` },
     });
     set({ items });
@@ -70,9 +72,11 @@ export const useBienStore = create<BienState>((set) => ({
 
   create: async (data: NewBien) => {
     const token = useAuth.getState().token;
+    const profileId = useUserProfileStore.getState().profileId;
     if (!token) throw new Error('Non authentifié');
+    if (!profileId) throw new Error('Profil introuvable');
     const payload = clean<NewBien>(data);
-    const bien = await apiFetch<Bien>(ENDPOINT, {
+    const bien = await apiFetch<Bien>(endpoint(profileId), {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -85,9 +89,11 @@ export const useBienStore = create<BienState>((set) => ({
 
   update: async (id, data: EditBien) => {
     const token = useAuth.getState().token;
+    const profileId = useUserProfileStore.getState().profileId;
     if (!token) throw new Error('Non authentifié');
+    if (!profileId) throw new Error('Profil introuvable');
     const payload = clean<EditBien>(data);
-    const bien = await apiFetch<Bien>(`${ENDPOINT}/${id}`, {
+    const bien = await apiFetch<Bien>(`${endpoint(profileId)}/${id}`, {
       method: 'PATCH',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -102,8 +108,10 @@ export const useBienStore = create<BienState>((set) => ({
 
   remove: async (id) => {
     const token = useAuth.getState().token;
+    const profileId = useUserProfileStore.getState().profileId;
     if (!token) throw new Error('Non authentifié');
-    await apiFetch<void>(`${ENDPOINT}/${id}`, {
+    if (!profileId) throw new Error('Profil introuvable');
+    await apiFetch<void>(`${endpoint(profileId)}/${id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
     });

@@ -79,7 +79,7 @@ app.use('/api/v1/articles', articleRouter);
 app.use('/api/v1/operations', operationRouter);
 app.use('/api/v1/activities', activityRouter);
 app.use('/api/v1/logements', logementRouter);
-app.use('/api/v1/biens', bienRouter);
+app.use('/api/v1/profile/:profileId/biens', bienRouter);
 app.use('/api/v1/profile', profileRouter);
 app.use('/api/v1/fiscal', fiscalRouter);
 app.use('/api/v1/fec', fecRouter);
