@@ -17,6 +17,7 @@ import { amortissementRouter } from './routes/amortissement.routes';
 import { cerfaRouter } from './routes/cerfa.routes';
 import { fecRouter } from './routes/fec.routes';
 import { reportRouter } from './routes/report.routes';
+import { locationRouter } from './routes/location.routes';
 import { errorHandler } from './middlewares/error.middleware';
 import { requireAuth } from './middlewares/requireAuth';
 
@@ -78,6 +79,7 @@ app.use(requireAuth);
 app.use('/api/v1/articles', articleRouter);
 app.use('/api/v1/operations', operationRouter);
 app.use('/api/v1/activities', activityRouter);
+app.use('/api/v1/locations', locationRouter);
 app.use('/api/v1/logements', logementRouter);
 app.use('/api/v1/profile/:profileId/biens', bienRouter);
 app.use('/api/v1/profile', profileRouter);
