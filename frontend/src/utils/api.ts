@@ -14,7 +14,10 @@ export async function apiFetch<T>(
 ): Promise<T> {
   const res = await fetch(buildUrl(path), {
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      ...options.headers 
+    },
     ...options,
   });
   if (!res.ok) {

@@ -88,6 +88,7 @@ export const useAuth = create<AuthState>((set) => {
         password,
         options: { data: { firstName, lastName } },
       });
+      console.log({ data, error });
       if (error) {
         set({ error: error.message, loading: false });
         throw error;

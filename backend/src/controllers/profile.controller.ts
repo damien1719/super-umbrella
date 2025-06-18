@@ -21,7 +21,7 @@ export const ProfileController = {
 
   async get(req: Request, res: Response, next: NextFunction) {
     try {
-      const profile = await ProfileService.get(BigInt(req.params.id));
+      const profile = await ProfileService.get(req.params.id);
       if (!profile) {
         res.sendStatus(404);
         return;
@@ -33,8 +33,10 @@ export const ProfileController = {
   },
 
   async update(req: Request, res: Response, next: NextFunction) {
+    console.log('[Controller.updateProfile] params.id =', req.params.id);
+    console.log('[Controller.updateProfile] req.body =', req.body);  
     try {
-      const profile = await ProfileService.update(BigInt(req.params.id), req.body);
+      const profile = await ProfileService.update(req.params.id, req.body);
       res.json(profile);
     } catch (e) {
       next(e);
@@ -43,7 +45,7 @@ export const ProfileController = {
 
   async remove(req: Request, res: Response, next: NextFunction) {
     try {
-      await ProfileService.remove(BigInt(req.params.id));
+      await ProfileService.remove(req.params.id);
       res.sendStatus(204);
     } catch (e) {
       next(e);

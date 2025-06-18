@@ -28,7 +28,7 @@ const FRONTEND_PREFIX = process.env.FRONTEND_PREFIX ?? '';
 
 app.use(cors({
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    // autorise si pas d’origin (ex : Postman) ou si l’origin commence bien par ton prefix
+    // autorise si pas d'origin (ex : Postman) ou si l'origin commence bien par ton prefix
     if (!origin || origin.startsWith(FRONTEND_PREFIX)) {
       callback(null, true);
     } else {
@@ -38,8 +38,36 @@ app.use(cors({
   credentials: true,      // si tu envoies des cookies
 }));
 
-app.use(express.json());
 
+//// DEBUGGING /////
+// Middleware de logging pour afficher l'appel HTTP brut
+app.use((req, res, next) => {
+  console.log('\n🌐 === REQUÊTE HTTP BRUTE ===');
+  console.log(`${req.method} ${req.url}`);
+  console.log('Headers:', JSON.stringify(req.headers, null, 2));
+  
+  // Capturer le body brut
+  let body = '';
+  req.on('data', chunk => {
+    body += chunk.toString();
+  });
+  req.on('end', () => {
+    if (body) {
+      console.log('Body brut:', body);
+      try {
+        const parsedBody = JSON.parse(body);
+        console.log('Body parsé:', JSON.stringify(parsedBody, null, 2));
+      } catch (e) {
+        console.log('Body non-JSON:', body);
+      }
+    }
+    console.log('🌐 === FIN REQUÊTE ===\n');
+  });
+  
+  next();
+});
+
+app.use(express.json());
 
 app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ ok: true });

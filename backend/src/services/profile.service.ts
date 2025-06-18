@@ -11,15 +11,22 @@ export const ProfileService = {
     return prisma.profile.findMany();
   },
 
-  get(id: bigint) {
+  get(id: string) {
     return prisma.profile.findUnique({ where: { id } });
   },
 
-  update(id: bigint, data: Partial<ProfileData>) {
-    return prisma.profile.update({ where: { id }, data });
+  update(id: string, data: Partial<ProfileData>) {
+    console.log(`[ProfileService.update] id=`, id, `data=`, data)
+    if (!data || Object.keys(data).length === 0) {
+      throw new Error("No update data provided for profile " + id)
+    }
+    return prisma.profile.update({ 
+      where: { id }, 
+      data 
+    });
   },
 
-  remove(id: bigint) {
+  remove(id: string) {
     return prisma.profile.delete({ where: { id } });
   },
 };

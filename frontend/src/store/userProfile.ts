@@ -18,11 +18,11 @@ export const useUserProfileStore = create<UserProfileState>((set) => ({
   error: null,
 
   fetchProfile: async () => {
-    const token = useAuth.getState().token;
-    if (!token) throw new Error('Non authentifié');
+    const { token, user } = useAuth.getState();
+    if (!token || !user) throw new Error('Non authentifié');
     set({ loading: true, error: null });
     try {
-      const profile = await apiFetch<UserProfile | null>('/api/v1/profile', {
+      const profile = await apiFetch<UserProfile | null>(`/api/v1/profile/${user.id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       set({ profile, loading: false });
@@ -33,12 +33,13 @@ export const useUserProfileStore = create<UserProfileState>((set) => ({
   },
 
   updateProfile: async (data) => {
-    const token = useAuth.getState().token;
-    if (!token) throw new Error('Non authentifié');
+    const { token, user } = useAuth.getState();
+    if (!token || !user) throw new Error('Non authentifié');
     set({ loading: true, error: null });
     try {
-      const updated = await apiFetch<UserProfile>('/api/v1/profile', {
-        method: 'PUT',
+      console.log('🔶 updateProfile payload before send:', JSON.stringify(data));
+      const updated = await apiFetch<UserProfile>(`/api/v1/profile/${user.id}`, {
+        method: 'PATCH',
         headers: { Authorization: `Bearer ${token}` },
         body: JSON.stringify(data),
       });
@@ -51,11 +52,11 @@ export const useUserProfileStore = create<UserProfileState>((set) => ({
   },
 
   deleteProfile: async () => {
-    const token = useAuth.getState().token;
-    if (!token) throw new Error('Non authentifié');
+    const { token, user } = useAuth.getState();
+    if (!token || !user) throw new Error('Non authentifié');
     set({ loading: true, error: null });
     try {
-      await apiFetch('/api/v1/profile', {
+      await apiFetch(`/api/v1/profile/${user.id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });

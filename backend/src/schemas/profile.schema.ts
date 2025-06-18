@@ -16,4 +16,4 @@ export const createProfileSchema = z.object({
 });
 
 export const updateProfileSchema = createProfileSchema.partial();
-export const profileIdParam = z.object({ id: z.coerce.bigint() });
+export const profileIdParam = z.object({id: z.string().uuid()});
