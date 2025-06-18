@@ -5,12 +5,19 @@ import App from './App';
 import { PageProvider } from './store/pageContext';
 import { BrowserRouter } from 'react-router-dom';
 import { useAuth } from './store/auth';
+import {
+  useUserProfileStore,
+  type UserProfileState,
+} from './store/userProfile';
 
 // Tests simplifiés pour la navigation
 
 describe('App navigation', () => {
   it('affiche le dashboard par défaut', async () => {
     useAuth.setState({ user: { id: '1' } as unknown as User, loading: false });
+    useUserProfileStore.setState(
+      (state) => ({ ...state, profileId: 'p1' }) as UserProfileState,
+    );
     global.fetch = vi.fn(() =>
       Promise.resolve({ ok: true, json: () => Promise.resolve([]) }),
     ) as unknown as typeof fetch;
@@ -28,6 +35,9 @@ describe('App navigation', () => {
 
   it('active le menu MesBiens après clic', async () => {
     useAuth.setState({ user: { id: '1' } as unknown as User, loading: false });
+    useUserProfileStore.setState(
+      (state) => ({ ...state, profileId: 'p1' }) as UserProfileState,
+    );
     global.fetch = vi.fn(() =>
       Promise.resolve({ ok: true, json: () => Promise.resolve([]) }),
     ) as unknown as typeof fetch;

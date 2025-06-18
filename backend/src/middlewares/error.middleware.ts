@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
 import { ZodError } from 'zod';
 import { NotFoundError } from '../services/profile.service';
+import { ForbiddenError } from '../services/bien.service';
 
 export const errorHandler: ErrorRequestHandler = (
   err: unknown,
@@ -17,6 +18,10 @@ export const errorHandler: ErrorRequestHandler = (
   }
   if (err instanceof NotFoundError) {
     res.status(404).json({ message: 'Not Found' });
+    return;
+  }
+  if (err instanceof ForbiddenError) {
+    res.status(403).json({ message: 'Forbidden' });
     return;
   }
   console.error(err);

@@ -16,7 +16,7 @@ describe('useUserProfileStore', () => {
     });
     (fetch as unknown as vi.Mock).mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve({ id: '123', nom: 'Doe' }),
+      json: () => Promise.resolve([{ id: '123', nom: 'Doe' }]),
     });
     await useUserProfileStore.getState().fetchProfile();
     const state = useUserProfileStore.getState();

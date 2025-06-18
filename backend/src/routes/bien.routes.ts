@@ -6,8 +6,9 @@ import {
   updateBienSchema,
   bienIdParam,
 } from '../schemas/bien.schema';
+import { profileIdParam } from '../schemas/profile.schema';
 
-export const bienRouter = Router();
+export const bienRouter = Router({ mergeParams: true });
 
 bienRouter
   .route('/')
