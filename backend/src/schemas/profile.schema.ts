@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
 export const createProfileSchema = z.object({
-  userId: z.string().uuid(),
   prTexte: z.string().max(255),
   nif: z.string().max(255),
   nifReadonly: z.boolean(),
@@ -16,4 +15,4 @@ export const createProfileSchema = z.object({
 });
 
 export const updateProfileSchema = createProfileSchema.partial();
-export const profileIdParam = z.object({id: z.string().uuid()});
+export const profileIdParam = z.object({ profileId: z.string().uuid() });

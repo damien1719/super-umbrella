@@ -11,10 +11,11 @@ declare module '@prisma/client' {
     };
     profile: {
       create: (args: unknown) => unknown;
-      findMany: () => unknown;
+      findMany: (args: unknown) => unknown;
+      findFirst: (args: unknown) => unknown;
       findUnique: (args: unknown) => unknown;
-      update: (args: unknown) => unknown;
-      delete: (args: unknown) => unknown;
+      updateMany: (args: unknown) => { count: number };
+      deleteMany: (args: unknown) => { count: number };
     };
   }
 }

@@ -29,7 +29,7 @@ export const requireAuth: RequestHandler = (
     req.user = { id: payload.sub }
     next()
     return
-  } catch (error) {
+  } catch {
     res.status(401).send('Invalid token')
     return
   }
