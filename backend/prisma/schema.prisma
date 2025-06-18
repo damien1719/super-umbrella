@@ -1024,9 +1024,9 @@ model Bien {
   description                    String?
 
   // Chauffage & eau chaude
-  typeChauffage                  TypeChauffage
+  typeChauffage                  TypeChauffage?
   autresTypesChauffage           AutreTypeChauffage[] 
-  typeEauChaude                  TypeEauChaude
+  typeEauChaude                  TypeEauChaude?
 
   // Équipements et accès
   equipementsDivers              EquipementDivers[]      
@@ -1309,21 +1309,21 @@ model Location {
 	
 	 // --- Bail meublé ---
   leaseStartDate              DateTime                   // Date de début du bail
-  leaseEndDate                DateTime                   // Date de fin théorique
+  leaseEndDate                DateTime?                   // Date de fin théorique
 
   usageDestination            UsageDestination           @default(HABITATION)
 
 	  // Conditions de paiement du loyer
-  paymentTerm                 PaymentTerm                // À échoir / échu
+  paymentTerm                 PaymentTerm?                // À échoir / échu
   rentDueDay                  Int?                       // Jour d’exigibilité (1–31)
-  paymentMethod               PaymentMethod              // Virement / Chèque / Autre
-  dematerializeReceipt        Boolean   @default(true)    // Autorisation démat. de la quittance
+  paymentMethod               PaymentMethod?              // Virement / Chèque / Autre
+  dematerializeReceipt        Boolean?   @default(true)    // Autorisation démat. de la quittance
 
   // Loyer et charges
-  applyExtraRent              Boolean   @default(false)   // Complément de loyer appliqué ?
+  applyExtraRent              Boolean?   @default(false)   // Complément de loyer appliqué ?
   baseRent                    Float                      // Loyer hors charges
   monthlyChargesAmount        Float?                     // Montant charges récupérables
-  chargesMethod               RecoverableChargesMethod   // Par provision / forfaitaire / périodique
+  chargesMethod               RecoverableChargesMethod?   // Par provision / forfaitaire / périodique
   includeWasteTaxInCharges    Boolean   @default(false)   // Taxe ordures ménagères comprise
   colocInsuranceSubscribed    Boolean   @default(false)   // Assurance habitation colocation
 
@@ -1364,15 +1364,15 @@ model Location {
   theoreticalExpensesYear     String?                    // Année de référence des prix
 
   // Clauses particulières – travaux
-  travauxByBailleur           Boolean   @default(false)   // Travaux effectués par bailleur
+  travauxByBailleur           Boolean?   @default(false)   // Travaux effectués par bailleur
   natureTravaux               String?                    // Nature des travaux
   montantTravaux              Float?                     // Montant des travaux
-  majorationLoyerTravaux      Boolean   @default(false)   // Majoration suite à travaux bailleur
-  travauxByLocataire          Boolean   @default(false)   // Travaux prévus par locataire
-  clauseRenouvellement        Boolean   @default(false)   // Clause réévaluation renouvellement
+  majorationLoyerTravaux      Boolean?   @default(false)   // Majoration suite à travaux bailleur
+  travauxByLocataire          Boolean?   @default(false)   // Travaux prévus par locataire
+  clauseRenouvellement        Boolean?   @default(false)   // Clause réévaluation renouvellement
 
   // Économie d’énergie : partage des charges
-  partageChargesEnergie       Boolean   @default(false)
+  partageChargesEnergie       Boolean?   @default(false)
 
   // Informations supplémentaires
   previousSituation           PreviousRentalSituation    // Situation locative antérieure
