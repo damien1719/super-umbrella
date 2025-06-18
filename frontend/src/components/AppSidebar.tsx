@@ -44,6 +44,7 @@ const items: {
   path: string;
   icon: React.ComponentType<{ className?: string }>;
 }[] = [
+  { title: 'Mon Compte', page: 'MonCompte', path: '/compte', icon: Calendar },
   { title: 'Dashboard', page: 'Dashboard', path: '/', icon: LayoutDashboard },
   { title: 'Mes Biens', page: 'MesBiens', path: '/biens', icon: Home },
   { title: 'Mon Agenda', page: 'Agenda', path: '/agenda', icon: Calendar },
