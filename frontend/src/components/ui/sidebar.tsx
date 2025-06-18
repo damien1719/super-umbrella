@@ -13,7 +13,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
         typeof collapsible !== 'undefined' ? collapsible : undefined
       }
       className={cn(
-        'flex min-h-screen w-60 flex-col border-r bg-muted/40',
+        'flex min-h-screen w-60 flex-col border-r bg-gray-100',
         className,
       )}
       {...props}
@@ -104,9 +104,9 @@ const SidebarMenuButton = React.forwardRef<
     ref={ref}
     data-active={isActive}
     className={cn(
-      'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground',
+      'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-blue-50 hover:text-blue-700',
       size === 'lg' && 'px-2 py-2',
-      isActive && 'bg-accent text-accent-foreground',
+      isActive && 'bg-blue-50 text-blue-700',
       className,
     )}
     {...props}
