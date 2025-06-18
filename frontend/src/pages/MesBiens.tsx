@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useBienStore, Bien } from '../store/biens';
 import BienForm from '../components/BienForm';
-import { Button } from '../components/ui/button';
+import { Button, buttonVariants } from '../components/ui/button';
+import { Link } from 'react-router-dom';
 
 export default function MesBiens() {
   const { items, fetchAll, remove } = useBienStore();
@@ -72,6 +73,13 @@ export default function MesBiens() {
                 <Button variant="destructive" onClick={() => remove(b.id)}>
                   Supprimer
                 </Button>
+                <Link
+                  to={`/biens/${b.id}/locations/new`}
+                  className={buttonVariants({ variant: 'secondary' })}
+                  aria-label="Nouvelle location"
+                >
+                  Nouvelle location
+                </Link>
               </td>
             </tr>
           ))}

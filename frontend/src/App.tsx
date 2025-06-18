@@ -4,6 +4,7 @@ import { useRequireAuth } from './hooks/useRequireAuth';
 import { useEffect } from 'react';
 import Dashboard from './pages/Dashboard';
 import MesBiens from './pages/MesBiens';
+import NewLocation from './pages/NewLocation';
 import Agenda from './pages/Agenda';
 import Resultats from './pages/Resultats';
 import Abonnement from './pages/Abonnement';
@@ -40,6 +41,7 @@ function ProtectedLayout() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/biens" element={<MesBiens />} />
+          <Route path="/biens/:id/locations/new" element={<NewLocation />} />
           <Route path="/agenda" element={<Agenda />} />
           <Route path="/resultats" element={<Resultats />} />
           <Route path="/abonnement" element={<Abonnement />} />
