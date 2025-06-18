@@ -25,7 +25,9 @@ export function createAuthProvider() {
   return {
     getCurrentUser: async () => user,
     getSession: async () => ({ data: { session } }),
-    onAuthStateChange: (callback: (event: string, session: Session | null) => void) => {
+    onAuthStateChange: (
+      callback: (event: string, session: Session | null) => void,
+    ) => {
       // Simuler un changement d'état immédiat
       callback('SIGNED_IN', session);
       return { data: { subscription: { unsubscribe: () => {} } } };
@@ -35,6 +37,42 @@ export function createAuthProvider() {
         return user;
       }
       throw new Error('Identifiants invalides');
+    },
+    signInWithPassword: async ({
+      email,
+      password,
+    }: {
+      email: string;
+      password: string;
+    }) => {
+      if (email && password) {
+        return {
+          data: { user, session },
+          error: null,
+        } as { data: { user: User; session: Session }; error: null };
+      }
+      return {
+        data: { user: null, session: null },
+        error: { message: 'invalid' },
+      } as { data: { user: null; session: null }; error: { message: string } };
+    },
+    signUp: async ({
+      email,
+      password,
+    }: {
+      email: string;
+      password: string;
+    }) => {
+      if (email && password) {
+        return {
+          data: { user, session },
+          error: null,
+        } as { data: { user: User; session: Session }; error: null };
+      }
+      return {
+        data: { user: null, session: null },
+        error: { message: 'invalid' },
+      } as { data: { user: null; session: null }; error: { message: string } };
     },
     signOut: async () => {
       return { error: null };

@@ -9,6 +9,7 @@ import Resultats from './pages/Resultats';
 import Abonnement from './pages/Abonnement';
 import MonCompte from './pages/MonCompte';
 import Login from './pages/Login';
+import SignUp from './pages/SignUp';
 import { usePageStore } from './store/pageContext';
 import { Sidebar } from './components/Sidebar';
 
@@ -53,6 +54,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<SignUp />} />
       <Route path="/*" element={<ProtectedLayout />} />
     </Routes>
   );

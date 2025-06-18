@@ -15,8 +15,9 @@ export function createAuthProvider() {
       return user;
     },
     getSession: () => supabase.auth.getSession(),
-    onAuthStateChange: (callback: (event: string, session: Session | null) => void) => 
-      supabase.auth.onAuthStateChange(callback),
+    onAuthStateChange: (
+      callback: (event: string, session: Session | null) => void,
+    ) => supabase.auth.onAuthStateChange(callback),
     signIn: (email: string, password: string) =>
       supabase.auth
         .signInWithPassword({ email, password })
@@ -25,7 +26,12 @@ export function createAuthProvider() {
           return data.user;
         }),
     signOut: () => supabase.auth.signOut(),
-    signInWithPassword: (credentials: { email: string; password: string }) => 
-      supabase.auth.signInWithPassword(credentials)
+    signInWithPassword: (credentials: { email: string; password: string }) =>
+      supabase.auth.signInWithPassword(credentials),
+    signUp: (params: {
+      email: string;
+      password: string;
+      options?: { data: { firstName: string; lastName: string } };
+    }) => supabase.auth.signUp(params),
   };
 }

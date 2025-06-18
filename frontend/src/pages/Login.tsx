@@ -75,6 +75,14 @@ export default function Login() {
             ➡︎ Accès démo direct
           </button>
         )}
+        <button
+          type="button"
+          onClick={() => navigate('/signup')}
+          className="border p-2 rounded hover:bg-gray-100 disabled:opacity-50"
+          disabled={loading}
+        >
+          Créer un compte
+        </button>
       </form>
     </div>
   );
