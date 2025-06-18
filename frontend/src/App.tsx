@@ -12,7 +12,7 @@ import MonCompte from './pages/MonCompte';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
 import { usePageStore } from './store/pageContext';
-import { Sidebar } from './components/Sidebar';
+import { AppSidebar } from './components/AppSidebar';
 
 function useInitAuth() {
   const { loading, initialize } = useAuth();
@@ -38,7 +38,7 @@ function ProtectedLayout() {
 
   return (
     <div className="flex">
-      <Sidebar onNavigate={setCurrentPage} />
+      <AppSidebar onNavigate={setCurrentPage} />
       <main className="flex-1 p-4">
         <Outlet />
       </main>
