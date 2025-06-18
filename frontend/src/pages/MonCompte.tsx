@@ -42,7 +42,10 @@ export default function MonCompte() {
       alert('Email invalide');
       return;
     }
-    await updateProfile({ ...form, telephonePersoNum: formatPhone(form.telephonePersoNum) });
+    await updateProfile({
+      ...form,
+      telephonePersoNum: formatPhone(form.telephonePersoNum),
+    });
     setEditing(false);
   };
 
