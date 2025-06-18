@@ -13,9 +13,10 @@ declare module '@prisma/client' {
     profile: {
       create: (...args: any[]) => any;
       findMany: (...args: any[]) => any;
+      findFirst: (...args: any[]) => any;
       findUnique: (...args: any[]) => any;
-      update: (...args: any[]) => any;
-      delete: (...args: any[]) => any;
+      updateMany: (...args: any[]) => { count: number };
+      deleteMany: (...args: any[]) => { count: number };
     };
   }
 }

@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
 import { ZodError } from 'zod';
+import { NotFoundError } from '../services/profile.service';
 
 export const errorHandler: ErrorRequestHandler = (
   err: unknown,
@@ -12,6 +13,10 @@ export const errorHandler: ErrorRequestHandler = (
       message: 'Validation error',
       errors: err.flatten(),
     });
+    return;
+  }
+  if (err instanceof NotFoundError) {
+    res.status(404).json({ message: 'Not Found' });
     return;
   }
   console.error(err);

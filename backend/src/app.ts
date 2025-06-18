@@ -57,7 +57,7 @@ app.use((req, res, next) => {
       try {
         const parsedBody = JSON.parse(body);
         console.log('Body parsé:', JSON.stringify(parsedBody, null, 2));
-      } catch (e) {
+      } catch {
         console.log('Body non-JSON:', body);
       }
     }
@@ -80,7 +80,7 @@ app.use('/api/v1/operations', operationRouter);
 app.use('/api/v1/activities', activityRouter);
 app.use('/api/v1/logements', logementRouter);
 app.use('/api/v1/biens', bienRouter);
-app.use('/api/v1/profile', profileRouter);
+app.use('/api/v1/profiles', profileRouter);
 app.use('/api/v1/fiscal', fiscalRouter);
 app.use('/api/v1/fec', fecRouter);
 app.use('/api/v1/amortissements', amortissementRouter);
