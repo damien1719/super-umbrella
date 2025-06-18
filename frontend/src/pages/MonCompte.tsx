@@ -20,8 +20,7 @@ export default function MonCompte() {
     nom: '',
     prenom: '',
     email: '',
-    telephone: '',
-    adresse: '',
+    telephonePersoNum: '',
   });
 
   useEffect(() => {
@@ -43,7 +42,7 @@ export default function MonCompte() {
       alert('Email invalide');
       return;
     }
-    await updateProfile({ ...form, telephone: formatPhone(form.telephone) });
+    await updateProfile({ ...form, telephonePersoNum: formatPhone(form.telephonePersoNum) });
     setEditing(false);
   };
 
@@ -93,17 +92,10 @@ export default function MonCompte() {
         />
         <input
           name="telephone"
-          value={form.telephone}
+          value={form.telephonePersoNum}
           onChange={handleChange}
           disabled={!editing}
           placeholder="Téléphone"
-        />
-        <input
-          name="adresse"
-          value={form.adresse}
-          onChange={handleChange}
-          disabled={!editing}
-          placeholder="Adresse"
         />
         {editing ? (
           <button type="submit" disabled={loading}>

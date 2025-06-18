@@ -14,11 +14,11 @@ export async function apiFetch<T>(
 ): Promise<T> {
   const res = await fetch(buildUrl(path), {
     credentials: 'include',
+    ...options,
     headers: { 
       'Content-Type': 'application/json',
       ...options.headers 
     },
-    ...options,
   });
   if (!res.ok) {
     const err = await res.text();

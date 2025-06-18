@@ -3,6 +3,6 @@ export interface UserProfile {
   nom: string;
   prenom: string;
   email: string;
-  telephone?: string;
+  telephonePersoNum?: string;
   adresse?: string;
 }
