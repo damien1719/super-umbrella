@@ -6,7 +6,6 @@ import {
   updateBienSchema,
   bienIdParam,
 } from '../schemas/bien.schema';
-import { profileIdParam } from '../schemas/profile.schema';
 
 export const bienRouter = Router({ mergeParams: true });
 
@@ -18,5 +17,9 @@ bienRouter
 bienRouter
   .route('/:id')
   .get(validateParams(bienIdParam), BienController.get)
-  .patch(validateBody(updateBienSchema), BienController.update)
+  .patch(
+    validateParams(bienIdParam),
+    validateBody(updateBienSchema),
+    BienController.update,
+  )
   .delete(validateParams(bienIdParam), BienController.remove);

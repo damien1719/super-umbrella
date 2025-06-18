@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import { ActivityController } from '../controllers/activity.controller';
-import { validate } from '../middlewares/validate.middleware';
+import {
+  validateBody,
+  validateParams,
+} from '../middlewares/validate.middleware';
 import {
   createActivitySchema,
   updateActivitySchema,
@@ -11,11 +14,15 @@ export const activityRouter = Router();
 
 activityRouter
   .route('/')
-  .post(validate(createActivitySchema), ActivityController.create)
+  .post(validateBody(createActivitySchema), ActivityController.create)
   .get(ActivityController.list);
 
 activityRouter
   .route('/:id')
-  .get(validate(activityIdParam), ActivityController.get)
-  .patch(validate(updateActivitySchema), ActivityController.update)
-  .delete(validate(activityIdParam), ActivityController.remove);
+  .get(validateParams(activityIdParam), ActivityController.get)
+  .patch(
+    validateParams(activityIdParam),
+    validateBody(updateActivitySchema),
+    ActivityController.update,
+  )
+  .delete(validateParams(activityIdParam), ActivityController.remove);

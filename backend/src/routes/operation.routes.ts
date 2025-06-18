@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import { OperationController } from '../controllers/operation.controller';
-import { validate } from '../middlewares/validate.middleware';
+import {
+  validateBody,
+  validateParams,
+} from '../middlewares/validate.middleware';
 import {
   createOperationSchema,
   updateOperationSchema,
@@ -11,11 +14,15 @@ export const operationRouter = Router();
 
 operationRouter
   .route('/')
-  .post(validate(createOperationSchema), OperationController.create)
+  .post(validateBody(createOperationSchema), OperationController.create)
   .get(OperationController.list);
 
 operationRouter
   .route('/:id')
-  .get(validate(operationIdParam), OperationController.get)
-  .patch(validate(updateOperationSchema), OperationController.update)
-  .delete(validate(operationIdParam), OperationController.remove);
+  .get(validateParams(operationIdParam), OperationController.get)
+  .patch(
+    validateParams(operationIdParam),
+    validateBody(updateOperationSchema),
+    OperationController.update,
+  )
+  .delete(validateParams(operationIdParam), OperationController.remove);
