@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { BienController } from '../controllers/bien.controller';
-import { validate } from '../middlewares/validate.middleware';
+import { validateBody, validateParams } from '../middlewares/validate.middleware';
 import {
   createBienSchema,
   updateBienSchema,
@@ -12,11 +12,11 @@ export const bienRouter = Router({ mergeParams: true });
 
 bienRouter
   .route('/')
-  .post(validate(createBienSchema), BienController.create)
+  .post(validateBody(createBienSchema), BienController.create)
   .get(BienController.list);
 
 bienRouter
   .route('/:id')
-  .get(validate(bienIdParam), BienController.get)
-  .patch(validate(updateBienSchema), BienController.update)
-  .delete(validate(bienIdParam), BienController.remove);
+  .get(validateParams(bienIdParam), BienController.get)
+  .patch(validateBody(updateBienSchema), BienController.update)
+  .delete(validateParams(bienIdParam), BienController.remove);

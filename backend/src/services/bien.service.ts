@@ -51,6 +51,7 @@ export const BienService = {
     if (!data || Object.keys(data).length === 0) {
       throw new Error('No update data provided for bien ' + id);
     }
+    console.log("data", data);
     await BienService.get(userId, profileId, id);
     return db.bien.update({ where: { id }, data });
   },
