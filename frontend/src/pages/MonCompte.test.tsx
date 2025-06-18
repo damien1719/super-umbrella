@@ -8,6 +8,7 @@ import MonCompte from './MonCompte';
 describe('MonCompte page', () => {
   it('fetches and displays profile', async () => {
     const mockProfile = {
+      id: 'id-42',
       nom: 'Dupont',
       prenom: 'Jean',
       email: 'jean@exemple.com',
