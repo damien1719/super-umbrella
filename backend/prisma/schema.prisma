@@ -35,19 +35,19 @@ enum AmortMethode {
 
 //Profile
 model Profile {
-  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId              String   @unique @db.Uuid
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId              String    @db.Uuid
   prTexte             String?   @db.VarChar(255)
   nif                 String?   @db.VarChar(255)
   nifReadonly         Boolean?  @map("nif_readonly")
   civilite            Civilite?
   nom                 String?   @db.VarChar(100)
-  nomUsage            String?  @db.VarChar(100)
+  nomUsage            String?   @db.VarChar(100)
   activiteReadonly    Boolean?
   prenom              String?   @db.VarChar(100)
-  email               String?  @db.VarChar(255)
-  telephonePersoNum   String?  @db.VarChar(50)
-  telephoneMobileNum  String?  @db.VarChar(50)
+  email               String?   @db.VarChar(255)
+  telephonePersoNum   String?   @db.VarChar(50)
+  telephoneMobileNum  String?   @db.VarChar(50)
 
   biens      Bien[] 
 
