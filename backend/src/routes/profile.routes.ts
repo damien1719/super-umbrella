@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import { ProfileController } from '../controllers/profile.controller';
-import { validate } from '../middlewares/validate.middleware';
+import {
+  validateBody,
+  validateParams,
+} from '../middlewares/validate.middleware';
 import {
   createProfileSchema,
   updateProfileSchema,
@@ -11,11 +14,15 @@ export const profileRouter = Router();
 
 profileRouter
   .route('/')
-  .post(validate(createProfileSchema), ProfileController.create)
+  .post(validateBody(createProfileSchema), ProfileController.create)
   .get(ProfileController.list);
 
 profileRouter
   .route('/:profileId')
-  .get(validate(profileIdParam), ProfileController.get)
-  .patch(validate(updateProfileSchema), ProfileController.update)
-  .delete(validate(profileIdParam), ProfileController.remove);
+  .get(validateParams(profileIdParam), ProfileController.get)
+  .patch(
+    validateParams(profileIdParam),
+    validateBody(updateProfileSchema),
+    ProfileController.update,
+  )
+  .delete(validateParams(profileIdParam), ProfileController.remove);

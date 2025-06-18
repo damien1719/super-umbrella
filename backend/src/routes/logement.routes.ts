@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import { LogementController } from '../controllers/logement.controller';
-import { validate } from '../middlewares/validate.middleware';
+import {
+  validateBody,
+  validateParams,
+} from '../middlewares/validate.middleware';
 import {
   createLogementSchema,
   updateLogementSchema,
@@ -11,11 +14,15 @@ export const logementRouter = Router();
 
 logementRouter
   .route('/')
-  .post(validate(createLogementSchema), LogementController.create)
+  .post(validateBody(createLogementSchema), LogementController.create)
   .get(LogementController.list);
 
 logementRouter
   .route('/:id')
-  .get(validate(logementIdParam), LogementController.get)
-  .patch(validate(updateLogementSchema), LogementController.update)
-  .delete(validate(logementIdParam), LogementController.remove);
+  .get(validateParams(logementIdParam), LogementController.get)
+  .patch(
+    validateParams(logementIdParam),
+    validateBody(updateLogementSchema),
+    LogementController.update,
+  )
+  .delete(validateParams(logementIdParam), LogementController.remove);
