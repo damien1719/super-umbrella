@@ -6,6 +6,7 @@ export class NotFoundError extends Error {}
 
 export const ProfileService = {
   list(userId: string) {
+    console.log("list - userId", userId);
     return prisma.profile.findMany({ where: { userId } });
   },
 
@@ -14,6 +15,8 @@ export const ProfileService = {
   },
 
   get(profileId: string, userId: string) {
+    console.log("profileId", profileId);
+    console.log("userId", userId);
     return prisma.profile.findFirst({ where: { id: profileId, userId } });
   },
 

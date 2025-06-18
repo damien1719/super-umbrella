@@ -41,7 +41,7 @@ app.use(cors({
 
 //// DEBUGGING /////
 // Middleware de logging pour afficher l'appel HTTP brut
-app.use((req, res, next) => {
+/* app.use((req, res, next) => {
   console.log('\n🌐 === REQUÊTE HTTP BRUTE ===');
   console.log(`${req.method} ${req.url}`);
   console.log('Headers:', JSON.stringify(req.headers, null, 2));
@@ -66,7 +66,7 @@ app.use((req, res, next) => {
   
   next();
 });
-
+ */
 app.use(express.json());
 
 app.get('/health', (req: Request, res: Response) => {
@@ -80,7 +80,7 @@ app.use('/api/v1/operations', operationRouter);
 app.use('/api/v1/activities', activityRouter);
 app.use('/api/v1/logements', logementRouter);
 app.use('/api/v1/biens', bienRouter);
-app.use('/api/v1/profiles', profileRouter);
+app.use('/api/v1/profile', profileRouter);
 app.use('/api/v1/fiscal', fiscalRouter);
 app.use('/api/v1/fec', fecRouter);
 app.use('/api/v1/amortissements', amortissementRouter);
