@@ -22,7 +22,7 @@ export const useUserProfileStore = create<UserProfileState>((set) => ({
     if (!token) throw new Error('Non authentifié');
     set({ loading: true, error: null });
     try {
-      const profile = await apiFetch<UserProfile | null>('/api/user/profile', {
+      const profile = await apiFetch<UserProfile | null>('/api/v1/profile', {
         headers: { Authorization: `Bearer ${token}` },
       });
       set({ profile, loading: false });
@@ -37,7 +37,7 @@ export const useUserProfileStore = create<UserProfileState>((set) => ({
     if (!token) throw new Error('Non authentifié');
     set({ loading: true, error: null });
     try {
-      const updated = await apiFetch<UserProfile>('/api/user/profile', {
+      const updated = await apiFetch<UserProfile>('/api/v1/profile', {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}` },
         body: JSON.stringify(data),
@@ -55,7 +55,7 @@ export const useUserProfileStore = create<UserProfileState>((set) => ({
     if (!token) throw new Error('Non authentifié');
     set({ loading: true, error: null });
     try {
-      await apiFetch('/api/user/profile', {
+      await apiFetch('/api/v1/profile', {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
