@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { apiFetch } from '../utils/api';
 import { useAuth } from './auth';
-import type { UserProfile } from '@monorepo/shared';
+import type { UserProfile, UserProfiles } from '@monorepo/shared';
 
 interface UserProfileState {
   profile: UserProfile | null;
@@ -26,10 +26,12 @@ export const useUserProfileStore = create<UserProfileState>((set, get) => ({
     if (!token) throw new Error('Non authentifié');
     set({ loading: true, error: null });
     try {
-      const profile = await apiFetch<UserProfile | null>(`/api/v1/profile/`, {
+      const profiles = await apiFetch<UserProfiles | null>(`/api/v1/profile/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      set({ profile, profileId: profile?.id ?? null, loading: false });
+      const firstProfile = profiles?.[0] ?? null;
+      console.log("firstProfile", firstProfile);
+      set({ profile: firstProfile, profileId: firstProfile?.id ?? null, loading: false });
     } catch (e) {
       set({ error: (e as Error).message, loading: false });
       throw e;
