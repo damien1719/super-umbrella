@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './store/auth';
 import { useRequireAuth } from './hooks/useRequireAuth';
 import { useEffect } from 'react';
@@ -14,22 +14,24 @@ import SignUp from './pages/SignUp';
 import { usePageStore } from './store/pageContext';
 import { Sidebar } from './components/Sidebar';
 
-function ProtectedLayout() {
-  const currentPage = usePageStore((s) => s.currentPage);
-  const setCurrentPage = usePageStore((s) => s.setCurrentPage);
-  const { user, loading, initialize } = useAuth();
-  useRequireAuth();
-
+function useInitAuth() {
+  const { loading, initialize } = useAuth();
   useEffect(() => {
     initialize();
   }, [initialize]);
+  return loading;
+}
+
+function ProtectedLayout() {
+  const setCurrentPage = usePageStore((s) => s.setCurrentPage);
+  const { user } = useAuth();
+  const loading = useInitAuth();
+  useRequireAuth();
 
   if (loading) {
     return <div>Chargement...</div>;
   }
 
-  console.log('currrent Page', currentPage);
-  console.log('user', user);
   if (!user) {
     return <Navigate to="/login" replace />;
   }
@@ -38,17 +40,29 @@ function ProtectedLayout() {
     <div className="flex">
       <Sidebar onNavigate={setCurrentPage} />
       <main className="flex-1 p-4">
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/biens" element={<MesBiens />} />
-          <Route path="/biens/:id/locations/new" element={<NewLocation />} />
-          <Route path="/agenda" element={<Agenda />} />
-          <Route path="/resultats" element={<Resultats />} />
-          <Route path="/abonnement" element={<Abonnement />} />
-          <Route path="/compte" element={<MonCompte />} />
-        </Routes>
+        <Outlet />
       </main>
     </div>
+  );
+}
+
+function WizardLayout() {
+  const { user } = useAuth();
+  const loading = useInitAuth();
+  useRequireAuth();
+
+  if (loading) {
+    return <div>Chargement...</div>;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return (
+    <main className="p-4">
+      <Outlet />
+    </main>
   );
 }
 
@@ -57,7 +71,17 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<SignUp />} />
-      <Route path="/*" element={<ProtectedLayout />} />
+      <Route element={<WizardLayout />}>
+        <Route path="/biens/:id/locations/new" element={<NewLocation />} />
+      </Route>
+      <Route element={<ProtectedLayout />}>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/biens" element={<MesBiens />} />
+        <Route path="/agenda" element={<Agenda />} />
+        <Route path="/resultats" element={<Resultats />} />
+        <Route path="/abonnement" element={<Abonnement />} />
+        <Route path="/compte" element={<MonCompte />} />
+      </Route>
     </Routes>
   );
 }

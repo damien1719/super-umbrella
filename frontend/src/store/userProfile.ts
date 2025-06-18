@@ -30,8 +30,12 @@ export const useUserProfileStore = create<UserProfileState>((set, get) => ({
         headers: { Authorization: `Bearer ${token}` },
       });
       const firstProfile = profiles?.[0] ?? null;
-      console.log("firstProfile", firstProfile);
-      set({ profile: firstProfile, profileId: firstProfile?.id ?? null, loading: false });
+      console.log('firstProfile', firstProfile);
+      set({
+        profile: firstProfile,
+        profileId: firstProfile?.id ?? null,
+        loading: false,
+      });
     } catch (e) {
       set({ error: (e as Error).message, loading: false });
       throw e;

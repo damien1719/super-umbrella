@@ -10,14 +10,14 @@ export function buildUrl(path: string) {
 
 export async function apiFetch<T>(
   path: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<T> {
   const res = await fetch(buildUrl(path), {
     credentials: 'include',
     ...options,
-    headers: { 
+    headers: {
       'Content-Type': 'application/json',
-      ...options.headers 
+      ...options.headers,
     },
   });
   if (!res.ok) {
