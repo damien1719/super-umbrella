@@ -1,3 +1,4 @@
+import { PreviousRentalSituation } from '@prisma/client';
 import { z } from 'zod';
 
 export const createLocationSchema = z.object({
@@ -5,6 +6,8 @@ export const createLocationSchema = z.object({
   depositAmount: z.number().optional(),
   leaseStartDate: z.coerce.date(),
   bienId: z.string().uuid().optional(),
+  signatureCopies: z.number(),
+  previousSituation: z.string()
 });
 
 export const updateLocationSchema = createLocationSchema.partial();
