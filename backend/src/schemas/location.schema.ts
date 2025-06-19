@@ -1,4 +1,3 @@
-import { PreviousRentalSituation } from '@prisma/client';
 import { z } from 'zod';
 
 export const createLocationSchema = z.object({

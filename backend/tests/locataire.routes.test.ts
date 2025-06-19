@@ -45,6 +45,8 @@ describe('POST /api/v1/locataires', () => {
       nom: 'Doe',
       civilite: 'MR',
       dateNaissance: '1990-01-01',
+      bienId: '00000000-0000-0000-0000-000000000000',
+      locationId: '11111111-1111-1111-1111-111111111111',
     };
     (mockedService.create as jest.Mock).mockResolvedValueOnce({
       id: '1',

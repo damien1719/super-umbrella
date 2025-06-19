@@ -26,7 +26,12 @@ describe('GET /api/v1/locations', () => {
 describe('POST /api/v1/locations/properties/:id/location', () => {
   it('creates a location via service', async () => {
     const bienId = '00000000-0000-0000-0000-000000000000';
-    const payload = { baseRent: 600 };
+    const payload = {
+      baseRent: 600,
+      leaseStartDate: '2024-01-01',
+      signatureCopies: 1,
+      previousSituation: 'FIRST_TIME',
+    };
     (mockedService.createForProperty as jest.Mock).mockResolvedValueOnce({
       id: '1',
       baseRent: 600,
@@ -40,7 +45,10 @@ describe('POST /api/v1/locations/properties/:id/location', () => {
     expect(mockedService.createForProperty).toHaveBeenCalledWith(
       'demo-user',
       bienId,
-      payload,
+      {
+        ...payload,
+        leaseStartDate: new Date('2024-01-01'),
+      },
     );
   });
 });

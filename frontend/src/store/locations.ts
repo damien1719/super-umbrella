@@ -15,7 +15,7 @@ export interface Location {
 interface LocationState {
   current: Location | null;
   fetchForBien: (bienId: string) => Promise<Location | null>;
-  createForBien: (bienId: string, data: NewLocation) => Promise<void>;
+  createForBien: (bienId: string, data: NewLocation) => Promise<Location>;
   update: (id: string, data: Partial<NewLocation>) => Promise<void>;
   remove: (id: string) => Promise<void>;
 }
@@ -46,6 +46,7 @@ export const useLocationStore = create<LocationState>((set) => ({
       },
     );
     set({ current: loc });
+    return loc;
   },
 
   async update(id, data) {

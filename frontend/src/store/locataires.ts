@@ -11,12 +11,14 @@ export interface Locataire {
   emailSecondaire?: string;
   telephone?: string;
   mobile?: string;
+  bienId?: string;
+  locationId?: string;
 }
 
 interface LocataireState {
   current: Locataire | null;
   fetchForBien: (bienId: string) => Promise<Locataire | null>;
-  create: (data: NewLocataire) => Promise<void>;
+  create: (data: NewLocataire) => Promise<Locataire>;
   update: (id: string, data: Partial<NewLocataire>) => Promise<void>;
   remove: (id: string) => Promise<void>;
 }
@@ -45,6 +47,7 @@ export const useLocataireStore = create<LocataireState>((set) => ({
       body: JSON.stringify(data),
     });
     set({ current: loc });
+    return loc;
   },
 
   async update(id, data) {
