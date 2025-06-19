@@ -469,11 +469,11 @@ model Location {
   monthlyChargesAmount        Float?                     // Montant charges récupérables
   chargesMethod               RecoverableChargesMethod   // Par provision / forfaitaire / périodique
   includeWasteTaxInCharges    Boolean   @default(false)   // Taxe ordures ménagères comprise
-  colocInsuranceSubscribed    Boolean   @default(false)   // Assurance habitation colocation
+  colocInsuranceSubscribed    Boolean?   @default(false)   // Assurance habitation colocation
 
 
   // Encadrement des loyers
-  rentControlApplicable       Boolean                    @default(false)   // Êtes-vous concernés par la mesure ?
+  rentControlApplicable       Boolean?                    @default(false)   // Êtes-vous concernés par la mesure ?
   referenceRentMinor          Float?                     // Loyer de référence minoré (€/m²)
   referenceRentBase           Float?                     // Loyer de référence de base (€/m²)
   referenceRentMajor          Float?                     // Loyer de référence majoré (€/m²)
@@ -484,23 +484,23 @@ model Location {
 
   // Dépôt de garantie
   depositAmount               Float                      // Montant en €
-  depositType                 DepositType
+  depositType                 DepositType?
 
   // Signature
   signaturePlace              String?                    // Lieu de signature
   signatureDate               DateTime?                  // Date de signature
-  signatureCopies             Int                        // Nombre d’exemplaires
+  signatureCopies             Int?                        // Nombre d’exemplaires
 
   // Annexes au contrat
-  annexCoproReglement         Boolean   @default(false)   // Extrait règlement copro
-  annexDiagnosticDossier      Boolean   @default(false)   // Dossier diagnostic technique
-  annexNoticeInfo             Boolean   @default(false)   // Notice d’information
-  annexEtatDesLieux           Boolean   @default(false)   // État des lieux / inventaire
-  annexAutorisationPrealable  Boolean   @default(false)   // Autorisation préalable mise en location
-  annexConventionANAH         Boolean   @default(false)   // Convention ANAH
-  annexDiagnosticBruit        Boolean   @default(false)   // Diagnostic bruit aéroports
-  annexReferencesLoyers       Boolean   @default(false)   // Références loyers voisins
-  annexAutres                 Boolean   @default(false)   // Autres annexes
+  annexCoproReglement         Boolean?   @default(false)   // Extrait règlement copro
+  annexDiagnosticDossier      Boolean?   @default(false)   // Dossier diagnostic technique
+  annexNoticeInfo             Boolean?   @default(false)   // Notice d’information
+  annexEtatDesLieux           Boolean?   @default(false)   // État des lieux / inventaire
+  annexAutorisationPrealable  Boolean?   @default(false)   // Autorisation préalable mise en location
+  annexConventionANAH         Boolean?   @default(false)   // Convention ANAH
+  annexDiagnosticBruit        Boolean?   @default(false)   // Diagnostic bruit aéroports
+  annexReferencesLoyers       Boolean?   @default(false)   // Références loyers voisins
+  annexAutres                 Boolean?   @default(false)   // Autres annexes
   annexAutresDescription      String?                    // Description libre si annexAutres = true
 
   // Dépenses théoriques (DPE)

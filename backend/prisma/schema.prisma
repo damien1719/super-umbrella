@@ -1049,6 +1049,7 @@ model Bien {
   inventaires Inventaire[]
   documents Document[]
   locations Location[]
+  locataires Locataire[]
 
 
   @@schema("gestion")
@@ -1171,6 +1172,13 @@ model Locataire {
   // Relation vers ses documents génériques
   documents             Document[]         @relation("LocataireDocuments")
   
+  bienId                String?
+  bien                  Bien?        @relation(fields: [bienId],    references: [id])
+
+  locationId            String?
+  location              Location?          @relation(fields: [locationId], references: [id])
+
+
   createdAt             DateTime           @default(now())
   updatedAt             DateTime           @updatedAt
 
@@ -1381,6 +1389,8 @@ model Location {
 
   bien                         Bien?                     @relation(fields: [bienId], references: [id])
   bienId                       String?
+
+  locataires                  Locataire[]
 
   createdAt                   DateTime                   @default(now())
   updatedAt                   DateTime                   @updatedAt

@@ -88,6 +88,7 @@ export default function PropertyDashboard() {
       }
     : null;
 
+  
   const leaseData: LeaseInfo | null = location
     ? {
         tenant: locataire ? `${locataire.prenom} ${locataire.nom}` : 'N/A',
@@ -103,6 +104,7 @@ export default function PropertyDashboard() {
       }
     : null;
 
+  console.log("locatare", locataire);
   const tenantInfo: TenantInfo | null = locataire
     ? {
         name: `${locataire.prenom} ${locataire.nom}`,
@@ -112,6 +114,7 @@ export default function PropertyDashboard() {
         avatar: '/placeholder.svg?height=40&width=40',
       }
     : null;
+
   const financialData = {
     monthlyRent: 1800,
     yearlyIncome: 21600,
@@ -130,6 +133,12 @@ export default function PropertyDashboard() {
       date: '2024-01-15',
     },
   ];
+
+  console.log('DEBUG LeaseInfoCard:', {
+    activeLocation,
+    leaseData,
+    tenantInfo,
+  });
 
   return (
     <div className="space-y-4">
