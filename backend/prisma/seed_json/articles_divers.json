@@ -1,0 +1,499 @@
+{
+    "status": 0,
+    "message": "",
+    "datas": [
+    {
+    "Oid": 237495180,
+    "Article": {
+    "Oid": 8244740,
+    "Mnem": "CHECHEMP",
+    "prTexte": "Ech\u00e9ance emprunt",
+    "Description": "",
+    "Groupe": "",
+    "Famille": {
+    "Oid": 1181594,
+    "Mnem": "JD2M_DIVERS",
+    "Code": 8
+    },
+    "Compte": {
+    "Oid": null,
+    "Mnem": null,
+    "Case": null
+    },
+    "NonLiee": false,
+    "DocPrixMin": -1,
+    "DocRequired": false,
+    "ImmoAjout": false,
+    "ImmoGroupe": null,
+    "ImmoPrixMini": 600,
+    "CommentRequired": false,
+    "DureeMini": 0,
+    "DureeMaxi": 0,
+    "DureeDefaut": 0,
+    "DureeRequis": true,
+    "ModeAvance": false,
+    "ExploitantRequis": false,
+    "PeriodeRequis": false,
+    "ImmoAide": "",
+    "GroupeSaisie": "",
+    "DuplicateMonth": false
+    },
+    "Concerne": {
+    "Oid": 144036052,
+    "prTexte": "9 rue Andr\u00e9 Maginot - Emprunt 10K"
+    },
+    "DateAchat": "2022-06-10",
+    "YearAchat": 2022,
+    "Libelle": "",
+    "Capital": {
+    "montant": 41.67,
+    "devise": "EUR",
+    "fmt": "41,67\u00a0\u20ac"
+    },
+    "Assurance": {
+    "montant": 0,
+    "devise": "",
+    "fmt": ""
+    },
+    "Frais": {
+    "montant": 0,
+    "devise": "",
+    "fmt": ""
+    },
+    "Interets": {
+    "montant": 0,
+    "devise": "",
+    "fmt": ""
+    },
+    "Total": {
+    "montant": 41.67,
+    "devise": "EUR",
+    "fmt": "41,67\u00a0\u20ac"
+    },
+    "Status": false
+    },
+    {
+    "Oid": 237495219,
+    "Article": {
+    "Oid": 8244740,
+    "Mnem": "CHECHEMP",
+    "prTexte": "Ech\u00e9ance emprunt",
+    "Description": "",
+    "Groupe": "",
+    "Famille": {
+    "Oid": 1181594,
+    "Mnem": "JD2M_DIVERS",
+    "Code": 8
+    },
+    "Compte": {
+    "Oid": null,
+    "Mnem": null,
+    "Case": null
+    },
+    "NonLiee": false,
+    "DocPrixMin": -1,
+    "DocRequired": false,
+    "ImmoAjout": false,
+    "ImmoGroupe": null,
+    "ImmoPrixMini": 600,
+    "CommentRequired": false,
+    "DureeMini": 0,
+    "DureeMaxi": 0,
+    "DureeDefaut": 0,
+    "DureeRequis": true,
+    "ModeAvance": false,
+    "ExploitantRequis": false,
+    "PeriodeRequis": false,
+    "ImmoAide": "",
+    "GroupeSaisie": "",
+    "DuplicateMonth": false
+    },
+    "Concerne": {
+    "Oid": 144036052,
+    "prTexte": "9 rue Andr\u00e9 Maginot - Emprunt 10K"
+    },
+    "DateAchat": "2022-07-10",
+    "YearAchat": 2022,
+    "Libelle": "",
+    "Capital": {
+    "montant": 41.67,
+    "devise": "EUR",
+    "fmt": "41,67\u00a0\u20ac"
+    },
+    "Assurance": {
+    "montant": 0,
+    "devise": "",
+    "fmt": ""
+    },
+    "Frais": {
+    "montant": 0,
+    "devise": "",
+    "fmt": ""
+    },
+    "Interets": {
+    "montant": 0,
+    "devise": "",
+    "fmt": ""
+    },
+    "Total": {
+    "montant": 41.67,
+    "devise": "EUR",
+    "fmt": "41,67\u00a0\u20ac"
+    },
+    "Status": false
+    },
+    {
+    "Oid": 237495240,
+    "Article": {
+    "Oid": 8244740,
+    "Mnem": "CHECHEMP",
+    "prTexte": "Ech\u00e9ance emprunt",
+    "Description": "",
+    "Groupe": "",
+    "Famille": {
+    "Oid": 1181594,
+    "Mnem": "JD2M_DIVERS",
+    "Code": 8
+    },
+    "Compte": {
+    "Oid": null,
+    "Mnem": null,
+    "Case": null
+    },
+    "NonLiee": false,
+    "DocPrixMin": -1,
+    "DocRequired": false,
+    "ImmoAjout": false,
+    "ImmoGroupe": null,
+    "ImmoPrixMini": 600,
+    "CommentRequired": false,
+    "DureeMini": 0,
+    "DureeMaxi": 0,
+    "DureeDefaut": 0,
+    "DureeRequis": true,
+    "ModeAvance": false,
+    "ExploitantRequis": false,
+    "PeriodeRequis": false,
+    "ImmoAide": "",
+    "GroupeSaisie": "",
+    "DuplicateMonth": false
+    },
+    "Concerne": {
+    "Oid": 144036052,
+    "prTexte": "9 rue Andr\u00e9 Maginot - Emprunt 10K"
+    },
+    "DateAchat": "2022-08-10",
+    "YearAchat": 2022,
+    "Libelle": "",
+    "Capital": {
+    "montant": 41.67,
+    "devise": "EUR",
+    "fmt": "41,67\u00a0\u20ac"
+    },
+    "Assurance": {
+    "montant": 0,
+    "devise": "",
+    "fmt": ""
+    },
+    "Frais": {
+    "montant": 0,
+    "devise": "",
+    "fmt": ""
+    },
+    "Interets": {
+    "montant": 0,
+    "devise": "",
+    "fmt": ""
+    },
+    "Total": {
+    "montant": 41.67,
+    "devise": "EUR",
+    "fmt": "41,67\u00a0\u20ac"
+    },
+    "Status": false
+    },
+    {
+    "Oid": 237495289,
+    "Article": {
+    "Oid": 8244740,
+    "Mnem": "CHECHEMP",
+    "prTexte": "Ech\u00e9ance emprunt",
+    "Description": "",
+    "Groupe": "",
+    "Famille": {
+    "Oid": 1181594,
+    "Mnem": "JD2M_DIVERS",
+    "Code": 8
+    },
+    "Compte": {
+    "Oid": null,
+    "Mnem": null,
+    "Case": null
+    },
+    "NonLiee": false,
+    "DocPrixMin": -1,
+    "DocRequired": false,
+    "ImmoAjout": false,
+    "ImmoGroupe": null,
+    "ImmoPrixMini": 600,
+    "CommentRequired": false,
+    "DureeMini": 0,
+    "DureeMaxi": 0,
+    "DureeDefaut": 0,
+    "DureeRequis": true,
+    "ModeAvance": false,
+    "ExploitantRequis": false,
+    "PeriodeRequis": false,
+    "ImmoAide": "",
+    "GroupeSaisie": "",
+    "DuplicateMonth": false
+    },
+    "Concerne": {
+    "Oid": 144036052,
+    "prTexte": "9 rue Andr\u00e9 Maginot - Emprunt 10K"
+    },
+    "DateAchat": "2022-09-10",
+    "YearAchat": 2022,
+    "Libelle": "",
+    "Capital": {
+    "montant": 41.67,
+    "devise": "EUR",
+    "fmt": "41,67\u00a0\u20ac"
+    },
+    "Assurance": {
+    "montant": 0,
+    "devise": "",
+    "fmt": ""
+    },
+    "Frais": {
+    "montant": 0,
+    "devise": "",
+    "fmt": ""
+    },
+    "Interets": {
+    "montant": 0,
+    "devise": "",
+    "fmt": ""
+    },
+    "Total": {
+    "montant": 41.67,
+    "devise": "EUR",
+    "fmt": "41,67\u00a0\u20ac"
+    },
+    "Status": false
+    },
+    {
+    "Oid": 237495468,
+    "Article": {
+    "Oid": 8244740,
+    "Mnem": "CHECHEMP",
+    "prTexte": "Ech\u00e9ance emprunt",
+    "Description": "",
+    "Groupe": "",
+    "Famille": {
+    "Oid": 1181594,
+    "Mnem": "JD2M_DIVERS",
+    "Code": 8
+    },
+    "Compte": {
+    "Oid": null,
+    "Mnem": null,
+    "Case": null
+    },
+    "NonLiee": false,
+    "DocPrixMin": -1,
+    "DocRequired": false,
+    "ImmoAjout": false,
+    "ImmoGroupe": null,
+    "ImmoPrixMini": 600,
+    "CommentRequired": false,
+    "DureeMini": 0,
+    "DureeMaxi": 0,
+    "DureeDefaut": 0,
+    "DureeRequis": true,
+    "ModeAvance": false,
+    "ExploitantRequis": false,
+    "PeriodeRequis": false,
+    "ImmoAide": "",
+    "GroupeSaisie": "",
+    "DuplicateMonth": false
+    },
+    "Concerne": {
+    "Oid": 144036052,
+    "prTexte": "9 rue Andr\u00e9 Maginot - Emprunt 10K"
+    },
+    "DateAchat": "2022-10-10",
+    "YearAchat": 2022,
+    "Libelle": "",
+    "Capital": {
+    "montant": 41.67,
+    "devise": "EUR",
+    "fmt": "41,67\u00a0\u20ac"
+    },
+    "Assurance": {
+    "montant": 0,
+    "devise": "",
+    "fmt": ""
+    },
+    "Frais": {
+    "montant": 0,
+    "devise": "",
+    "fmt": ""
+    },
+    "Interets": {
+    "montant": 0,
+    "devise": "",
+    "fmt": ""
+    },
+    "Total": {
+    "montant": 41.67,
+    "devise": "EUR",
+    "fmt": "41,67\u00a0\u20ac"
+    },
+    "Status": false
+    },
+    {
+    "Oid": 237495489,
+    "Article": {
+    "Oid": 8244740,
+    "Mnem": "CHECHEMP",
+    "prTexte": "Ech\u00e9ance emprunt",
+    "Description": "",
+    "Groupe": "",
+    "Famille": {
+    "Oid": 1181594,
+    "Mnem": "JD2M_DIVERS",
+    "Code": 8
+    },
+    "Compte": {
+    "Oid": null,
+    "Mnem": null,
+    "Case": null
+    },
+    "NonLiee": false,
+    "DocPrixMin": -1,
+    "DocRequired": false,
+    "ImmoAjout": false,
+    "ImmoGroupe": null,
+    "ImmoPrixMini": 600,
+    "CommentRequired": false,
+    "DureeMini": 0,
+    "DureeMaxi": 0,
+    "DureeDefaut": 0,
+    "DureeRequis": true,
+    "ModeAvance": false,
+    "ExploitantRequis": false,
+    "PeriodeRequis": false,
+    "ImmoAide": "",
+    "GroupeSaisie": "",
+    "DuplicateMonth": false
+    },
+    "Concerne": {
+    "Oid": 144036052,
+    "prTexte": "9 rue Andr\u00e9 Maginot - Emprunt 10K"
+    },
+    "DateAchat": "2022-11-10",
+    "YearAchat": 2022,
+    "Libelle": "",
+    "Capital": {
+    "montant": 41.67,
+    "devise": "EUR",
+    "fmt": "41,67\u00a0\u20ac"
+    },
+    "Assurance": {
+    "montant": 0,
+    "devise": "",
+    "fmt": ""
+    },
+    "Frais": {
+    "montant": 0,
+    "devise": "",
+    "fmt": ""
+    },
+    "Interets": {
+    "montant": 0,
+    "devise": "",
+    "fmt": ""
+    },
+    "Total": {
+    "montant": 41.67,
+    "devise": "EUR",
+    "fmt": "41,67\u00a0\u20ac"
+    },
+    "Status": false
+    },
+    {
+    "Oid": 237495631,
+    "Article": {
+    "Oid": 8244740,
+    "Mnem": "CHECHEMP",
+    "prTexte": "Ech\u00e9ance emprunt",
+    "Description": "",
+    "Groupe": "",
+    "Famille": {
+    "Oid": 1181594,
+    "Mnem": "JD2M_DIVERS",
+    "Code": 8
+    },
+    "Compte": {
+    "Oid": null,
+    "Mnem": null,
+    "Case": null
+    },
+    "NonLiee": false,
+    "DocPrixMin": -1,
+    "DocRequired": false,
+    "ImmoAjout": false,
+    "ImmoGroupe": null,
+    "ImmoPrixMini": 600,
+    "CommentRequired": false,
+    "DureeMini": 0,
+    "DureeMaxi": 0,
+    "DureeDefaut": 0,
+    "DureeRequis": true,
+    "ModeAvance": false,
+    "ExploitantRequis": false,
+    "PeriodeRequis": false,
+    "ImmoAide": "",
+    "GroupeSaisie": "",
+    "DuplicateMonth": false
+    },
+    "Concerne": {
+    "Oid": 144036052,
+    "prTexte": "9 rue Andr\u00e9 Maginot - Emprunt 10K"
+    },
+    "DateAchat": "2022-12-10",
+    "YearAchat": 2022,
+    "Libelle": "",
+    "Capital": {
+    "montant": 41.67,
+    "devise": "EUR",
+    "fmt": "41,67\u00a0\u20ac"
+    },
+    "Assurance": {
+    "montant": 0,
+    "devise": "",
+    "fmt": ""
+    },
+    "Frais": {
+    "montant": 0,
+    "devise": "",
+    "fmt": ""
+    },
+    "Interets": {
+    "montant": 0,
+    "devise": "",
+    "fmt": ""
+    },
+    "Total": {
+    "montant": 41.67,
+    "devise": "EUR",
+    "fmt": "41,67\u00a0\u20ac"
+    },
+    "Status": false
+    }
+    ],
+    "locale": "fr-fr",
+    "langue": "fr",
+    "version": "1.9.8"
+    }

@@ -1,0 +1,27 @@
+{
+    "status": 0,
+    "message": "",
+    "datas": [
+    {
+    "oid": 137751759,
+    "id": "damien.mossuz@gmail.com",
+    "classeoid": -65279,
+    "classemnem": "Client",
+    "trust": true,
+    "ro": false,
+    "user": "damien.mossuz@gmail.com",
+    "profile": "Client",
+    "name": "Damien MOSSUZ",
+    "modeavance": false,
+    "LogoUrl": "https:\/\/app.jedeclaremonmeuble.com\/res\/logo\/37127177\/logo.jpg?h=40&mod=1749655163",
+    "responsable": {
+    "oid": 305333643,
+    "name": "Lotfi MEDDAHI",
+    "image": "https:\/\/app.jedeclaremonmeuble.com\/res\/agent\/305333643\/agent.jpg?h=120&mod=1749659505"
+    }
+    }
+    ],
+    "locale": "fr-fr",
+    "langue": "fr",
+    "version": "1.9.8"
+    }

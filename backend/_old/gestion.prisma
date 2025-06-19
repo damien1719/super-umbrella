@@ -1,0 +1,550 @@
+// gestion.prisma
+// 1. Source de données
+
+
+model Bailleur {
+  id                             String     @id @default(uuid())
+  civilite                       Civilite
+  prenom                         String
+  nom                            String
+  dateNaissance                  DateTime?  // ex. "1993-09-04"
+  lieuNaissance                  String?
+  email                          String     @unique
+  telephone                      String
+  adresse                        String
+  complementAdresse              String?
+  
+  codePostal                     String
+  ville                          String
+  pays                           String
+  
+  afficherCoordonnees            Boolean    @default(true)  // Afficher le Tél. et l’e-mail sur les courriers ?
+  rappelerCoordonneesBancaires   Boolean    @default(false) // Rappeler IBAN/BIC sur avis d’échéance ?
+
+  iban                           String?    // ex. "FR00 0000 0000 0000 0000 000"
+  bic                            String?    // ex. "BNPAFRPP"
+
+  createdAt                      DateTime   @default(now())
+  updatedAt                      DateTime   @updatedAt
+
+  @@schema("gestion")
+}
+
+enum Civilite {
+  M    // Monsieur
+  MM   // Madame
+
+  @@schema("gestion")
+}
+
+
+/// --- ENUMS ---
+enum TypeBien {
+  APPARTEMENT
+  MAISON
+  CHAMBRE_PRIVATIVE
+  LOCAL_COMMERCIAL
+  LOCAL_PROFESSIONNEL
+  PARKING
+  ENTREPOT_ATELIER
+  AUTRE
+
+  @@schema("gestion")
+}
+
+enum RegimeJuridique {
+  COPROPRIETE
+  MONOPROPRIETE
+
+  @@schema("gestion")
+}
+
+
+enum DPE {
+  A
+  B
+  C
+  D
+  E
+  F
+  G
+
+  @@schema("gestion")
+}
+
+enum TypeChauffage {
+  GAZ
+  ELECTRIQUE
+  FIOUL
+  BOIS
+  //… complétez selon vos listes
+
+  @@schema("gestion")
+}
+
+enum TypeEauChaude {
+  GAZ
+  ELECTRIQUE
+  //…
+
+  @@schema("gestion")
+}
+
+enum CuisineType {
+  INDEPENDANTE
+  AMERICAINE
+  SANS
+  //…
+
+  @@schema("gestion")
+}
+
+/// Pour les cases à cocher
+enum EquipementDivers {
+  GARDIEN
+  INTERPHONE
+  ANTENNE_TV_COLLECTIVE
+  ASCENSEUR
+  LOCAL_VELOS
+  LOCAL_POUBELLES
+
+  @@schema("gestion")
+}
+
+enum EquipementNTIC {
+  FIBRE_OPTIQUE
+  CABLE
+  BOX
+  ANTENNE
+  AUTRE
+
+  @@schema("gestion")
+}
+
+enum AutreTypeChauffage {
+  POMPE_A_CHALEUR
+  INSERT_BOIS
+  POELE_A_BOIS
+  POELE_A_GRANULES
+  CHEMINEE
+  CLIM
+  CLIM_REVERSIBLE
+
+  @@schema("gestion")
+}
+
+/// --- MODELS ---
+model Bien {
+  id                             String                  @id @default(uuid())
+  // Type principal
+  typeBien                       TypeBien
+  isColocation                   Boolean                 @default(false)
+
+  // Adresse
+  adresse                        String
+  complémentAdresse             String?
+  codePostal                     String
+  ville                          String
+  pays                           String
+
+  // Identifiants et diagnostics
+  numeroIdentifiantFiscal        String
+  dpe                            DPE
+  validiteDPE                    DateTime?
+  
+  // Régime copropriété / mono
+  regimeJuridique                RegimeJuridique
+
+  // Descriptif pour le bail
+  surfaceHabitable               Float
+  nombrePieces                   Int
+  anneeConstruction              Int
+  cuisine                        CuisineType
+  nombreChambres                 Int
+  nombreSejours                  Int
+  nombreSallesDEau               Int
+  nombreSallesDeBains            Int
+  nombreWC                       Int
+  description                    String?
+
+  // Chauffage & eau chaude
+  typeChauffage                  TypeChauffage
+  autresTypesChauffage           AutreTypeChauffage[] 
+  typeEauChaude                  TypeEauChaude
+
+  // Équipements et accès
+  equipementsDivers              EquipementDivers[]      
+  equipementsNTIC                EquipementNTIC[]        
+
+  // Champs à listes libres
+  autresPieces                   String[]                
+  autresInformationsComplementaires String[]            
+
+  // Relations one-to-many
+  caves                          Cave[]
+  garages                        Garage[]
+
+  createdAt                      DateTime                @default(now())
+  updatedAt                      DateTime                @updatedAt
+
+
+  inventaires Inventaire[]
+  documents Document[]
+  locations Location[]
+
+
+  @@schema("gestion")
+}
+
+
+
+model Cave {
+  id       String @id @default(uuid())
+  no       String
+  niveau   Int
+  bien     Bien   @relation(fields: [bienId], references: [id])
+  bienId   String
+
+  @@schema("gestion")
+}
+
+model Garage {
+  id       String @id @default(uuid())
+  no       String
+  niveau   Int
+  bien     Bien   @relation(fields: [bienId], references: [id])
+  bienId   String
+
+  @@schema("gestion")
+}
+
+// Ajoutez cet enum pour classifier vos documents
+enum DocumentType {
+  BAIL                // Contrat de bail
+  DPE                 // Diagnostic de performance énergétique
+  ETAT_DES_LIEUX      // État des lieux
+  FACTURE             // Facture ou quittance
+  PHOTO               // Photographie du bien
+
+  //Locationre
+  LOCATAIRE_ID    // Pièce d’identité locataire
+  JUSTIF_DOMICILE // Justificatif de domicile
+
+  AUTRE
+
+  @@schema("gestion")
+}
+
+
+
+model Document {
+  id          String       @id @default(uuid())
+
+  type        DocumentType // type de document
+  fileName    String       // nom du fichier original
+  fileUrl     String       // URL ou chemin de stockage
+  description String?      // commentaire optionnel
+
+  uploadedAt  DateTime     @default(now())
+
+
+ // Relation vers Bien ou vers Locataire
+  bien        Bien?        @relation(fields: [bienId],    references: [id])
+  bienId      String?
+  
+  locataire   Locataire?   @relation("LocataireDocuments", fields: [locataireId], references: [id])
+  locataireId String?
+
+
+  @@schema("gestion")
+}
+
+
+
+// schema.prisma
+
+/// Enums
+enum TypeLocataire {
+  PARTICULIER
+  PROFESSIONNEL
+
+  @@schema("gestion")
+}
+
+
+enum TypePieceIdentite {
+  CNI        // Carte nationale d’identité
+  PASSEPORT
+  PERMIS
+  AUTRE
+
+  @@schema("gestion")
+}
+
+
+
+/// Modèle Locataire
+model Locataire {
+  id                    String             @id @default(uuid())
+  type                  TypeLocataire      @default(PARTICULIER)
+    
+  // Informations personnelles
+  civilite              Civilite
+  prenom                String
+  deuxiemePrenom        String?
+  nom                   String
+  dateNaissance         DateTime
+  lieuNaissance         String?
+  
+  // Situation pro
+  profession            String?
+  revenusMensuels       Float?             // Montant en euros
+  
+  // Pièce d'identité
+  typePieceIdentite     TypePieceIdentite?
+  numeroPieceIdentite   String?
+  expirationPieceIdentite DateTime?
+  pieceIdentiteFileName String?            // Nom fichier original
+  pieceIdentiteFileUrl  String?            // URL ou chemin de stockage
+  
+  // Contacts
+  emailSecondaire       String?            @unique
+  mobile                String?
+  telephone             String?
+  
+  // Relation vers ses documents génériques
+  documents             Document[]         @relation("LocataireDocuments")
+  
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  @@schema("gestion")
+}
+
+
+/// schema.prisma
+
+/// Enums pour vos choix multiples
+enum DepositType {
+  ONE_MONTH         // 1 mois de loyer
+  TWO_MONTHS        // 2 mois de loyer
+  OTHER             // autre (ex : 1,5 mois => 1.5)
+
+  @@schema("gestion")
+}
+
+enum ReferenceQuarter {
+  Q1    // 1er trimestre
+  Q2
+  Q3
+  Q4
+  @@schema("gestion")
+}
+
+enum PreviousRentalSituation {
+  FIRST_TIME                // première mise en location
+  NO_CONTRACT_LAST_18_MONTH // pas de contrat ces 18 derniers mois
+  HAD_CONTRACT_LAST_18_MONTH// contrat ces 18 derniers mois
+
+  @@schema("gestion")
+}
+
+enum PaymentTerm {
+  A_ECHOIR  // à échoir (début de période)
+  ECHU      // échu (fin de période)
+
+  @@schema("gestion")
+}
+
+enum PaymentMethod {
+  VIREMENT
+  CHEQUE
+  AUTRE
+
+  @@schema("gestion")
+}
+
+enum RecoverableChargesMethod {
+  PROVISION
+  FORFAITAIRE
+  PERIODIQUE
+
+  @@schema("gestion")
+}
+
+enum TypeBail {
+  MEUBLE
+
+  @@schema("gestion")
+}
+
+enum UsageDestination {
+  HABITATION
+  COMMERCIAL
+  MIXTE
+
+  @@schema("gestion")
+}
+
+
+
+/// schema.prisma
+
+/// Enum pour tous les équipements/mobilier/linge listés
+enum Mobilier {
+  BOUILLOIRE
+  PORTE_SERVIETTES
+  POUBELLE_SDB      // poubelle salle d’eau / SDE
+  POUBELLE_WC
+  ETENDOIR_A_LINGE
+  SERVIETTES_TOILETTE
+
+  ASPIRATEUR
+  LAVE_LINGE
+  SECHE_LINGE
+  PLANCHE_A_REPASSER
+  CAFETIERE
+  THEIERE
+
+  TELEVISION
+  LECTEUR_DVD
+  CHAINE_HIFI
+  RADIO
+  FER_A_REPASSER
+
+  TABLE_BASSE
+  TABLE_DE_CHEVET
+  BUREAU
+  FAUTEUIL_DE_BUREAU
+  FAUTEUIL
+
+  ARMOIRE
+  PENDERIE
+  COMMODE
+  ETAGERE_DE_RANGEMENT
+
+  TAIE_D_OREILLER
+
+  // Occultation fenêtres
+  VOLET
+  RIDEAU
+  STORE_OCCULTANT
+  STORE
+  AUTRE_OCCULTATION
+
+  LUMINAIRE
+
+  // Linge de lit
+  ALESE
+  DRAP_HOUSSE
+  DRAP
+  COUETTE
+  COUVERTURE
+  
+
+  @@schema("gestion")
+}
+
+
+/// Modèle Location
+model Location {
+  id                          String                     @id @default(uuid())
+  typeBail                    TypeBail[]
+	
+	 // --- Bail meublé ---
+  leaseStartDate              DateTime                   // Date de début du bail
+  leaseEndDate                DateTime                   // Date de fin théorique
+
+  usageDestination            UsageDestination           @default(HABITATION)
+
+	  // Conditions de paiement du loyer
+  paymentTerm                 PaymentTerm                // À échoir / échu
+  rentDueDay                  Int?                       // Jour d’exigibilité (1–31)
+  paymentMethod               PaymentMethod              // Virement / Chèque / Autre
+  dematerializeReceipt        Boolean   @default(true)    // Autorisation démat. de la quittance
+
+  // Loyer et charges
+  applyExtraRent              Boolean   @default(false)   // Complément de loyer appliqué ?
+  baseRent                    Float                      // Loyer hors charges
+  monthlyChargesAmount        Float?                     // Montant charges récupérables
+  chargesMethod               RecoverableChargesMethod   // Par provision / forfaitaire / périodique
+  includeWasteTaxInCharges    Boolean   @default(false)   // Taxe ordures ménagères comprise
+  colocInsuranceSubscribed    Boolean?   @default(false)   // Assurance habitation colocation
+
+
+  // Encadrement des loyers
+  rentControlApplicable       Boolean?                    @default(false)   // Êtes-vous concernés par la mesure ?
+  referenceRentMinor          Float?                     // Loyer de référence minoré (€/m²)
+  referenceRentBase           Float?                     // Loyer de référence de base (€/m²)
+  referenceRentMajor          Float?                     // Loyer de référence majoré (€/m²)
+
+  // Révision du loyer
+  irlIndex                    Float?                     // Indice IRL
+  referenceQuarter            ReferenceQuarter?          // Trimestre de référence
+
+  // Dépôt de garantie
+  depositAmount               Float                      // Montant en €
+  depositType                 DepositType?
+
+  // Signature
+  signaturePlace              String?                    // Lieu de signature
+  signatureDate               DateTime?                  // Date de signature
+  signatureCopies             Int?                        // Nombre d’exemplaires
+
+  // Annexes au contrat
+  annexCoproReglement         Boolean?   @default(false)   // Extrait règlement copro
+  annexDiagnosticDossier      Boolean?   @default(false)   // Dossier diagnostic technique
+  annexNoticeInfo             Boolean?   @default(false)   // Notice d’information
+  annexEtatDesLieux           Boolean?   @default(false)   // État des lieux / inventaire
+  annexAutorisationPrealable  Boolean?   @default(false)   // Autorisation préalable mise en location
+  annexConventionANAH         Boolean?   @default(false)   // Convention ANAH
+  annexDiagnosticBruit        Boolean?   @default(false)   // Diagnostic bruit aéroports
+  annexReferencesLoyers       Boolean?   @default(false)   // Références loyers voisins
+  annexAutres                 Boolean?   @default(false)   // Autres annexes
+  annexAutresDescription      String?                    // Description libre si annexAutres = true
+
+  // Dépenses théoriques (DPE)
+  theoreticalExpensesAmount   Float?                     // Montant ou fourchette inscrit
+  theoreticalExpensesYear     String?                    // Année de référence des prix
+
+  // Clauses particulières – travaux
+  travauxByBailleur           Boolean   @default(false)   // Travaux effectués par bailleur
+  natureTravaux               String?                    // Nature des travaux
+  montantTravaux              Float?                     // Montant des travaux
+  majorationLoyerTravaux      Boolean   @default(false)   // Majoration suite à travaux bailleur
+  travauxByLocataire          Boolean   @default(false)   // Travaux prévus par locataire
+  clauseRenouvellement        Boolean   @default(false)   // Clause réévaluation renouvellement
+
+  // Économie d’énergie : partage des charges
+  partageChargesEnergie       Boolean   @default(false)
+
+  // Informations supplémentaires
+  previousSituation           PreviousRentalSituation    // Situation locative antérieure
+  stipulationsParticulieres   String?                    // Stipulations particulières
+
+
+  bien                         Bien?                     @relation(fields: [bienId], references: [id])
+  bienId                       String?
+
+  createdAt                   DateTime                   @default(now())
+  updatedAt                   DateTime                   @updatedAt
+
+  @@schema("gestion")
+}
+
+model Inventaire {
+  id          String      @id @default(uuid())
+  bien        Bien        @relation(fields: [bienId], references: [id])
+  bienId      String
+
+  piece       String
+  mobilier    Mobilier
+  quantite    Int?
+  marque      String?
+  etatEntree  String? 
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@schema("gestion")
+}

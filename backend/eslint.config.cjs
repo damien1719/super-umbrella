@@ -10,7 +10,9 @@ module.exports = [
       'dist/',
       'coverage/',
       'prettier.config.ts',
-      'jest.config.ts'
+      'jest.config.ts',
+      'prisma/seeds/**'
+      ,'__mocks__/**'
     ]
   },
 
@@ -30,6 +32,10 @@ module.exports = [
     },
     rules: {
       ...eslintPluginTs.configs.recommended.rules,
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_' },
+      ],
     },
     ignores: ['jest.config.ts', 'prettier.config.js'],
   },
