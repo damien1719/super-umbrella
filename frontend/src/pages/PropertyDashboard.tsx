@@ -11,6 +11,8 @@ import { LeaseInfoCard, LeaseInfo } from '../components/ui/LeaseInfoCard';
 import { TenantInfoCard, TenantInfo } from '../components/ui/TenantInfoCard';
 import { DocumentList } from '../components/ui/DocumentList';
 import { useDocumentStore } from '../store/documents';
+import { useInventaireStore } from '../store/inventaires';
+import InventaireTable from '../components/InventaireTable';
 import LocationForm1 from '../components/LocationForm1';
 import LocataireForm from '../components/LocataireForm';
 import { useBienStore, type Bien } from '../store/biens';
@@ -31,9 +33,18 @@ import { Progress } from '../components/ui/progress';
 import { Separator } from '../components/ui/separator';
 
 export default function PropertyDashboard() {
-  const [tab, setTab] = useState<'view' | 'documents' | 'finances'>('view');
+  const [tab, setTab] = useState<
+    'view' | 'documents' | 'finances' | 'inventaire'
+  >('view');
   const { id } = useParams<{ id: string }>();
   const { items: documents, fetchAll, create, remove } = useDocumentStore();
+  const {
+    items: inventaires,
+    fetchForBien: fetchInventaires,
+    create: createInventaire,
+    update: updateInventaire,
+    remove: removeInventaire,
+  } = useInventaireStore();
   const fetchBien = useBienStore((s) => s.fetchOne);
   const [bien, setBien] = useState<Bien | null>(null);
   const {
@@ -56,6 +67,10 @@ export default function PropertyDashboard() {
   useEffect(() => {
     if (tab === 'documents' && id) fetchAll(id);
   }, [tab, id, fetchAll]);
+
+  useEffect(() => {
+    if (tab === 'inventaire' && id) fetchInventaires(id);
+  }, [tab, id, fetchInventaires]);
 
   useEffect(() => {
     if (!id) return;
@@ -88,7 +103,6 @@ export default function PropertyDashboard() {
       }
     : null;
 
-  
   const leaseData: LeaseInfo | null = location
     ? {
         tenant: locataire ? `${locataire.prenom} ${locataire.nom}` : 'N/A',
@@ -104,7 +118,7 @@ export default function PropertyDashboard() {
       }
     : null;
 
-  console.log("locatare", locataire);
+  console.log('locatare', locataire);
   const tenantInfo: TenantInfo | null = locataire
     ? {
         name: `${locataire.prenom} ${locataire.nom}`,
@@ -241,6 +255,15 @@ export default function PropertyDashboard() {
           documents={documents}
           onUpload={(file, type) => id && create(id, file, type)}
           onDelete={remove}
+        />
+      )}
+      {tab === 'inventaire' && id && (
+        <InventaireTable
+          items={inventaires}
+          bienId={id}
+          onCreate={createInventaire}
+          onUpdate={updateInventaire}
+          onDelete={removeInventaire}
         />
       )}
       {tab === 'finances' && (

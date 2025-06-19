@@ -14,12 +14,16 @@ describe('PropertyTabList', () => {
     expect(screen.getByRole('button', { name: /documents/i })).toHaveClass(
       'border-b-2',
     );
+    rerender(<PropertyTabList value="inventaire" onChange={() => {}} />);
+    expect(screen.getByRole('button', { name: /inventaire/i })).toHaveClass(
+      'border-b-2',
+    );
   });
 
   it('calls onChange when clicking', () => {
     const onChange = vi.fn();
     render(<PropertyTabList value="view" onChange={onChange} />);
-    fireEvent.click(screen.getByRole('button', { name: /finances/i }));
-    expect(onChange).toHaveBeenCalledWith('finances');
+    fireEvent.click(screen.getByRole('button', { name: /inventaire/i }));
+    expect(onChange).toHaveBeenCalledWith('inventaire');
   });
 });

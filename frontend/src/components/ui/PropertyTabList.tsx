@@ -1,6 +1,6 @@
 import { cn } from '../../lib/utils';
 
-type Tab = 'view' | 'documents' | 'finances';
+type Tab = 'view' | 'documents' | 'finances' | 'inventaire';
 
 interface PropertyTabListProps {
   value: Tab;
@@ -8,8 +8,13 @@ interface PropertyTabListProps {
 }
 
 export function PropertyTabList({ value, onChange }: PropertyTabListProps) {
-  const tabs: Tab[] = ['view', 'documents', 'finances'];
-  const labels = { view: 'Vue', documents: 'Documents', finances: 'Finances' };
+  const tabs: Tab[] = ['view', 'documents', 'finances', 'inventaire'];
+  const labels = {
+    view: 'Vue',
+    documents: 'Documents',
+    finances: 'Finances',
+    inventaire: 'Inventaire',
+  };
   return (
     <div className="mb-4 flex border-b">
       {tabs.map((tab) => (
