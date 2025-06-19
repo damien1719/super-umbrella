@@ -31,9 +31,11 @@ export default function LocationForm1({ data, onChange }: Props) {
         type="number"
       />
       <InputField
-        label="Type de dépôt"
-        value={(data.depositType as string) ?? ''}
-        onChange={(v) => update('depositType', v)}
+        label="Date début du bail"
+        value={(data.leaseStartDate as string) ?? ''}
+        onChange={(v) => update('leaseStartDate', v)}
+        type="date"
+
       />
     </div>
   );

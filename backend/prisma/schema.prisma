@@ -1329,7 +1329,7 @@ model Location {
 
 
   // Encadrement des loyers
-  rentControlApplicable       Boolean                    @default(false)   // Êtes-vous concernés par la mesure ?
+  rentControlApplicable       Boolean?                    @default(false)   // Êtes-vous concernés par la mesure ?
   referenceRentMinor          Float?                     // Loyer de référence minoré (€/m²)
   referenceRentBase           Float?                     // Loyer de référence de base (€/m²)
   referenceRentMajor          Float?                     // Loyer de référence majoré (€/m²)
@@ -1340,7 +1340,7 @@ model Location {
 
   // Dépôt de garantie
   depositAmount               Float                      // Montant en €
-  depositType                 DepositType
+  depositType                 DepositType?
 
   // Signature
   signaturePlace              String?                    // Lieu de signature
