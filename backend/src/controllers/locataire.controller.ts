@@ -13,7 +13,11 @@ export const LocataireController = {
 
   async list(req: Request, res: Response, next: NextFunction) {
     try {
-      const locs = await LocataireService.list();
+      const { bienId, locationId } = req.query as {
+        bienId?: string;
+        locationId?: string;
+      };
+      const locs = await LocataireService.list({ bienId, locationId });
       res.json(locs);
     } catch (e) {
       next(e);

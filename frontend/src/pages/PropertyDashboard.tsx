@@ -14,11 +14,10 @@ import { useDocumentStore } from '../store/documents';
 import { useInventaireStore } from '../store/inventaires';
 import InventaireTable from '../components/InventaireTable';
 import LocationForm1 from '../components/LocationForm1';
-import LocataireForm from '../components/LocataireForm';
 import { useBienStore, type Bien } from '../store/biens';
 import { useLocationStore } from '../store/locations';
 import { useLocataireStore } from '../store/locataires';
-import type { NewLocation, NewLocataire } from '@monorepo/shared';
+import type { NewLocation } from '@monorepo/shared';
 import { Button, buttonVariants } from '../components/ui/button';
 import { ChargesCard } from '../components/ui/ChargesCard';
 import { RevenueCard } from '../components/ui/RevenueCard';
@@ -53,16 +52,10 @@ export default function PropertyDashboard() {
     update: updateLocation,
     remove: removeLocation,
   } = useLocationStore();
-  const {
-    current: locataire,
-    fetchForBien: fetchLocataire,
-    update: updateLocataire,
-    remove: removeLocataire,
-  } = useLocataireStore();
+  const { items: locataires, fetchForLocation: fetchLocataires } =
+    useLocataireStore();
   const [editLoc, setEditLoc] = useState(false);
-  const [editTenant, setEditTenant] = useState(false);
   const [locData, setLocData] = useState<Partial<NewLocation>>({});
-  const [tenantData, setTenantData] = useState<Partial<NewLocataire>>({});
 
   useEffect(() => {
     if (tab === 'documents' && id) fetchAll(id);
@@ -75,17 +68,14 @@ export default function PropertyDashboard() {
   useEffect(() => {
     if (!id) return;
     fetchBien(id).then(setBien);
-    fetchLocation(id);
-    fetchLocataire(id);
-  }, [id, fetchBien, fetchLocation, fetchLocataire]);
+    fetchLocation(id).then((loc) => {
+      if (loc) fetchLocataires(loc.id);
+    });
+  }, [id, fetchBien, fetchLocation, fetchLocataires]);
 
   useEffect(() => {
     if (location) setLocData(location as Partial<NewLocation>);
   }, [location]);
-
-  useEffect(() => {
-    if (locataire) setTenantData(locataire as Partial<NewLocataire>);
-  }, [locataire]);
 
   const today = new Date();
   const activeLocation =
@@ -105,7 +95,10 @@ export default function PropertyDashboard() {
 
   const leaseData: LeaseInfo | null = location
     ? {
-        tenant: locataire ? `${locataire.prenom} ${locataire.nom}` : 'N/A',
+        tenant:
+          locataires.length > 0
+            ? locataires.map((l) => `${l.prenom} ${l.nom}`).join(', ')
+            : 'N/A',
         startDate: new Date(location.leaseStartDate).toLocaleDateString(),
         endDate: location.leaseEndDate
           ? new Date(location.leaseEndDate).toLocaleDateString()
@@ -118,16 +111,13 @@ export default function PropertyDashboard() {
       }
     : null;
 
-  console.log('locatare', locataire);
-  const tenantInfo: TenantInfo | null = locataire
-    ? {
-        name: `${locataire.prenom} ${locataire.nom}`,
-        email: locataire.emailSecondaire ?? '',
-        phone: locataire.telephone ?? locataire.mobile ?? '',
-        profession: locataire.profession ?? '',
-        avatar: '/placeholder.svg?height=40&width=40',
-      }
-    : null;
+  const tenantInfos: TenantInfo[] = locataires.map((loc) => ({
+    name: `${loc.prenom} ${loc.nom}`,
+    email: loc.emailSecondaire ?? '',
+    phone: loc.telephone ?? loc.mobile ?? '',
+    profession: loc.profession ?? '',
+    avatar: '/placeholder.svg?height=40&width=40',
+  }));
 
   const financialData = {
     monthlyRent: 1800,
@@ -148,19 +138,13 @@ export default function PropertyDashboard() {
     },
   ];
 
-  console.log('DEBUG LeaseInfoCard:', {
-    activeLocation,
-    leaseData,
-    tenantInfo,
-  });
-
   return (
     <div className="space-y-4">
       <PropertyTabList value={tab} onChange={setTab} />
       {tab === 'view' && (
         <div className="grid grid-cols-1 gap-6">
           {propertyData && <PropertyInfoCard property={propertyData} />}
-          {activeLocation && leaseData && tenantInfo ? (
+          {activeLocation && leaseData && tenantInfos.length > 0 ? (
             <>
               <div>
                 {editLoc ? (
@@ -197,42 +181,10 @@ export default function PropertyDashboard() {
                   </div>
                 )}
               </div>
-              <div>
-                {editTenant ? (
-                  <div className="space-y-2">
-                    <LocataireForm data={tenantData} onChange={setTenantData} />
-                    <Button
-                      onClick={async () => {
-                        if (locataire) {
-                          await updateLocataire(locataire.id, tenantData);
-                          setEditTenant(false);
-                        }
-                      }}
-                    >
-                      Valider
-                    </Button>
-                  </div>
-                ) : (
-                  <div>
-                    <TenantInfoCard tenant={tenantInfo} />
-                    <div className="space-x-2 mt-2">
-                      <Button
-                        variant="secondary"
-                        onClick={() => setEditTenant(true)}
-                      >
-                        Modifier
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={() =>
-                          locataire && removeLocataire(locataire.id)
-                        }
-                      >
-                        Supprimer
-                      </Button>
-                    </div>
-                  </div>
-                )}
+              <div className="space-y-2">
+                {tenantInfos.map((t, i) => (
+                  <TenantInfoCard tenant={t} key={i} />
+                ))}
               </div>
             </>
           ) : (
