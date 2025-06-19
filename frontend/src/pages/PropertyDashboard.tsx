@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { AlertTriangle, Euro } from 'lucide-react';
 import { PropertyTabList } from '../components/ui/PropertyTabList';
 import {
@@ -11,6 +11,13 @@ import { LeaseInfoCard, LeaseInfo } from '../components/ui/LeaseInfoCard';
 import { TenantInfoCard, TenantInfo } from '../components/ui/TenantInfoCard';
 import { DocumentList } from '../components/ui/DocumentList';
 import { useDocumentStore } from '../store/documents';
+import LocationForm1 from '../components/LocationForm1';
+import LocataireForm from '../components/LocataireForm';
+import { useBienStore, type Bien } from '../store/biens';
+import { useLocationStore } from '../store/locations';
+import { useLocataireStore } from '../store/locataires';
+import type { NewLocation, NewLocataire } from '@monorepo/shared';
+import { Button, buttonVariants } from '../components/ui/button';
 import { ChargesCard } from '../components/ui/ChargesCard';
 import { RevenueCard } from '../components/ui/RevenueCard';
 import { Alert, AlertDescription, AlertTitle } from '../components/ui/alert';
@@ -27,34 +34,84 @@ export default function PropertyDashboard() {
   const [tab, setTab] = useState<'view' | 'documents' | 'finances'>('view');
   const { id } = useParams<{ id: string }>();
   const { items: documents, fetchAll, create, remove } = useDocumentStore();
+  const fetchBien = useBienStore((s) => s.fetchOne);
+  const [bien, setBien] = useState<Bien | null>(null);
+  const {
+    current: location,
+    fetchForBien: fetchLocation,
+    update: updateLocation,
+    remove: removeLocation,
+  } = useLocationStore();
+  const {
+    current: locataire,
+    fetchForBien: fetchLocataire,
+    update: updateLocataire,
+    remove: removeLocataire,
+  } = useLocataireStore();
+  const [editLoc, setEditLoc] = useState(false);
+  const [editTenant, setEditTenant] = useState(false);
+  const [locData, setLocData] = useState<Partial<NewLocation>>({});
+  const [tenantData, setTenantData] = useState<Partial<NewLocataire>>({});
 
   useEffect(() => {
     if (tab === 'documents' && id) fetchAll(id);
   }, [tab, id, fetchAll]);
 
-  // fake data
-  const propertyData: PropertyInfo = {
-    address: '15 Rue de la Paix, 75001 Paris',
-    type: 'Appartement T3',
-    surface: '75 m²',
-    value: '450 000 €',
-    status: 'Occupé',
-  };
-  const leaseData: LeaseInfo = {
-    tenant: 'Marie Dubois',
-    startDate: '01/01/2023',
-    endDate: '31/12/2025',
-    rent: '1 800 €',
-    deposit: '3 600 €',
-    status: 'En cours',
-  };
-  const tenantData: TenantInfo = {
-    name: 'Marie Dubois',
-    email: 'marie.dubois@email.com',
-    phone: '06 12 34 56 78',
-    profession: 'Ingénieure',
-    avatar: '/placeholder.svg?height=40&width=40',
-  };
+  useEffect(() => {
+    if (!id) return;
+    fetchBien(id).then(setBien);
+    fetchLocation(id);
+    fetchLocataire(id);
+  }, [id, fetchBien, fetchLocation, fetchLocataire]);
+
+  useEffect(() => {
+    if (location) setLocData(location as Partial<NewLocation>);
+  }, [location]);
+
+  useEffect(() => {
+    if (locataire) setTenantData(locataire as Partial<NewLocataire>);
+  }, [locataire]);
+
+  const today = new Date();
+  const activeLocation =
+    location &&
+    new Date(location.leaseStartDate) <= today &&
+    (!location.leaseEndDate || new Date(location.leaseEndDate) >= today);
+
+  const propertyData: PropertyInfo | null = bien
+    ? {
+        address: bien.adresse,
+        type: bien.typeBien,
+        surface: bien.surfaceHabitable ? `${bien.surfaceHabitable} m²` : '-',
+        value: '-',
+        status: activeLocation ? 'Occupé' : 'Disponible',
+      }
+    : null;
+
+  const leaseData: LeaseInfo | null = location
+    ? {
+        tenant: locataire ? `${locataire.prenom} ${locataire.nom}` : 'N/A',
+        startDate: new Date(location.leaseStartDate).toLocaleDateString(),
+        endDate: location.leaseEndDate
+          ? new Date(location.leaseEndDate).toLocaleDateString()
+          : '—',
+        rent: `${location.baseRent.toLocaleString()} €`,
+        deposit: location.depositAmount
+          ? `${location.depositAmount.toLocaleString()} €`
+          : '-',
+        status: activeLocation ? 'En cours' : 'Terminé',
+      }
+    : null;
+
+  const tenantInfo: TenantInfo | null = locataire
+    ? {
+        name: `${locataire.prenom} ${locataire.nom}`,
+        email: locataire.emailSecondaire ?? '',
+        phone: locataire.telephone ?? locataire.mobile ?? '',
+        profession: locataire.profession ?? '',
+        avatar: '/placeholder.svg?height=40&width=40',
+      }
+    : null;
   const financialData = {
     monthlyRent: 1800,
     yearlyIncome: 21600,
@@ -79,9 +136,95 @@ export default function PropertyDashboard() {
       <PropertyTabList value={tab} onChange={setTab} />
       {tab === 'view' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <PropertyInfoCard property={propertyData} />
-          <LeaseInfoCard lease={leaseData} />
-          <TenantInfoCard tenant={tenantData} />
+          {propertyData && <PropertyInfoCard property={propertyData} />}
+          {activeLocation && leaseData && tenantInfo ? (
+            <>
+              <div>
+                {editLoc ? (
+                  <div className="space-y-2">
+                    <LocationForm1 data={locData} onChange={setLocData} />
+                    <Button
+                      onClick={async () => {
+                        if (location) {
+                          await updateLocation(location.id, locData);
+                          setEditLoc(false);
+                        }
+                      }}
+                    >
+                      Valider
+                    </Button>
+                  </div>
+                ) : (
+                  <div>
+                    <LeaseInfoCard lease={leaseData} />
+                    <div className="space-x-2 mt-2">
+                      <Button
+                        variant="secondary"
+                        onClick={() => setEditLoc(true)}
+                      >
+                        Modifier
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={() => location && removeLocation(location.id)}
+                      >
+                        Supprimer
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div>
+                {editTenant ? (
+                  <div className="space-y-2">
+                    <LocataireForm data={tenantData} onChange={setTenantData} />
+                    <Button
+                      onClick={async () => {
+                        if (locataire) {
+                          await updateLocataire(locataire.id, tenantData);
+                          setEditTenant(false);
+                        }
+                      }}
+                    >
+                      Valider
+                    </Button>
+                  </div>
+                ) : (
+                  <div>
+                    <TenantInfoCard tenant={tenantInfo} />
+                    <div className="space-x-2 mt-2">
+                      <Button
+                        variant="secondary"
+                        onClick={() => setEditTenant(true)}
+                      >
+                        Modifier
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={() =>
+                          locataire && removeLocataire(locataire.id)
+                        }
+                      >
+                        Supprimer
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="col-span-2 flex flex-col items-center justify-center border rounded p-4">
+              <p>Aucune location active</p>
+              {id && (
+                <Link
+                  to={`/biens/${id}/locations/new`}
+                  className={buttonVariants({ variant: 'primary' })}
+                >
+                  Ajouter une location
+                </Link>
+              )}
+            </div>
+          )}
         </div>
       )}
       {tab === 'documents' && (

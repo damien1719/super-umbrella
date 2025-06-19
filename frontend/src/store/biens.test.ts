@@ -23,4 +23,23 @@ describe('useBienStore', () => {
     expect(useBienStore.getState().items).toHaveLength(1);
     expect(useBienStore.getState().items[0].id).toBe('1');
   });
+
+  it('fetches a bien with fetchOne()', async () => {
+    useAuth.setState((state) => ({ ...state, token: 'tok' }) as AuthState);
+    useUserProfileStore.setState(
+      (state) => ({ ...state, profileId: 'p1' }) as UserProfileState,
+    );
+    useBienStore.setState((state) => ({ ...state, items: [] }));
+    (fetch as unknown as vi.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ id: '1', typeBien: 'APT', adresse: 'a' }),
+    });
+    const bien = await useBienStore.getState().fetchOne('1');
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/v1/profile/p1/biens/1',
+      expect.any(Object),
+    );
+    expect(bien.id).toBe('1');
+    expect(useBienStore.getState().items[0].id).toBe('1');
+  });
 });
