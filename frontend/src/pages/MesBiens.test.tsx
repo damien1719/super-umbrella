@@ -17,4 +17,18 @@ describe('MesBiens page', () => {
       screen.getByRole('link', { name: /nouvelle location/i }),
     ).toBeInTheDocument();
   });
+
+  it('links to property dashboard', () => {
+    const bien: Bien = { id: '1', typeBien: 'APT', adresse: 'b' } as Bien;
+    useBienStore.setState({ items: [bien], fetchAll: async () => {} });
+    render(
+      <MemoryRouter>
+        <MesBiens />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole('link', { name: /b/i })).toHaveAttribute(
+      'href',
+      '/biens/1/dashboard',
+    );
+  });
 });
