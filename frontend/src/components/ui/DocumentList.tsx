@@ -1,17 +1,16 @@
 import { Upload } from 'lucide-react';
-import { Button } from './button';
 import { Card, CardContent, CardHeader, CardTitle } from './card';
 import { DocumentCard, DocumentInfo } from './DocumentCard';
-import { Input } from './input';
-import { Label } from './label';
+import { DocumentUploadDialog } from '../DocumentUploadDialog';
 import { Table, TableBody, TableHead, TableHeader, TableRow } from './table';
 
 interface Props {
   documents: DocumentInfo[];
-  onUpload?: (file: File) => void;
+  onUpload?: (file: File, type: string) => void;
+  onDelete?: (id: string) => void;
 }
 
-export function DocumentList({ documents, onUpload }: Props) {
+export function DocumentList({ documents, onUpload, onDelete }: Props) {
   return (
     <Card>
       <CardHeader>
@@ -20,19 +19,9 @@ export function DocumentList({ documents, onUpload }: Props) {
             <Upload className="h-5 w-5 mr-2" />
             Documents
           </span>
-          <div className="flex space-x-2">
-            <Label htmlFor="file-upload" className="cursor-pointer">
-              <Button size="sm" asChild>
-                <span>Ajouter</span>
-              </Button>
-            </Label>
-            <Input
-              id="file-upload"
-              type="file"
-              className="hidden"
-              onChange={(e) => onUpload?.(e.target.files?.[0] as File)}
-            />
-          </div>
+          <DocumentUploadDialog
+            onUpload={(file, type) => onUpload?.(file, type)}
+          />
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -47,7 +36,7 @@ export function DocumentList({ documents, onUpload }: Props) {
           </TableHeader>
           <TableBody>
             {documents.map((doc) => (
-              <DocumentCard key={doc.id} doc={doc} />
+              <DocumentCard key={doc.id} doc={doc} onDelete={onDelete} />
             ))}
           </TableBody>
         </Table>

@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { AlertTriangle, Euro } from 'lucide-react';
 import { PropertyTabList } from '../components/ui/PropertyTabList';
 import {
@@ -9,6 +10,7 @@ import {
 import { LeaseInfoCard, LeaseInfo } from '../components/ui/LeaseInfoCard';
 import { TenantInfoCard, TenantInfo } from '../components/ui/TenantInfoCard';
 import { DocumentList } from '../components/ui/DocumentList';
+import { useDocumentStore } from '../store/documents';
 import { ChargesCard } from '../components/ui/ChargesCard';
 import { RevenueCard } from '../components/ui/RevenueCard';
 import { Alert, AlertDescription, AlertTitle } from '../components/ui/alert';
@@ -23,6 +25,12 @@ import { Separator } from '../components/ui/separator';
 
 export default function PropertyDashboard() {
   const [tab, setTab] = useState<'view' | 'documents' | 'finances'>('view');
+  const { id } = useParams<{ id: string }>();
+  const { items: documents, fetchAll, create, remove } = useDocumentStore();
+
+  useEffect(() => {
+    if (tab === 'documents' && id) fetchAll(id);
+  }, [tab, id, fetchAll]);
 
   // fake data
   const propertyData: PropertyInfo = {
@@ -47,22 +55,6 @@ export default function PropertyDashboard() {
     profession: 'Ingénieure',
     avatar: '/placeholder.svg?height=40&width=40',
   };
-  const documents = [
-    {
-      id: 1,
-      name: 'Contrat de bail.pdf',
-      type: 'Bail',
-      date: '2023-01-01',
-      size: '2.4 MB',
-    },
-    {
-      id: 2,
-      name: 'État des lieux.pdf',
-      type: 'État des lieux',
-      date: '2023-01-01',
-      size: '1.8 MB',
-    },
-  ];
   const financialData = {
     monthlyRent: 1800,
     yearlyIncome: 21600,
@@ -92,7 +84,13 @@ export default function PropertyDashboard() {
           <TenantInfoCard tenant={tenantData} />
         </div>
       )}
-      {tab === 'documents' && <DocumentList documents={documents} />}
+      {tab === 'documents' && (
+        <DocumentList
+          documents={documents}
+          onUpload={(file, type) => id && create(id, file, type)}
+          onDelete={remove}
+        />
+      )}
       {tab === 'finances' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <Card>

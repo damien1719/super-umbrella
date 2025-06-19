@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { DocumentController } from '../controllers/document.controller';
 import { validateBody, validateParams } from '../middlewares/validate.middleware';
+import { upload } from '../middlewares/upload.middleware';
 import {
   createDocumentSchema,
   updateDocumentSchema,
@@ -11,7 +12,7 @@ export const documentRouter = Router();
 
 documentRouter
   .route('/')
-  .post(validateBody(createDocumentSchema), DocumentController.create)
+  .post(upload.single('file'), validateBody(createDocumentSchema.partial()), DocumentController.create)
   .get(DocumentController.list);
 
 documentRouter
