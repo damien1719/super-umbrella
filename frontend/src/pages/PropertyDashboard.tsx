@@ -158,7 +158,7 @@ export default function PropertyDashboard() {
     <div className="space-y-4">
       <PropertyTabList value={tab} onChange={setTab} />
       {tab === 'view' && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6">
           {propertyData && <PropertyInfoCard property={propertyData} />}
           {activeLocation && leaseData && tenantInfo ? (
             <>
