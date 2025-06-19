@@ -20,6 +20,7 @@ describe('GET /api/v1/documents', () => {
     const res = await request(app).get('/api/v1/documents');
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(1);
+    expect(mockedService.list).toHaveBeenCalledWith(undefined);
   });
 });
 

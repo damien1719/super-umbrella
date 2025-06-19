@@ -18,8 +18,8 @@ export const DocumentService = {
     return db.document.create({ data });
   },
 
-  list() {
-    return db.document.findMany();
+  list(bienId?: string) {
+    return db.document.findMany({ where: bienId ? { bienId } : undefined });
   },
 
   get(id: string) {
