@@ -25,8 +25,15 @@ export default function NewLocation() {
   const prev = () => setStep((s) => Math.max(1, s - 1));
 
   const submit = async () => {
-    await createLocation(id, { ...locationData, ...clauseData } as NewLocation);
-    await createLocataire(locataireData as NewLocataire);
+    const location = await createLocation(id, {
+      ...locationData,
+      ...clauseData,
+    } as NewLocation);
+    await createLocataire({
+      ...locataireData,
+      bienId: id,
+      locationId: location.id,
+    } as NewLocataire);
     navigate('/biens');
   };
 
