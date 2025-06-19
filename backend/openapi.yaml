@@ -1,0 +1,57 @@
+openapi: 3.0.0
+info:
+  title: Super Umbrella API
+  version: 1.0.0
+paths:
+  /api/v1/amortissements:
+    get:
+      summary: Compute amortissements for immobilisations and composants
+      parameters:
+        - in: query
+          name: anneeId
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: activityId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of amortissements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AmortissementItem'
+components:
+  schemas:
+    AmortissementItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        type:
+          type: string
+          enum: [immobilisation, composant]
+        libelle:
+          type: string
+        valeurBrute:
+          type: number
+          format: float
+        dureeAnnees:
+          type: integer
+        debut:
+          type: string
+          format: date-time
+        fin:
+          type: string
+          format: date-time
+        prorataMois:
+          type: integer
+        dotation:
+          type: number
+          format: float

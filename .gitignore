@@ -24,3 +24,7 @@ backend/coverage/
 # Système
 .DS_Store
 Thumbs.db
+
+
+backend/.turbo/
+backend/.turbo/

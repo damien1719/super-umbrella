@@ -1,0 +1,265 @@
+{
+    "status": 0,
+    "message": "",
+    "datas": [
+    {
+    "Oid": 345319370,
+    "prTexte": "2024 : MOSSUZ DAMIEN",
+    "AnneeFiscale": 2024,
+    "Societe": {
+    "Oid": 37127177,
+    "prTexte": "JD2M",
+    "LogoUrl": "https:\/\/app.jedeclaremonmeuble.com\/res\/logo\/37127177\/logo.jpg?h=40&mod=1749655163"
+    },
+    "importCompta": true,
+    "importRCSV": true,
+    "importDCSV": false,
+    "RepriseComptabilite": false,
+    "ClotureVersion": 1,
+    "Status": 10,
+    "Devise": {
+    "Oid": -10599,
+    "prTexte": "EUR"
+    },
+    "Debut": "2024-01-01",
+    "Fin": "2024-12-31",
+    "Calendrier": {
+    "DelaiTeletrans": 15,
+    "LimiteLiasse": "2025-05-05",
+    "LimiteLiasseEx": "2025-05-20",
+    "ClotureBloquee": "",
+    "TeletransmissionBloquee": ""
+    },
+    "Integrale": false,
+    "ModeAvance": false,
+    "Liasse": {
+    "Oid": 481604161,
+    "Date": "2025-04-28T20:22:49+0000",
+    "Provisoire": false,
+    "Valide": true,
+    "UrlLiasse": "https:\/\/app.jedeclaremonmeuble.com\/res\/cliliasse\/481604161?mod=1745903093",
+    "Url2042CPRO": "https:\/\/app.jedeclaremonmeuble.com\/res\/cli2042cpro\/481604161?mod=1745903093",
+    "UrlFEC": "https:\/\/app.jedeclaremonmeuble.com\/res\/clifec\/481604161?mod=1745903093",
+    "Url2042CPROS": "https:\/\/app.jedeclaremonmeuble.com\/res\/cli2042cpros\/481604161?mod=1745903093",
+    "UrlImpots": [
+    {
+    "name": "Damien MOSSUZ.pdf",
+    "url": "https:\/\/app.jedeclaremonmeuble.com\/res\/cli2042cpro\/481604161?document=2042CPRO-Damien+MOSSUZ.pdf&mod=1745903093"
+    }
+    ]
+    },
+    "Step": 9,
+    "Teletrans": {
+    "Oid": 481621605,
+    "Date": "28\/04\/2025 22:33",
+    "StateDate": "29\/04\/2025 00:22",
+    "Statut": 32,
+    "Erreurs": "",
+    "Nature": null,
+    "Description": "",
+    "Libelle": "",
+    "Interchange": "75014025011352      ",
+    "EmailSIE": "sie.chartreuse-gresivaudan@dgfip.finances.gouv.fr",
+    "AdresseSIE": "SERVICE IMPOTS DES ENTREPRISES GRENOBLE CHARTREUSE GRESI 38, Ave Rhin Et Danube 38047 Grenoble Cedex 2 France"
+    },
+    "FirstYear": false,
+    "YearCount": 4,
+    "HasSIRET": true
+    },
+    {
+    "Oid": 277535000,
+    "prTexte": "2023 : MOSSUZ DAMIEN",
+    "AnneeFiscale": 2023,
+    "Societe": {
+    "Oid": 37127177,
+    "prTexte": "JD2M",
+    "LogoUrl": "https:\/\/app.jedeclaremonmeuble.com\/res\/logo\/37127177\/logo.jpg?h=40&mod=1749655163"
+    },
+    "importCompta": true,
+    "importRCSV": true,
+    "importDCSV": false,
+    "RepriseComptabilite": false,
+    "ClotureVersion": 1,
+    "Status": 1,
+    "Devise": {
+    "Oid": -10599,
+    "prTexte": "EUR"
+    },
+    "Debut": "2023-01-01",
+    "Fin": "2023-12-31",
+    "Calendrier": {
+    "DelaiTeletrans": 15,
+    "LimiteLiasse": "2024-05-03",
+    "LimiteLiasseEx": "2024-05-18",
+    "ClotureBloquee": "",
+    "TeletransmissionBloquee": ""
+    },
+    "Integrale": false,
+    "ModeAvance": false,
+    "Liasse": {
+    "Oid": 326091643,
+    "Date": "2024-04-11T08:01:25+0000",
+    "Provisoire": false,
+    "Valide": true,
+    "UrlLiasse": "https:\/\/app.jedeclaremonmeuble.com\/res\/cliliasse\/326091643?mod=1712834179",
+    "Url2042CPRO": "https:\/\/app.jedeclaremonmeuble.com\/res\/cli2042cpro\/326091643?mod=1712834179",
+    "UrlFEC": "https:\/\/app.jedeclaremonmeuble.com\/res\/clifec\/326091643?mod=1712834179",
+    "Url2042CPROS": "https:\/\/app.jedeclaremonmeuble.com\/res\/cli2042cpros\/326091643?mod=1712834179",
+    "UrlImpots": [
+    {
+    "name": "Damien MOSSUZ.pdf",
+    "url": "https:\/\/app.jedeclaremonmeuble.com\/res\/cli2042cpro\/326091643?document=2042CPRO-Damien+MOSSUZ.pdf&mod=1712834179"
+    }
+    ]
+    },
+    "Step": 9,
+    "Teletrans": {
+    "Oid": 326091973,
+    "Date": "11\/04\/2024 10:01",
+    "StateDate": "11\/04\/2024 11:13",
+    "Statut": 32,
+    "Erreurs": "",
+    "Nature": null,
+    "Description": "",
+    "Libelle": "",
+    "Interchange": "75014024009003      ",
+    "EmailSIE": "sie.chartreuse-gresivaudan@dgfip.finances.gouv.fr",
+    "AdresseSIE": "SERVICE IMPOTS DES ENTREPRISES GRENOBLE CHARTREUSE GRESI 38, Ave Rhin Et Danube 38047 Grenoble Cedex 2 France"
+    },
+    "FirstYear": false,
+    "YearCount": 4,
+    "HasSIRET": true
+    },
+    {
+    "Oid": 198578015,
+    "prTexte": "2022 : MOSSUZ DAMIEN",
+    "AnneeFiscale": 2022,
+    "Societe": {
+    "Oid": 37127177,
+    "prTexte": "JD2M",
+    "LogoUrl": "https:\/\/app.jedeclaremonmeuble.com\/res\/logo\/37127177\/logo.jpg?h=40&mod=1749655163"
+    },
+    "importCompta": true,
+    "importRCSV": true,
+    "importDCSV": false,
+    "RepriseComptabilite": false,
+    "ClotureVersion": 1,
+    "Status": 1,
+    "Devise": {
+    "Oid": -10599,
+    "prTexte": "EUR"
+    },
+    "Debut": "2022-01-01",
+    "Fin": "2022-12-31",
+    "Calendrier": {
+    "DelaiTeletrans": 15,
+    "LimiteLiasse": "2023-05-03",
+    "LimiteLiasseEx": "2023-05-18",
+    "ClotureBloquee": "",
+    "TeletransmissionBloquee": ""
+    },
+    "Integrale": false,
+    "ModeAvance": false,
+    "Liasse": {
+    "Oid": 239371371,
+    "Date": "2023-04-28T14:51:38+0000",
+    "Provisoire": false,
+    "Valide": true,
+    "UrlLiasse": "https:\/\/app.jedeclaremonmeuble.com\/res\/cliliasse\/239371371?mod=1682702132",
+    "Url2042CPRO": "https:\/\/app.jedeclaremonmeuble.com\/res\/cli2042cpro\/239371371?mod=1682702132",
+    "UrlFEC": "https:\/\/app.jedeclaremonmeuble.com\/res\/clifec\/239371371?mod=1682702132",
+    "Url2042CPROS": "https:\/\/app.jedeclaremonmeuble.com\/res\/cli2042cpros\/239371371?mod=1682702132",
+    "UrlImpots": [
+    {
+    "name": "Damien MOSSUZ.pdf",
+    "url": "https:\/\/app.jedeclaremonmeuble.com\/res\/cli2042cpro\/239371371?document=2042CPRO-Damien+MOSSUZ.pdf&mod=1682702132"
+    }
+    ]
+    },
+    "Step": 9,
+    "Teletrans": {
+    "Oid": 239372403,
+    "Date": "28\/04\/2023 16:53",
+    "StateDate": "28\/04\/2023 19:15",
+    "Statut": 32,
+    "Erreurs": "",
+    "Nature": null,
+    "Description": "",
+    "Libelle": "",
+    "Interchange": "75014023011843      ",
+    "EmailSIE": "sie.chartreuse-gresivaudan@dgfip.finances.gouv.fr",
+    "AdresseSIE": "SERVICE IMPOTS DES ENTREPRISES GRENOBLE CHARTREUSE GRESI 38, Ave Rhin Et Danube 38047 Grenoble Cedex 2 France"
+    },
+    "FirstYear": false,
+    "YearCount": 4,
+    "HasSIRET": true
+    },
+    {
+    "Oid": 139062119,
+    "prTexte": "2021 : MOSSUZ DAMIEN",
+    "AnneeFiscale": 2021,
+    "Societe": {
+    "Oid": 37127177,
+    "prTexte": "JD2M",
+    "LogoUrl": "https:\/\/app.jedeclaremonmeuble.com\/res\/logo\/37127177\/logo.jpg?h=40&mod=1749655163"
+    },
+    "importCompta": false,
+    "importRCSV": true,
+    "importDCSV": false,
+    "RepriseComptabilite": false,
+    "ClotureVersion": 1,
+    "Status": 1,
+    "Devise": {
+    "Oid": -10599,
+    "prTexte": "EUR"
+    },
+    "Debut": "2021-07-28",
+    "Fin": "2021-12-31",
+    "Calendrier": {
+    "DelaiTeletrans": 15,
+    "LimiteLiasse": "2022-05-03",
+    "LimiteLiasseEx": "2022-05-18",
+    "ClotureBloquee": "",
+    "TeletransmissionBloquee": ""
+    },
+    "Integrale": false,
+    "ModeAvance": false,
+    "Liasse": {
+    "Oid": 163977174,
+    "Date": "2022-04-08T16:10:43+0000",
+    "Provisoire": false,
+    "Valide": true,
+    "UrlLiasse": "https:\/\/app.jedeclaremonmeuble.com\/res\/cliliasse\/163977174?mod=1649437406",
+    "Url2042CPRO": "https:\/\/app.jedeclaremonmeuble.com\/res\/cli2042cpro\/163977174?mod=1649437406",
+    "UrlFEC": "https:\/\/app.jedeclaremonmeuble.com\/res\/clifec\/163977174?mod=1649437406",
+    "Url2042CPROS": "https:\/\/app.jedeclaremonmeuble.com\/res\/cli2042cpros\/163977174?mod=1649437406",
+    "UrlImpots": [
+    {
+    "name": "Damien MOSSUZ.pdf",
+    "url": "https:\/\/app.jedeclaremonmeuble.com\/res\/cli2042cpro\/163977174?document=2042CPRO-Damien+MOSSUZ.pdf&mod=1649437406"
+    }
+    ]
+    },
+    "Step": 9,
+    "Teletrans": {
+    "Oid": 163977353,
+    "Date": "08\/04\/2022 18:11",
+    "StateDate": "08\/04\/2022 19:03",
+    "Statut": 32,
+    "Erreurs": "",
+    "Nature": null,
+    "Description": "",
+    "Libelle": "",
+    "Interchange": "75014022008474",
+    "EmailSIE": "sie.chartreuse-gresivaudan@dgfip.finances.gouv.fr",
+    "AdresseSIE": "SERVICE IMPOTS DES ENTREPRISES GRENOBLE CHARTREUSE GRESI 38, Ave Rhin Et Danube 38047 Grenoble Cedex 2 France"
+    },
+    "FirstYear": true,
+    "YearCount": 4,
+    "HasSIRET": true
+    }
+    ],
+    "locale": "fr-fr",
+    "langue": "fr",
+    "version": "1.9.8"
+    }
