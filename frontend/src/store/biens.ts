@@ -51,6 +51,7 @@ const endpoint = (profileId: string) => `/api/v1/profile/${profileId}/biens`;
 interface BienState {
   items: Bien[];
   fetchAll: () => Promise<void>;
+  fetchOne: (id: string) => Promise<Bien>;
   create: (data: BienInput) => Promise<void>;
   update: (id: string, data: Partial<BienInput>) => Promise<void>;
   remove: (id: string) => Promise<void>;
@@ -68,6 +69,22 @@ export const useBienStore = create<BienState>((set) => ({
       headers: { Authorization: `Bearer ${token}` },
     });
     set({ items });
+  },
+
+  fetchOne: async (id) => {
+    const token = useAuth.getState().token;
+    const profileId = useUserProfileStore.getState().profileId;
+    if (!token) throw new Error('Non authentifié');
+    if (!profileId) throw new Error('Profil introuvable');
+    const bien = await apiFetch<Bien>(`${endpoint(profileId)}/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    set((state) => ({
+      items: state.items.some((b) => b.id === id)
+        ? state.items.map((b) => (b.id === id ? bien : b))
+        : [...state.items, bien],
+    }));
+    return bien;
   },
 
   create: async (data: NewBien) => {
