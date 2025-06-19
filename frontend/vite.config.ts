@@ -7,6 +7,7 @@ export default defineConfig({
   resolve: {
     extensions: ['.js', '.ts', '.jsx', '.tsx'],
     alias: {
+      '@': resolve(__dirname, './src'),
       '@monorepo/shared': resolve(__dirname, '../shared/src'),
     },
   },

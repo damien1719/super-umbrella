@@ -59,7 +59,14 @@ export default function MesBiens() {
           {items.map((b) => (
             <tr key={b.id}>
               <td className="border p-2">{b.typeBien}</td>
-              <td className="border p-2">{b.adresse}</td>
+              <td className="border p-2">
+                <Link
+                  to={`/biens/${b.id}/dashboard`}
+                  className="underline text-blue-600"
+                >
+                  {b.adresse}
+                </Link>
+              </td>
               <td className="border p-2 space-x-2 text-right">
                 <Button
                   variant="secondary"

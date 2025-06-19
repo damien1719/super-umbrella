@@ -4,6 +4,7 @@ import { useRequireAuth } from './hooks/useRequireAuth';
 import { useEffect } from 'react';
 import Dashboard from './pages/Dashboard';
 import MesBiens from './pages/MesBiens';
+import PropertyDashboard from './pages/PropertyDashboard';
 import NewLocation from './pages/NewLocation';
 import Agenda from './pages/Agenda';
 import Resultats from './pages/Resultats';
@@ -77,6 +78,7 @@ export default function App() {
       <Route element={<ProtectedLayout />}>
         <Route path="/" element={<Dashboard />} />
         <Route path="/biens" element={<MesBiens />} />
+        <Route path="/biens/:id/dashboard" element={<PropertyDashboard />} />
         <Route path="/agenda" element={<Agenda />} />
         <Route path="/resultats" element={<Resultats />} />
         <Route path="/abonnement" element={<Abonnement />} />
