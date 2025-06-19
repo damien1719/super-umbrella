@@ -6,6 +6,8 @@ export type NewLocation = Prisma.LocationCreateInput;
 export type EditLocation = Prisma.LocationUpdateInput;
 export type NewLocataire = Prisma.LocataireCreateInput;
 export type EditLocataire = Prisma.LocataireUpdateInput;
+export type NewDocument = Prisma.DocumentCreateInput;
+export type EditDocument = Prisma.DocumentUpdateInput;
 
 export * from './types/UserProfile';
 export * from './types/ApiResponse';
