@@ -33,7 +33,8 @@ export const createBienSchema = z.object({
 
 export const updateBienSchema = createBienSchema.partial();
 export const bienIdParam = z
-  .object({ bienId: z.string().uuid() })
-  .transform(({ bienId }) => ({
-    id: bienId,
-}));
+  .union([
+    z.object({ bienId: z.string().uuid() }),
+    z.object({ id: z.string().uuid() }),
+  ])
+  .transform((data) => ({ id: 'bienId' in data ? data.bienId : data.id }));

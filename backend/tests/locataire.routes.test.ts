@@ -37,3 +37,26 @@ describe('GET /api/v1/locataires/properties/:id/locataires', () => {
     expect(res.body).toHaveLength(1);
   });
 });
+
+describe('POST /api/v1/locataires', () => {
+  it('creates a locataire via service', async () => {
+    const payload = {
+      prenom: 'John',
+      nom: 'Doe',
+      civilite: 'MR',
+      dateNaissance: '1990-01-01',
+    };
+    (mockedService.create as jest.Mock).mockResolvedValueOnce({
+      id: '1',
+      ...payload,
+    } as LocataireStub);
+
+    const res = await request(app).post('/api/v1/locataires').send(payload);
+
+    expect(res.status).toBe(201);
+    expect(mockedService.create).toHaveBeenCalledWith({
+      ...payload,
+      dateNaissance: new Date('1990-01-01'),
+    });
+  });
+});

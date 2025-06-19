@@ -62,7 +62,7 @@ export const LocationController = {
     try {
       const location = await LocationService.getByProperty(
         req.user.id,
-        req.params.bienId,
+        req.params.id,
       );
       res.json(location);
     } catch (e) {
@@ -74,7 +74,7 @@ export const LocationController = {
     try {
       const location = await LocationService.createForProperty(
         req.user.id,
-        req.params.bienId,
+        req.params.id,
         req.body,
       );
       res.status(201).json(location);

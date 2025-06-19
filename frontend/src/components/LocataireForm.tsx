@@ -14,6 +14,11 @@ export default function LocataireForm({ data, onChange }: Props) {
   return (
     <div className="space-y-2">
       <InputField
+        label="Civilité"
+        value={data.civilite ?? ''}
+        onChange={(v) => update('civilite', v)}
+      />
+      <InputField
         label="Prénom"
         value={data.prenom ?? ''}
         onChange={(v) => update('prenom', v)}
@@ -22,6 +27,12 @@ export default function LocataireForm({ data, onChange }: Props) {
         label="Nom"
         value={data.nom ?? ''}
         onChange={(v) => update('nom', v)}
+      />
+      <InputField
+        label="Date de naissance"
+        value={(data.dateNaissance as string) ?? ''}
+        onChange={(v) => update('dateNaissance', v)}
+        type="date"
       />
     </div>
   );
