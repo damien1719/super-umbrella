@@ -46,22 +46,24 @@ locationRouter.delete(
 
 // Nested property/profile
 locationRouter.get(
-  '/properties/:propertyId/location',
+  '/properties/:bienId/location',
   validateParams(bienIdParam),
   LocationController.getByProperty,
 );
 locationRouter.post(
-  '/properties/:propertyId/location',
+  '/properties/:bienId/location',
   validateParams(bienIdParam),
   validateBody(createLocationSchema),
   LocationController.createForProperty,
 );
+
 
 locationRouter.get(
   '/profiles/:profileId/locations',
   validateParams(profileIdParam),
   LocationController.listForProfile,
 );
+
 locationRouter.post(
   '/profiles/:profileId/locations',
   validateParams(profileIdParam),

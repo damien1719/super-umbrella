@@ -42,13 +42,13 @@ export const LocationService = {
 
   async list(
     userId: string,
-    filters: { profileId?: string; propertyId?: string } = {},
+    filters: { profileId?: string; bienId?: string } = {},
   ) {
     if (filters.profileId) await ensureProfileOwnership(filters.profileId, userId);
-    if (filters.propertyId) await ensureBienOwnership(filters.propertyId, userId);
+    if (filters.bienId) await ensureBienOwnership(filters.bienId, userId);
     return db.location.findMany({
       where: {
-        bienId: filters.propertyId,
+        bienId: filters.bienId,
         bien: filters.profileId ? { profileId: filters.profileId } : undefined,
       },
     });
@@ -79,14 +79,14 @@ export const LocationService = {
     return db.location.delete({ where: { id } });
   },
 
-  async getByProperty(userId: string, propertyId: string) {
-    await ensureBienOwnership(propertyId, userId);
-    return db.location.findFirst({ where: { bienId: propertyId } });
+  async getByProperty(userId: string, bienId: string) {
+    await ensureBienOwnership(bienId, userId);
+    return db.location.findFirst({ where: { bienId: bienId } });
   },
 
-  async createForProperty(userId: string, propertyId: string, data: NewLocation) {
-    await ensureBienOwnership(propertyId, userId);
-    return db.location.create({ data: { ...data, bienId: propertyId } });
+  async createForProperty(userId: string, bienId: string, data: NewLocation) {
+    await ensureBienOwnership(bienId, userId);
+    return db.location.create({ data: { ...data, bienId: bienId } });
   },
 
   async listForProfile(userId: string, profileId: string) {

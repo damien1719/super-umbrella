@@ -55,7 +55,7 @@ export const LocataireController = {
     try {
       const locs = await LocataireService.listForProperty(
         req.user.id,
-        req.params.propertyId,
+        req.params.bienId,
       );
       res.json(locs);
     } catch (e) {

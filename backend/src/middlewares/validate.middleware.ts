@@ -8,6 +8,7 @@ const makeValidator = (key: Key) => (schema: AnyZodObject) => (
   res: Response,
   next: NextFunction,
 ) => {
+  console.log(req[key]);
   const result = schema.safeParse(req[key]);
   if (!result.success) {
     res.status(400).json({

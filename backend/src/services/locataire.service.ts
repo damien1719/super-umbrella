@@ -41,9 +41,9 @@ export const LocataireService = {
     return db.locataire.delete({ where: { id } });
   },
 
-  listForProperty(userId: string, propertyId: string) {
+  listForProperty(userId: string, bienId: string) {
     return db.locataire.findMany({
-      where: { documents: { some: { bienId: propertyId, bien: { profile: { userId } } } } },
+      where: { documents: { some: { bienId: bienId, bien: { profile: { userId } } } } },
     });
   },
 };

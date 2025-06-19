@@ -4,13 +4,13 @@ import { LocationService } from '../services/location.service';
 export const LocationController = {
   async list(req: Request, res: Response, next: NextFunction) {
     try {
-      const { profileId, propertyId } = req.query as {
+      const { profileId, bienId } = req.query as {
         profileId?: string;
-        propertyId?: string;
+        bienId?: string;
       };
       const locations = await LocationService.list(req.user.id, {
         profileId,
-        propertyId,
+        bienId,
       });
       res.json(locations);
     } catch (e) {
@@ -62,7 +62,7 @@ export const LocationController = {
     try {
       const location = await LocationService.getByProperty(
         req.user.id,
-        req.params.propertyId,
+        req.params.bienId,
       );
       res.json(location);
     } catch (e) {
@@ -74,7 +74,7 @@ export const LocationController = {
     try {
       const location = await LocationService.createForProperty(
         req.user.id,
-        req.params.propertyId,
+        req.params.bienId,
         req.body,
       );
       res.status(201).json(location);

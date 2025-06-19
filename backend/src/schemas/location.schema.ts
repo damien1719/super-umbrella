@@ -11,5 +11,5 @@ export const locationIdParam = z.object({ locId: z.string().uuid() });
 
 export const locationFilterQuery = z.object({
   profileId: z.string().uuid().optional(),
-  propertyId: z.string().uuid().optional(),
+  bienId: z.string().uuid().optional(),
 });
