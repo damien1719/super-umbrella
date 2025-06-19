@@ -8,7 +8,11 @@ interface Props {
 
 export default function LocationForm1({ data, onChange }: Props) {
   const update = (field: keyof NewLocation, value: string) => {
-    onChange({ ...data, [field]: value });
+    let parsed: string | number = value;
+    if (field === 'baseRent' || field === 'depositAmount') {
+      parsed = value === '' ? undefined : Number(value);
+    }
+    onChange({ ...data, [field]: parsed } as Partial<NewLocation>);
   };
 
   return (
