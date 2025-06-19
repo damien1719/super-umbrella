@@ -1,10 +1,15 @@
 import { Router } from 'express';
 import { LocataireController } from '../controllers/locataire.controller';
-import { validateBody, validateParams } from '../middlewares/validate.middleware';
+import {
+  validateBody,
+  validateParams,
+  validateQuery,
+} from '../middlewares/validate.middleware';
 import {
   createLocataireSchema,
   updateLocataireSchema,
   locataireIdParam,
+  locataireFilterQuery,
 } from '../schemas/locataire.schema';
 import { bienIdParam } from '../schemas/bien.schema';
 
@@ -13,7 +18,10 @@ export const locataireRouter = Router();
 locataireRouter
   .route('/')
   .post(validateBody(createLocataireSchema), LocataireController.create)
-  .get(LocataireController.list);
+  .get(
+    validateQuery(locataireFilterQuery),
+    LocataireController.list,
+  );
 
 locataireRouter
   .route('/:locataireId')

@@ -17,9 +17,11 @@ describe('GET /api/v1/locataires', () => {
       { id: '1', nom: 'Doe' } as LocataireStub,
     ]);
 
-    const res = await request(app).get('/api/v1/locataires');
+    const bienId = '00000000-0000-0000-0000-000000000000';
+    const res = await request(app).get(`/api/v1/locataires?bienId=${bienId}`);
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(1);
+    expect(mockedService.list).toHaveBeenCalledWith({ bienId, locationId: undefined });
   });
 });
 

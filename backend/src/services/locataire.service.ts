@@ -19,11 +19,16 @@ const db = prisma as unknown as PrismaWithLocataire;
 
 export const LocataireService = {
   create(data: NewLocataire) {
+    if (!data.bienId || !data.locationId) {
+      throw new Error('bienId and locationId are required');
+    }
     return db.locataire.create({ data });
   },
 
-  list() {
-    return db.locataire.findMany();
+  list(filters: { bienId?: string; locationId?: string } = {}) {
+    return db.locataire.findMany({
+      where: { bienId: filters.bienId, locationId: filters.locationId },
+    });
   },
 
   get(id: string) {
@@ -34,6 +39,9 @@ export const LocataireService = {
     if (!data || Object.keys(data).length === 0) {
       throw new Error('No update data provided for locataire ' + id);
     }
+    if ('bienId' in data || 'locationId' in data) {
+      throw new Error('bienId and locationId cannot be changed');
+    }
     return db.locataire.update({ where: { id }, data });
   },
 
@@ -43,7 +51,7 @@ export const LocataireService = {
 
   listForProperty(userId: string, bienId: string) {
     return db.locataire.findMany({
-      where: { documents: { some: { bienId: bienId, bien: { profile: { userId } } } } },
+      where: { bienId, bien: { profile: { userId } } },
     });
   },
 };

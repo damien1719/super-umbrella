@@ -16,26 +16,35 @@ export interface Locataire {
 }
 
 interface LocataireState {
-  current: Locataire | null;
-  fetchForBien: (bienId: string) => Promise<Locataire | null>;
+  items: Locataire[];
+  fetchForBien: (bienId: string) => Promise<void>;
+  fetchForLocation: (locationId: string) => Promise<void>;
   create: (data: NewLocataire) => Promise<Locataire>;
   update: (id: string, data: Partial<NewLocataire>) => Promise<void>;
   remove: (id: string) => Promise<void>;
 }
 
 export const useLocataireStore = create<LocataireState>((set) => ({
-  current: null,
+  items: [],
 
   async fetchForBien(bienId) {
     const token = useAuth.getState().token;
     if (!token) throw new Error('Non authentifié');
-    const locs = await apiFetch<Locataire[]>(
-      `/api/v1/locataires/properties/${bienId}/locataires`,
+    const items = await apiFetch<Locataire[]>(
+      `/api/v1/locataires?bienId=${bienId}`,
       { headers: { Authorization: `Bearer ${token}` } },
     );
-    const loc = locs[0] ?? null;
-    set({ current: loc });
-    return loc;
+    set({ items });
+  },
+
+  async fetchForLocation(locationId) {
+    const token = useAuth.getState().token;
+    if (!token) throw new Error('Non authentifié');
+    const items = await apiFetch<Locataire[]>(
+      `/api/v1/locataires?locationId=${locationId}`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    set({ items });
   },
 
   async create(data) {
@@ -46,7 +55,7 @@ export const useLocataireStore = create<LocataireState>((set) => ({
       headers: { Authorization: `Bearer ${token}` },
       body: JSON.stringify(data),
     });
-    set({ current: loc });
+    set((state) => ({ items: [...state.items, loc] }));
     return loc;
   },
 
@@ -58,7 +67,9 @@ export const useLocataireStore = create<LocataireState>((set) => ({
       headers: { Authorization: `Bearer ${token}` },
       body: JSON.stringify(data),
     });
-    set({ current: loc });
+    set((state) => ({
+      items: state.items.map((l) => (l.id === id ? loc : l)),
+    }));
   },
 
   async remove(id) {
@@ -68,6 +79,6 @@ export const useLocataireStore = create<LocataireState>((set) => ({
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
     });
-    set({ current: null });
+    set((state) => ({ items: state.items.filter((l) => l.id !== id) }));
   },
 }));
