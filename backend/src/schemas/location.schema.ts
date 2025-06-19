@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 export const createLocationSchema = z.object({
   baseRent: z.number(),
+  depositAmount: z.number().optional(),
+  leaseStartDate: z.coerce.date(),
   bienId: z.string().uuid().optional(),
 });
 
