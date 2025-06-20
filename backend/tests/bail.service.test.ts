@@ -1,4 +1,4 @@
-import Docxtemplater from 'docxtemplater';
+import createReport from 'docx-templates';
 import { BailService } from '../src/services/bail.service';
 
 jest.mock('../src/prisma', () => ({ prisma: {} }));
@@ -9,18 +9,12 @@ jest.mock('@supabase/supabase-js', () => ({
   })),
 }));
 
-jest.mock('pizzip', () =>
-  jest.fn().mockImplementation(() => ({
-    // minimal api used by Docxtemplater
-  })),
-);
+jest.mock('docx-templates', () => ({
+  __esModule: true,
+  default: jest.fn().mockResolvedValue(Buffer.from('docx')),
+}));
 
-jest.mock('docxtemplater', () =>
-  jest.fn().mockImplementation(() => ({
-    render: jest.fn(),
-    getZip: () => ({ generate: jest.fn(() => Buffer.from('docx')) }),
-  })),
-);
+const mockedCreateReport = createReport as jest.Mock;
 
 import { createClient } from '@supabase/supabase-js';
 
@@ -33,6 +27,7 @@ describe('BailService.generate', () => {
 
     const res = await BailService.generate({ bailleurNom: 'Test' });
     expect(downloadMock).toHaveBeenCalled();
+    expect(mockedCreateReport).toHaveBeenCalled();
     expect(Buffer.isBuffer(res)).toBe(true);
   });
 });
