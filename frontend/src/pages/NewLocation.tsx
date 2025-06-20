@@ -7,6 +7,9 @@ import { WizardProgress } from '../components/WizardProgress';
 import { Button } from '../components/ui/button';
 import { useLocationStore } from '../store/locations';
 import { useLocataireStore } from '../store/locataires';
+import { useUserProfileStore } from '../store/userProfile';
+import { useAuth } from '../store/auth';
+import { buildUrl } from '../utils/api';
 import type { NewLocation, NewLocataire } from '@monorepo/shared';
 
 export default function NewLocation() {
@@ -15,6 +18,8 @@ export default function NewLocation() {
   const { state } = useLocation() as { state?: { returnTo?: string } };
   const createLocation = useLocationStore((s) => s.createForBien);
   const createLocataire = useLocataireStore((s) => s.create);
+  const profile = useUserProfileStore((s) => s.profile);
+  const token = useAuth((s) => s.token);
   const [step, setStep] = useState(1);
   const [locationData, setLocationData] = useState<Partial<NewLocation>>({});
   const [clauseData, setClauseData] = useState<Partial<NewLocation>>({});
@@ -39,6 +44,26 @@ export default function NewLocation() {
       navigate(`/biens/${id}/dashboard`);
     } else {
       navigate('/biens');
+    }
+  };
+
+  const submitAndGenerate = async () => {
+    await submit();
+    if (!profile || !token) return;
+    const res = await fetch(
+      buildUrl(
+        `/api/v1/bails/location-meublee?bailleurNom=${encodeURIComponent(profile.nom)}`,
+      ),
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    if (res.ok) {
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'bail.docx';
+      a.click();
+      window.URL.revokeObjectURL(url);
     }
   };
 
@@ -73,7 +98,11 @@ export default function NewLocation() {
             <Button variant="primary" onClick={submit} type="button">
               Valider
             </Button>
-            <Button variant="secondary" onClick={submit} type="button">
+            <Button
+              variant="secondary"
+              onClick={submitAndGenerate}
+              type="button"
+            >
               Valider et générer le bail pré-rempli
             </Button>
           </div>

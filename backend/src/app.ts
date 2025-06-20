@@ -21,6 +21,7 @@ import { locationRouter } from './routes/location.routes';
 import { locataireRouter } from './routes/locataire.routes';
 import { documentRouter } from './routes/document.routes';
 import { inventaireRouter } from './routes/inventaire.routes';
+import { bailRouter } from './routes/bail.routes';
 import { errorHandler } from './middlewares/error.middleware';
 import { requireAuth } from './middlewares/requireAuth';
 
@@ -94,6 +95,7 @@ app.use('/api/v1/fec', fecRouter);
 app.use('/api/v1/amortissements', amortissementRouter);
 app.use('/api/v1/cerfa', cerfaRouter);
 app.use('/api/v1/reports', reportRouter);
+app.use('/api/v1/bails', bailRouter);
 
 app.use(errorHandler);
 
