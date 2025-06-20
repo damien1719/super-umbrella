@@ -12,6 +12,8 @@ export type NewInventaire = Prisma.InventaireCreateInput;
 export type EditInventaire = Prisma.InventaireUpdateInput;
 export type NewGarage = Prisma.GarageCreateInput;
 export type EditGarage = Prisma.GarageUpdateInput;
+export type NewCave = Prisma.CaveCreateInput;
+export type EditCave = Prisma.CaveUpdateInput;
 
 export * from './types/UserProfile';
 export * from './types/ApiResponse';

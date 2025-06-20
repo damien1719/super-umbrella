@@ -23,6 +23,7 @@ import { documentRouter } from './routes/document.routes';
 import { inventaireRouter } from './routes/inventaire.routes';
 import { bailRouter } from './routes/bail.routes';
 import { garageRouter } from './routes/garage.routes';
+import { caveRouter } from './routes/cave.routes';
 import { errorHandler } from './middlewares/error.middleware';
 import { requireAuth } from './middlewares/requireAuth';
 
@@ -88,6 +89,7 @@ app.use('/api/v1/locations', locationRouter);
 app.use('/api/v1/locataires', locataireRouter);
 app.use('/api/v1/documents', documentRouter);
 app.use('/api/v1/garages', garageRouter);
+app.use('/api/v1/caves', caveRouter);
 app.use('/api/v1/inventaires', inventaireRouter);
 app.use('/api/v1/logements', logementRouter);
 app.use('/api/v1/profile/:profileId/biens', bienRouter);
