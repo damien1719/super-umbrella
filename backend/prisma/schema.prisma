@@ -1075,6 +1075,10 @@ model Garage {
   @@schema("gestion")
 }
 
+
+
+
+
 // Ajoutez cet enum pour classifier vos documents
 enum DocumentType {
   BAIL                // Contrat de bail
@@ -1178,6 +1182,8 @@ model Locataire {
   locationId            String?
   location              Location?          @relation(fields: [locationId], references: [id])
 
+  garantId   Int?     @unique
+  garant     Garant?  @relation("Locataire_Garant", fields: [garantId], references: [id])
 
   createdAt             DateTime           @default(now())
   updatedAt             DateTime           @updatedAt
@@ -1414,3 +1420,125 @@ model Inventaire {
 
   @@schema("gestion")
 }
+
+
+enum TypeGarant {
+  PERSONNE_PHYSIQUE
+  SOCIETE
+  GARANTIE_BANCAIRE
+  GARANTIE_VISALE
+  GARANTIE_GARANTME
+  AUTRE
+  AUCUN    // quand “Mon locataire n’a pas de garant”
+
+  @@schema("gestion")
+
+}
+
+model Garant {
+  id          Int           @id @default(autoincrement())
+  type        TypeGarant
+
+  personne    Garant_Physique?
+  societe     Garant_Societe?
+  visale      Garant_Visale?
+  garantme    Garant_Garantme?
+
+  locataire  Locataire? @relation("Locataire_Garant")
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@schema("gestion")
+}
+
+model Garant_Physique {
+  id                        Int       @id @default(autoincrement())
+
+  civilite                  String
+  prenom                    String
+  nom                       String
+  dateNaissance             DateTime?          // JJ/MM/AAAA  
+  lieuNaissance             String?            // ex. “Paris”
+
+  email                     String?  
+  telephone                 String?  
+
+  adresse                   String             // ligne principale
+  complementAdresse         String?            // “Ajouter complément”
+  codePostal                String
+  ville                     String
+  pays                      String
+
+  dureeCautionnementAnnees  Int                // 1 à 9 (en années)
+  estCreeancierProfessionnel Boolean  @default(false)
+
+  garant                    Garant             @relation(fields: [garantId], references: [id])
+  garantId                  Int                @unique
+
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt
+
+  @@schema("gestion")
+}
+
+
+model Garant_Societe {
+  id                        Int       @id @default(autoincrement())
+
+  nom                       String
+  adresse                   String
+  complementAdresse         String?  
+  codePostal                String
+  ville                     String
+  pays                      String
+
+  representantCivilite      String
+  representantPrenom        String
+  representantNom           String
+  representantTelephone     String?  
+
+  dureeCautionnementAnnees  Int       // 1 à 9, comme pour personne physique
+
+  garant                    Garant    @relation(fields: [garantId], references: [id])
+  garantId                  Int       @unique
+
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt
+
+  @@schema("gestion")
+
+}
+
+
+model Garant_Visale {
+  id           Int      @id @default(autoincrement())
+
+  numeroVisa   String
+
+  garant       Garant   @relation(fields: [garantId], references: [id])
+  garantId     Int      @unique
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@schema("gestion")
+
+}
+
+
+model Garant_Garantme {
+  id               Int          @id @default(autoincrement())
+  numeroContrat    String?
+
+  garant           Garant       @relation(fields: [garantId], references: [id])
+  garantId         Int          @unique
+  /// Timestamps
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  @@schema("gestion")
+
+}
+
+
