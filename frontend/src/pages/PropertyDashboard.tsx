@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { AlertTriangle, Euro } from 'lucide-react';
 import { PropertyTabList } from '../components/ui/PropertyTabList';
 import {
@@ -18,7 +18,7 @@ import { useBienStore, type Bien } from '../store/biens';
 import { useLocationStore } from '../store/locations';
 import { useLocataireStore } from '../store/locataires';
 import type { NewLocation } from '@monorepo/shared';
-import { Button, buttonVariants } from '../components/ui/button';
+import { Button } from '../components/ui/button';
 import { ChargesCard } from '../components/ui/ChargesCard';
 import { RevenueCard } from '../components/ui/RevenueCard';
 import { Alert, AlertDescription, AlertTitle } from '../components/ui/alert';
@@ -30,12 +30,14 @@ import {
 } from '../components/ui/card';
 import { Progress } from '../components/ui/progress';
 import { Separator } from '../components/ui/separator';
+import NoLeaseCard from '../components/ui/NoLeaseCard';
 
 export default function PropertyDashboard() {
   const [tab, setTab] = useState<
     'view' | 'documents' | 'finances' | 'inventaire'
   >('view');
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { items: documents, fetchAll, create, remove } = useDocumentStore();
   const {
     items: inventaires,
@@ -188,15 +190,20 @@ export default function PropertyDashboard() {
               </div>
             </>
           ) : (
-            <div className="col-span-2 flex flex-col items-center justify-center border rounded p-4">
-              <p>Aucune location active</p>
+            <div className="col-span-2">
               {id && (
-                <Link
-                  to={`/biens/${id}/locations/new`}
-                  className={buttonVariants({ variant: 'primary' })}
-                >
-                  Ajouter une location
-                </Link>
+                <NoLeaseCard
+                  onCreateNew={() =>
+                    navigate(`/biens/${id}/locations/new`, {
+                      state: { returnTo: 'dashboard' },
+                    })
+                  }
+                  onAddExisting={() =>
+                    navigate(`/biens/${id}/locations/new`, {
+                      state: { returnTo: 'dashboard' },
+                    })
+                  }
+                />
               )}
             </div>
           )}
