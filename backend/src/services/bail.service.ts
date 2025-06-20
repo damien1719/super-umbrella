@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import PizZip from 'pizzip';
-import Docxtemplater from 'docxtemplater';
+import createReport from 'docx-templates';
 
 interface Options {
   bailleurNom: string;
@@ -18,10 +17,10 @@ export const BailService = {
     if (error || !data) throw new Error('Unable to download template');
 
     const content = await data.arrayBuffer();
-    const zip = new PizZip(content);
-    const doc = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
-    doc.render({ bailleur: { nom: bailleurNom } });
-    const buffer = doc.getZip().generate({ type: 'nodebuffer' });
+    const buffer = await createReport({
+      template: Buffer.from(content),
+      data: { bailleur: { nom: bailleurNom } },
+    });
     return Buffer.from(buffer);
   },
 };
