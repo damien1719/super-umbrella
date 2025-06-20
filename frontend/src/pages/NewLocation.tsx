@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import LocationForm1 from '../components/LocationForm1';
 import LocationForm2 from '../components/LocationForm2';
 import LocataireForm from '../components/LocataireForm';
@@ -12,6 +12,7 @@ import type { NewLocation, NewLocataire } from '@monorepo/shared';
 export default function NewLocation() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { state } = useLocation() as { state?: { returnTo?: string } };
   const createLocation = useLocationStore((s) => s.createForBien);
   const createLocataire = useLocataireStore((s) => s.create);
   const [step, setStep] = useState(1);
@@ -34,7 +35,11 @@ export default function NewLocation() {
       bienId: id,
       locationId: location.id,
     } as NewLocataire);
-    navigate('/biens');
+    if (state?.returnTo === 'dashboard' && id) {
+      navigate(`/biens/${id}/dashboard`);
+    } else {
+      navigate('/biens');
+    }
   };
 
   let content = null;
