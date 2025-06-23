@@ -5,7 +5,8 @@ export const BailController = {
   async generate(req: Request, res: Response, next: NextFunction) {
     try {
       const bailleurNom = req.query.bailleurNom as string;
-      const doc = await BailService.generate({ bailleurNom });
+      const bailleurPrenom = req.query.bailleurPrenom as string;
+      const doc = await BailService.generate({ bailleurNom, bailleurPrenom });
       res
         .status(200)
         .set({

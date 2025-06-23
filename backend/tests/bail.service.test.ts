@@ -25,9 +25,12 @@ describe('BailService.generate', () => {
     const downloadMock = jest.fn().mockResolvedValue({ data: new Blob(['docx']), error: null });
     mockedCreate.mockReturnValue({ storage: { from: () => ({ download: downloadMock }) } });
 
-    const res = await BailService.generate({ bailleurNom: 'Test' });
+    const res = await BailService.generate({ bailleurNom: 'Test', bailleurPrenom: 'John' });
     expect(downloadMock).toHaveBeenCalled();
-    expect(mockedCreateReport).toHaveBeenCalled();
+    expect(mockedCreateReport).toHaveBeenCalledWith({
+      template: expect.any(Buffer),
+      data: { bailleur: { nom: 'Test', prenom: 'John' } },
+    });
     expect(Buffer.isBuffer(res)).toBe(true);
   });
 });
