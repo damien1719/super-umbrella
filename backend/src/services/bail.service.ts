@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import createReport from 'docx-templates';
+import { createReport, listCommands } from 'docx-templates';
 
 interface Options {
   bailleurNom: string;
@@ -18,9 +18,16 @@ export const BailService = {
     if (error || !data) throw new Error('Unable to download template');
 
     const content = await data.arrayBuffer();
+
+    //Debug
+    const cmds = await listCommands(Buffer.from(content), ['{','}'])
+    console.log(cmds)
+
+    console.log("testbailleur",bailleurNom);
     const buffer = await createReport({
       template: Buffer.from(content),
       data: { bailleur: { nom: bailleurNom, prenom: bailleurPrenom } },
+      cmdDelimiter: ['{', '}'],
     });
     return Buffer.from(buffer);
   },
