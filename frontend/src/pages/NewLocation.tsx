@@ -52,7 +52,7 @@ export default function NewLocation() {
     if (!profile || !token) return;
     const res = await fetch(
       buildUrl(
-        `/api/v1/bails/location-meublee?bailleurNom=${encodeURIComponent(profile.nom)}`,
+        `/api/v1/bails/location-meublee?bailleurNom=${encodeURIComponent(profile.nom)}&bailleurPrenom=${encodeURIComponent(profile.prenom)}`,
       ),
       { headers: { Authorization: `Bearer ${token}` } },
     );

@@ -1,12 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
-import { createReport } from 'docx-templates';
+import createReport from 'docx-templates';
 
 interface Options {
   bailleurNom: string;
+  bailleurPrenom: string;
 }
 
 export const BailService = {
-  async generate({ bailleurNom }: Options): Promise<Buffer> {
+  async generate({ bailleurNom, bailleurPrenom }: Options): Promise<Buffer> {
     const supabase = createClient(
       process.env.SUPABASE_URL ?? 'http://localhost',
       process.env.SUPABASE_KEY ?? 'key',
@@ -19,7 +20,7 @@ export const BailService = {
     const content = await data.arrayBuffer();
     const buffer = await createReport({
       template: Buffer.from(content),
-      data: { bailleur: { nom: bailleurNom } },
+      data: { bailleur: { nom: bailleurNom, prenom: bailleurPrenom } },
     });
     return Buffer.from(buffer);
   },
