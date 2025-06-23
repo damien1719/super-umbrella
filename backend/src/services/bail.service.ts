@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import createReport from 'docx-templates';
+import { createReport } from 'docx-templates';
 
 interface Options {
   bailleurNom: string;
