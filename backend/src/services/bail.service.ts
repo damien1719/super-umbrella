@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { createReport, listCommands } from 'docx-templates';
+import { createReport } from 'docx-templates';
 
 interface Options {
   bailleurNom: string;
@@ -19,11 +19,6 @@ export const BailService = {
 
     const content = await data.arrayBuffer();
 
-    //Debug
-    const cmds = await listCommands(Buffer.from(content), ['{','}'])
-    console.log(cmds)
-
-    console.log("testbailleur",bailleurNom);
     const buffer = await createReport({
       template: Buffer.from(content),
       data: { bailleur: { nom: bailleurNom, prenom: bailleurPrenom } },

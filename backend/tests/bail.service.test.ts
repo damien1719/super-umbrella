@@ -1,4 +1,4 @@
-import createReport from 'docx-templates';
+import { createReport } from 'docx-templates';
 import { BailService } from '../src/services/bail.service';
 
 jest.mock('../src/prisma', () => ({ prisma: {} }));
@@ -11,7 +11,7 @@ jest.mock('@supabase/supabase-js', () => ({
 
 jest.mock('docx-templates', () => ({
   __esModule: true,
-  default: jest.fn().mockResolvedValue(Buffer.from('docx')),
+  createReport: jest.fn().mockResolvedValue(Buffer.from('docx')),
 }));
 
 const mockedCreateReport = createReport as jest.Mock;
@@ -25,12 +25,13 @@ describe('BailService.generate', () => {
     const downloadMock = jest.fn().mockResolvedValue({ data: new Blob(['docx']), error: null });
     mockedCreate.mockReturnValue({ storage: { from: () => ({ download: downloadMock }) } });
 
-    const res = await BailService.generate({ bailleurNom: 'Test', bailleurPrenom: 'John' });
-    expect(downloadMock).toHaveBeenCalled();
-    expect(mockedCreateReport).toHaveBeenCalledWith({
-      template: expect.any(Buffer),
-      data: { bailleur: { nom: 'Test', prenom: 'John' } },
-    });
-    expect(Buffer.isBuffer(res)).toBe(true);
+  const res = await BailService.generate({ bailleurNom: 'Test', bailleurPrenom: 'John' });
+  expect(downloadMock).toHaveBeenCalled();
+  expect(mockedCreateReport).toHaveBeenCalledWith({
+    template: expect.any(Buffer),
+    data: { bailleur: { nom: 'Test', prenom: 'John' } },
+    cmdDelimiter: ['{', '}'],
+  });
+  expect(Buffer.isBuffer(res)).toBe(true);
   });
 });

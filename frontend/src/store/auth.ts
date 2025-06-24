@@ -5,6 +5,7 @@ import type { User, Session } from '@supabase/supabase-js';
 export interface AuthState {
   user: User | null;
   token: string | null;
+  session: Session | null;
   loading: boolean;
   error: string | null;
   initialize: () => Promise<void>;
@@ -24,6 +25,7 @@ export const useAuth = create<AuthState>((set) => {
     set({
       user: session?.user ?? null,
       token: session?.access_token ?? null,
+      session: session ?? null,
     });
   });
 
@@ -32,12 +34,14 @@ export const useAuth = create<AuthState>((set) => {
     set({
       user: session?.user ?? null,
       token: session?.access_token ?? null,
+      session: session ?? null,
     });
   });
 
   return {
     user: null,
     token: null,
+    session: null,
     loading: false,
     error: null,
 
@@ -48,6 +52,7 @@ export const useAuth = create<AuthState>((set) => {
       set({
         user: session?.user ?? null,
         token: session?.access_token ?? null,
+        session: session ?? null,
       });
     },
 
@@ -66,6 +71,7 @@ export const useAuth = create<AuthState>((set) => {
       set({
         user: session.user,
         token: session.access_token,
+        session,
         loading: false,
       });
     },
@@ -98,6 +104,7 @@ export const useAuth = create<AuthState>((set) => {
         set({
           user: session.user,
           token: session.access_token,
+          session,
           loading: false,
         });
       } else {
@@ -115,6 +122,7 @@ export const useAuth = create<AuthState>((set) => {
       set({
         user: null,
         token: null,
+        session: null,
         loading: false,
       });
     },

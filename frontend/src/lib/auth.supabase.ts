@@ -1,12 +1,7 @@
-import { createClient } from '@supabase/supabase-js';
 import type { Session } from '@supabase/supabase-js';
+import { supabase } from './supabaseClient';
 
 export function createAuthProvider() {
-  const supabase = createClient(
-    import.meta.env.VITE_SUPABASE_URL!,
-    import.meta.env.VITE_SUPABASE_ANON_KEY!,
-  );
-
   return {
     getCurrentUser: async () => {
       const {
