@@ -13,7 +13,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
         typeof collapsible !== 'undefined' ? collapsible : undefined
       }
       className={cn(
-        'flex min-h-screen w-60 flex-col border-r bg-gray-100',
+        'flex min-h-screen w-60 flex-col border-r border-r-gray-200 bg-gray-100',
         className,
       )}
       {...props}
@@ -28,7 +28,7 @@ const SidebarHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn('flex h-14 items-center border-b', className)}
+    className={cn('flex h-14 items-center border-b border-b-gray-200', className)}
     {...props}
   />
 ));
@@ -50,7 +50,7 @@ const SidebarFooter = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn('mt-auto p-2 border-t', className)} {...props} />
+  <div ref={ref} className={cn('mt-auto p-2 border-t border-t-gray-200', className)} {...props} />
 ));
 SidebarFooter.displayName = 'SidebarFooter';
 
