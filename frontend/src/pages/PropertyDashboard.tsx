@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { AlertTriangle, Euro } from 'lucide-react';
 import { PropertyTabList } from '../components/ui/PropertyTabList';
 import {
@@ -33,9 +33,16 @@ import { Separator } from '../components/ui/separator';
 import NoLeaseCard from '../components/ui/NoLeaseCard';
 
 export default function PropertyDashboard() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab =
+    (searchParams.get('tab') as
+      | 'view'
+      | 'documents'
+      | 'finances'
+      | 'inventaire') ?? 'view';
   const [tab, setTab] = useState<
     'view' | 'documents' | 'finances' | 'inventaire'
-  >('view');
+  >(initialTab);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { items: documents, fetchAll, create, remove } = useDocumentStore();
@@ -140,9 +147,14 @@ export default function PropertyDashboard() {
     },
   ];
 
+  const changeTab = (t: 'view' | 'documents' | 'finances' | 'inventaire') => {
+    setTab(t);
+    setSearchParams({ tab: t });
+  };
+
   return (
     <div className="space-y-4">
-      <PropertyTabList value={tab} onChange={setTab} />
+      <PropertyTabList value={tab} onChange={changeTab} />
       {tab === 'view' && (
         <div className="grid grid-cols-1 gap-6">
           {propertyData && <PropertyInfoCard property={propertyData} />}

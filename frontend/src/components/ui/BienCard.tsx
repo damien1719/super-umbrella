@@ -1,13 +1,16 @@
+'use client';
 
-"use client"
-
-import { useState } from "react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { useToast } from "@/hooks/use-toast"
+import { useState } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   Home,
   User,
@@ -21,56 +24,56 @@ import {
   Loader2,
   Plus,
   Upload,
-} from "lucide-react"
+} from 'lucide-react';
 
-interface PropertyCardProps {
+interface BienCardProps {
   property: {
-    id: string
-    address: string
-    city: string
-    status: "libre" | "occupé"
-    revenue: number
-    charges: number
+    id: string;
+    address: string;
+    city: string;
+    status: 'libre' | 'occupé';
+    revenue: number;
+    charges: number;
     tenant?: {
-      firstName: string
-      lastName: string
-      phone: string
-      email: string
-      avatar?: string
-    }
+      firstName: string;
+      lastName: string;
+      phone: string;
+      email: string;
+      avatar?: string;
+    };
     lease?: {
-      startDate: string
-      endDate: string
-    }
-  }
+      startDate: string;
+      endDate: string;
+    };
+  };
+  onCreateLease?: () => void;
+  onViewDocuments?: () => void;
 }
 
-export default function PropertyCard({ property }: PropertyCardProps) {
-  const [loadingAction, setLoadingAction] = useState<string | null>(null)
-  const { toast } = useToast()
+export default function BienCard({
+  property,
+  onCreateLease,
+  onViewDocuments,
+}: BienCardProps) {
+  const [loadingAction, setLoadingAction] = useState<string | null>(null);
 
   const handleAction = async (actionName: string) => {
-    setLoadingAction(actionName)
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    setLoadingAction(null)
-    toast({
-      title: "Action réalisée",
-      description: `${actionName} pour ${property.address}`,
-      duration: 3000,
-    })
-  }
+    setLoadingAction(actionName);
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    setLoadingAction(null);
+  };
 
   const getInitials = (firstName: string, lastName: string) => {
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
-  }
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("fr-FR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    })
-  }
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+  };
 
   return (
     <Card className="w-full max-w-sm hover:shadow-md transition-shadow duration-200">
@@ -78,12 +81,16 @@ export default function PropertyCard({ property }: PropertyCardProps) {
         {/* Adresse et statut */}
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <h3 className="font-semibold text-lg leading-tight text-gray-900">{property.address}</h3>
+            <h3 className="font-semibold text-lg leading-tight text-gray-900">
+              {property.address}
+            </h3>
             <p className="text-sm text-gray-600 mt-1">{property.city}</p>
           </div>
           <Badge
             className={`ml-3 ${
-              property.status === "occupé" ? "bg-green-100 text-green-800" : "bg-orange-100 text-orange-800"
+              property.status === 'occupé'
+                ? 'bg-green-100 text-green-800'
+                : 'bg-orange-100 text-orange-800'
             }`}
           >
             <Home className="w-3 h-3 mr-1" />
@@ -107,24 +114,33 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Charges</span>
-              <span className="font-semibold text-red-600">-{property.charges}€</span>
+              <span className="font-semibold text-red-600">
+                -{property.charges}€
+              </span>
             </div>
             <div className="flex justify-between pt-2 border-t border-gray-200">
               <span className="font-medium text-gray-900">Cash-flow</span>
-              <span className="font-bold text-green-600">{property.revenue - property.charges}€</span>
+              <span className="font-bold text-green-600">
+                {property.revenue - property.charges}€
+              </span>
             </div>
           </div>
         </div>
 
         {/* Informations conditionnelles */}
-        {property.status === "occupé" && property.tenant && property.lease ? (
+        {property.status === 'occupé' && property.tenant && property.lease ? (
           <div className="bg-gray-50 rounded-lg p-4 space-y-3">
             {/* Locataire */}
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10">
-                <AvatarImage src={property.tenant.avatar || "/placeholder.svg"} />
+                <AvatarImage
+                  src={property.tenant.avatar || '/placeholder.svg'}
+                />
                 <AvatarFallback className="bg-blue-100 text-blue-700">
-                  {getInitials(property.tenant.firstName, property.tenant.lastName)}
+                  {getInitials(
+                    property.tenant.firstName,
+                    property.tenant.lastName,
+                  )}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
@@ -150,7 +166,8 @@ export default function PropertyCard({ property }: PropertyCardProps) {
                 <Calendar className="w-4 h-4 text-gray-500" />
                 <span className="text-gray-600">Bail :</span>
                 <span className="font-medium">
-                  {formatDate(property.lease.startDate)} - {formatDate(property.lease.endDate)}
+                  {formatDate(property.lease.startDate)} -{' '}
+                  {formatDate(property.lease.endDate)}
                 </span>
               </div>
             </div>
@@ -159,12 +176,14 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           /* Actions pour bien libre */
           <div className="space-y-2">
             <Button
-              onClick={() => handleAction("Créer un bail")}
-              disabled={loadingAction === "Créer un bail"}
+              onClick={() =>
+                onCreateLease ? onCreateLease() : handleAction('Créer un bail')
+              }
+              disabled={loadingAction === 'Créer un bail'}
               className="w-full flex items-center gap-2"
               variant="default"
             >
-              {loadingAction === "Créer un bail" ? (
+              {loadingAction === 'Créer un bail' ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <Plus className="w-4 h-4" />
@@ -172,12 +191,12 @@ export default function PropertyCard({ property }: PropertyCardProps) {
               Créer un bail
             </Button>
             <Button
-              onClick={() => handleAction("Ajouter un bail existant")}
-              disabled={loadingAction === "Ajouter un bail existant"}
+              onClick={() => handleAction('Ajouter un bail existant')}
+              disabled={loadingAction === 'Ajouter un bail existant'}
               className="w-full flex items-center gap-2"
               variant="outline"
             >
-              {loadingAction === "Ajouter un bail existant" ? (
+              {loadingAction === 'Ajouter un bail existant' ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <Upload className="w-4 h-4" />
@@ -190,13 +209,13 @@ export default function PropertyCard({ property }: PropertyCardProps) {
         {/* Actions principales */}
         <div className="flex gap-2">
           <Button
-            onClick={() => handleAction("Signer bail")}
-            disabled={loadingAction === "Signer bail"}
+            onClick={() => handleAction('Signer bail')}
+            disabled={loadingAction === 'Signer bail'}
             className="flex-1 flex items-center gap-2"
             variant="outline"
             size="sm"
           >
-            {loadingAction === "Signer bail" ? (
+            {loadingAction === 'Signer bail' ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <PenTool className="w-4 h-4" />
@@ -204,13 +223,13 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             Signer bail
           </Button>
           <Button
-            onClick={() => handleAction("Signer états des lieux")}
-            disabled={loadingAction === "Signer états des lieux"}
+            onClick={() => handleAction('Signer états des lieux')}
+            disabled={loadingAction === 'Signer états des lieux'}
             className="flex-1 flex items-center gap-2"
             variant="outline"
             size="sm"
           >
-            {loadingAction === "Signer états des lieux" ? (
+            {loadingAction === 'Signer états des lieux' ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <FileText className="w-4 h-4" />
@@ -223,21 +242,35 @@ export default function PropertyCard({ property }: PropertyCardProps) {
         <div className="flex justify-center">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-gray-500 hover:text-gray-700"
+              >
                 <MoreHorizontal className="w-4 h-4 mr-1" />
                 Plus
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="center" className="w-48">
-              <DropdownMenuItem onClick={() => handleAction("Voir les documents")}>
+              <DropdownMenuItem
+                onClick={() =>
+                  onViewDocuments
+                    ? onViewDocuments()
+                    : handleAction('Voir les documents')
+                }
+              >
                 <FileText className="w-4 h-4 mr-2" />
                 Voir les documents
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleAction("Gérer les paiements")}>
+              <DropdownMenuItem
+                onClick={() => handleAction('Gérer les paiements')}
+              >
                 <Euro className="w-4 h-4 mr-2" />
                 Gérer les paiements
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleAction("Contacter le locataire")}>
+              <DropdownMenuItem
+                onClick={() => handleAction('Contacter le locataire')}
+              >
                 <User className="w-4 h-4 mr-2" />
                 Contacter le locataire
               </DropdownMenuItem>
@@ -246,5 +279,5 @@ export default function PropertyCard({ property }: PropertyCardProps) {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
