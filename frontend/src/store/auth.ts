@@ -7,6 +7,8 @@ export interface AuthState {
   token: string | null;
   session: Session | null;
   loading: boolean;
+  /** indicates whether the initial session check is in progress */
+  initialized: boolean;
   error: string | null;
   initialize: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
@@ -26,6 +28,8 @@ export const useAuth = create<AuthState>((set) => {
       user: session?.user ?? null,
       token: session?.access_token ?? null,
       session: session ?? null,
+      loading: false,
+      initialized: true,
     });
   });
 
@@ -35,6 +39,7 @@ export const useAuth = create<AuthState>((set) => {
       user: session?.user ?? null,
       token: session?.access_token ?? null,
       session: session ?? null,
+      initialized: true,
     });
   });
 
@@ -42,10 +47,12 @@ export const useAuth = create<AuthState>((set) => {
     user: null,
     token: null,
     session: null,
-    loading: false,
+    loading: true,
+    initialized: false,
     error: null,
 
     initialize: async () => {
+      set({ loading: true });
       const {
         data: { session },
       } = await auth.getSession();
@@ -53,6 +60,8 @@ export const useAuth = create<AuthState>((set) => {
         user: session?.user ?? null,
         token: session?.access_token ?? null,
         session: session ?? null,
+        loading: false,
+        initialized: true,
       });
     },
 
@@ -73,6 +82,7 @@ export const useAuth = create<AuthState>((set) => {
         token: session.access_token,
         session,
         loading: false,
+        initialized: true,
       });
     },
 
@@ -106,6 +116,7 @@ export const useAuth = create<AuthState>((set) => {
           token: session.access_token,
           session,
           loading: false,
+          initialized: true,
         });
       } else {
         set({ loading: false });
@@ -124,6 +135,7 @@ export const useAuth = create<AuthState>((set) => {
         token: null,
         session: null,
         loading: false,
+        initialized: true,
       });
     },
   };
