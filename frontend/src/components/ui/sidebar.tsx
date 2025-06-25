@@ -28,7 +28,10 @@ const SidebarHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn('flex h-14 items-center border-b border-b-gray-200', className)}
+    className={cn(
+      'flex h-14 items-center border-b border-b-gray-200',
+      className,
+    )}
     {...props}
   />
 ));
@@ -50,7 +53,11 @@ const SidebarFooter = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn('mt-auto p-2 border-t border-t-gray-200', className)} {...props} />
+  <div
+    ref={ref}
+    className={cn('mt-auto p-2 border-t border-t-gray-200', className)}
+    {...props}
+  />
 ));
 SidebarFooter.displayName = 'SidebarFooter';
 

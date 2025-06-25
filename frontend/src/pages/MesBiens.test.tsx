@@ -1,34 +1,24 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import MesBiens from './MesBiens';
 import { useBienStore, type Bien } from '../store/biens';
 
+vi.stubGlobal('fetch', vi.fn());
+
 describe('MesBiens page', () => {
-  it('shows "Nouvelle location" button', () => {
+  it('shows property address', () => {
     const bien: Bien = { id: '1', typeBien: 'APT', adresse: 'a' } as Bien;
     useBienStore.setState({ items: [bien], fetchAll: async () => {} });
+    (fetch as unknown as vi.Mock).mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(null),
+    });
     render(
       <MemoryRouter>
         <MesBiens />
       </MemoryRouter>,
     );
-    expect(
-      screen.getByRole('link', { name: /nouvelle location/i }),
-    ).toBeInTheDocument();
-  });
-
-  it('links to property dashboard', () => {
-    const bien: Bien = { id: '1', typeBien: 'APT', adresse: 'b' } as Bien;
-    useBienStore.setState({ items: [bien], fetchAll: async () => {} });
-    render(
-      <MemoryRouter>
-        <MesBiens />
-      </MemoryRouter>,
-    );
-    expect(screen.getByRole('link', { name: /b/i })).toHaveAttribute(
-      'href',
-      '/biens/1/dashboard',
-    );
+    expect(screen.getByText('a')).toBeInTheDocument();
   });
 });

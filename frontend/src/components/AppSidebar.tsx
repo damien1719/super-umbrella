@@ -8,7 +8,6 @@ import {
   FileText,
   Crown,
   User,
-  Settings,
   LogOut,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
@@ -45,8 +44,13 @@ const items: {
   path: string;
   icon: React.ComponentType<{ className?: string }>;
 }[] = [
-/*   { title: 'Mon Compte', page: 'MonCompte', path: '/compte', icon: Calendar },
- */  { title: 'Dashboard', page: 'Dashboard', path: '/', icon: LayoutDashboard },
+  /*   { title: 'Mon Compte', page: 'MonCompte', path: '/compte', icon: Calendar },
+   */ {
+    title: 'Dashboard',
+    page: 'Dashboard',
+    path: '/',
+    icon: LayoutDashboard,
+  },
   { title: 'Mes Biens', page: 'MesBiens', path: '/biens', icon: Home },
   { title: 'Mon Agenda', page: 'Agenda', path: '/agenda', icon: Calendar },
   {
@@ -149,10 +153,11 @@ export function AppSidebar({ onNavigate }: SidebarProps) {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={() => {
+                <DropdownMenuItem
+                  onSelect={() => {
                     navigate('/compte');
-                    }
-                  }>
+                  }}
+                >
                   <User className="h-4 w-4 mr-2" />
                   Voir le profil
                 </DropdownMenuItem>
