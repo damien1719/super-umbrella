@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Home,
@@ -45,8 +45,8 @@ const items: {
   path: string;
   icon: React.ComponentType<{ className?: string }>;
 }[] = [
-  { title: 'Mon Compte', page: 'MonCompte', path: '/compte', icon: Calendar },
-  { title: 'Dashboard', page: 'Dashboard', path: '/', icon: LayoutDashboard },
+/*   { title: 'Mon Compte', page: 'MonCompte', path: '/compte', icon: Calendar },
+ */  { title: 'Dashboard', page: 'Dashboard', path: '/', icon: LayoutDashboard },
   { title: 'Mes Biens', page: 'MesBiens', path: '/biens', icon: Home },
   { title: 'Mon Agenda', page: 'Agenda', path: '/agenda', icon: Calendar },
   {
@@ -64,6 +64,7 @@ const items: {
 ];
 
 export function AppSidebar({ onNavigate }: SidebarProps) {
+  const navigate = useNavigate();
   const signOut = useAuth((s) => s.signOut);
   return (
     <UISidebar collapsible="icon">
@@ -148,13 +149,12 @@ export function AppSidebar({ onNavigate }: SidebarProps) {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => onNavigate('MonCompte')}>
+                <DropdownMenuItem onSelect={() => {
+                    navigate('/compte');
+                    }
+                  }>
                   <User className="h-4 w-4 mr-2" />
-                  Éditer le profil
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Settings className="h-4 w-4 mr-2" />
-                  Paramètres
+                  Voir le profil
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={signOut}>
