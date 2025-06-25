@@ -32,6 +32,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
+import { useAuth } from '../store/auth';
 import type { Page } from '../store/pageContext';
 
 interface SidebarProps {
@@ -63,6 +64,7 @@ const items: {
 ];
 
 export function AppSidebar({ onNavigate }: SidebarProps) {
+  const signOut = useAuth((s) => s.signOut);
   return (
     <UISidebar collapsible="icon">
       <SidebarHeader>
@@ -155,7 +157,7 @@ export function AppSidebar({ onNavigate }: SidebarProps) {
                   Paramètres
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={signOut}>
                   <LogOut className="h-4 w-4 mr-2" />
                   Se déconnecter
                 </DropdownMenuItem>
