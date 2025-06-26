@@ -122,7 +122,15 @@ export default function InventoryPage() {
       editingData.mobilier &&
       editingData.etatEntree
     ) {
-      await update(editingId, editingData);
+      // Strip fields not handled by the API
+      const data = {
+        piece: editingData.piece,
+        mobilier: editingData.mobilier,
+        quantite: editingData.quantite,
+        marque: editingData.marque,
+        etatEntree: editingData.etatEntree,
+      };
+      await update(editingId, data);
       setEditingId(null);
       setEditingData({});
     }
