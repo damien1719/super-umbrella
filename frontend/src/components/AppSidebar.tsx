@@ -46,26 +46,26 @@ const items: {
   icon: React.ComponentType<{ className?: string }>;
 }[] = [
   /*   { title: 'Mon Compte', page: 'MonCompte', path: '/compte', icon: Calendar },
-   */ {
+   */ /* {
     title: 'Dashboard',
     page: 'Dashboard',
     path: '/',
     icon: LayoutDashboard,
-  },
+  }, */
   { title: 'Mes Biens', page: 'MesBiens', path: '/biens', icon: Home },
   { title: 'Mon Agenda', page: 'Agenda', path: '/agenda', icon: Calendar },
-  {
-    title: 'Abonnement',
-    page: 'Abonnement',
-    path: '/abonnement',
-    icon: CreditCard,
-  },
   {
     title: 'Déclaration Fiscale',
     page: 'Resultats',
     path: '/resultats',
     icon: FileText,
   },
+  {
+    title: 'Abonnement',
+    page: 'Abonnement',
+    path: '/abonnement',
+    icon: CreditCard,
+  }
 ];
 
 export function AppSidebar({ onNavigate }: SidebarProps) {
