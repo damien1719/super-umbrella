@@ -353,7 +353,7 @@ export default function PropertyDashboard() {
                         <TableCell>
                           <div>
                             <p className="font-medium text-sm">{doc.name}</p>
-                            <p className="text-xs text-gray-200">{doc.size}</p>
+                            <p className="text-xs text-gray-500">{doc.size}</p>
                           </div>
                         </TableCell>
                         <TableCell>
