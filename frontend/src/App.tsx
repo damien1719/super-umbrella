@@ -13,6 +13,7 @@ import MonCompte from './pages/MonCompte';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
 import { usePageStore } from './store/pageContext';
+import { useUserProfileStore } from './store/userProfile';
 import { AppSidebar } from './components/AppSidebar';
 
 function useInitAuth() {
@@ -26,8 +27,17 @@ function useInitAuth() {
 function ProtectedLayout() {
   const setCurrentPage = usePageStore((s) => s.setCurrentPage);
   const { user } = useAuth();
+  const { profileId, fetchProfile } = useUserProfileStore();
   const loading = useInitAuth();
   useRequireAuth();
+
+  useEffect(() => {
+    if (user && !profileId) {
+      fetchProfile().catch(() => {
+        /* ignore */
+      });
+    }
+  }, [user, profileId, fetchProfile]);
 
   if (loading) {
     return <div>Chargement...</div>;

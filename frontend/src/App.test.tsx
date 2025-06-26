@@ -1,5 +1,5 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
 import type { User } from '@supabase/supabase-js';
 import App from './App';
 import { PageProvider } from './store/pageContext';
@@ -31,6 +31,39 @@ describe('App navigation', () => {
     expect(
       await screen.findByRole('heading', { name: /dashboard/i }),
     ).toBeInTheDocument();
+  });
+
+  it('fetches profile after login', async () => {
+    const fetchProfileMock = vi.fn(() => Promise.resolve());
+    useAuth.setState({
+      user: { id: '1' } as unknown as User,
+      token: 'tok',
+      loading: false,
+    });
+    useUserProfileStore.setState(
+      (state) =>
+        ({
+          ...state,
+          profileId: null,
+          fetchProfile: fetchProfileMock,
+        }) as UserProfileState,
+    );
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, json: () => Promise.resolve([]) }),
+    ) as unknown as typeof fetch;
+
+    render(
+      <BrowserRouter>
+        <PageProvider>
+          <App />
+        </PageProvider>
+      </BrowserRouter>,
+    );
+
+    await waitFor(() => expect(fetchProfileMock).toHaveBeenCalled());
+    useUserProfileStore.setState(
+      (state) => ({ ...state, profileId: 'p1' }) as UserProfileState,
+    );
   });
 
   it('active le menu MesBiens après clic', async () => {
