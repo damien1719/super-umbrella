@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect, vi } from 'vitest';
-import MonCompteV2 from './MonCompteV2';
+import MonCompteV2 from './MonCompte';
 import { useAuth, type AuthState } from '../store/auth';
 import {
   useUserProfileStore,

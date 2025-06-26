@@ -9,7 +9,7 @@ import NewLocation from './pages/NewLocation';
 import Agenda from './pages/Agenda';
 import Resultats from './pages/Resultats';
 import Abonnement from './pages/Abonnement';
-import MonCompteV2 from './pages/MonCompteV2';
+import MonCompteV2 from './pages/MonCompte';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
 import { usePageStore } from './store/pageContext';
