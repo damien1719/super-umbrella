@@ -34,6 +34,10 @@ describe('PropertyDashboard page', () => {
       ok: true,
       json: () => Promise.resolve([]),
     });
+    (fetch as unknown as vi.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve([]),
+    });
 
     render(
       <MemoryRouter initialEntries={['/biens/1/dashboard']}>
@@ -57,7 +61,16 @@ describe('PropertyDashboard page', () => {
     });
     (fetch as unknown as vi.Mock).mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve(null),
+      json: () =>
+        Promise.resolve({
+          id: 'loc1',
+          baseRent: 100,
+          leaseStartDate: '2024-01-01',
+        }),
+    });
+    (fetch as unknown as vi.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve([]),
     });
 
     render(
@@ -68,7 +81,7 @@ describe('PropertyDashboard page', () => {
       </MemoryRouter>,
     );
     expect(
-      await screen.findByRole('heading', { name: /Inventaire/i })
+      await screen.findByRole('heading', { name: /Inventaire/i }),
     ).toBeInTheDocument();
   });
 });
