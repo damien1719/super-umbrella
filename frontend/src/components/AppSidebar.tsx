@@ -32,6 +32,7 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import { useAuth } from '../store/auth';
+import { useUserProfileStore } from '../store/userProfile';
 import type { Page } from '../store/pageContext';
 
 interface SidebarProps {
@@ -70,6 +71,11 @@ const items: {
 export function AppSidebar({ onNavigate }: SidebarProps) {
   const navigate = useNavigate();
   const signOut = useAuth((s) => s.signOut);
+  const profile = useUserProfileStore((s) => s.profile);
+  const initials = React.useMemo(() => {
+    if (!profile) return '??';
+    return `${profile.prenom.charAt(0)}${profile.nom.charAt(0)}`.toUpperCase();
+  }, [profile]);
   return (
     <UISidebar collapsible="icon">
       <SidebarHeader>
@@ -120,14 +126,20 @@ export function AppSidebar({ onNavigate }: SidebarProps) {
                 >
                   <Avatar className="h-8 w-8 rounded-lg">
                     <AvatarImage
-                      src="/placeholder.svg?height=32&width=32&text=JD"
-                      alt="John Doe"
+                      src="/placeholder.svg?height=32&width=32"
+                      alt={profile ? `${profile.prenom} ${profile.nom}` : ''}
                     />
-                    <AvatarFallback className="rounded-lg">JD</AvatarFallback>
+                    <AvatarFallback className="rounded-lg">
+                      {initials}
+                    </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">John Doe</span>
-                    <span className="truncate text-xs">john@example.com</span>
+                    <span className="truncate font-semibold">
+                      {profile ? `${profile.prenom} ${profile.nom}` : ''}
+                    </span>
+                    <span className="truncate text-xs">
+                      {profile?.email ?? ''}
+                    </span>
                   </div>
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
@@ -141,14 +153,20 @@ export function AppSidebar({ onNavigate }: SidebarProps) {
                   <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                     <Avatar className="h-8 w-8 rounded-lg">
                       <AvatarImage
-                        src="/placeholder.svg?height=32&width=32&text=JD"
-                        alt="John Doe"
+                        src="/placeholder.svg?height=32&width=32"
+                        alt={profile ? `${profile.prenom} ${profile.nom}` : ''}
                       />
-                      <AvatarFallback className="rounded-lg">JD</AvatarFallback>
+                      <AvatarFallback className="rounded-lg">
+                        {initials}
+                      </AvatarFallback>
                     </Avatar>
                     <div className="grid flex-1 text-left text-sm leading-tight">
-                      <span className="truncate font-semibold">John Doe</span>
-                      <span className="truncate text-xs">john@example.com</span>
+                      <span className="truncate font-semibold">
+                        {profile ? `${profile.prenom} ${profile.nom}` : ''}
+                      </span>
+                      <span className="truncate text-xs">
+                        {profile?.email ?? ''}
+                      </span>
                     </div>
                   </div>
                 </DropdownMenuLabel>
