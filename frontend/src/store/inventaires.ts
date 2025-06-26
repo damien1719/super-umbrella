@@ -11,6 +11,8 @@ export interface Inventaire {
   quantite?: number;
   marque?: string;
   etatEntree?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface InventaireState {
