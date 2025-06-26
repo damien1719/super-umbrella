@@ -9,7 +9,7 @@ import NewLocation from './pages/NewLocation';
 import Agenda from './pages/Agenda';
 import Resultats from './pages/Resultats';
 import Abonnement from './pages/Abonnement';
-import MonCompte from './pages/MonCompte';
+import MonCompteV2 from './pages/MonCompteV2';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
 import { usePageStore } from './store/pageContext';
@@ -92,7 +92,7 @@ export default function App() {
         <Route path="/agenda" element={<Agenda />} />
         <Route path="/resultats" element={<Resultats />} />
         <Route path="/abonnement" element={<Abonnement />} />
-        <Route path="/compte" element={<MonCompte />} />
+        <Route path="/compte" element={<MonCompteV2 />} />
       </Route>
     </Routes>
   );
