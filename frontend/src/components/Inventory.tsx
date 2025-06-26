@@ -1,13 +1,33 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Search, Plus, Package, Edit, Trash2, X, Check } from "lucide-react"
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Search, Plus, Package, Edit, Trash2, X, Check } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,185 +37,167 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+} from '@/components/ui/alert-dialog';
+import { useInventaireStore, type Inventaire } from '../store/inventaires';
 
-interface InventoryItem {
-  id: string
-  piece: string
-  mobilier: string
-  quantite: number
-  prix: number
-  marque: string
-  etatEntree: string
-  dateAdded: string
+interface InventoryItem extends Inventaire {
+  prix?: number;
+  createdAt?: string;
 }
 
-const initialInventory: InventoryItem[] = [
-  {
-    id: "1",
-    piece: "Cuisine",
-    mobilier: "Réfrigérateur",
-    quantite: 1,
-    prix: 450,
-    marque: "Samsung",
-    etatEntree: "Bon",
-    dateAdded: "2024-01-15",
-  },
-  {
-    id: "2",
-    piece: "Salon",
-    mobilier: "Canapé 3 places",
-    quantite: 1,
-    prix: 800,
-    marque: "IKEA",
-    etatEntree: "Très bon",
-    dateAdded: "2024-01-10",
-  },
-  {
-    id: "3",
-    piece: "Salle à manger",
-    mobilier: "Table à manger",
-    quantite: 1,
-    prix: 350,
-    marque: "Conforama",
-    etatEntree: "Neuf",
-    dateAdded: "2024-01-20",
-  },
-]
-
 const pieces = [
-  "Salon",
-  "Cuisine",
-  "Chambre",
-  "Salle à manger",
-  "Salle de bain",
-  "Entrée",
-  "Bureau",
-  "Balcon",
-  "Cave",
-  "Garage",
-]
-const etatsEntree = ["Neuf", "Très bon", "Bon", "Correct", "Usagé", "Défaillant"]
+  'Salon',
+  'Cuisine',
+  'Chambre',
+  'Salle à manger',
+  'Salle de bain',
+  'Entrée',
+  'Bureau',
+  'Balcon',
+  'Cave',
+  'Garage',
+];
+const etatsEntree = [
+  'Neuf',
+  'Très bon',
+  'Bon',
+  'Correct',
+  'Usagé',
+  'Défaillant',
+];
 
 export default function InventoryPage() {
-  const [inventory, setInventory] = useState<InventoryItem[]>(initialInventory)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedPiece, setSelectedPiece] = useState<string>("all")
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [editingData, setEditingData] = useState<Partial<InventoryItem>>({})
-  const [isAddingNew, setIsAddingNew] = useState(false)
+  const { id } = useParams<{ id: string }>();
+  const {
+    items: inventory,
+    fetchForBien,
+    create,
+    update,
+    remove,
+  } = useInventaireStore();
+
+  useEffect(() => {
+    if (id) {
+      fetchForBien(id).catch(() => {});
+    }
+  }, [id, fetchForBien]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedPiece, setSelectedPiece] = useState<string>('all');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingData, setEditingData] = useState<Partial<InventoryItem>>({});
+  const [isAddingNew, setIsAddingNew] = useState(false);
   const [newItemData, setNewItemData] = useState<Partial<InventoryItem>>({
-    piece: "",
-    mobilier: "",
+    piece: '',
+    mobilier: '',
     quantite: 1,
     prix: 0,
-    marque: "",
-    etatEntree: "",
-  })
-  const [itemToDelete, setItemToDelete] = useState<string | null>(null)
+    marque: '',
+    etatEntree: '',
+  });
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
   const filteredInventory = inventory.filter((item) => {
     const matchesSearch =
       item.mobilier.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.marque.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesPiece = selectedPiece === "all" || item.piece === selectedPiece
-    return matchesSearch && matchesPiece
-  })
+      item.marque.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesPiece =
+      selectedPiece === 'all' || item.piece === selectedPiece;
+    return matchesSearch && matchesPiece;
+  });
 
   const handleStartEdit = (item: InventoryItem) => {
-    setEditingId(item.id)
-    setEditingData(item)
-  }
+    setEditingId(item.id);
+    setEditingData(item);
+  };
 
   const handleCancelEdit = () => {
-    setEditingId(null)
-    setEditingData({})
-  }
+    setEditingId(null);
+    setEditingData({});
+  };
 
-  const handleSaveEdit = () => {
-    if (editingId && editingData.piece && editingData.mobilier && editingData.etatEntree) {
-      setInventory(inventory.map((item) => (item.id === editingId ? { ...item, ...editingData } : item)))
-      setEditingId(null)
-      setEditingData({})
+  const handleSaveEdit = async () => {
+    if (
+      editingId &&
+      editingData.piece &&
+      editingData.mobilier &&
+      editingData.etatEntree
+    ) {
+      await update(editingId, editingData);
+      setEditingId(null);
+      setEditingData({});
     }
-  }
+  };
 
   const handleStartAddNew = () => {
-    setIsAddingNew(true)
+    setIsAddingNew(true);
     setNewItemData({
-      piece: "",
-      mobilier: "",
+      piece: '',
+      mobilier: '',
       quantite: 1,
       prix: 0,
-      marque: "",
-      etatEntree: "",
-    })
-  }
+      marque: '',
+      etatEntree: '',
+    });
+  };
 
   const handleCancelAddNew = () => {
-    setIsAddingNew(false)
+    setIsAddingNew(false);
     setNewItemData({
-      piece: "",
-      mobilier: "",
+      piece: '',
+      mobilier: '',
       quantite: 1,
       prix: 0,
-      marque: "",
-      etatEntree: "",
-    })
-  }
+      marque: '',
+      etatEntree: '',
+    });
+  };
 
-  const handleSaveNew = () => {
+  const handleSaveNew = async () => {
+    if (!id) return;
     if (newItemData.piece && newItemData.mobilier && newItemData.etatEntree) {
-      const newItem: InventoryItem = {
-        id: Date.now().toString(),
-        piece: newItemData.piece,
-        mobilier: newItemData.mobilier,
-        quantite: newItemData.quantite || 1,
-        prix: newItemData.prix || 0,
-        marque: newItemData.marque || "",
-        etatEntree: newItemData.etatEntree,
-        dateAdded: new Date().toISOString().split("T")[0],
-      }
-      setInventory([newItem, ...inventory])
-      setIsAddingNew(false)
+      await create({ bienId: id, ...(newItemData as Inventaire) });
+      setIsAddingNew(false);
       setNewItemData({
-        piece: "",
-        mobilier: "",
+        piece: '',
+        mobilier: '',
         quantite: 1,
         prix: 0,
-        marque: "",
-        etatEntree: "",
-      })
+        marque: '',
+        etatEntree: '',
+      });
     }
-  }
+  };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (itemToDelete) {
-      setInventory(inventory.filter((item) => item.id !== itemToDelete))
-      setItemToDelete(null)
+      await remove(itemToDelete);
+      setItemToDelete(null);
     }
-  }
+  };
 
   const getEtatColor = (etat: string) => {
     switch (etat) {
-      case "Neuf":
-        return "bg-green-100 text-green-800"
-      case "Très bon":
-        return "bg-blue-100 text-blue-800"
-      case "Bon":
-        return "bg-yellow-100 text-yellow-800"
-      case "Correct":
-        return "bg-orange-100 text-orange-800"
-      case "Usagé":
-        return "bg-red-100 text-red-800"
-      case "Défaillant":
-        return "bg-gray-100 text-gray-800"
+      case 'Neuf':
+        return 'bg-green-100 text-green-800';
+      case 'Très bon':
+        return 'bg-blue-100 text-blue-800';
+      case 'Bon':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'Correct':
+        return 'bg-orange-100 text-orange-800';
+      case 'Usagé':
+        return 'bg-red-100 text-red-800';
+      case 'Défaillant':
+        return 'bg-gray-100 text-gray-800';
       default:
-        return "bg-gray-100 text-gray-800"
+        return 'bg-gray-100 text-gray-800';
     }
-  }
+  };
 
-  const totalValue = inventory.reduce((sum, item) => sum + item.prix * item.quantite, 0)
+  const totalValue = inventory.reduce(
+    (sum, item) => sum + item.prix * item.quantite,
+    0,
+  );
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -203,7 +205,9 @@ export default function InventoryPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold">Inventaire</h1>
-          <p className="text-muted-foreground">Gérez l&apos;inventaire de vos biens locatifs</p>
+          <p className="text-muted-foreground">
+            Gérez l&apos;inventaire de vos biens locatifs
+          </p>
         </div>
         <Button onClick={handleStartAddNew} disabled={isAddingNew}>
           <Plus className="h-4 w-4 mr-2" />
@@ -215,7 +219,9 @@ export default function InventoryPage() {
       <div className="max-w-3xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total éléments</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total éléments
+            </CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -228,7 +234,9 @@ export default function InventoryPage() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalValue.toLocaleString("fr-FR")} €</div>
+            <div className="text-2xl font-bold">
+              {totalValue.toLocaleString('fr-FR')} €
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -270,7 +278,9 @@ export default function InventoryPage() {
       <Card>
         <CardHeader>
           <CardTitle>Liste des éléments ({filteredInventory.length})</CardTitle>
-          <CardDescription>Tous les éléments de votre inventaire</CardDescription>
+          <CardDescription>
+            Tous les éléments de votre inventaire
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -293,8 +303,10 @@ export default function InventoryPage() {
                   <TableRow className="bg-blue-50">
                     <TableCell>
                       <Select
-                        value={newItemData.piece || ""}
-                        onValueChange={(value) => setNewItemData({ ...newItemData, piece: value })}
+                        value={newItemData.piece || ''}
+                        onValueChange={(value) =>
+                          setNewItemData({ ...newItemData, piece: value })
+                        }
                       >
                         <SelectTrigger className="h-8">
                           <SelectValue placeholder="Pièce" />
@@ -311,8 +323,13 @@ export default function InventoryPage() {
                     <TableCell>
                       <Input
                         className="h-8"
-                        value={newItemData.mobilier || ""}
-                        onChange={(e) => setNewItemData({ ...newItemData, mobilier: e.target.value })}
+                        value={newItemData.mobilier || ''}
+                        onChange={(e) =>
+                          setNewItemData({
+                            ...newItemData,
+                            mobilier: e.target.value,
+                          })
+                        }
                         placeholder="Mobilier"
                       />
                     </TableCell>
@@ -323,7 +340,10 @@ export default function InventoryPage() {
                         min="1"
                         value={newItemData.quantite || 1}
                         onChange={(e) =>
-                          setNewItemData({ ...newItemData, quantite: Number.parseInt(e.target.value) || 1 })
+                          setNewItemData({
+                            ...newItemData,
+                            quantite: Number.parseInt(e.target.value) || 1,
+                          })
                         }
                       />
                     </TableCell>
@@ -335,22 +355,32 @@ export default function InventoryPage() {
                         step="0.01"
                         value={newItemData.prix || 0}
                         onChange={(e) =>
-                          setNewItemData({ ...newItemData, prix: Number.parseFloat(e.target.value) || 0 })
+                          setNewItemData({
+                            ...newItemData,
+                            prix: Number.parseFloat(e.target.value) || 0,
+                          })
                         }
                       />
                     </TableCell>
                     <TableCell>
                       <Input
                         className="h-8"
-                        value={newItemData.marque || ""}
-                        onChange={(e) => setNewItemData({ ...newItemData, marque: e.target.value })}
+                        value={newItemData.marque || ''}
+                        onChange={(e) =>
+                          setNewItemData({
+                            ...newItemData,
+                            marque: e.target.value,
+                          })
+                        }
                         placeholder="Marque"
                       />
                     </TableCell>
                     <TableCell>
                       <Select
-                        value={newItemData.etatEntree || ""}
-                        onValueChange={(value) => setNewItemData({ ...newItemData, etatEntree: value })}
+                        value={newItemData.etatEntree || ''}
+                        onValueChange={(value) =>
+                          setNewItemData({ ...newItemData, etatEntree: value })
+                        }
                       >
                         <SelectTrigger className="h-8">
                           <SelectValue placeholder="État" />
@@ -367,10 +397,18 @@ export default function InventoryPage() {
                     <TableCell>-</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button variant="ghost" size="icon" onClick={handleSaveNew}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={handleSaveNew}
+                        >
                           <Check className="h-4 w-4 text-green-600" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={handleCancelAddNew}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={handleCancelAddNew}
+                        >
                           <X className="h-4 w-4 text-red-600" />
                         </Button>
                       </div>
@@ -385,7 +423,9 @@ export default function InventoryPage() {
                       {editingId === item.id ? (
                         <Select
                           value={editingData.piece || item.piece}
-                          onValueChange={(value) => setEditingData({ ...editingData, piece: value })}
+                          onValueChange={(value) =>
+                            setEditingData({ ...editingData, piece: value })
+                          }
                         >
                           <SelectTrigger className="h-8">
                             <SelectValue />
@@ -407,7 +447,12 @@ export default function InventoryPage() {
                         <Input
                           className="h-8"
                           value={editingData.mobilier || item.mobilier}
-                          onChange={(e) => setEditingData({ ...editingData, mobilier: e.target.value })}
+                          onChange={(e) =>
+                            setEditingData({
+                              ...editingData,
+                              mobilier: e.target.value,
+                            })
+                          }
                         />
                       ) : (
                         item.mobilier
@@ -421,7 +466,10 @@ export default function InventoryPage() {
                           min="1"
                           value={editingData.quantite || item.quantite}
                           onChange={(e) =>
-                            setEditingData({ ...editingData, quantite: Number.parseInt(e.target.value) || 1 })
+                            setEditingData({
+                              ...editingData,
+                              quantite: Number.parseInt(e.target.value) || 1,
+                            })
                           }
                         />
                       ) : (
@@ -437,11 +485,14 @@ export default function InventoryPage() {
                           step="0.01"
                           value={editingData.prix || item.prix}
                           onChange={(e) =>
-                            setEditingData({ ...editingData, prix: Number.parseFloat(e.target.value) || 0 })
+                            setEditingData({
+                              ...editingData,
+                              prix: Number.parseFloat(e.target.value) || 0,
+                            })
                           }
                         />
                       ) : (
-                        `${(item.prix * item.quantite).toLocaleString("fr-FR")} €`
+                        `${(item.prix * item.quantite).toLocaleString('fr-FR')} €`
                       )}
                     </TableCell>
                     <TableCell>
@@ -449,7 +500,12 @@ export default function InventoryPage() {
                         <Input
                           className="h-8"
                           value={editingData.marque || item.marque}
-                          onChange={(e) => setEditingData({ ...editingData, marque: e.target.value })}
+                          onChange={(e) =>
+                            setEditingData({
+                              ...editingData,
+                              marque: e.target.value,
+                            })
+                          }
                         />
                       ) : (
                         item.marque
@@ -459,7 +515,12 @@ export default function InventoryPage() {
                       {editingId === item.id ? (
                         <Select
                           value={editingData.etatEntree || item.etatEntree}
-                          onValueChange={(value) => setEditingData({ ...editingData, etatEntree: value })}
+                          onValueChange={(value) =>
+                            setEditingData({
+                              ...editingData,
+                              etatEntree: value,
+                            })
+                          }
                         >
                           <SelectTrigger className="h-8">
                             <SelectValue />
@@ -473,18 +534,32 @@ export default function InventoryPage() {
                           </SelectContent>
                         </Select>
                       ) : (
-                        <Badge className={getEtatColor(item.etatEntree)}>{item.etatEntree}</Badge>
+                        <Badge className={getEtatColor(item.etatEntree)}>
+                          {item.etatEntree}
+                        </Badge>
                       )}
                     </TableCell>
-                    <TableCell>{new Date(item.dateAdded).toLocaleDateString("fr-FR")}</TableCell>
+                    <TableCell>
+                      {item.createdAt
+                        ? new Date(item.createdAt).toLocaleDateString('fr-FR')
+                        : '-'}
+                    </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         {editingId === item.id ? (
                           <>
-                            <Button variant="ghost" size="icon" onClick={handleSaveEdit}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={handleSaveEdit}
+                            >
                               <Check className="h-4 w-4 text-green-600" />
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={handleCancelEdit}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={handleCancelEdit}
+                            >
                               <X className="h-4 w-4 text-red-600" />
                             </Button>
                           </>
@@ -517,28 +592,37 @@ export default function InventoryPage() {
             </Table>
           </div>
           {filteredInventory.length === 0 && !isAddingNew && (
-            <div className="text-center py-8 text-muted-foreground">Aucun élément trouvé</div>
+            <div className="text-center py-8 text-muted-foreground">
+              Aucun élément trouvé
+            </div>
           )}
         </CardContent>
       </Card>
 
       {/* Modal de confirmation de suppression */}
-      <AlertDialog open={!!itemToDelete} onOpenChange={() => setItemToDelete(null)}>
+      <AlertDialog
+        open={!!itemToDelete}
+        onOpenChange={() => setItemToDelete(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
             <AlertDialogDescription>
-              Êtes-vous sûr de vouloir supprimer cet élément ? Cette action est irréversible.
+              Êtes-vous sûr de vouloir supprimer cet élément ? Cette action est
+              irréversible.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
               Supprimer
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  )
+  );
 }
