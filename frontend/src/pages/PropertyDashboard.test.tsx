@@ -23,7 +23,12 @@ describe('PropertyDashboard page', () => {
     });
     (fetch as unknown as vi.Mock).mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve(null),
+      json: () =>
+        Promise.resolve({
+          id: 'loc1',
+          baseRent: 100,
+          leaseStartDate: '2024-01-01',
+        }),
     });
     (fetch as unknown as vi.Mock).mockResolvedValueOnce({
       ok: true,
@@ -38,5 +43,32 @@ describe('PropertyDashboard page', () => {
       </MemoryRouter>,
     );
     expect(await screen.findByText(/Bien Immobilier/i)).toBeInTheDocument();
+  });
+
+  it('shows inventory tab', async () => {
+    useAuth.setState((s) => ({ ...s, token: 'tok' }) as AuthState);
+    useUserProfileStore.setState(
+      (s) => ({ ...s, profileId: 'p1' }) as UserProfileState,
+    );
+
+    (fetch as unknown as vi.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ id: '1', typeBien: 'APT', adresse: 'a' }),
+    });
+    (fetch as unknown as vi.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve(null),
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/biens/1/dashboard?tab=inventaire']}>
+        <Routes>
+          <Route path="/biens/:id/dashboard" element={<PropertyDashboard />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    expect(
+      await screen.findByRole('heading', { name: /Inventaire/i })
+    ).toBeInTheDocument();
   });
 });

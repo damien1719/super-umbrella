@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard,
   Home,
   Calendar,
   CreditCard,
@@ -65,7 +64,7 @@ const items: {
     page: 'Abonnement',
     path: '/abonnement',
     icon: CreditCard,
-  }
+  },
 ];
 
 export function AppSidebar({ onNavigate }: SidebarProps) {

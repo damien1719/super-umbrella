@@ -11,8 +11,7 @@ import { LeaseInfoCard, LeaseInfo } from '../components/ui/LeaseInfoCard';
 import { TenantInfoCard, TenantInfo } from '../components/ui/TenantInfoCard';
 import { DocumentList } from '../components/ui/DocumentList';
 import { useDocumentStore } from '../store/documents';
-import { useInventaireStore } from '../store/inventaires';
-import InventaireTable from '../components/InventaireTable';
+import InventoryPage from '../components/Inventory';
 import LocationForm1 from '../components/LocationForm1';
 import { useBienStore, type Bien } from '../store/biens';
 import { useLocationStore } from '../store/locations';
@@ -46,13 +45,6 @@ export default function PropertyDashboard() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { items: documents, fetchAll, create, remove } = useDocumentStore();
-  const {
-    items: inventaires,
-    fetchForBien: fetchInventaires,
-    create: createInventaire,
-    update: updateInventaire,
-    remove: removeInventaire,
-  } = useInventaireStore();
   const fetchBien = useBienStore((s) => s.fetchOne);
   const [bien, setBien] = useState<Bien | null>(null);
   const {
@@ -69,10 +61,6 @@ export default function PropertyDashboard() {
   useEffect(() => {
     if (tab === 'documents' && id) fetchAll(id);
   }, [tab, id, fetchAll]);
-
-  useEffect(() => {
-    if (tab === 'inventaire' && id) fetchInventaires(id);
-  }, [tab, id, fetchInventaires]);
 
   useEffect(() => {
     if (!id) return;
@@ -228,15 +216,7 @@ export default function PropertyDashboard() {
           onDelete={remove}
         />
       )}
-      {tab === 'inventaire' && id && (
-        <InventaireTable
-          items={inventaires}
-          bienId={id}
-          onCreate={createInventaire}
-          onUpdate={updateInventaire}
-          onDelete={removeInventaire}
-        />
-      )}
+      {tab === 'inventaire' && <InventoryPage />}
       {tab === 'finances' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <Card>
