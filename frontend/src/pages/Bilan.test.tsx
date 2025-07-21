@@ -1,9 +1,19 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { vi } from 'vitest';
 import Bilan from './Bilan';
+import { useAuth, type AuthState } from '../store/auth';
+
+vi.stubGlobal('fetch', vi.fn());
 
 describe('Bilan page', () => {
-  it('renders return button', () => {
+  it('fetches and displays bilan', async () => {
+    useAuth.setState({ token: 't' } as Partial<AuthState>);
+    (fetch as unknown as vi.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ id: '1', descriptionHtml: '<b>txt</b>' }),
+    });
+
     render(
       <MemoryRouter initialEntries={['/bilan/1']}>
         <Routes>
@@ -11,6 +21,11 @@ describe('Bilan page', () => {
         </Routes>
       </MemoryRouter>,
     );
-    expect(screen.getByRole('button', { name: /retour/i })).toBeInTheDocument();
+
+    await waitFor(() => expect(fetch).toHaveBeenCalled());
+    expect(screen.getByText('txt')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /modifier/i }),
+    ).toBeInTheDocument();
   });
 });

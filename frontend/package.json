@@ -41,6 +41,9 @@
     "vitest": "^3.2.3"
   },
   "dependencies": {
+    "@lexical/html": "^0.33.1",
+    "@lexical/react": "^0.33.1",
+    "@lexical/rich-text": "^0.33.1",
     "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-dialog": "^1.1.14",
@@ -55,7 +58,9 @@
     "@supabase/supabase-js": "^2.50.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dompurify": "^3.2.6",
     "dotenv": "^16.5.0",
+    "lexical": "^0.33.1",
     "lucide-react": "^0.515.0",
     "next": "^15.3.3",
     "react": "^19.1.0",

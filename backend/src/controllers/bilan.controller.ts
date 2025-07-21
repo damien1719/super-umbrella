@@ -1,5 +1,6 @@
-import type { Request, Response, NextFunction } from 'express';
-import { BilanService } from '../services/bilan.service';
+import type { Request, Response, NextFunction } from "express";
+import { BilanService } from "../services/bilan.service";
+import { sanitizeHtml } from "../utils/sanitize";
 
 export const BilanController = {
   async create(req: Request, res: Response, next: NextFunction) {
@@ -34,6 +35,9 @@ export const BilanController = {
 
   async update(req: Request, res: Response, next: NextFunction) {
     try {
+      if (req.body.descriptionHtml) {
+        req.body.descriptionHtml = sanitizeHtml(req.body.descriptionHtml);
+      }
       const bilan = await BilanService.update(
         req.user.id,
         req.params.bilanId,
