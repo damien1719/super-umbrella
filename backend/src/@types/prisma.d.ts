@@ -18,5 +18,8 @@ declare module '@prisma/client' {
       updateMany: (...args: any[]) => { count: number };
       deleteMany: (...args: any[]) => { count: number };
     };
+    user: {
+      upsert: (...args: any[]) => any;
+    };
   }
 }
