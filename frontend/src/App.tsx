@@ -8,9 +8,9 @@ import PropertyDashboard from './pages/PropertyDashboard';
 import NewLocation from './pages/NewLocation';
 import Bilan from './pages/Bilan';
 import Agenda from './pages/Agenda';
-import Resultats from './pages/Resultats';
 import Abonnement from './pages/Abonnement';
 import MonCompteV2 from './pages/MonCompte';
+import Patients from './pages/Patients';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
 import { usePageStore } from './store/pageContext';
@@ -125,6 +125,7 @@ export default function App() {
       <Route element={<ProtectedLayout />}>
         <Route path="/" element={<Dashboard />} />
         <Route path="/biens" element={<MesBiens />} />
+        <Route path="/patients" element={<Patients />} />
         <Route path="/biens/:id/dashboard" element={<PropertyDashboard />} />
         <Route path="/agenda" element={<Agenda />} />
         <Route path="/abonnement" element={<Abonnement />} />

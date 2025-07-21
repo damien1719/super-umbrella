@@ -4,7 +4,6 @@ import {
   Home,
   Calendar,
   CreditCard,
-  FileText,
   Crown,
   User,
   LogOut,
@@ -54,6 +53,7 @@ const items: {
   }, */
   { title: 'Accueil', page: 'Dashboard', path: '/', icon: LayoutDashboard },
   { title: 'Mes Biens', page: 'MesBiens', path: '/biens', icon: Home },
+  { title: 'Mes Patients', page: 'Patients', path: '/patients', icon: User },
   { title: 'Mon Agenda', page: 'Agenda', path: '/agenda', icon: Calendar },
   {
     title: 'Abonnement',
