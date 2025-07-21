@@ -1,6 +1,14 @@
 import * as React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, Calendar, CreditCard, Crown, User, LogOut } from 'lucide-react';
+import {
+  Home,
+  Calendar,
+  CreditCard,
+  FileText,
+  Crown,
+  User,
+  LogOut,
+} from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import {
   Sidebar as UISidebar,
