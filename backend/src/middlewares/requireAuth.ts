@@ -57,7 +57,17 @@ export const requireAuth: RequestHandler = async (
             },
           },
         },
-      })
+      });
+        // ===> Ajoute ce bloc pour créer le profil automatiquement
+      await prisma.profile.create({
+        data: {
+          userId: user.id,
+          prenom: payload.user_metadata?.firstName ?? null, // si tu as ces infos dans le JWT
+          nom: payload.user_metadata?.lastName ?? null,
+          email: payload.email ?? null,
+          // ... autres champs par défaut si besoin
+        },
+      });
     }
 
     req.user = { id: user.id }

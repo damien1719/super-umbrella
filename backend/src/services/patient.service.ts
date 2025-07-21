@@ -12,30 +12,37 @@ export type PatientData = {
 };
 
 export const PatientService = {
-  create(userId: string, data: PatientData) {
+  async create(userId: string, data: PatientData) {
     console.log('PatientService.create - userId:', userId, 'data.userId:', userId, 'data:', data);
-    return db.patient.create({ data: { ...data, userId } });
+    const profile = await db.profile.findUnique({
+      where: { userId }, 
+    });
+    if (!profile) {
+      throw new Error('Profile not found for user');
+    }
+    return db.patient.create({ data: { ...data, profileId: profile.id } });
   },
 
-  list(userId: string) {
-    return db.patient.findMany({ where: { userId } });
+  list(profileId: string) {
+    return db.patient.findMany({ where: { profileId } });
   },
 
-  get(userId: string, id: string) {
-    return db.patient.findFirst({ where: { id, userId } });
+  get(profileId: string, id: string) {
+    return db.patient.findFirst({ where: { id, profileId } });
   },
 
-  async update(userId: string, id: string, data: Partial<PatientData>) {
+  async update(profileId: string, id: string, data: Partial<PatientData>) {
     if (!data || Object.keys(data).length === 0) {
       throw new Error('No update data provided for patient ' + id);
     }
-    const { count } = await db.patient.updateMany({ where: { id, userId }, data });
+    console.log('PatientService.update - profileId:', profileId, 'id:', id, 'data:', data);
+    const { count } = await db.patient.updateMany({ where: { id, profileId }, data });
     if (count === 0) throw new NotFoundError();
     return db.patient.findUnique({ where: { id } });
   },
 
-  async remove(userId: string, id: string) {
-    const { count } = await db.patient.deleteMany({ where: { id, userId } });
+  async remove(profileId: string, id: string) {
+    const { count } = await db.patient.deleteMany({ where: { id, profileId } });
     if (count === 0) throw new NotFoundError();
   },
 };

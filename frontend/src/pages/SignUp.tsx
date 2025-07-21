@@ -44,7 +44,7 @@ export default function SignUp() {
     setError(null);
     try {
       await signUp(email, password, firstName, lastName);
-      navigate('/');
+      navigate('/login');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur');
     } finally {

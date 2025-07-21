@@ -75,7 +75,7 @@ export function AppSidebar({ onNavigate }: SidebarProps) {
         <div className="flex items-center gap-3 px-3 py-2">
           <Home className="h-6 w-6 text-blue-600" />
           <span className="font-semibold text-lg group-data-[collapsible=icon]:hidden">
-            Gestion Locative
+            PlumePsychomot
           </span>
         </div>
       </SidebarHeader>
