@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import MesBiens from './pages/MesBiens';
 import PropertyDashboard from './pages/PropertyDashboard';
 import NewLocation from './pages/NewLocation';
+import Bilan from './pages/Bilan';
 import Agenda from './pages/Agenda';
 import Resultats from './pages/Resultats';
 import Abonnement from './pages/Abonnement';
@@ -58,6 +59,39 @@ function ProtectedLayout() {
 }
 
 function WizardLayout() {
+  const setCurrentPage = usePageStore((s) => s.setCurrentPage);
+  const { user } = useAuth();
+  const { profileId, fetchProfile } = useUserProfileStore();
+  const loading = useInitAuth();
+  useRequireAuth();
+
+  useEffect(() => {
+    if (user && !profileId) {
+      fetchProfile().catch(() => {
+        /* ignore */
+      });
+    }
+  }, [user, profileId, fetchProfile]);
+
+  if (loading) {
+    return <div>Chargement...</div>;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return (
+    <div className="flex">
+      <AppSidebar onNavigate={setCurrentPage} />
+      <main className="flex-1 p-4">
+        <Outlet />
+      </main>
+    </div>
+  );
+}
+
+function BilanLayout() {
   const { user } = useAuth();
   const loading = useInitAuth();
   useRequireAuth();
@@ -84,6 +118,9 @@ export default function App() {
       <Route path="/signup" element={<SignUp />} />
       <Route element={<WizardLayout />}>
         <Route path="/biens/:id/locations/new" element={<NewLocation />} />
+      </Route>
+      <Route element={<BilanLayout />}>
+        <Route path="/bilan/:bilanId" element={<Bilan />} />
       </Route>
       <Route element={<ProtectedLayout />}>
         <Route path="/" element={<Dashboard />} />
