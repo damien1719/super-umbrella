@@ -1,11 +1,9 @@
-//MANQUE TABLE EXPLOITANT
-
 // 1. Source de données
 datasource db {
   provider   = "postgresql"
   url        = env("DATABASE_URL")
   directUrl  = env("DATABASE_URL")
-  schemas  = ["public", "gestion"]
+  schemas  = ["public", "gestion", "psychomot"]
 }
 
 // 2. Générateur de client
@@ -14,1532 +12,165 @@ generator clientPublic {
   previewFeatures = ["multiSchema"]
 }
 
-// 3. Enums
-enum RegimeCode {
-  REAL
-  MICRO
+enum Civilite {
+  M    // Monsieur
+  MME  // Madame
+  MLLE // Mademoiselle
 
   @@schema("public")
 }
-
-
-enum AmortMethode {
-  LINEAIRE
-  DEGRESSIF
-
-  @@schema("public")
-}
-
-// 4. Modèles (tables)
-
 
 //Profile
 model Profile {
   id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId              String    @db.Uuid
-  prTexte             String?   @db.VarChar(255)
-  nif                 String?   @db.VarChar(255)
-  nifReadonly         Boolean?  @map("nif_readonly")
   civilite            Civilite?
   nom                 String?   @db.VarChar(100)
   nomUsage            String?   @db.VarChar(100)
-  activiteReadonly    Boolean?
   prenom              String?   @db.VarChar(100)
   email               String?   @db.VarChar(255)
   telephonePersoNum   String?   @db.VarChar(50)
   telephoneMobileNum  String?   @db.VarChar(50)
 
-  biens      Bien[] 
+  patients      Patient[]
+  bilantypes    BilanType[] @relation("AuthorBilanTypes") 
+  sections      Section[]    @relation("AuthorSections")
 
   @@map("profile")
   @@schema("public")
 
 }
 
-
-//Activity
-model Activity {
-  id                       BigInt           @id @map("Oid")
-  prTexte                  String
-  canModify                Boolean
-  integrale                Boolean
-  raisonSociale            String
-  coExploitation           Boolean
-  numeroSIRET              String
-  tva                      Boolean
-  rofReadonly              Boolean
-  numeroTVA                String
-  debutActivite            DateTime
-  debutRegimeReel          String?
-  anneeDebutCompta         Int
-  premiereAnneeOuverte     Int
-  offre                    String
-  derniereAnneeFermee      Int
-  canInitiate              Boolean
-  finActivite              String?
-  finActiviteCause         Int
-  dateCauseCessation       String?
-  fraisAcquisition         Int
-  fraisAcquisitionAnnee    Int
-  fraisAcquisitionLabel    String
-  annees                   Int
-  anneeCloturee            Boolean
-  fraisAcquisitionConfirmer Boolean
-  fraisAcquisitionOption   Boolean
-  modifierDebutActivite    Boolean
-  nbreActivite             Int
-  hasPaiedYear             Boolean
-
-  // relations
-  formeJuridique   FormeJuridique? @relation("FormeJuridique_Activities",fields: [formeJuridiqueOid], references: [Oid])
-  formeJuridiqueOid BigInt?
-
-  rof         RoF? @relation("Entreprise_ROF", fields: [rofOid], references: [Oid])
-  rofOid      BigInt?
-
-  roftva      RoF? @relation("Entreprise_ROFTVA", fields: [roftvaOid], references: [Oid])
-  roftvaOid   BigInt?
-
-  sie         SIE? @relation(fields: [sieOid], references: [Oid])
-  sieOid      BigInt?
-
-  societe     Societe? @relation(fields: [societeOid], references: [Oid])
-  societeOid  BigInt?
-
-  adresse     Adresse? @relation(fields: [adresseId], references: [id])
-  adresseId   BigInt?
-
-  client      Client?  @relation(fields: [clientId], references: [id])
-  clientId    BigInt?
-
-  logements    Logement[]
-  fiscalYears   FiscalYear[]   @relation("Activity_FiscalYears")
-
-  immobilisations Immobilisation[]
-  emprunts Emprunt[]
-  operations Operation[]
-  composants Composant[]
-  taxLoss TaxLoss[]
+// -------------- ENUMS --------------
 
 
-  @@map("Activity")
-  @@schema("public")
+model Patient {
+  id        String   @id @default(uuid())
+  user      Profile  @relation(fields: [userId], references: [id])
+  userId    String   @db.Uuid // -> multi‑tenant : 1 psy == 1 tenant
+  firstName String
+  lastName  String
+  dob       DateTime?
+  notes     String?
+
+  bilans    Bilan[]
+
+  createdAt DateTime  @default(now())
+
+  @@schema("psychomot")
+
 }
 
-model FormeJuridique {
-  Oid      BigInt  @id
-  prTexte  String
-  invalid  Boolean
-  activities Activity[] @relation("FormeJuridique_Activities")
-
-  @@schema("public")
-}
-
-model RoF {
-  Oid                 BigInt  @id
-  prTexte             String?
-  entreprisesROF      Activity[] @relation("Entreprise_ROF")
-  entreprisesROFTVA   Activity[] @relation("Entreprise_ROFTVA")
-
-  @@schema("public")
-}
-
-model SIE {
-  Oid         BigInt @id
-  prTexte     String
-  email       String
-  activities  Activity[]
-
-  @@schema("public")
-}
-
-model Societe {
-  Oid         BigInt @id
-  prTexte     String
-  logoUrl     String
-  activities  Activity[]
-
-  @@schema("public")
-}
-
-model Adresse {
-  id                BigInt   @id @default(autoincrement())
-  numeroRue         String
-  adresse           String
-  adresseComplement String?
-  codePostal        String
-  ville             String
-  etatTexte         String?
-  etatMnem          String?
-  paysTexte         String
-  paysMnem          String
-
-  activities        Activity[]
-  logements           Logement[]
-
-  @@schema("public")
-}
-
-model Client {
-  id         BigInt @id @default(autoincrement())
-  // autres champs de contact possibles
-  activities Activity[]
-
-  @@schema("public")
-}
-
-//Fiscal Year
-model FiscalYear {
-  id                   BigInt            @id @map("Oid")
-  prTexte              String
-  anneeFiscale         Int
-  importCompta         Boolean
-  importRCSV           Boolean
-  importDCSV           Boolean
-  repriseCompta        Boolean          @map("RepriseComptabilite")
-  clotureVersion       Int
-  status               Int
-  debut                DateTime
-  fin                  DateTime
-  integrale            Boolean
-  modeAvance           Boolean
-  step                 Int
-  firstYear            Boolean          @map("FirstYear")
-  yearCount            Int              @map("YearCount")
-  hasSIRET             Boolean          @map("HasSIRET")
-  dateSoumission       String?
-  numeroOGA            String
-  reductionImpotOGA    Int              @map("ReductionImpotOGA")
-  renoncerRIOGA        Boolean
-  reductionImpotOGALabel String
-  commentairesClient   String?
-  repartitionVerifier  Boolean
-  accesOGA             Boolean
-  canCloture           Boolean          @map("CanCloture")
-  validControls        Boolean          @map("ValidControls")
-  testimonial          Boolean
-  dernierControle      DateTime         @map("DernierControle")
-
-  // Relations
-  activityId           BigInt    @map("ActiviteId")
-  activity             Activity  @relation("Activity_FiscalYears",fields: [activityId], references: [id], onDelete: Cascade)
-
-  //societe              Societe?         @relation(fields: [societeOid], references: [Oid])
-  //societeOid           BigInt?
-
-  //devise               Devise?          @relation(fields: [deviseOid], references: [Oid])
-  //deviseOid            BigInt?
-
-  //calendrier           Calendrier?      @relation(fields: [calendrierId], references: [id])
-  //calendrierId         BigInt?
-
-  //liasse               Liasse?          @relation(fields: [liasseOid], references: [Oid])
-  //liasseOid            BigInt?
-
-  //teletrans            Teletrans?       @relation(fields: [teletransOid], references: [Oid])
-  //teletransOid         BigInt?
-
-  //oga                  OGA?             @relation(fields: [ogaOid], references: [Oid])
-  //ogaOid               BigInt?
-
-  //reductionDetails     ReductionDetails? @relation(fields: [reductionDetailsId], references: [id])
-  //reductionDetailsId   BigInt?
-
-  //articles   Article[]
-  //immobilisations Immobilisation[]
-  emprunts Emprunt[]
-  operations Operation[]
-  composants Composant[]
-  fiscalBridges FiscalBridge[]
-  taxLoss TaxLoss[]
-  taxLossUsage TaxLossUsage[]
-  deferredDeprStock DeferredDeprStock[]
-  deprUsage DeprUsage[]
-
-
-  @@map("fiscyear")
-  @@schema("public")
-}
-
-
-//model Devise {
-//  Oid              BigInt          @id
-//  prTexte          String
-//  fiscalYears      FiscalYear[]
-//}
-
-//model Calendrier {
-//  id                 BigInt          @id @default(autoincrement())
-//  delaiTeletrans     Int
-//  limiteLiasse       DateTime
-//  limiteLiasseEx     DateTime
-//  clotureBloquee     String?
-//  teletransBloquee   String?
-//  fiscalYear         FiscalYear?
-//}
-
-//model Liasse {
-//  Oid             BigInt        @id
-//  date            DateTime      @map("Date")
-//  provisoire      Boolean
-//  valide          Boolean
-//  urlLiasse       String         @map("UrlLiasse")
-//  url2042Cpro     String         @map("Url2042CPRO")
-//  urlFEC          String         @map("UrlFEC")
-//  url2042Cpros    String         @map("Url2042CPROS")
-//  fiscalYear      FiscalYear?
-//}
-
-//model Teletrans {
-//  Oid            BigInt      @id
-//  date           String       @map("Date")
-//  stateDate      String
-//  statut         Int
-//  erreurs        String?
-// nature         String?
-//  description    String?
-//  libelle        String?
-//  interchange    String
-//  emailSIE       String       @map("EmailSIE")
-//  adresseSIE     String       @map("AdresseSIE")
-//  fiscalYear     FiscalYear?
-//}
-
-//model OGA {
-//  Oid            BigInt      @id
-//  prTexte        String
-//  fiscalYears    FiscalYear[]
-//}
-
-//model ReductionDetails {
-//  id               BigInt             @id @default(autoincrement())
-//  // Colonnes can be stored as Json if needed
-//  lignes           ReductionLine[]
-//  fiscalYear       FiscalYear?
-//}
-
-//model ReductionLine {
-//  id                 BigInt              @id @default(autoincrement())
-//  critere            String
-//  detail             String
-//  eligible           Boolean
-//  mnem               String
-//  reductionDetails   ReductionDetails    @relation(fields: [reductionDetailsId], references: [id])
-//  reductionDetailsId BigInt
-//}
-
-
-//Logement
-model Logement {
-  /// Identifiant unique du logement
-  id                BigInt    @id @map("Oid")
-  /// Libellé d’affichage (adresse complète)
-
-  // PRofil Logement
-  profilOid         BigInt
-  libelle           String
-  prTexte           String
-  adresseVide       Boolean
-  dateLocation      DateTime  @map("DateLocation")
-  dateVente         DateTime? @map("DateVente")
-  causeVente        Int       @map("CauseVente")
-  dateAchat         DateTime  @map("DateAchat")
-  dateApport        DateTime? @map("DateApport")
-  adresseComplete   String
-  superficie        Int
-  nbPieces          Int       @map("NbPieces")
-  classement        Int
-  immobilise        Boolean
-  dateModification  DateTime  @map("DateModification")
-  status            Int
-
-  /// Clé étrangère vers l’activité
-  activityId        BigInt    @map("ActiviteId")
-  activity          Activity  @relation(fields: [activityId], references: [id], onDelete: Cascade)
-
-  /// Clé étrangère vers le profil propriétaire
-  // PROFIL LOGEMENT
-  //profilOid         BigInt?   @map("ProfilOid")
-  //profil            Profile?  @relation(fields: [profilOid], references: [oid])
-
-  /// Prix d’acquisition
-  prixId            BigInt?   @map("Prix")
-  prix              Price?    @relation("Logement_Prix", fields: [prixId], references: [id])
-
-  /// Prix de vente
-  prixVenteId       BigInt?   @map("PrixVente")
-  prixVente         Price?    @relation("Logement_PrixVente", fields: [prixVenteId], references: [id])
-
-  /// Adresse détaillée
-  adresseId         BigInt?
-  adresse           Adresse?  @relation(fields: [adresseId], references: [id])
-
-  immobilisations Immobilisation[]
-
-  emprunts  Emprunt[]  @relation("LogementEmprunts")
-  empruntEcheances EmpruntEcheance[]
-  operations Operation[]
-  composants Composant[]
-
-  @@map("logement")
-  @@schema("public")
-}
-
-
-model Price {
-  id               BigInt    @id @default(autoincrement())
-  montant          Decimal?  @db.Decimal(20,2)
-  devise           String
-  fmt              String
-
-  logementsAchat   Logement[] @relation("Logement_Prix")
-  logementsVente   Logement[] @relation("Logement_PrixVente")
-
-  @@schema("public")
-}
-
-
-//Articles soit le MODELE COMPTABLE
-
-model Famille {
-  id          BigInt   @id @map("familleid")
-  mnem        String   @db.VarChar(50)
-  codeFiscal  Int
-
-  Article     Article[]
-  @@map("famille")
-  @@schema("public")
-}
-
-model Compte {
-  id        BigInt   @id @map("compteid")
-  mnem      String   @db.VarChar(10)
-  caseCerfa String?  @db.VarChar(155)
-
-  Article   Article[]
-  @@map("compte")
-  @@schema("public")
-}
-
-
-
-model Article {
-  id                       BigInt      @id @map("Oid")
-  masked                   Boolean
-  mnem                     String?   @db.VarChar(20)
-  prTexte                  String    @db.VarChar(255)
-  description              String?
-  groupe                   String?
-  nonLiee                  Boolean
-  docPrixMin               Decimal?  @db.Decimal(10,2)
-  docRequired              Boolean
-  immoAjout                Boolean
-  immoGroupe               Int?
-  immoPrixMini             Decimal?  @db.Decimal(12,2)
-  commentRequired          Boolean
-  dureeMini                Int
-  dureeMaxi                Int
-  dureeDefaut              Int
-  dureeRequis              Boolean
-  modeAvance               Boolean
-  exploitantRequis         Boolean
-  periodeRequis            Boolean
-  immoAide                 String?
-  groupeSaisie             String?
-  duplicateMonth           Boolean
-
-  familleOid               BigInt
-  famille                  Famille   @relation(fields: [familleOid], references: [id], onDelete: Cascade)
-  compteOid                BigInt?
-  compte                   Compte?   @relation(fields: [compteOid], references: [id], onDelete: Cascade)
-
-  // A prior id de fiscalYear - bizarre non? 
-  // DEVRAIT ËTRE LIEE A ANNEE CALENDAIRE //
-  // fiscalYear         FiscalYear  @relation(fields: [anneeId], references: [id])
-  // anneeId            BigInt
-
-  Operation                Operation[]
-  ArticleLinked_groupOid   ArticleLinked[] @relation("ArticleLinked_groupOidToArticle")
-  ArticleLinked_linkedOid  ArticleLinked[] @relation("ArticleLinked_linkedOidToArticle")
-
-  immobilisations Immobilisation[]
-  composants Composant[]
-  empruntEcheances EmpruntEcheance[]
-
-  @@map("article")
-  @@schema("public")
-}
-
-model ArticleLinked {
-  groupOid  BigInt
-  linkedOid BigInt
-
-  group     Article  @relation("ArticleLinked_groupOidToArticle", fields: [groupOid], references: [id])
-  linked    Article  @relation("ArticleLinked_linkedOidToArticle", fields: [linkedOid], references: [id])
-
-  @@id([groupOid, linkedOid])
-  @@map("articlelinked")
-  @@schema("public")
-}
-
-
-// Immobilisation
-model Immobilisation {
-  id                 BigInt      @id @map("Oid")
-  prTexte            String      @map("prTexte")
-  libelle            String
-  dateFinalisee      DateTime?   @map("DateFinalisee")
-  miseEnService      DateTime    @map("MiseEnService")
-  duree              Int         @map("Duree")
-  dateSortie         DateTime?   @map("DateSortie")
-  valeurSortieMontant Float      @map("ValeurSortie.montant")
-  valeurSortieDevise String     @map("ValeurSortie.devise")
-  valeurSortieFmt    String     @map("ValeurSortie.fmt")
-  causeSortie        Int         @map("CauseSortie")
-  valeurCauseSortie  String?     @map("ValeurCauseSortie")
-  status             Int         @map("Status")
-
-  // Prix aplati
-  prixMontant        Float       @map("Prix.montant")
-  prixDevise         String      @map("Prix.devise")
-  prixFmt            String      @map("Prix.fmt")
-
-  // Relations
-  article            Article     @relation(fields: [articleOid], references: [id])
-  articleOid         BigInt      @map("Article.Oid")
-
-  logement           Logement    @relation(fields: [logementOid], references: [id])
-  logementOid        BigInt      @map("Logement.Oid")
-
-  activityId           BigInt    @map("ActiviteId")
-  activity             Activity  @relation(fields: [activityId], references: [id], onDelete:Cascade)
-
-  //fiscalYear         FiscalYear  @relation(fields: [anneeId], references: [id])
-  //anneeId            BigInt
-
-  operations Operation[]
-  deferredDeprStock DeferredDeprStock[]
-  deprUsage DeprUsage[]
-
-
-  @@map("immobilisation")
-  @@index([activityId])
-  @@schema("public")
-}
-
-// Composant - Composition du Logement (Actif)
-
-model Composant {
-  id                BigInt       @id @map("Oid")
-  amortissable      Boolean   @map("Amortissable")
-  ventilation       Float     @map("Ventilation")
-  miseEnService     DateTime  @map("MiseEnService")
-  dateSortie        DateTime? @map("DateSortie")
-  causeSortie       Int       @map("CauseSortie")
-  status            Int       @map("Status")
-  duree             Int       @map("Duree")
-
-  // PrixProfil
-  prixProfilMontant Float     @map("PrixProfil_montant")
-  prixProfilDevise  String    @map("PrixProfil_devise")
-  prixProfilFmt     String    @map("PrixProfil_fmt")
-
-  // ValeurSortie
-  valeurSortieMontant Float?  @map("ValeurSortie_montant")
-  valeurSortieDevise  String? @map("ValeurSortie_devise")
-  valeurSortieFmt     String? @map("ValeurSortie_fmt")
-
-  // Relations
-  article           Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
-  articleId         BigInt       @map("ArticleOid")
-
-  activityId           BigInt
-  Activity             Activity  @relation(fields: [activityId], references: [id], onDelete: Cascade)
-
-  fiscalYear         FiscalYear  @relation(fields: [anneeId], references: [id])
-  anneeId            BigInt
-
-  logementId    BigInt?
-  logement      Logement?     @relation(fields: [logementId], references: [id])  
-
-  
-  @@map("Composants")
-  @@schema("public")
-}
-
-//Emprunt
-
-model Emprunt {
-  id                   BigInt    @id @map("Oid")
-  prTexte              String
-  libelle              String
-  logementId           BigInt
-  Logement             Logement    @relation("LogementEmprunts", fields: [logementId], references: [id])
-  dateEmprunt          DateTime?
-  dateEcheance         DateTime?
-  dateConstitution     String?
-  capitalEmprunte      Float
-  capitalInitial       Float
-  echeancesDiffere     Int
-  capitalRestant       Float
-  capitalRestantDate   DateTime?
-  commentairesClient   String?
-  partExclure          Int
-  partActive           Int
-  partVentile          Int
-  taux                 Float
-  tauxType             Int
-  echeancesInterval    Int
-  echeancesMontant     Float
-  assuranceIncluse     Boolean
-  assuranceType        Int
-  assuranceTaux        Float
-  assuranceMontant     Float
-  deviseOid            Int       @map("DeviseOid")
-  constitue            Boolean
-  status               Int
-
-  // Relations
-  activityId           BigInt
-  Activity             Activity  @relation(fields: [activityId], references: [id], onDelete: Cascade)
-
-  fiscalYear         FiscalYear  @relation(fields: [anneeId], references: [id])
-  anneeId            BigInt
-
-  @@schema("public")
-}
-
-
-model EmpruntEcheance {
-  id                 BigInt      @id @map("Oid")
-
-  articleOid         BigInt      @map("Article.Oid")
-  Article            Article     @relation(fields: [articleOid], references: [id])
-
-  /// Référence à la “Concerne” (logement / unité locative)
-  logementId         BigInt      
-  Logement           Logement    @relation(fields: [logementId], references: [id])
-
-  /// Dates
-  dateAchat          DateTime    @map("DateAchat")
-  yearAchat          Int         @map("YearAchat")
-
-  /// Libellé libre
-  libelle            String      @map("Libelle")
-
-  /// Capital
-  capitalMontant     Decimal     @map("Capital.montant")   @db.Decimal(14,2)
-  capitalDevise      String      @map("Capital.devise")
-  capitalFmt         String      @map("Capital.fmt")
-
-  /// Assurance
-  assuranceMontant   Decimal     @map("Assurance.montant") @db.Decimal(14,2)
-  assuranceDevise    String      @map("Assurance.devise")
-  assuranceFmt       String      @map("Assurance.fmt")
-
-  /// Frais
-  fraisMontant       Decimal     @map("Frais.montant")     @db.Decimal(14,2)
-  fraisDevise        String      @map("Frais.devise")
-  fraisFmt           String      @map("Frais.fmt")
-
-  /// Intérêts
-  interetsMontant    Decimal     @map("Interets.montant")  @db.Decimal(14,2)
-  interetsDevise     String      @map("Interets.devise")
-  interetsFmt        String      @map("Interets.fmt")
-
-  /// Total
-  totalMontant       Decimal     @map("Total.montant")     @db.Decimal(14,2)
-  totalDevise        String      @map("Total.devise")
-  totalFmt           String      @map("Total.fmt")
-
-  /// Indicateur d’état
-  status             Boolean     @map("Status")
-
-  @@map("echeance_emprunt")
-  @@index([articleOid])
-  @@schema("public")
-}
-
-
-// Opérations
-
-model Operation {
-  id            BigInt        @id @map("operationid")
-  libelle       String?
-  date          DateTime
-  dateEcheance  DateTime?
-  debut         DateTime?
-  fin           DateTime?
-  montantTtc    Decimal       @db.Decimal(12,2)
-  montantTva    Decimal?      @db.Decimal(12,2)
-  documentUrl   String?
-
-  // Relations
-  activityId           BigInt
-  Activity             Activity  @relation(fields: [activityId], references: [id], onDelete: Cascade)
-
-  fiscalYear       FiscalYear    @relation(fields: [anneeId],   references: [id])
-  anneeId          BigInt
-
-  logementId    BigInt?
-  logement      Logement?     @relation(fields: [logementId], references: [id])
-  
-  articleId     BigInt?
-  article       Article?      @relation(fields: [articleId], references: [id])
-  
-  payeurId      BigInt?
-  payeur        Payeur?       @relation(fields: [payeurId], references: [id])
-  
-  immoId        BigInt?
-  immobilisation Immobilisation? @relation(fields: [immoId], references: [id])
-
-  @@map("operation")
-  @@schema("public")
-}
-
-model Payeur {
-  id        BigInt    @id @map("payeurid")
-  nom       String?
-
-  Operation Operation[]
-  @@map("payeur")
-  @@schema("public")
-}
-
-model CerfaDocument {
+// -------------- BILAN TEMPLATES --------------
+model BilanType {
   id          String   @id @default(uuid())
-  filename    String
-  bucket      String   @default("cerfa")
-  path        String   // ex. "userId/2031-sd_5028_2025-06.pdf"
+  name        String
+  description String?
+  isPublic    Boolean  @default(false)
 
-  @@index([bucket])
-  @@schema("public")
-}
+  author      Profile?    @relation("AuthorBilanTypes", fields: [authorId], references: [id])
+  authorId    String? @db.Uuid
 
+  bilans      Bilan[]     
+  sections    BilanTypeSection[]
 
-// ---------------------  Modèle FEC  -----------------------------------
-model FECEntry {
-  // Clé technique auto-incrémentée (facilite les relations et la purge)
-  id             Int       @id @default(autoincrement())
+  createdAt   DateTime @default(now())
 
-  // --- Champs obligatoires du FEC ------------------------------------
-  JournalCode    String    @db.VarChar(5)    // ex : "VT", "AC"
-  JournalLib     String    @db.VarChar(200)  // ex : "Ventes"
-  EcritureNum    String    @db.VarChar(50)   // n° d’écriture séquentiel
-  EcritureDate   DateTime  @db.Date          // AAAA-MM-JJ
-  CompteNum      String    @db.VarChar(20)   // n° PCG ou IFRS
-  CompteLib      String    @db.VarChar(200)  // libellé du compte
-  CompAuxNum     String?   @db.VarChar(20)   // (optionnel) compte auxiliaire
-  CompAuxLib     String?   @db.VarChar(200)  // (optionnel) libellé auxiliaire
-  PieceRef       String?   @db.VarChar(200)  // réf. pièce justificative
-  PieceDate      DateTime? @db.Date          // date de la pièce
-  EcritureLib    String    @db.VarChar(200)  // libellé de l’écriture
-  Debit          Decimal   @db.Decimal(18,2) // toujours renseigné (≥ 0)
-  Credit         Decimal   @db.Decimal(18,2) // toujours renseigné (≥ 0)
-  EcritureLet    String?   @db.VarChar(40)   // code de lettrage
-  DateLet        DateTime? @db.Date          // date de lettrage
-  ValidDate      DateTime? @db.Date          // date de validation
-  Montantdevise  Decimal?  @db.Decimal(18,2) // montant en devise
-  Idevise        String?   @db.Char(3)       // code ISO 4217 (ex : USD)
-
-  // ------------------ Indexes & contraintes pratiques -----------------
-  /// Garantit l’unicité d’une écriture dans un journal donné
-  @@unique([JournalCode, EcritureNum])
-
-  /// Accélère les exports par journal et par date
-  @@index([JournalCode, EcritureDate])
-
-  /// Nom physique de la table : "fec_entry"
-  @@map("fec_entry")
-
-  @@schema("public")
-}
-
-
-/// Bridge fiscal (historique « plat »)
-model FiscalBridge {
-  id                  BigInt       @id @default(autoincrement())
-  fiscalYearId        BigInt       @map("fiscal_year_id")
-  fiscalYear          FiscalYear   @relation(fields: [fiscalYearId], references: [id])
-
-  accountingResult    Decimal      @map("accounting_result") @db.Decimal(14,2)
-  addBack39c          Decimal      @map("add_back_39c")      @db.Decimal(14,2)
-  addBackOther        Decimal      @map("add_back_other")    @db.Decimal(14,2)
-  taxResult           Decimal      @map("tax_result")        @db.Decimal(14,2)
-  deficitUsed         Decimal      @map("deficit_used")      @db.Decimal(14,2)
-  deficitCreated      Decimal      @map("deficit_created")   @db.Decimal(14,2)
-
-  snapshotAt          DateTime     @map("snapshot_at")       @default(now())
-
-  @@map("fiscal_bridge")
-  @@unique([fiscalYearId, snapshotAt])
-  @@schema("public")
-}
-
-// Déficits reportables (10 ans)
-model TaxLoss {
-  id                  BigInt       @id @default(autoincrement())
-  amountOrigin        Decimal      @map("amount_origin") @db.Decimal(14,2)
-  remaining           Decimal      @db.Decimal(14,2)
-  expiresOn           DateTime     @map("expires_on")
-
-  activityId          BigInt    @map("ActiviteId")
-  activity            Activity  @relation(fields: [activityId], references: [id], onDelete:Cascade)
-
-  originFyId          BigInt        @map("origin_fy_id")
-  originFy            FiscalYear    @relation(fields: [originFyId], references: [id])
-
-  usages              TaxLossUsage[]
-
-  @@map("tax_losses")
-  @@schema("public")
-}
-
-// Imputations de déficit (historique d’usage)
-model TaxLossUsage {
-  id                  BigInt       @id @default(autoincrement())
-  lossId              BigInt       @map("loss_id")
-  loss                TaxLoss      @relation(fields: [lossId], references: [id])
-
-  fiscalYearId        BigInt       @map("fiscal_year_id")
-  fiscalYear          FiscalYear   @relation(fields: [fiscalYearId], references: [id])
-
-  amountUsed          Decimal      @map("amount_used") @db.Decimal(14,2)
-  createdAt           DateTime     @map("created_at") @default(now())
-
-  @@map("tax_loss_usages")
-  @@index([lossId, fiscalYearId])
-  @@schema("public")
-}
-
-model DeferredDeprStock {
-  id            BigInt      @id @default(autoincrement())
-  immobilisationId BigInt   @map("asset_id")
-  immobilisation    Immobilisation @relation(fields: [immobilisationId], references: [id])
-
-  originFyId    BigInt      @map("origin_fy_id")
-  originFy      FiscalYear  @relation(fields: [originFyId], references: [id])
-
-  accountNumber String      @map("account_number") // si besoin
-  amountOrigin  Decimal     @map("amount_origin") @db.Decimal(14,2)
-  remaining     Decimal     @db.Decimal(14,2)
-
-  usages        DeprUsage[]
-
-  @@map("deferred_depr_stock")
-  @@index([originFyId])
-  @@schema("public")
-}
-
-
-model DeprUsage {
-  id            BigInt      @id @default(autoincrement())
-  stockId       BigInt
-  stock         DeferredDeprStock @relation(fields: [stockId], references: [id])
-
-  immobilisationId BigInt   @map("asset_id")
-  immobilisation    Immobilisation @relation(fields: [immobilisationId], references: [id])
-
-  fiscalYearId  BigInt      @map("fiscal_year_id")
-  fiscalYear    FiscalYear  @relation(fields: [fiscalYearId], references: [id])
-
-  amountUsed    Decimal     @map("amount_used") @db.Decimal(14,2)
-  createdAt     DateTime    @map("created_at") @default(now())
-
-  @@map("depr_usages")
-  @@index([stockId, fiscalYearId])
-  @@schema("public")
-}
-
-
-
-
-// gestion.prisma
-// 1. Source de données
-
-
-model Bailleur {
-  id                             String     @id @default(uuid())
-  civilite                       Civilite
-  prenom                         String
-  nom                            String
-  dateNaissance                  DateTime?  // ex. "1993-09-04"
-  lieuNaissance                  String?
-  email                          String     @unique
-  telephone                      String
-  adresse                        String
-  complementAdresse              String?
-  
-  codePostal                     String
-  ville                          String
-  pays                           String
-  
-  afficherCoordonnees            Boolean    @default(true)  // Afficher le Tél. et l’e-mail sur les courriers ?
-  rappelerCoordonneesBancaires   Boolean    @default(false) // Rappeler IBAN/BIC sur avis d’échéance ?
-
-  iban                           String?    // ex. "FR00 0000 0000 0000 0000 000"
-  bic                            String?    // ex. "BNPAFRPP"
-
-  createdAt                      DateTime   @default(now())
-  updatedAt                      DateTime   @updatedAt
-
-  @@schema("gestion")
-}
-
-enum Civilite {
-  M    // Monsieur
-  MM   // Madame
-
-  @@schema("gestion")
-}
-
-
-/// --- ENUMS ---
-enum TypeBien {
-  APPARTEMENT
-  MAISON
-  CHAMBRE_PRIVATIVE
-  LOCAL_COMMERCIAL
-  LOCAL_PROFESSIONNEL
-  PARKING
-  ENTREPOT_ATELIER
-  AUTRE
-
-  @@schema("gestion")
-}
-
-enum RegimeJuridique {
-  COPROPRIETE
-  MONOPROPRIETE
-
-  @@schema("gestion")
-}
-
-
-enum DPE {
-  A
-  B
-  C
-  D
-  E
-  F
-  G
-
-  @@schema("gestion")
-}
-
-enum TypeChauffage {
-  GAZ
-  ELECTRIQUE
-  FIOUL
-  BOIS
-  //… complétez selon vos listes
-
-  @@schema("gestion")
-}
-
-enum TypeEauChaude {
-  GAZ
-  ELECTRIQUE
-  //…
-
-  @@schema("gestion")
-}
-
-enum CuisineType {
-  INDEPENDANTE
-  AMERICAINE
-  SANS
-  //…
-
-  @@schema("gestion")
-}
-
-/// Pour les cases à cocher
-enum EquipementDivers {
-  GARDIEN
-  INTERPHONE
-  ANTENNE_TV_COLLECTIVE
-  ASCENSEUR
-  LOCAL_VELOS
-  LOCAL_POUBELLES
-
-  @@schema("gestion")
-}
-
-enum EquipementNTIC {
-  FIBRE_OPTIQUE
-  CABLE
-  BOX
-  ANTENNE
-  AUTRE
-
-  @@schema("gestion")
-}
-
-enum AutreTypeChauffage {
-  POMPE_A_CHALEUR
-  INSERT_BOIS
-  POELE_A_BOIS
-  POELE_A_GRANULES
-  CHEMINEE
-  CLIM
-  CLIM_REVERSIBLE
-
-  @@schema("gestion")
-}
-
-/// --- MODELS ---
-model Bien {
-  id                             String                  @id @default(uuid())
-  // Type principal
-  typeBien                       TypeBien
-  isColocation                   Boolean?                 @default(false)
-
-  // Adresse
-  adresse                        String
-  complémentAdresse             String?
-  codePostal                     String?
-  ville                          String?
-  pays                           String?
-
-  // Identifiants et diagnostics
-  numeroIdentifiantFiscal        String?
-  dpe                            DPE?
-  validiteDPE                    DateTime?
-  
-  // Régime copropriété / mono
-  regimeJuridique                RegimeJuridique?
-
-  // Descriptif pour le bail
-  surfaceHabitable               Float?
-  nombrePieces                   Int?
-  anneeConstruction              Int?
-  cuisine                        CuisineType?
-  nombreChambres                 Int?
-  nombreSejours                  Int?
-  nombreSallesDEau               Int?
-  nombreSallesDeBains            Int?
-  nombreWC                       Int?
-  description                    String?
-
-  // Chauffage & eau chaude
-  typeChauffage                  TypeChauffage?
-  autresTypesChauffage           AutreTypeChauffage[] 
-  typeEauChaude                  TypeEauChaude?
-
-  // Équipements et accès
-  equipementsDivers              EquipementDivers[]      
-  equipementsNTIC                EquipementNTIC[]        
-
-  // Champs à listes libres
-  autresPieces                   String[]                
-  autresInformationsComplementaires String[]            
-
-  // Relations one-to-many
-  caves                          Cave[]
-  garages                        Garage[]
-
-  createdAt                      DateTime                @default(now())
-  updatedAt                      DateTime                @updatedAt
-
-  profile    Profile  @relation(fields: [profileId], references: [id])
-  profileId  String   @db.Uuid
-
-  inventaires Inventaire[]
-  documents Document[]
-  locations Location[]
-  locataires Locataire[]
-
-
-  @@schema("gestion")
-}
-
-model Cave {
-  id       String @id @default(uuid())
-  no       String
-  niveau   Int
-  bien     Bien   @relation(fields: [bienId], references: [id])
-  bienId   String
-
-  @@schema("gestion")
-}
-
-model Garage {
-  id       String @id @default(uuid())
-  no       String
-  niveau   Int
-  bien     Bien   @relation(fields: [bienId], references: [id])
-  bienId   String
-
-  @@schema("gestion")
-}
-
-
-
-
-
-// Ajoutez cet enum pour classifier vos documents
-enum DocumentType {
-  BAIL                // Contrat de bail
-  DPE                 // Diagnostic de performance énergétique
-  ETAT_DES_LIEUX      // État des lieux
-  FACTURE             // Facture ou quittance
-  PHOTO               // Photographie du bien
-
-  //Locationre
-  LOCATAIRE_ID    // Pièce d’identité locataire
-  JUSTIF_DOMICILE // Justificatif de domicile
-
-  AUTRE
-
-  @@schema("gestion")
-}
-
-
-
-model Document {
-  id          String       @id @default(uuid())
-
-  type        DocumentType // type de document
-  fileName    String       // nom du fichier original
-  fileUrl     String       // URL ou chemin de stockage
-  description String?      // commentaire optionnel
-
-  uploadedAt  DateTime     @default(now())
-
-
- // Relation vers Bien ou vers Locataire
-  bien        Bien?        @relation(fields: [bienId],    references: [id])
-  bienId      String?
-  
-  locataire   Locataire?   @relation("LocataireDocuments", fields: [locataireId], references: [id])
-  locataireId String?
-
-
-  @@schema("gestion")
-}
-
-
-
-// schema.prisma
-
-/// Enums
-enum TypeLocataire {
-  PARTICULIER
-  PROFESSIONNEL
-
-  @@schema("gestion")
-}
-
-
-enum TypePieceIdentite {
-  CNI        // Carte nationale d’identité
-  PASSEPORT
-  PERMIS
-  AUTRE
-
-  @@schema("gestion")
-}
-
-
-
-/// Modèle Locataire
-model Locataire {
-  id                    String             @id @default(uuid())
-  type                  TypeLocataire      @default(PARTICULIER)
-    
-  // Informations personnelles
-  civilite              Civilite
-  prenom                String
-  deuxiemePrenom        String?
-  nom                   String
-  dateNaissance         DateTime
-  lieuNaissance         String?
-  
-  // Situation pro
-  profession            String?
-  revenusMensuels       Float?             // Montant en euros
-  
-  // Pièce d'identité
-  typePieceIdentite     TypePieceIdentite?
-  numeroPieceIdentite   String?
-  expirationPieceIdentite DateTime?
-  pieceIdentiteFileName String?            // Nom fichier original
-  pieceIdentiteFileUrl  String?            // URL ou chemin de stockage
-  
-  // Contacts
-  emailSecondaire       String?            @unique
-  mobile                String?
-  telephone             String?
-  
-  // Relation vers ses documents génériques
-  documents             Document[]         @relation("LocataireDocuments")
-  
-  bienId                String?
-  bien                  Bien?        @relation(fields: [bienId],    references: [id])
-
-  locationId            String?
-  location              Location?          @relation(fields: [locationId], references: [id])
-
-  garantId   Int?     @unique
-  garant     Garant?  @relation("Locataire_Garant", fields: [garantId], references: [id])
-
-  createdAt             DateTime           @default(now())
-  updatedAt             DateTime           @updatedAt
-
-  @@schema("gestion")
-}
-
-
-/// schema.prisma
-
-/// Enums pour vos choix multiples
-enum DepositType {
-  ONE_MONTH         // 1 mois de loyer
-  TWO_MONTHS        // 2 mois de loyer
-  OTHER             // autre (ex : 1,5 mois => 1.5)
-
-  @@schema("gestion")
-}
-
-enum ReferenceQuarter {
-  Q1    // 1er trimestre
-  Q2
-  Q3
-  Q4
-  @@schema("gestion")
-}
-
-enum PreviousRentalSituation {
-  FIRST_TIME                // première mise en location
-  NO_CONTRACT_LAST_18_MONTH // pas de contrat ces 18 derniers mois
-  HAD_CONTRACT_LAST_18_MONTH// contrat ces 18 derniers mois
-
-  @@schema("gestion")
-}
-
-enum PaymentTerm {
-  A_ECHOIR  // à échoir (début de période)
-  ECHU      // échu (fin de période)
-
-  @@schema("gestion")
-}
-
-enum PaymentMethod {
-  VIREMENT
-  CHEQUE
-  AUTRE
-
-  @@schema("gestion")
-}
-
-enum RecoverableChargesMethod {
-  PROVISION
-  FORFAITAIRE
-  PERIODIQUE
-
-  @@schema("gestion")
-}
-
-enum TypeBail {
-  MEUBLE
-
-  @@schema("gestion")
-}
-
-enum UsageDestination {
-  HABITATION
-  COMMERCIAL
-  MIXTE
-
-  @@schema("gestion")
-}
-
-
-
-/// schema.prisma
-
-/// Enum pour tous les équipements/mobilier/linge listés
-enum Mobilier {
-  BOUILLOIRE
-  PORTE_SERVIETTES
-  POUBELLE_SDB      // poubelle salle d’eau / SDE
-  POUBELLE_WC
-  ETENDOIR_A_LINGE
-  SERVIETTES_TOILETTE
-
-  ASPIRATEUR
-  LAVE_LINGE
-  SECHE_LINGE
-  PLANCHE_A_REPASSER
-  CAFETIERE
-  THEIERE
-
-  TELEVISION
-  LECTEUR_DVD
-  CHAINE_HIFI
-  RADIO
-  FER_A_REPASSER
-
-  TABLE_BASSE
-  TABLE_DE_CHEVET
-  BUREAU
-  FAUTEUIL_DE_BUREAU
-  FAUTEUIL
-
-  ARMOIRE
-  PENDERIE
-  COMMODE
-  ETAGERE_DE_RANGEMENT
-
-  TAIE_D_OREILLER
-
-  // Occultation fenêtres
-  VOLET
-  RIDEAU
-  STORE_OCCULTANT
-  STORE
-  AUTRE_OCCULTATION
-
-  LUMINAIRE
-
-  // Linge de lit
-  ALESE
-  DRAP_HOUSSE
-  DRAP
-  COUETTE
-  COUVERTURE
-  
-
-  @@schema("gestion")
-}
-
-
-/// Modèle Location
-model Location {
-  id                          String                     @id @default(uuid())
-  typeBail                    TypeBail[]
-	
-	 // --- Bail meublé ---
-  leaseStartDate              DateTime                   // Date de début du bail
-  leaseEndDate                DateTime?                   // Date de fin théorique
-
-  usageDestination            UsageDestination           @default(HABITATION)
-
-	  // Conditions de paiement du loyer
-  paymentTerm                 PaymentTerm?                // À échoir / échu
-  rentDueDay                  Int?                       // Jour d’exigibilité (1–31)
-  paymentMethod               PaymentMethod?              // Virement / Chèque / Autre
-  dematerializeReceipt        Boolean?   @default(true)    // Autorisation démat. de la quittance
-
-  // Loyer et charges
-  applyExtraRent              Boolean?   @default(false)   // Complément de loyer appliqué ?
-  baseRent                    Float                      // Loyer hors charges
-  monthlyChargesAmount        Float?                     // Montant charges récupérables
-  chargesMethod               RecoverableChargesMethod?   // Par provision / forfaitaire / périodique
-  includeWasteTaxInCharges    Boolean   @default(false)   // Taxe ordures ménagères comprise
-  colocInsuranceSubscribed    Boolean   @default(false)   // Assurance habitation colocation
-
-
-  // Encadrement des loyers
-  rentControlApplicable       Boolean?                    @default(false)   // Êtes-vous concernés par la mesure ?
-  referenceRentMinor          Float?                     // Loyer de référence minoré (€/m²)
-  referenceRentBase           Float?                     // Loyer de référence de base (€/m²)
-  referenceRentMajor          Float?                     // Loyer de référence majoré (€/m²)
-
-  // Révision du loyer
-  irlIndex                    Float?                     // Indice IRL
-  referenceQuarter            ReferenceQuarter?          // Trimestre de référence
-
-  // Dépôt de garantie
-  depositAmount               Float                      // Montant en €
-  depositType                 DepositType?
-
-  // Signature
-  signaturePlace              String?                    // Lieu de signature
-  signatureDate               DateTime?                  // Date de signature
-  signatureCopies             Int                        // Nombre d’exemplaires
-
-  // Annexes au contrat
-  annexCoproReglement         Boolean   @default(false)   // Extrait règlement copro
-  annexDiagnosticDossier      Boolean   @default(false)   // Dossier diagnostic technique
-  annexNoticeInfo             Boolean   @default(false)   // Notice d’information
-  annexEtatDesLieux           Boolean   @default(false)   // État des lieux / inventaire
-  annexAutorisationPrealable  Boolean   @default(false)   // Autorisation préalable mise en location
-  annexConventionANAH         Boolean   @default(false)   // Convention ANAH
-  annexDiagnosticBruit        Boolean   @default(false)   // Diagnostic bruit aéroports
-  annexReferencesLoyers       Boolean   @default(false)   // Références loyers voisins
-  annexAutres                 Boolean   @default(false)   // Autres annexes
-  annexAutresDescription      String?                    // Description libre si annexAutres = true
-
-  // Dépenses théoriques (DPE)
-  theoreticalExpensesAmount   Float?                     // Montant ou fourchette inscrit
-  theoreticalExpensesYear     String?                    // Année de référence des prix
-
-  // Clauses particulières – travaux
-  travauxByBailleur           Boolean?   @default(false)   // Travaux effectués par bailleur
-  natureTravaux               String?                    // Nature des travaux
-  montantTravaux              Float?                     // Montant des travaux
-  majorationLoyerTravaux      Boolean?   @default(false)   // Majoration suite à travaux bailleur
-  travauxByLocataire          Boolean?   @default(false)   // Travaux prévus par locataire
-  clauseRenouvellement        Boolean?   @default(false)   // Clause réévaluation renouvellement
-
-  // Économie d’énergie : partage des charges
-  partageChargesEnergie       Boolean?   @default(false)
-
-  // Informations supplémentaires
-  previousSituation           PreviousRentalSituation    // Situation locative antérieure
-  stipulationsParticulieres   String?                    // Stipulations particulières
-
-
-  bien                         Bien?                     @relation(fields: [bienId], references: [id])
-  bienId                       String?
-
-  locataires                  Locataire[]
-
-  createdAt                   DateTime                   @default(now())
-  updatedAt                   DateTime                   @updatedAt
-
-  @@schema("gestion")
-}
-
-model Inventaire {
-  id          String      @id @default(uuid())
-  bien        Bien        @relation(fields: [bienId], references: [id])
-  bienId      String
-
-  piece       String
-  mobilier    Mobilier
-  quantite    Int?
-  prix        Decimal?
-  marque      String?
-  etatEntree  String? 
-
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-
-  @@schema("gestion")
-}
-
-
-enum TypeGarant {
-  PERSONNE_PHYSIQUE
-  SOCIETE
-  GARANTIE_BANCAIRE
-  GARANTIE_VISALE
-  GARANTIE_GARANTME
-  AUTRE
-  AUCUN    // quand “Mon locataire n’a pas de garant”
-
-  @@schema("gestion")
+  @@schema("psychomot")
 
 }
 
-model Garant {
-  id          Int           @id @default(autoincrement())
-  type        TypeGarant
+enum SectionKind {
+  NARRATIVE      // Anamnèse, Observations cliniques…
+  STANDARD_TEST  // NPMOT, MABC‑2, etc.
+  SENSOR_PROFILE // Ex : Dunn, Sensory Processing Measure
+  CUSTOM_FORM    // mix perso
 
-  personne    Garant_Physique?
-  societe     Garant_Societe?
-  visale      Garant_Visale?
-  garantme    Garant_Garantme?
+  @@schema("psychomot")
 
-  locataire  Locataire? @relation("Locataire_Garant")
-
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-
-  @@schema("gestion")
 }
 
-model Garant_Physique {
-  id                        Int       @id @default(autoincrement())
+model Section {
+  id             String      @id @default(uuid())
+  title          String
+  kind           SectionKind
+  description    String?
+  // "schema" décrit la structure d’entrée (questions, champs markdown…)
+  // Pour kind = NARRATIVE tu peux laisser null ou stocker un placeholder.
+  schema         Json?       @db.JsonB
 
-  civilite                  String
-  prenom                    String
-  nom                       String
-  dateNaissance             DateTime?          // JJ/MM/AAAA  
-  lieuNaissance             String?            // ex. “Paris”
+  defaultContent Json?       @db.JsonB   // modèle vierge si tu veux pré‑remplir
+  isPublic       Boolean     @default(false)
 
-  email                     String?  
-  telephone                 String?  
+  author         Profile?       @relation("AuthorSections", fields: [authorId], references: [id])
+  authorId       String?     @db.Uuid
+  examples       SectionExample[]
+  instances      BilanSectionInstance[]
+  bilanTypeSections BilanTypeSection[]
 
-  adresse                   String             // ligne principale
-  complementAdresse         String?            // “Ajouter complément”
-  codePostal                String
-  ville                     String
-  pays                      String
+  createdAt      DateTime    @default(now())
 
-  dureeCautionnementAnnees  Int                // 1 à 9 (en années)
-  estCreeancierProfessionnel Boolean  @default(false)
-
-  garant                    Garant             @relation(fields: [garantId], references: [id])
-  garantId                  Int                @unique
-
-  createdAt                 DateTime  @default(now())
-  updatedAt                 DateTime  @updatedAt
-
-  @@schema("gestion")
-}
-
-
-model Garant_Societe {
-  id                        Int       @id @default(autoincrement())
-
-  nom                       String
-  adresse                   String
-  complementAdresse         String?  
-  codePostal                String
-  ville                     String
-  pays                      String
-
-  representantCivilite      String
-  representantPrenom        String
-  representantNom           String
-  representantTelephone     String?  
-
-  dureeCautionnementAnnees  Int       // 1 à 9, comme pour personne physique
-
-  garant                    Garant    @relation(fields: [garantId], references: [id])
-  garantId                  Int       @unique
-
-  createdAt                 DateTime  @default(now())
-  updatedAt                 DateTime  @updatedAt
-
-  @@schema("gestion")
+  @@schema("psychomot")
 
 }
 
 
-model Garant_Visale {
-  id           Int      @id @default(autoincrement())
+model BilanTypeSection {
+  id          String   @id @default(uuid())
+  bilanType   BilanType @relation(fields: [bilanTypeId], references: [id])
+  bilanTypeId String
+  section     Section   @relation(fields: [sectionId], references: [id])
+  sectionId   String
+  sortOrder   Int
+  settings    Json?     // ex : contraintes, score max…
 
-  numeroVisa   String
-
-  garant       Garant   @relation(fields: [garantId], references: [id])
-  garantId     Int      @unique
-
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  @@schema("gestion")
+  @@schema("psychomot")
 
 }
 
+// -------------- EXEMPLES (facultatif mais prêt) --------------
+model SectionExample {
+  id         String   @id @default(uuid())
+  section    Section  @relation(fields: [sectionId], references: [id])
+  sectionId  String
+  label      String?
+  content    String   // markdown ou texte simple
 
-model Garant_Garantme {
-  id               Int          @id @default(autoincrement())
-  numeroContrat    String?
-
-  garant           Garant       @relation(fields: [garantId], references: [id])
-  garantId         Int          @unique
-  /// Timestamps
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
-
-  @@schema("gestion")
+  @@schema("psychomot")
 
 }
 
+// -------------- BILAN INSTANCIES --------------
+model Bilan {
+  id          String   @id @default(uuid())
+  patient     Patient  @relation(fields: [patientId], references: [id])
+  patientId   String
 
+  bilanType   BilanType? @relation(fields: [bilanTypeId], references: [id])
+  bilanTypeId String?
+
+  date        DateTime    @default(now())
+
+  sections    BilanSectionInstance[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@schema("psychomot")
+
+}
+
+model BilanSectionInstance {
+  id        String   @id @default(uuid())
+  bilan     Bilan    @relation(fields: [bilanId], references: [id])
+  bilanId   String
+  section   Section  @relation(fields: [sectionId], references: [id])
+  sectionId String
+  order     Int
+  content   Json         // Rich text, réponses, scores… tout est sérialisé
+
+  // index composite pour requêtes rapides
+  @@index([bilanId, order])
+
+  @@schema("psychomot")
+}
