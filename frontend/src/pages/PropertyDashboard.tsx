@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { AlertTriangle, Euro } from 'lucide-react';
+import { Euro } from 'lucide-react';
 import { PropertyTabList } from '../components/ui/PropertyTabList';
 import {
   PropertyInfoCard,
@@ -20,7 +20,6 @@ import type { NewLocation } from '@monorepo/shared';
 import { Button } from '../components/ui/button';
 import { ChargesCard } from '../components/ui/ChargesCard';
 import { RevenueCard } from '../components/ui/RevenueCard';
-import { Alert, AlertDescription, AlertTitle } from '../components/ui/alert';
 import {
   Card,
   CardContent,
@@ -126,14 +125,6 @@ export default function PropertyDashboard() {
       { month: 'Fév', amount: 1800, status: 'En attente' },
     ],
   };
-  const alerts = [
-    {
-      type: 'warning',
-      title: 'Révision de loyer',
-      description: 'La révision annuelle du loyer est due',
-      date: '2024-01-15',
-    },
-  ];
 
   const changeTab = (t: 'view' | 'documents' | 'finances' | 'inventaire') => {
     setTab(t);
