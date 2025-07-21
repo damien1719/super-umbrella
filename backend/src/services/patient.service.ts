@@ -13,36 +13,40 @@ export type PatientData = {
 
 export const PatientService = {
   async create(userId: string, data: PatientData) {
-    console.log('PatientService.create - userId:', userId, 'data.userId:', userId, 'data:', data);
-    const profile = await db.profile.findUnique({
-      where: { userId }, 
+    const profile = await db.profile.findUnique({ where: { userId } });
+    if (!profile) throw new Error('Profile not found for user');
+
+    return db.patient.create({
+      data: { ...data, profileId: profile.id },
     });
-    if (!profile) {
-      throw new Error('Profile not found for user');
-    }
-    return db.patient.create({ data: { ...data, profileId: profile.id } });
   },
 
-  list(profileId: string) {
-    return db.patient.findMany({ where: { profileId } });
+  list(userId: string) {
+    return db.patient.findMany({
+      where: { profile: { userId } },
+      orderBy: { lastName: 'asc' },
+    });
   },
 
-  get(profileId: string, id: string) {
-    return db.patient.findFirst({ where: { id, profileId } });
+  get(userId: string, id: string) {
+    return db.patient.findFirst({
+      where: { id, profile: { userId } },
+    });
   },
 
-  async update(profileId: string, id: string, data: Partial<PatientData>) {
-    if (!data || Object.keys(data).length === 0) {
-      throw new Error('No update data provided for patient ' + id);
-    }
-    console.log('PatientService.update - profileId:', profileId, 'id:', id, 'data:', data);
-    const { count } = await db.patient.updateMany({ where: { id, profileId }, data });
+  async update(userId: string, id: string, data: Partial<PatientData>) {
+    const { count } = await db.patient.updateMany({
+      where: { id, profile: { userId } },
+      data,
+    });
     if (count === 0) throw new NotFoundError();
     return db.patient.findUnique({ where: { id } });
   },
 
-  async remove(profileId: string, id: string) {
-    const { count } = await db.patient.deleteMany({ where: { id, profileId } });
+  async remove(userId: string, id: string) {
+    const { count } = await db.patient.deleteMany({
+      where: { id, profile: { userId } },
+    });
     if (count === 0) throw new NotFoundError();
   },
 };

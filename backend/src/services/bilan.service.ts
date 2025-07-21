@@ -13,30 +13,34 @@ export type BilanData = {
 };
 
 export const BilanService = {
-  create(_userId: string, data: BilanData) {
-    if (data.descriptionHtml) {
-      data.descriptionHtml = sanitizeHtml(data.descriptionHtml);
-    }
-    return db.bilan.create({ data });
-  },
-
   list(userId: string) {
-    return db.bilan.findMany({ where: { patient: { userId } } });
+    return db.bilan.findMany({
+      where: { patient: { profile: { userId } } },
+      orderBy: { createdAt: 'desc' },
+    });
   },
 
   get(userId: string, id: string) {
-    return db.bilan.findFirst({ where: { id, patient: { userId } } });
+    return db.bilan.findFirst({
+      where: { id, patient: { profile: { userId } } },
+    });
+  },
+
+  async create(userId: string, patientId: string, data: BilanData) {
+    // vérifie que le patient appartient bien à l'utilisateur
+    const patient = await db.patient.findFirst({
+      where: { id: patientId, profile: { userId } },
+    });
+    if (!patient) throw new NotFoundError('Patient not found for user');
+
+    return db.bilan.create({
+      data: { ...data, patientId },
+    });
   },
 
   async update(userId: string, id: string, data: Partial<BilanData>) {
-    if (!data || Object.keys(data).length === 0) {
-      throw new Error("No update data provided for bilan " + id);
-    }
-    if (data.descriptionHtml) {
-      data.descriptionHtml = sanitizeHtml(data.descriptionHtml);
-    }
     const { count } = await db.bilan.updateMany({
-      where: { id, patient: { userId } },
+      where: { id, patient: { profile: { userId } } },
       data,
     });
     if (count === 0) throw new NotFoundError();
@@ -45,7 +49,7 @@ export const BilanService = {
 
   async remove(userId: string, id: string) {
     const { count } = await db.bilan.deleteMany({
-      where: { id, patient: { userId } },
+      where: { id, patient: { profile: { userId } } },
     });
     if (count === 0) throw new NotFoundError();
   },
