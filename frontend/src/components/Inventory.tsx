@@ -122,9 +122,16 @@ export default function InventoryPage() {
       editingData.mobilier &&
       editingData.etatEntree
     ) {
-      await update(editingId, editingData);
-      setEditingId(null);
-      setEditingData({});
+    const data = {
+        piece: editingData.piece,
+        mobilier: editingData.mobilier,
+        quantite: editingData.quantite,
+        marque: editingData.marque,
+        etatEntree: editingData.etatEntree,
+        };
+    await update(editingId, data);      
+    setEditingId(null);
+    setEditingData({});
     }
   };
 
@@ -158,13 +165,16 @@ export default function InventoryPage() {
       await create({ bienId: id, ...(newItemData as Inventaire) });
       setIsAddingNew(false);
       setNewItemData({
-        piece: '',
-        mobilier: '',
-        quantite: 1,
-        prix: 0,
-        marque: '',
-        etatEntree: '',
+        piece: newItemData.piece,
+        mobilier: newItemData.mobilier,
+        quantite: newItemData.quantite,
+        prix: newItemData.prix,
+        marque: newItemData.marque,
+        etatEntree: newItemData.etatEntree,
       });
+      console.log('Item created and form reset');
+    } else {
+      console.log('Missing required fields', newItemData);
     }
   };
 
@@ -215,7 +225,7 @@ export default function InventoryPage() {
         </Button>
       </div>
 
-      {/* Stats */}
+      {/* Stats 
       <div className="max-w-3xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -240,6 +250,7 @@ export default function InventoryPage() {
           </CardContent>
         </Card>
       </div>
+      */}
 
       {/* Filters */}
       <Card>

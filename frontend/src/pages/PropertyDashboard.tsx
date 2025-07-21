@@ -251,26 +251,6 @@ export default function PropertyDashboard() {
           </Card>
         </div>
       )}
-      {alerts.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <AlertTriangle className="h-5 w-5 mr-2 text-orange-500" /> Alertes
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {alerts.map((alert, i) => (
-              <Alert key={i} className="mb-2">
-                <AlertTitle>{alert.title}</AlertTitle>
-                <AlertDescription className="flex justify-between items-center">
-                  <span>{alert.description}</span>
-                  <span className="text-xs text-gray-500">{alert.date}</span>
-                </AlertDescription>
-              </Alert>
-            ))}
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }

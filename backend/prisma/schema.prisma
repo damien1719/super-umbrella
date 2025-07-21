@@ -1412,6 +1412,7 @@ model Inventaire {
   piece       String
   mobilier    Mobilier
   quantite    Int?
+  prix        Decimal?
   marque      String?
   etatEntree  String? 
 
