@@ -4,6 +4,7 @@ import { StoreApi, useStore } from 'zustand';
 
 export type Page =
   | 'Dashboard'
+  | 'MesBilans'
   | 'MesBiens'
   | 'Patients'
   | 'Agenda'

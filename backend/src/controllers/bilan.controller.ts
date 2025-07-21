@@ -5,10 +5,11 @@ import { sanitizeHtml } from "../utils/sanitize";
 export const BilanController = {
   async create(req: Request, res: Response, next: NextFunction) {
     try {
-      const bilan = await BilanService.create(req.user.id, req.body);
-      res.status(201).json(bilan);
+      const { patientId, ...data } = req.body
+      const bilan = await BilanService.create(req.user.id, patientId, data)
+      res.status(201).json(bilan)
     } catch (e) {
-      next(e);
+      next(e)
     }
   },
 

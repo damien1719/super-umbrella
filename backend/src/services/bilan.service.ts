@@ -1,6 +1,5 @@
 import { prisma } from "../prisma";
 import { NotFoundError } from "./profile.service";
-import { sanitizeHtml } from "../utils/sanitize";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = prisma as any;

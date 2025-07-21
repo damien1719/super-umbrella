@@ -2,7 +2,6 @@ import * as React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Home,
-  Calendar,
   CreditCard,
   Crown,
   User,
@@ -51,7 +50,13 @@ const items: {
     path: '/',
     icon: LayoutDashboard,
   }, */
-  { title: 'Mes Bilans', page: 'Mes Bilans', path: '/', icon: LayoutDashboard },
+  {
+    title: 'Mes Bilans',
+    page: 'MesBilans',
+    path: '/bilans',
+    icon: LayoutDashboard,
+  },
+  { title: 'Mes Biens', page: 'MesBiens', path: '/biens', icon: LayoutDashboard },
   { title: 'Mes Patients', page: 'Patients', path: '/patients', icon: User },
   {
     title: 'Abonnement',
