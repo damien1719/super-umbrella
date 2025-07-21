@@ -8,6 +8,7 @@ import {
   Crown,
   User,
   LogOut,
+  LayoutDashboard,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import {
@@ -51,6 +52,7 @@ const items: {
     path: '/',
     icon: LayoutDashboard,
   }, */
+  { title: 'Accueil', page: 'Dashboard', path: '/', icon: LayoutDashboard },
   { title: 'Mes Biens', page: 'MesBiens', path: '/biens', icon: Home },
   { title: 'Mon Agenda', page: 'Agenda', path: '/agenda', icon: Calendar },
   {

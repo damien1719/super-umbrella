@@ -143,8 +143,8 @@ model SectionExample {
 // -------------- BILAN INSTANCIES --------------
 model Bilan {
   id          String   @id @default(uuid())
-  patient     Patient  @relation(fields: [patientId], references: [id])
-  patientId   String
+  patient     Patient?  @relation(fields: [patientId], references: [id])
+  patientId   String?
 
   bilanType   BilanType? @relation(fields: [bilanTypeId], references: [id])
   bilanTypeId String?

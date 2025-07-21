@@ -7,7 +7,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const token = useAuth((s) => s.token);
   const createBilan = async () => {
-    const res = await apiFetch<{ id: string }>('/api/bilans', {
+    const res = await apiFetch<{ id: string }>('/api/v1/bilans', {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
     });
