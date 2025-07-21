@@ -7,7 +7,6 @@ import MesBiens from './pages/MesBiens';
 import PropertyDashboard from './pages/PropertyDashboard';
 import NewLocation from './pages/NewLocation';
 import Agenda from './pages/Agenda';
-import Resultats from './pages/Resultats';
 import Abonnement from './pages/Abonnement';
 import MonCompteV2 from './pages/MonCompte';
 import Login from './pages/Login';
@@ -15,6 +14,8 @@ import SignUp from './pages/SignUp';
 import { usePageStore } from './store/pageContext';
 import { useUserProfileStore } from './store/userProfile';
 import { AppSidebar } from './components/AppSidebar';
+import Home from './pages/Home';
+import Bilan from './pages/Bilan';
 
 function useInitAuth() {
   const { loading, initialize } = useAuth();
@@ -80,13 +81,15 @@ function WizardLayout() {
 export default function App() {
   return (
     <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/bilan/:bilanId" element={<Bilan />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<SignUp />} />
       <Route element={<WizardLayout />}>
         <Route path="/biens/:id/locations/new" element={<NewLocation />} />
       </Route>
       <Route element={<ProtectedLayout />}>
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/biens" element={<MesBiens />} />
         <Route path="/biens/:id/dashboard" element={<PropertyDashboard />} />
         <Route path="/agenda" element={<Agenda />} />

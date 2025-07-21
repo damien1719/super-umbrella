@@ -27,7 +27,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Search, Plus, Package, Edit, Trash2, X, Check } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, X, Check } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -122,16 +122,16 @@ export default function InventoryPage() {
       editingData.mobilier &&
       editingData.etatEntree
     ) {
-    const data = {
+      const data = {
         piece: editingData.piece,
         mobilier: editingData.mobilier,
         quantite: editingData.quantite,
         marque: editingData.marque,
         etatEntree: editingData.etatEntree,
-        };
-    await update(editingId, data);      
-    setEditingId(null);
-    setEditingData({});
+      };
+      await update(editingId, data);
+      setEditingId(null);
+      setEditingData({});
     }
   };
 
@@ -203,11 +203,6 @@ export default function InventoryPage() {
         return 'bg-gray-100 text-gray-800';
     }
   };
-
-  const totalValue = inventory.reduce(
-    (sum, item) => sum + item.prix * item.quantite,
-    0,
-  );
 
   return (
     <div className="container mx-auto p-6 space-y-6">

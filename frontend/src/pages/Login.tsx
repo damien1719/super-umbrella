@@ -15,7 +15,7 @@ export default function Login() {
     setError(null);
     try {
       await signIn(email, password);
-      navigate('/');
+      navigate('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur de connexion');
     } finally {
