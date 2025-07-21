@@ -13,14 +13,8 @@ import {
 // Tests simplifiés pour la navigation
 
 describe('App navigation', () => {
-  it('affiche le dashboard par défaut', async () => {
-    useAuth.setState({ user: { id: '1' } as unknown as User, loading: false });
-    useUserProfileStore.setState(
-      (state) => ({ ...state, profileId: 'p1' }) as UserProfileState,
-    );
-    global.fetch = vi.fn(() =>
-      Promise.resolve({ ok: true, json: () => Promise.resolve([]) }),
-    ) as unknown as typeof fetch;
+  it('affiche la page d\u2019accueil', async () => {
+    useAuth.setState({ user: null, loading: false });
     render(
       <BrowserRouter>
         <PageProvider>
@@ -29,7 +23,7 @@ describe('App navigation', () => {
       </BrowserRouter>,
     );
     expect(
-      await screen.findByRole('heading', { name: /dashboard/i }),
+      await screen.findByRole('button', { name: /rédiger un nouveau bilan/i }),
     ).toBeInTheDocument();
   });
 
@@ -52,6 +46,7 @@ describe('App navigation', () => {
       Promise.resolve({ ok: true, json: () => Promise.resolve([]) }),
     ) as unknown as typeof fetch;
 
+    window.history.pushState({}, '', '/dashboard');
     render(
       <BrowserRouter>
         <PageProvider>
@@ -74,6 +69,7 @@ describe('App navigation', () => {
     global.fetch = vi.fn(() =>
       Promise.resolve({ ok: true, json: () => Promise.resolve([]) }),
     ) as unknown as typeof fetch;
+    window.history.pushState({}, '', '/dashboard');
     render(
       <BrowserRouter>
         <PageProvider>
