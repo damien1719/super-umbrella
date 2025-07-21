@@ -13,6 +13,7 @@ export type PatientData = {
 
 export const PatientService = {
   create(userId: string, data: PatientData) {
+    console.log('PatientService.create - userId:', userId, 'data.userId:', userId, 'data:', data);
     return db.patient.create({ data: { ...data, userId } });
   },
 

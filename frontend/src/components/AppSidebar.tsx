@@ -51,10 +51,8 @@ const items: {
     path: '/',
     icon: LayoutDashboard,
   }, */
-  { title: 'Accueil', page: 'Dashboard', path: '/', icon: LayoutDashboard },
-  { title: 'Mes Biens', page: 'MesBiens', path: '/biens', icon: Home },
+  { title: 'Mes Bilans', page: 'Mes Bilans', path: '/', icon: LayoutDashboard },
   { title: 'Mes Patients', page: 'Patients', path: '/patients', icon: User },
-  { title: 'Mon Agenda', page: 'Agenda', path: '/agenda', icon: Calendar },
   {
     title: 'Abonnement',
     page: 'Abonnement',
