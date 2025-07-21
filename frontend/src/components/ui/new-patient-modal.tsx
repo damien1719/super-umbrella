@@ -1,7 +1,7 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -9,33 +9,43 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+
+import { usePatientStore } from '@/store/patients';
 
 interface NewPatientModalProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: boolean;
+  onClose: () => void;
+  onPatientCreated: (id: string) => void;
 }
 
-export function NewPatientModal({ isOpen, onClose }: NewPatientModalProps) {
-  const [firstName, setFirstName] = useState("")
-  const [lastName, setLastName] = useState("")
+export function NewPatientModal({
+  isOpen,
+  onClose,
+  onPatientCreated,
+}: NewPatientModalProps) {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const { create } = usePatientStore();
 
-  const handleSave = () => {
-    console.log("Nouveau patient:", { firstName, lastName })
-    // Here you would typically send this data to your backend
-    onClose()
-    setFirstName("")
-    setLastName("")
-  }
+  const handleSave = async () => {
+    const patient = await create({ firstName, lastName });
+    onPatientCreated(patient.id);
+    onClose();
+    setFirstName('');
+    setLastName('');
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Nouveau patient</DialogTitle>
-          <DialogDescription>Remplissez les informations du nouveau patient.</DialogDescription>
+          <DialogDescription>
+            Remplissez les informations du nouveau patient.
+          </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
@@ -68,5 +78,5 @@ export function NewPatientModal({ isOpen, onClose }: NewPatientModalProps) {
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
