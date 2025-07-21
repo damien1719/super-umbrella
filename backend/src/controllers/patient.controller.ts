@@ -1,19 +1,19 @@
 import type { Request, Response, NextFunction } from 'express';
-import { LogementService } from '../services/logement.service';
+import { PatientService } from '../services/patient.service';
 
-export const LogementController = {
+export const PatientController = {
   async create(req: Request, res: Response, next: NextFunction) {
     try {
-      const logement = await LogementService.create(req.body);
-      res.status(201).json(logement);
+      const patient = await PatientService.create(req.user.id, req.body);
+      res.status(201).json(patient);
     } catch (e) {
       next(e);
     }
   },
 
-  async list(_req: Request, res: Response, next: NextFunction) {
+  async list(req: Request, res: Response, next: NextFunction) {
     try {
-      res.json(await LogementService.list());
+      res.json(await PatientService.list(req.user.id));
     } catch (e) {
       next(e);
     }
@@ -21,12 +21,12 @@ export const LogementController = {
 
   async get(req: Request, res: Response, next: NextFunction) {
     try {
-      const logement = await LogementService.get(BigInt(req.params.id));
-      if (!logement) {
+      const patient = await PatientService.get(req.user.id, req.params.patientId);
+      if (!patient) {
         res.sendStatus(404);
         return;
       }
-      res.json(logement);
+      res.json(patient);
     } catch (e) {
       next(e);
     }
@@ -34,8 +34,12 @@ export const LogementController = {
 
   async update(req: Request, res: Response, next: NextFunction) {
     try {
-      const logement = await LogementService.update(BigInt(req.params.id), req.body);
-      res.json(logement);
+      const patient = await PatientService.update(
+        req.user.id,
+        req.params.patientId,
+        req.body,
+      );
+      res.json(patient);
     } catch (e) {
       next(e);
     }
@@ -43,7 +47,7 @@ export const LogementController = {
 
   async remove(req: Request, res: Response, next: NextFunction) {
     try {
-      await LogementService.remove(BigInt(req.params.id));
+      await PatientService.remove(req.user.id, req.params.patientId);
       res.sendStatus(204);
     } catch (e) {
       next(e);

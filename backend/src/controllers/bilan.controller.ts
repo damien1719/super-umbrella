@@ -1,19 +1,19 @@
 import type { Request, Response, NextFunction } from 'express';
-import { ActivityService } from '../services/activity.service';
+import { BilanService } from '../services/bilan.service';
 
-export const ActivityController = {
+export const BilanController = {
   async create(req: Request, res: Response, next: NextFunction) {
     try {
-      const activity = await ActivityService.create(req.body);
-      res.status(201).json(activity);
+      const bilan = await BilanService.create(req.user.id, req.body);
+      res.status(201).json(bilan);
     } catch (e) {
       next(e);
     }
   },
 
-  async list(_req: Request, res: Response, next: NextFunction) {
+  async list(req: Request, res: Response, next: NextFunction) {
     try {
-      res.json(await ActivityService.list());
+      res.json(await BilanService.list(req.user.id));
     } catch (e) {
       next(e);
     }
@@ -21,12 +21,12 @@ export const ActivityController = {
 
   async get(req: Request, res: Response, next: NextFunction) {
     try {
-      const activity = await ActivityService.get(BigInt(req.params.id));
-      if (!activity) {
+      const bilan = await BilanService.get(req.user.id, req.params.bilanId);
+      if (!bilan) {
         res.sendStatus(404);
         return;
       }
-      res.json(activity);
+      res.json(bilan);
     } catch (e) {
       next(e);
     }
@@ -34,11 +34,12 @@ export const ActivityController = {
 
   async update(req: Request, res: Response, next: NextFunction) {
     try {
-      const activity = await ActivityService.update(
-        BigInt(req.params.id),
+      const bilan = await BilanService.update(
+        req.user.id,
+        req.params.bilanId,
         req.body,
       );
-      res.json(activity);
+      res.json(bilan);
     } catch (e) {
       next(e);
     }
@@ -46,7 +47,7 @@ export const ActivityController = {
 
   async remove(req: Request, res: Response, next: NextFunction) {
     try {
-      await ActivityService.remove(BigInt(req.params.id));
+      await BilanService.remove(req.user.id, req.params.bilanId);
       res.sendStatus(204);
     } catch (e) {
       next(e);
