@@ -54,12 +54,6 @@ const items: {
   { title: 'Mes Biens', page: 'MesBiens', path: '/biens', icon: Home },
   { title: 'Mon Agenda', page: 'Agenda', path: '/agenda', icon: Calendar },
   {
-    title: 'Déclaration Fiscale',
-    page: 'Resultats',
-    path: '/resultats',
-    icon: FileText,
-  },
-  {
     title: 'Abonnement',
     page: 'Abonnement',
     path: '/abonnement',

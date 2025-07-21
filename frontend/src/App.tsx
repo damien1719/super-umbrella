@@ -90,7 +90,6 @@ export default function App() {
         <Route path="/biens" element={<MesBiens />} />
         <Route path="/biens/:id/dashboard" element={<PropertyDashboard />} />
         <Route path="/agenda" element={<Agenda />} />
-        <Route path="/resultats" element={<Resultats />} />
         <Route path="/abonnement" element={<Abonnement />} />
         <Route path="/compte" element={<MonCompteV2 />} />
       </Route>
