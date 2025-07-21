@@ -28,25 +28,43 @@ export const requireAuth: RequestHandler = async (
     const payload = jwt.verify(token, process.env.SUPABASE_JWT_SECRET as string, {
       audience: 'authenticated',
     }) as SupabasePayload
-    const userId = payload.sub
-    req.user = { id: userId }
-    await prisma.user.upsert({
-      where: { id: userId },
-      update: {},
-      create: {
-        id: userId,
-        authAccounts: {
-          create: {
-            provider: 'supabase',
-            providerAccountId: userId,
-            email: payload.email ?? null,
-          },
+    const provider = 'supabase'
+    const providerAccountId = payload.sub
+
+    // Cherche un AuthAccount existant
+    let authAccount = await prisma.authAccount.findUnique({
+      where: {
+        provider_providerAccountId: {
+          provider,
+          providerAccountId,
         },
       },
+      include: { user: true },
     })
+
+    let user
+    if (authAccount) {
+      user = authAccount.user
+    } else {
+      // Crée un User interne et un AuthAccount lié
+      user = await prisma.user.create({
+        data: {
+          authAccounts: {
+            create: {
+              provider,
+              providerAccountId,
+              email: payload.email ?? null,
+            },
+          },
+        },
+      })
+    }
+
+    req.user = { id: user.id }
     next()
     return
-  } catch {
+  } catch (e) {
+    console.error('JWT error:', e)
     res.status(401).send('Invalid token')
     return
   }

@@ -2,6 +2,7 @@ import { FormEvent, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../store/auth';
 import { validateEmail } from '../utils/validateEmail';
+import { apiFetch } from '../utils/api';
 
 export default function SignUp() {
   const navigate = useNavigate();
