@@ -1,11 +1,13 @@
 import { RequestHandler } from 'express'
 import jwt from 'jsonwebtoken'
+import { prisma } from '../prisma'
 
 interface SupabasePayload extends jwt.JwtPayload {
   sub: string
+  email?: string
 }
 
-export const requireAuth: RequestHandler = (
+export const requireAuth: RequestHandler = async (
   req,
   res,
   next
@@ -26,7 +28,22 @@ export const requireAuth: RequestHandler = (
     const payload = jwt.verify(token, process.env.SUPABASE_JWT_SECRET as string, {
       audience: 'authenticated',
     }) as SupabasePayload
-    req.user = { id: payload.sub }
+    const userId = payload.sub
+    req.user = { id: userId }
+    await prisma.user.upsert({
+      where: { id: userId },
+      update: {},
+      create: {
+        id: userId,
+        authAccounts: {
+          create: {
+            provider: 'supabase',
+            providerAccountId: userId,
+            email: payload.email ?? null,
+          },
+        },
+      },
+    })
     next()
     return
   } catch {

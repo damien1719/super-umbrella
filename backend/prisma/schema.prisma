@@ -20,10 +20,41 @@ enum Civilite {
   @@schema("public")
 }
 
+enum UserRole {
+  THERAPIST
+
+  @@schema("public")
+}
+
+model User {
+  id          String        @id @default(uuid())
+  role        UserRole      @default(THERAPIST)
+  profile     Profile?
+  authAccounts AuthAccount[]
+  createdAt   DateTime      @default(now())
+  @@schema("public")
+}
+
+model AuthAccount {
+  id                Int      @id @default(autoincrement())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider          String
+  providerAccountId String
+  email             String?
+  accessToken       String?
+  refreshToken      String?
+  expiresAt         Int?
+
+  @@unique([provider, providerAccountId])
+  @@schema("public")
+}
+
 //Profile
 model Profile {
   id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId              String    @db.Uuid
+  userId              String    @unique @db.Uuid
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   civilite            Civilite?
   nom                 String?   @db.VarChar(100)
   nomUsage            String?   @db.VarChar(100)
@@ -31,9 +62,11 @@ model Profile {
   email               String?   @db.VarChar(255)
   telephonePersoNum   String?   @db.VarChar(50)
   telephoneMobileNum  String?   @db.VarChar(50)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   patients      Patient[]
-  bilantypes    BilanType[] @relation("AuthorBilanTypes") 
+  bilantypes    BilanType[] @relation("AuthorBilanTypes")
   sections      Section[]    @relation("AuthorSections")
 
   @@map("profile")

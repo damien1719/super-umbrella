@@ -45,6 +45,9 @@ class PrismaClient {
       updateMany: jest.fn(),
       deleteMany: jest.fn(),
     };
+    this.user = {
+      upsert: jest.fn(),
+    };
     this.patient = {
       create: jest.fn(),
       findMany: jest.fn(),
