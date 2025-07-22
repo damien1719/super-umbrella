@@ -1,6 +1,8 @@
 import { RequestHandler } from 'express'
 import jwt from 'jsonwebtoken'
 import { prisma } from '../prisma'
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const db = prisma as any
 
 interface SupabasePayload extends jwt.JwtPayload {
   sub: string
@@ -32,7 +34,7 @@ export const requireAuth: RequestHandler = async (
     const providerAccountId = payload.sub
 
     // Cherche un AuthAccount existant
-    let authAccount = await prisma.authAccount.findUnique({
+    let authAccount = await db.authAccount.findUnique({
       where: {
         provider_providerAccountId: {
           provider,
@@ -47,7 +49,7 @@ export const requireAuth: RequestHandler = async (
       user = authAccount.user
     } else {
       // Crée un User interne et un AuthAccount lié
-      user = await prisma.user.create({
+      user = await db.user.create({
         data: {
           authAccounts: {
             create: {
@@ -59,7 +61,7 @@ export const requireAuth: RequestHandler = async (
         },
       });
         // ===> Ajoute ce bloc pour créer le profil automatiquement
-      await prisma.profile.create({
+      await db.profile.create({
         data: {
           userId: user.id,
           prenom: payload.user_metadata?.firstName ?? null, // si tu as ces infos dans le JWT
