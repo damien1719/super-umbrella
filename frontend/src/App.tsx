@@ -2,9 +2,7 @@ import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './store/auth';
 import { useRequireAuth } from './hooks/useRequireAuth';
 import { useEffect } from 'react';
-import Dashboard from './pages/Dashboard';
 import MesBilans from './pages/MesBilans';
-import MesBiens from './pages/MesBiens';
 import PropertyDashboard from './pages/PropertyDashboard';
 import NewLocation from './pages/NewLocation';
 import Bilan from './pages/Bilan';
@@ -124,9 +122,7 @@ export default function App() {
         <Route path="/bilan/:bilanId" element={<Bilan />} />
       </Route>
       <Route element={<ProtectedLayout />}>
-        <Route path="/" element={<Dashboard />} />
         <Route path="/bilans" element={<MesBilans />} />
-        <Route path="/biens" element={<MesBiens />} />
         <Route path="/patients" element={<Patients />} />
         <Route path="/biens/:id/dashboard" element={<PropertyDashboard />} />
         <Route path="/agenda" element={<Agenda />} />

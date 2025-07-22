@@ -43,20 +43,12 @@ const items: {
   path: string;
   icon: React.ComponentType<{ className?: string }>;
 }[] = [
-  /*   { title: 'Mon Compte', page: 'MonCompte', path: '/compte', icon: Calendar },
-   */ /* {
-    title: 'Dashboard',
-    page: 'Dashboard',
-    path: '/',
-    icon: LayoutDashboard,
-  }, */
   {
     title: 'Mes Bilans',
     page: 'MesBilans',
     path: '/bilans',
     icon: LayoutDashboard,
   },
-  { title: 'Mes Biens', page: 'MesBiens', path: '/biens', icon: LayoutDashboard },
   { title: 'Mes Patients', page: 'Patients', path: '/patients', icon: User },
   {
     title: 'Abonnement',

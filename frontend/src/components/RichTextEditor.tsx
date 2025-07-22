@@ -9,7 +9,10 @@ import { $generateHtmlFromNodes, $generateNodesFromDOM } from '@lexical/html';
 import { $getRoot } from 'lexical';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { ToolbarPlugin } from './RichTextToolbar';
-import { useEffect } from 'react';
+import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
+import { LinkNode } from '@lexical/link';
+import {ListNode,ListItemNode} from '@lexical/list';
+import { useRef, useEffect } from 'react'
 import DOMPurify from 'dompurify';
 
 interface Props {
@@ -20,7 +23,12 @@ interface Props {
 
 function HtmlPlugin({ html }: { html: string }) {
   const [editor] = useLexicalComposerContext();
+  const hasLoaded = useRef(false)
+
   useEffect(() => {
+    if (hasLoaded.current) return   // on ne ré‑injecte jamais deux fois
+    hasLoaded.current = true
+
     editor.update(() => {
       const dom = new DOMParser().parseFromString(html, 'text/html');
       const nodes = $generateNodesFromDOM(editor, dom);
@@ -33,10 +41,11 @@ function HtmlPlugin({ html }: { html: string }) {
 }
 
 export default function RichTextEditor({
-  initialHtml,
-  readOnly,
-  onChange,
-}: Props) {
+  initialHtml = '',
+  readOnly = false,
+  onChange = () => {},
+}: Props = { initialHtml: '', readOnly: false, onChange: () => {} }
+) {
   const initialConfig = {
     namespace: 'rte',
     editable: !readOnly,
@@ -44,6 +53,11 @@ export default function RichTextEditor({
     theme: {
       paragraph: 'mb-2',
     },
+    nodes: [
+      ListNode,
+      ListItemNode,
+      LinkNode,
+    ],
   };
   return (
     <LexicalComposer initialConfig={initialConfig}>
@@ -53,6 +67,7 @@ export default function RichTextEditor({
           <ContentEditable className="border p-2 min-h-[150px] rounded" />
         }
         placeholder={<div>...</div>}
+        ErrorBoundary={LexicalErrorBoundary}
       />
       <HistoryPlugin />
       <ListPlugin />

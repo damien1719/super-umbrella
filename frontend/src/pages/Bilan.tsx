@@ -50,7 +50,7 @@ export default function Bilan() {
     <div className="space-y-4">
       {editing ? (
         <Suspense fallback="Chargement...">
-          <RichTextEditor initialHtml={descriptionHtml} onChange={setHtml} />
+          <RichTextEditor initialHtml={descriptionHtml ?? ''} onChange={setHtml} />
         </Suspense>
       ) : (
         <div
@@ -71,7 +71,7 @@ export default function Bilan() {
           Modifier
         </Button>
       )}
-      <Button variant="secondary" onClick={() => navigate('/')}>
+      <Button variant="secondary" onClick={() => navigate('/bilans')}>
         Retour
       </Button>
     </div>
