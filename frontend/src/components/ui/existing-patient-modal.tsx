@@ -41,7 +41,7 @@ export function ExistingPatientModal({ isOpen, onClose }: ExistingPatientModalPr
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] bg-white">
         <DialogHeader>
           <DialogTitle>Patient existant</DialogTitle>
           <DialogDescription>Choisissez un patient dans la liste.</DialogDescription>
