@@ -22,7 +22,7 @@ describe('App navigation', () => {
       Promise.resolve({ ok: true, json: () => Promise.resolve({ id: '1' }) }),
     );
     render(
-      <MemoryRouter initialEntries={['/bilans']}>
+      <MemoryRouter initialEntries={['/']}>
         <PageProvider>
           <App />
         </PageProvider>
@@ -53,7 +53,7 @@ describe('App navigation', () => {
     ) as unknown as typeof fetch;
 
     render(
-      <MemoryRouter initialEntries={['/bilans']}>
+      <MemoryRouter initialEntries={['/']}>
         <PageProvider>
           <App />
         </PageProvider>
@@ -75,7 +75,7 @@ describe('App navigation', () => {
       Promise.resolve({ ok: true, json: () => Promise.resolve([]) }),
     ) as unknown as typeof fetch;
     render(
-      <MemoryRouter initialEntries={['/bilans']}>
+      <MemoryRouter initialEntries={['/']}>
         <PageProvider>
           <App />
         </PageProvider>

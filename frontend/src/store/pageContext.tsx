@@ -8,7 +8,8 @@ export type Page =
   | 'Agenda'
   | 'Resultats'
   | 'Abonnement'
-  | 'MonCompte';
+  | 'MonCompte'
+  | 'Bibliotheque';
 
 interface PageState {
   currentPage: Page;

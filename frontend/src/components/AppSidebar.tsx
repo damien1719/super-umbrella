@@ -5,6 +5,7 @@ import {
   CreditCard,
   Crown,
   User,
+  Library,
   LogOut,
   LayoutDashboard,
 } from 'lucide-react';
@@ -50,6 +51,12 @@ const items: {
     icon: LayoutDashboard,
   },
   { title: 'Mes Patients', page: 'Patients', path: '/patients', icon: User },
+  {
+    title: 'Bibliothèque',
+    page: 'Bibliotheque',
+    path: '/bibliotheque',
+    icon: Library,
+  },
   {
     title: 'Abonnement',
     page: 'Abonnement',

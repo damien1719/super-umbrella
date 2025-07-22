@@ -10,6 +10,7 @@ import Agenda from './pages/Agenda';
 import Abonnement from './pages/Abonnement';
 import MonCompteV2 from './pages/MonCompte';
 import Patients from './pages/Patients';
+import Bibliotheque from './pages/Bibliothèque';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
 import { usePageStore } from './store/pageContext';
@@ -126,6 +127,7 @@ export default function App() {
         <Route path="/patients" element={<Patients />} />
         <Route path="/biens/:id/dashboard" element={<PropertyDashboard />} />
         <Route path="/agenda" element={<Agenda />} />
+        <Route path="/bibliotheque" element={<Bibliotheque />} />
         <Route path="/abonnement" element={<Abonnement />} />
         <Route path="/compte" element={<MonCompteV2 />} />
       </Route>
