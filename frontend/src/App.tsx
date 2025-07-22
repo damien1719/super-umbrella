@@ -104,7 +104,7 @@ function BilanLayout() {
   }
 
   return (
-    <main className="p-4">
+    <main className="">
       <Outlet />
     </main>
   );
@@ -122,7 +122,7 @@ export default function App() {
         <Route path="/bilan/:bilanId" element={<Bilan />} />
       </Route>
       <Route element={<ProtectedLayout />}>
-        <Route path="/bilans" element={<MesBilans />} />
+        <Route path="/" element={<MesBilans />} />
         <Route path="/patients" element={<Patients />} />
         <Route path="/biens/:id/dashboard" element={<PropertyDashboard />} />
         <Route path="/agenda" element={<Agenda />} />

@@ -34,23 +34,23 @@ export function ToolbarPlugin() {
   );
 
   return (
-    <div className="mb-2 space-x-2">
-      <Button type="button" onClick={() => format('bold')}>
+    <div className="mb-2 space-x-2 bg-white rounded border border-gray-300 p-2">
+      <Button type="button" onClick={() => format('bold')} variant="secondary">
         B
       </Button>
-      <Button type="button" onClick={() => format('italic')}>
+      <Button type="button" onClick={() => format('italic')} variant="secondary">
         I
       </Button>
-      <Button type="button" onClick={() => format('underline')}>
+      <Button type="button" onClick={() => format('underline')} variant="secondary">
         U
       </Button>
-      <Button type="button" onClick={() => insertList(false)}>
+      <Button type="button" onClick={() => insertList(false)} variant="secondary">
         •
       </Button>
-      <Button type="button" onClick={() => insertList(true)}>
+      <Button type="button" onClick={() => insertList(true)} variant="secondary">
         1.
       </Button>
-      <Button type="button" onClick={insertLink}>
+      <Button type="button" onClick={insertLink} variant="secondary">
         Link
       </Button>
     </div>

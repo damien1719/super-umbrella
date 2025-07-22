@@ -60,27 +60,35 @@ export default function RichTextEditor({
     ],
   };
   return (
-    <LexicalComposer initialConfig={initialConfig}>
-      {!readOnly && <ToolbarPlugin />}
-      <RichTextPlugin
-        contentEditable={
-          <ContentEditable className="border p-2 min-h-[150px] rounded" />
-        }
-        placeholder={<div>...</div>}
-        ErrorBoundary={LexicalErrorBoundary}
-      />
-      <HistoryPlugin />
-      <ListPlugin />
-      <LinkPlugin />
-      <OnChangePlugin
-        onChange={(state, editor) => {
-          state.read(() => {
-            const html = DOMPurify.sanitize($generateHtmlFromNodes(editor));
-            onChange?.(html);
-          });
-        }}
-      />
-      <HtmlPlugin html={initialHtml} />
-    </LexicalComposer>
+  <LexicalComposer initialConfig={initialConfig}>
+      {!readOnly && (
+        <ToolbarPlugin className="bg-white shadow-sm px-4 py-2 rounded-t" />
+      )}
+      <div className="flex flex-col h-screen bg-gray-100 border border-gray-300 p-8"> 
+      <div className="flex-1 overflow-auto">
+        <div className="h-full w-full bg-white border border-gray-300 rounded shadow p-4"> 
+          <RichTextPlugin
+            contentEditable={
+              <ContentEditable className="h-full outline-none w-full" />
+            }
+            placeholder={<div className="text-gray-400">…</div>}
+            ErrorBoundary={LexicalErrorBoundary}
+          />
+          <HistoryPlugin />
+          <ListPlugin />
+          <LinkPlugin />
+          <OnChangePlugin
+            onChange={(state, editor) => {
+              state.read(() => {
+                const html = DOMPurify.sanitize($generateHtmlFromNodes(editor));
+                onChange?.(html);
+              });
+            }}
+          />
+          <HtmlPlugin html={initialHtml} />
+        </div>
+      </div>
+    </div>
+  </LexicalComposer>
   );
 }

@@ -46,7 +46,7 @@ const items: {
   {
     title: 'Mes Bilans',
     page: 'MesBilans',
-    path: '/bilans',
+    path: '/',
     icon: LayoutDashboard,
   },
   { title: 'Mes Patients', page: 'Patients', path: '/patients', icon: User },

@@ -18,15 +18,17 @@ export default function Bilan() {
   const navigate = useNavigate();
   const token = useAuth((s) => s.token);
   const [bilan, setBilan] = useState<BilanData | null>(null);
-  const [editing, setEditing] = useState(false);
   const { descriptionHtml, setHtml, reset } = useBilanDraft();
 
   useEffect(() => {
     if (!bilanId) return;
     apiFetch<BilanData>(`/api/v1/bilans/${bilanId}`, {
       headers: { Authorization: `Bearer ${token}` },
-    }).then(setBilan);
-  }, [bilanId, token]);
+    }).then((data) => {
+      setBilan(data);
+      setHtml(data.descriptionHtml ?? '');
+    });
+  }, [bilanId, token, setHtml]);
 
   const save = async () => {
     if (!bilanId) return;
@@ -41,39 +43,36 @@ export default function Bilan() {
     });
     setBilan(res);
     reset();
-    setEditing(false);
   };
 
   if (!bilan) return <div>Chargement...</div>;
 
   return (
-    <div className="space-y-4">
-      {editing ? (
-        <Suspense fallback="Chargement...">
-          <RichTextEditor initialHtml={descriptionHtml ?? ''} onChange={setHtml} />
-        </Suspense>
-      ) : (
-        <div
-          dangerouslySetInnerHTML={{
-            __html: DOMPurify.sanitize(bilan.descriptionHtml ?? ''),
-          }}
-        />
-      )}
-      {editing ? (
-        <Button onClick={save}>Enregistrer</Button>
-      ) : (
+    <div className="flex flex-col h-full">
+      <div className="flex items-center bg-white border border-gray-300 p-4">
         <Button
-          onClick={() => {
-            setEditing(true);
-            setHtml(bilan.descriptionHtml ?? '');
-          }}
+          variant="ghost"
+          onClick={() => navigate(-1)}
+          className="px-2 py-1"
         >
-          Modifier
+          Retour
         </Button>
-      )}
-      <Button variant="secondary" onClick={() => navigate('/bilans')}>
-        Retour
-      </Button>
+        <h1 className="flex-1 text-center text-lg font-semibold">
+          Mon Bilan
+        </h1>
+      </div>
+
+      <div className="flex-1 overflow-auto space-y-4 p-4">
+        <Suspense fallback="Chargement...">
+          <RichTextEditor
+            initialHtml={descriptionHtml ?? ''}
+            onChange={setHtml}
+          />
+        </Suspense>
+        <div className="flex space-x-2">
+          <Button onClick={save}>Enregistrer</Button>
+        </div>
+      </div>
     </div>
   );
 }
