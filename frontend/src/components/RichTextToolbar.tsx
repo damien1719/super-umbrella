@@ -4,10 +4,7 @@ import {
   INSERT_UNORDERED_LIST_COMMAND,
   INSERT_ORDERED_LIST_COMMAND,
 } from '@lexical/list';
-import {
-  TOGGLE_LINK_COMMAND,
-  $toggleLink
-} from '@lexical/link';
+import { TOGGLE_LINK_COMMAND } from '@lexical/link';
 import { useCallback } from 'react';
 import { Button } from './ui/button';
 

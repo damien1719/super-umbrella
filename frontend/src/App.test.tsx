@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import type { User } from '@supabase/supabase-js';
 import App from './App';
 import { PageProvider } from './store/pageContext';
-import { BrowserRouter, MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import { useAuth } from './store/auth';
 import {
   useUserProfileStore,
@@ -22,7 +22,7 @@ describe('App navigation', () => {
       Promise.resolve({ ok: true, json: () => Promise.resolve({ id: '1' }) }),
     );
     render(
-      <MemoryRouter>
+      <MemoryRouter initialEntries={['/bilans']}>
         <PageProvider>
           <App />
         </PageProvider>
@@ -53,11 +53,11 @@ describe('App navigation', () => {
     ) as unknown as typeof fetch;
 
     render(
-      <BrowserRouter>
+      <MemoryRouter initialEntries={['/bilans']}>
         <PageProvider>
           <App />
         </PageProvider>
-      </BrowserRouter>,
+      </MemoryRouter>,
     );
 
     await waitFor(() => expect(fetchProfileMock).toHaveBeenCalled());
@@ -75,13 +75,13 @@ describe('App navigation', () => {
       Promise.resolve({ ok: true, json: () => Promise.resolve([]) }),
     ) as unknown as typeof fetch;
     render(
-      <BrowserRouter>
+      <MemoryRouter initialEntries={['/bilans']}>
         <PageProvider>
           <App />
         </PageProvider>
-      </BrowserRouter>,
+      </MemoryRouter>,
     );
-    const btn = await screen.findByRole('button', { name: /mes\s?biens/i });
+    const btn = await screen.findByRole('button', { name: /mes\s?bilans/i });
     fireEvent.click(btn);
     expect(btn).toHaveAttribute('data-active', 'true');
   });
