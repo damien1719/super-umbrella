@@ -1,9 +1,12 @@
 import request from "supertest";
 import app from "../src/app";
 import { BilanService } from "../src/services/bilan.service";
+import { generateText } from "../src/services/ai/generate.service";
+import { promptConfigs } from "../src/services/ai/prompts/promptconfig";
 import { sanitizeHtml } from "../src/utils/sanitize";
 
 jest.mock("../src/services/bilan.service");
+jest.mock("../src/services/ai/generate.service");
 
 interface BilanStub {
   id: string;
@@ -11,6 +14,7 @@ interface BilanStub {
 }
 
 const mockedService = BilanService as jest.Mocked<typeof BilanService>;
+const mockedGenerate = generateText as jest.MockedFunction<typeof generateText>;
 
 describe("GET /api/v1/bilans", () => {
   it("returns bilans from service", async () => {
@@ -44,6 +48,25 @@ describe("PUT /api/v1/bilans/:id", () => {
     expect(res.status).toBe(200);
     expect(mockedService.update).toHaveBeenCalledWith("demo-user", id, {
       descriptionHtml: expected,
+    });
+  });
+});
+
+describe("POST /api/v1/bilans/:id/generate", () => {
+  it("calls ai service with prompt params", async () => {
+    mockedGenerate.mockResolvedValueOnce("texte");
+    const id = "11111111-1111-1111-1111-111111111111";
+    const body = { section: "anamnesis", answers: { foo: "bar" } };
+
+    const res = await request(app)
+      .post(`/api/v1/bilans/${id}/generate`)
+      .send(body);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ text: "texte" });
+    expect(mockedGenerate).toHaveBeenCalledWith({
+      instructions: promptConfigs.anamnesis.instructions,
+      userContent: JSON.stringify(body.answers),
     });
   });
 });

@@ -7,6 +7,8 @@ import { SectionCard, SectionInfo } from './bilan/SectionCard';
 import type { TrameOption, TrameExample } from './bilan/TrameSelector';
 import type { Answers, Question } from '@/types/question';
 import { FileText, Eye, Brain, Activity } from 'lucide-react';
+import { apiFetch } from '@/utils/api';
+import { useAuth } from '@/store/auth';
 
 const kindMap: Record<string, string> = {
   anamnese: 'anamnese',
@@ -70,9 +72,14 @@ const useTrames = () => {
   }, [items]);
 };
 
-export default function AiRightPanel() {
+interface AiRightPanelProps {
+  bilanId: string;
+}
+
+export default function AiRightPanel({ bilanId }: AiRightPanelProps) {
   const trames = useTrames();
   const { items: examples, fetchAll } = useSectionExampleStore();
+  const token = useAuth((s) => s.token);
 
   useEffect(() => {
     fetchAll().catch(() => {});
@@ -133,10 +140,20 @@ export default function AiRightPanel() {
   const handleGenerate = async (section: SectionInfo) => {
     setIsGenerating(true);
     setSelectedSection(section.id);
-    await new Promise((r) => setTimeout(r, 500));
-    console.log('generate section', section.id, answers[section.id]);
-    setIsGenerating(false);
-    setSelectedSection(null);
+    try {
+      const body = {
+        section: kindMap[section.id],
+        answers: answers[section.id] || {},
+      };
+      await apiFetch<{ text: string }>(`/api/v1/bilans/${bilanId}/generate`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: JSON.stringify(body),
+      });
+    } finally {
+      setIsGenerating(false);
+      setSelectedSection(null);
+    }
   };
 
   return (

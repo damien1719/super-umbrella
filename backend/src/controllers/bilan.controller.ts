@@ -1,6 +1,8 @@
 import type { Request, Response, NextFunction } from "express";
 import { BilanService } from "../services/bilan.service";
 import { sanitizeHtml } from "../utils/sanitize";
+import { generateText } from "../services/ai/generate.service";
+import { promptConfigs } from "../services/ai/prompts/promptconfig";
 
 export const BilanController = {
   async create(req: Request, res: Response, next: NextFunction) {
@@ -45,6 +47,25 @@ export const BilanController = {
         req.body,
       );
       res.json(bilan);
+    } catch (e) {
+      next(e);
+    }
+  },
+
+  async generate(req: Request, res: Response, next: NextFunction) {
+    try {
+      const section = req.body.section as keyof typeof promptConfigs;
+      const answers = req.body.answers ?? {};
+      const cfg = promptConfigs[section];
+      if (!cfg) {
+        res.status(400).json({ error: 'invalid section' });
+        return;
+      }
+      const text = await generateText({
+        instructions: cfg.instructions,
+        userContent: JSON.stringify(answers),
+      });
+      res.json({ text });
     } catch (e) {
       next(e);
     }
