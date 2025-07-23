@@ -1,36 +1,52 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, FileText, ClipboardList, Eye, Brain } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Plus, FileText, ClipboardList, Eye, Brain } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useSectionStore } from '@/store/sections';
 
 const categories = [
-  { id: "anamnese", title: "Anamnèse", icon: FileText },
-  { id: "tests_standards", title: "Tests standards", icon: ClipboardList },
-  { id: "observations", title: "Observations", icon: Eye },
-  { id: "profil_sensoriel", title: "Profil sensoriel", icon: Brain },
-]
+  { id: 'anamnese', title: 'Anamnèse', icon: FileText },
+  { id: 'tests_standards', title: 'Tests standards', icon: ClipboardList },
+  { id: 'observations', title: 'Observations', icon: Eye },
+  { id: 'profil_sensoriel', title: 'Profil sensoriel', icon: Brain },
+];
 
 export default function CreerTrameModal() {
-  const [open, setOpen] = useState(false)
-  const [nomTrame, setNomTrame] = useState("")
-  const [categorieSelectionnee, setCategorieSelectionnee] = useState("")
-  const router = useRouter()
+  const [open, setOpen] = useState(false);
+  const [nomTrame, setNomTrame] = useState('');
+  const [categorieSelectionnee, setCategorieSelectionnee] = useState('');
+  const navigate = useNavigate();
+  const createSection = useSectionStore((s) => s.create);
 
-  const handleCreerTrame = () => {
-    if (nomTrame && categorieSelectionnee) {
-      // Rediriger vers la page de création avec les paramètres
-      router.push(`/creation-trame?nom=${encodeURIComponent(nomTrame)}&categorie=${categorieSelectionnee}`)
-      setOpen(false)
-      setNomTrame("")
-      setCategorieSelectionnee("")
-    }
-  }
+  const handleCreerTrame = async () => {
+    if (!nomTrame || !categorieSelectionnee) return;
+    const section = await createSection({
+      title: nomTrame,
+      kind: categorieSelectionnee,
+    });
+    navigate(`/creation-trame/${section.id}`);
+    setOpen(false);
+    setNomTrame('');
+    setCategorieSelectionnee('');
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -57,13 +73,16 @@ export default function CreerTrameModal() {
 
           <div className="space-y-2">
             <Label htmlFor="categorie">Catégorie</Label>
-            <Select value={categorieSelectionnee} onValueChange={setCategorieSelectionnee}>
+            <Select
+              value={categorieSelectionnee}
+              onValueChange={setCategorieSelectionnee}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Choisir une catégorie" />
               </SelectTrigger>
               <SelectContent>
                 {categories.map((category) => {
-                  const IconComponent = category.icon
+                  const IconComponent = category.icon;
                   return (
                     <SelectItem key={category.id} value={category.id}>
                       <div className="flex items-center gap-2">
@@ -71,7 +90,7 @@ export default function CreerTrameModal() {
                         {category.title}
                       </div>
                     </SelectItem>
-                  )
+                  );
                 })}
               </SelectContent>
             </Select>
@@ -92,5 +111,5 @@ export default function CreerTrameModal() {
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
