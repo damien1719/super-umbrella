@@ -1,5 +1,5 @@
 export const promptConfigs = {
-    anamnesis: {
+    anamnese: {
       title: "Anamnèse",
       instructions: `
   ### BLOC INSTRUCTIONS – ANAMNÈSE
@@ -9,7 +9,7 @@ export const promptConfigs = {
   4. Cite la source pour tout propos rapporté (“selon la mère”, “d’après l’enseignante”).
       `.trim(),
     },
-    sensoryProfile: {
+    profil_sensoriel: {
       title: "Profil sensoriel",
       instructions: `
   ### BLOC INSTRUCTIONS – PROFIL SENSORIEL
@@ -29,8 +29,8 @@ export const promptConfigs = {
   4. Utilise un ton descriptif, nuancé et factuel.
       `.trim(),
     },
-    testStandards: {
-      title: "Test‑standards",
+    tests_standards: {
+      title: "Tests standards",
       instructions: `
   ### BLOC INSTRUCTIONS – TEST‑STANDARDS
   1. Vérifie la conformité de chaque critère par rapport aux standards HAS et référentiels français.
