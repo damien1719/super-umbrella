@@ -12,7 +12,7 @@ module.exports = [
     ignores: [
       'node_modules/',
       'dist/',
-      'prettier.config.ts',
+      'prettier.config.cjs',
       'vite.config.ts'
     ]
   },

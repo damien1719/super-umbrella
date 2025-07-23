@@ -9,6 +9,7 @@ module.exports = [
       'node_modules/',
       'dist/',
       'coverage/',
+      'prisma/**',
       'prettier.config.ts',
       'jest.config.ts'
     ]
