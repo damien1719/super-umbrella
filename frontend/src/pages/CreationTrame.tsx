@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSectionStore } from '../store/sections';
+import type { Question } from '../types/question';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,15 +24,6 @@ import {
   CheckSquare,
   BarChart3,
 } from 'lucide-react';
-
-interface Question {
-  id: string;
-  type: 'notes' | 'choix-multiple' | 'echelle';
-  titre: string;
-  contenu?: string;
-  options?: string[];
-  echelle?: { min: number; max: number; labels?: { min: string; max: string } };
-}
 
 const typesQuestions = [
   {
