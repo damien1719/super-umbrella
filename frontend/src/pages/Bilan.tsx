@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { useEffect, useState, Suspense, lazy } from 'react';
+import { useEffect, useState, Suspense, lazy, useRef } from 'react';
 import DOMPurify from 'dompurify';
 import { Button } from '../components/ui/button';
 import { apiFetch } from '../utils/api';
@@ -14,12 +14,15 @@ interface BilanData {
   descriptionHtml: string | null;
 }
 
+import type { RichTextEditorHandle } from '../components/RichTextEditor';
+
 export default function Bilan() {
   const { bilanId } = useParams<{ bilanId: string }>();
   const navigate = useNavigate();
   const token = useAuth((s) => s.token);
   const [bilan, setBilan] = useState<BilanData | null>(null);
   const { descriptionHtml, setHtml, reset } = useBilanDraft();
+  const editorRef = useRef<RichTextEditorHandle>(null);
 
   useEffect(() => {
     if (!bilanId) return;
@@ -66,6 +69,7 @@ export default function Bilan() {
           <div className="flex-1 overflow-auto space-y-4 p-4">
             <Suspense fallback="Chargement...">
               <RichTextEditor
+                ref={editorRef}
                 initialHtml={descriptionHtml ?? ''}
                 onChange={setHtml}
               />
@@ -76,7 +80,12 @@ export default function Bilan() {
           </div>
           <div className="block w-96 border-l overflow-auto">
             <Suspense fallback="Chargement...">
-              {bilanId && <AiRightPanel bilanId={bilanId} />}
+              {bilanId && (
+                <AiRightPanel
+                  bilanId={bilanId}
+                  onInsertText={(text) => editorRef.current?.insertHtml(text)}
+                />
+              )}
             </Suspense>
           </div>
         </div>

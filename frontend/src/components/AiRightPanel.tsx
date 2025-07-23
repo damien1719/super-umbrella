@@ -74,9 +74,13 @@ const useTrames = () => {
 
 interface AiRightPanelProps {
   bilanId: string;
+  onInsertText: (text: string) => void;
 }
 
-export default function AiRightPanel({ bilanId }: AiRightPanelProps) {
+export default function AiRightPanel({
+  bilanId,
+  onInsertText,
+}: AiRightPanelProps) {
   const trames = useTrames();
   const { items: examples, fetchAll } = useSectionExampleStore();
   const token = useAuth((s) => s.token);
@@ -145,11 +149,15 @@ export default function AiRightPanel({ bilanId }: AiRightPanelProps) {
         section: kindMap[section.id],
         answers: answers[section.id] || {},
       };
-      await apiFetch<{ text: string }>(`/api/v1/bilans/${bilanId}/generate`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: JSON.stringify(body),
-      });
+      const res = await apiFetch<{ text: string }>(
+        `/api/v1/bilans/${bilanId}/generate`,
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: JSON.stringify(body),
+        },
+      );
+      onInsertText(res.text);
     } finally {
       setIsGenerating(false);
       setSelectedSection(null);
