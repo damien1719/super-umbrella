@@ -7,6 +7,7 @@ import { useAuth } from '../store/auth';
 import { useBilanDraft } from '../store/bilanDraft';
 
 const RichTextEditor = lazy(() => import('../components/RichTextEditor'));
+const AiRightPanel = lazy(() => import('../components/AiRightPanel'));
 
 interface BilanData {
   id: string;
@@ -57,20 +58,27 @@ export default function Bilan() {
         >
           Retour
         </Button>
-        <h1 className="flex-1 text-center text-lg font-semibold">
-          Mon Bilan
-        </h1>
+        <h1 className="flex-1 text-center text-lg font-semibold">Mon Bilan</h1>
       </div>
 
-      <div className="flex-1 overflow-auto space-y-4 p-4">
-        <Suspense fallback="Chargement...">
-          <RichTextEditor
-            initialHtml={descriptionHtml ?? ''}
-            onChange={setHtml}
-          />
-        </Suspense>
-        <div className="flex space-x-2">
-          <Button onClick={save}>Enregistrer</Button>
+      <div className="flex-1 overflow-hidden">
+        <div className="flex h-full">
+          <div className="flex-1 overflow-auto space-y-4 p-4">
+            <Suspense fallback="Chargement...">
+              <RichTextEditor
+                initialHtml={descriptionHtml ?? ''}
+                onChange={setHtml}
+              />
+            </Suspense>
+            <div className="flex space-x-2">
+              <Button onClick={save}>Enregistrer</Button>
+            </div>
+          </div>
+          <div className="hidden xl:block w-96 border-l overflow-auto">
+            <Suspense fallback="Chargement...">
+              <AiRightPanel />
+            </Suspense>
+          </div>
         </div>
       </div>
     </div>

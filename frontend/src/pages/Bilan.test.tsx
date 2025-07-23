@@ -9,10 +9,13 @@ vi.stubGlobal('fetch', vi.fn());
 describe('Bilan page', () => {
   it('fetches and displays bilan', async () => {
     useAuth.setState({ token: 't' } as Partial<AuthState>);
-    (fetch as unknown as vi.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve({ id: '1', descriptionHtml: '<b>txt</b>' }),
-    });
+    (fetch as unknown as vi.Mock)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ id: '1', descriptionHtml: '<b>txt</b>' }),
+      })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([]) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([]) });
 
     render(
       <MemoryRouter initialEntries={['/bilan/1']}>
@@ -26,5 +29,6 @@ describe('Bilan page', () => {
     expect(
       screen.getByRole('button', { name: /enregistrer/i }),
     ).toBeInTheDocument();
+    expect(await screen.findByText(/assistant ia/i)).toBeInTheDocument();
   });
 });
