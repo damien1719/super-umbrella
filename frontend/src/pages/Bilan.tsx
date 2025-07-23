@@ -74,7 +74,7 @@ export default function Bilan() {
               <Button onClick={save}>Enregistrer</Button>
             </div>
           </div>
-          <div className="hidden xl:block w-96 border-l overflow-auto">
+          <div className="block w-96 border-l overflow-auto">
             <Suspense fallback="Chargement...">
               <AiRightPanel />
             </Suspense>
