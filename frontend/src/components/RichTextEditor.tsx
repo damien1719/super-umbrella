@@ -11,9 +11,13 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { ToolbarPlugin } from './RichTextToolbar';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { LinkNode } from '@lexical/link';
-import {ListNode,ListItemNode} from '@lexical/list';
-import { useRef, useEffect } from 'react'
+import { ListNode, ListItemNode } from '@lexical/list';
+import { useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
 import DOMPurify from 'dompurify';
+
+export interface RichTextEditorHandle {
+  insertHtml: (html: string) => void;
+}
 
 interface Props {
   initialHtml: string;
@@ -23,11 +27,11 @@ interface Props {
 
 function HtmlPlugin({ html }: { html: string }) {
   const [editor] = useLexicalComposerContext();
-  const hasLoaded = useRef(false)
+  const hasLoaded = useRef(false);
 
   useEffect(() => {
-    if (hasLoaded.current) return   // on ne ré‑injecte jamais deux fois
-    hasLoaded.current = true
+    if (hasLoaded.current) return; // on ne ré‑injecte jamais deux fois
+    hasLoaded.current = true;
 
     editor.update(() => {
       const dom = new DOMParser().parseFromString(html, 'text/html');
@@ -40,11 +44,37 @@ function HtmlPlugin({ html }: { html: string }) {
   return null;
 }
 
-export default function RichTextEditor({
-  initialHtml = '',
-  readOnly = false,
-  onChange = () => {},
-}: Props = { initialHtml: '', readOnly: false, onChange: () => {} }
+const ImperativeHandlePlugin = forwardRef<
+  RichTextEditorHandle,
+  Record<string, never>
+>(function ImperativeHandlePlugin(_, ref) {
+  const [editor] = useLexicalComposerContext();
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      insertHtml(html: string) {
+        editor.update(() => {
+          const dom = new DOMParser().parseFromString(html, 'text/html');
+          const nodes = $generateNodesFromDOM(editor, dom);
+          const root = $getRoot();
+          root.append(...nodes);
+        });
+      },
+    }),
+    [editor],
+  );
+
+  return null;
+});
+
+function EditorCore(
+  { initialHtml = '', readOnly = false, onChange = () => {} }: Props = {
+    initialHtml: '',
+    readOnly: false,
+    onChange: () => {},
+  },
+  ref: React.ForwardedRef<RichTextEditorHandle>,
 ) {
   const initialConfig = {
     namespace: 'rte',
@@ -53,42 +83,45 @@ export default function RichTextEditor({
     theme: {
       paragraph: 'mb-2',
     },
-    nodes: [
-      ListNode,
-      ListItemNode,
-      LinkNode,
-    ],
+    nodes: [ListNode, ListItemNode, LinkNode],
   };
   return (
-  <LexicalComposer initialConfig={initialConfig}>
+    <LexicalComposer initialConfig={initialConfig}>
       {!readOnly && (
         <ToolbarPlugin className="bg-white shadow-sm px-4 py-2 rounded-t" />
       )}
-      <div className="flex flex-col h-screen bg-gray-100 border border-gray-300 p-8"> 
-      <div className="flex-1 overflow-auto">
-        <div className="h-full w-full bg-white border border-gray-300 rounded shadow p-4"> 
-          <RichTextPlugin
-            contentEditable={
-              <ContentEditable className="h-full outline-none w-full" />
-            }
-            placeholder={<div className="text-gray-400">…</div>}
-            ErrorBoundary={LexicalErrorBoundary}
-          />
-          <HistoryPlugin />
-          <ListPlugin />
-          <LinkPlugin />
-          <OnChangePlugin
-            onChange={(state, editor) => {
-              state.read(() => {
-                const html = DOMPurify.sanitize($generateHtmlFromNodes(editor));
-                onChange?.(html);
-              });
-            }}
-          />
-          <HtmlPlugin html={initialHtml} />
+      <div className="flex flex-col h-screen bg-gray-100 border border-gray-300 p-8">
+        <div className="flex-1 overflow-auto">
+          <div className="h-full w-full bg-white border border-gray-300 rounded shadow p-4">
+            <RichTextPlugin
+              contentEditable={
+                <ContentEditable className="h-full outline-none w-full" />
+              }
+              placeholder={<div className="text-gray-400">…</div>}
+              ErrorBoundary={LexicalErrorBoundary}
+            />
+            <HistoryPlugin />
+            <ListPlugin />
+            <LinkPlugin />
+            <OnChangePlugin
+              onChange={(state, editor) => {
+                state.read(() => {
+                  const html = DOMPurify.sanitize(
+                    $generateHtmlFromNodes(editor),
+                  );
+                  onChange?.(html);
+                });
+              }}
+            />
+            <HtmlPlugin html={initialHtml} />
+            <ImperativeHandlePlugin ref={ref} />
+          </div>
         </div>
       </div>
-    </div>
-  </LexicalComposer>
+    </LexicalComposer>
   );
 }
+
+const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(EditorCore);
+
+export default RichTextEditor;
