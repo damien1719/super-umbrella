@@ -76,7 +76,7 @@ export default function Bilan() {
           </div>
           <div className="block w-96 border-l overflow-auto">
             <Suspense fallback="Chargement...">
-              <AiRightPanel />
+              {bilanId && <AiRightPanel bilanId={bilanId} />}
             </Suspense>
           </div>
         </div>

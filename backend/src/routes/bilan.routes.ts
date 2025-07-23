@@ -23,3 +23,9 @@ bilanRouter
     BilanController.update,
   )
   .delete(validateParams(bilanIdParam), BilanController.remove);
+
+bilanRouter.post(
+  '/:bilanId/generate',
+  validateParams(bilanIdParam),
+  BilanController.generate,
+);
