@@ -75,4 +75,14 @@ export const useSectionStore = create<SectionState>((set) => ({
     }));
     return section;
   },
+
+    async remove(id) {
+      const token = useAuth.getState().token;
+      if (!token) throw new Error('Non authentifié');
+      await apiFetch(`${endpoint}/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      set((state) => ({ items: state.items.filter((s) => s.id !== id) }));
+  },
 }));

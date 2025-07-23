@@ -22,4 +22,22 @@ describe('useSectionStore', () => {
     expect(section.id).toBe('1');
     expect(useSectionStore.getState().items[0].id).toBe('1');
   });
+
+  it('removes a section with remove()', async () => {
+    useAuth.setState((s) => ({ ...s, token: 'tok' }) as AuthState);
+    useSectionStore.setState({
+      items: [{ id: '1', title: 'Sec', kind: 'anamnese' }],
+    });
+    (fetch as unknown as vi.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({}),
+    });
+    await useSectionStore.getState().remove('1');
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/v1/sections/1',
+      expect.any(Object),
+    );
+    expect(useSectionStore.getState().items).toHaveLength(0);
+  });
+
 });
