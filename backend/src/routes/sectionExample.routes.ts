@@ -18,7 +18,6 @@ sectionExampleRouter
   .route('/:sectionExampleId')
   .get(validateParams(sectionExampleIdParam), SectionExampleController.get)
   .put(
-    validateParams(sectionExampleIdParam),
     validateBody(updateSectionExampleSchema),
     SectionExampleController.update,
   )
