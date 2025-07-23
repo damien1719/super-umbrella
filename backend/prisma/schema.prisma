@@ -114,9 +114,10 @@ model BilanType {
 }
 
 enum SectionKind {
-  NARRATIVE      // Anamnèse, Observations cliniques…
-  STANDARD_TEST  // NPMOT, MABC‑2, etc.
-  SENSOR_PROFILE // Ex : Dunn, Sensory Processing Measure
+  anamnese      // Anamnèse, Observations cliniques…
+  tests_standards  // NPMOT, MABC‑2, etc.
+  observations // Ex : Dunn, Sensory Processing Measure
+  profil_sensoriel //
   CUSTOM_FORM    // mix perso
 
   @@schema("psychomot")

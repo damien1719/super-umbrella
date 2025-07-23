@@ -1,5 +1,9 @@
+'use client';
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { FileText, ClipboardList, Eye, Brain } from "lucide-react"
+import CreerTrameModal from "@/components/ui/creer-trame-modale"
+
 
 export default function Bibliotheque() {
   const categories = [
@@ -15,7 +19,7 @@ export default function Bibliotheque() {
       ],
     },
     {
-      id: "tests-standards",
+      id: "tests_standards",
       title: "Tests standards",
       icon: ClipboardList,
       sections: [
@@ -38,7 +42,7 @@ export default function Bibliotheque() {
       ],
     },
     {
-      id: "profil-sensoriel",
+      id: "profil_sensoriel",
       title: "Profil sensoriel",
       icon: Brain,
       sections: [
@@ -54,40 +58,45 @@ export default function Bibliotheque() {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Bibliothèque</h1>
-          <p className="text-gray-600">Vos sections pour composer le bilan psychomoteur</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Bibliothèque</h1>
+              <p className="text-gray-600">Vos sections pour composer le bilan psychomoteur</p>
+            </div>
+            <CreerTrameModal />
         </div>
+      </div>  
 
-        <div className="space-y-8">
-          {categories.map((category) => {
-            const IconComponent = category.icon
-            return (
-              <div key={category.id} className="bg-white rounded-lg shadow-sm border p-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <IconComponent className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <h2 className="text-xl font-semibold text-gray-900">{category.title}</h2>
-                  <span className="text-sm text-gray-500">({category.sections.length} sections)</span>
+      <div className="space-y-8">
+        {categories.map((category) => {
+          const IconComponent = category.icon
+          return (
+            <div key={category.id} className="bg-white rounded-lg shadow-sm border p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <IconComponent className="h-6 w-6 text-blue-600" />
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {category.sections.map((trame) => (
-                    <Card key={trame.id} className="hover:shadow-md transition-shadow cursor-pointer">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base font-medium text-gray-900">{trame.title}</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-gray-600">{trame.description}</p>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                <h2 className="text-xl font-semibold text-gray-900">{category.title}</h2>
+                <span className="text-sm text-gray-500">({category.sections.length} sections)</span>
               </div>
-            )
-          })}
-        </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {category.sections.map((trame) => (
+                  <Card key={trame.id} className="hover:shadow-md transition-shadow cursor-pointer">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base font-medium text-gray-900">{trame.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-gray-600">{trame.description}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )
+        })}
       </div>
+    </div>
     </div>
   )
 }

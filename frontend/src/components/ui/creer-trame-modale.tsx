@@ -11,9 +11,9 @@ import { useRouter } from "next/navigation"
 
 const categories = [
   { id: "anamnese", title: "Anamnèse", icon: FileText },
-  { id: "tests-standards", title: "Tests standards", icon: ClipboardList },
+  { id: "tests_standards", title: "Tests standards", icon: ClipboardList },
   { id: "observations", title: "Observations", icon: Eye },
-  { id: "profil-sensoriel", title: "Profil sensoriel", icon: Brain },
+  { id: "profil_sensoriel", title: "Profil sensoriel", icon: Brain },
 ]
 
 export default function CreerTrameModal() {
