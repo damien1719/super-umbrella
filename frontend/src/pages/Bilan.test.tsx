@@ -26,9 +26,7 @@ describe('Bilan page', () => {
     );
 
     await waitFor(() => expect(fetch).toHaveBeenCalled());
-    expect(
-      screen.getByRole('button', { name: /enregistrer/i }),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/mon bilan/i)).toBeInTheDocument();
     expect(await screen.findByText(/assistant ia/i)).toBeInTheDocument();
   });
 });

@@ -16,6 +16,10 @@ export const BilanService = {
     return db.bilan.findMany({
       where: { patient: { profile: { userId } } },
       orderBy: { createdAt: 'desc' },
+      include: {
+        patient: { select: { firstName: true, lastName: true } },
+        bilanType: { select: { name: true } },
+      },
     });
   },
 

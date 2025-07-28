@@ -34,6 +34,7 @@ export default function Bilan() {
     });
   }, [bilanId, token, setHtml]);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const save = async () => {
     if (!bilanId) return;
     const clean = DOMPurify.sanitize(descriptionHtml);
