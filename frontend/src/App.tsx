@@ -2,7 +2,7 @@ import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './store/auth';
 import { useRequireAuth } from './hooks/useRequireAuth';
 import { useEffect } from 'react';
-import BilanV2 from './pages/BilanV2';
+import BilanV2 from './pages/Bilan';
 import PropertyDashboard from './pages/PropertyDashboard';
 import NewLocation from './pages/NewLocation';
 import Bilan from './pages/Bilan';
