@@ -6,7 +6,13 @@ import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { ListPlugin } from '@lexical/react/LexicalListPlugin';
 import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from '@lexical/html';
-import { $getRoot, $getSelection, $insertNodes, $createParagraphNode, LexicalNode } from 'lexical';
+import {
+  $getRoot,
+  $getSelection,
+  $insertNodes,
+  $createParagraphNode,
+  LexicalNode,
+} from 'lexical';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { ToolbarPlugin } from './RichTextToolbar';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
@@ -14,6 +20,7 @@ import { LinkNode } from '@lexical/link';
 import { ListNode, ListItemNode } from '@lexical/list';
 import { useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
 import DOMPurify from 'dompurify';
+import { marked } from 'marked';
 
 export interface RichTextEditorHandle {
   insertHtml: (html: string) => void;
@@ -56,31 +63,32 @@ const ImperativeHandlePlugin = forwardRef<
       insertHtml(html: string) {
         editor.update(() => {
           const parser = new DOMParser();
+          const mdHtml = marked.parse(html);
           const dom = parser.parseFromString(
-            `<div>${html}</div>`,
-            'text/html'
+            `<div>${mdHtml}</div>`,
+            'text/html',
           );
 
           let nodes = $generateNodesFromDOM(editor, dom);
 
           // 3. Nettoyer et wrap TextNode en ParagraphNode
           nodes = nodes
-          .map(node => {
-            const type = node.getType();
-            if (type === 'text') {
-              // si vide, on jette
-              if (node.getTextContent().trim() === '') {
+            .map((node) => {
+              const type = node.getType();
+              if (type === 'text') {
+                // si vide, on jette
+                if (node.getTextContent().trim() === '') {
+                  return null;
+                }
+                // sinon on wrappe dans un paragraphe
+                return $createParagraphNode().append(node);
+              }
+              if (type === 'linebreak') {
                 return null;
               }
-              // sinon on wrappe dans un paragraphe
-              return $createParagraphNode().append(node);
-            }
-            if (type === 'linebreak') {
-              return null;
-            }
-            return node;
-          })
-          .filter((n): n is LexicalNode => n !== null);
+              return node;
+            })
+            .filter((n): n is LexicalNode => n !== null);
 
           // 4. Insérer au curseur ou à la fin
           const selection = $getSelection();
