@@ -6,7 +6,7 @@ import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { ListPlugin } from '@lexical/react/LexicalListPlugin';
 import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from '@lexical/html';
-import { $getRoot } from 'lexical';
+import { $getRoot, $getSelection, $insertNodes, $createParagraphNode, LexicalNode } from 'lexical';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { ToolbarPlugin } from './RichTextToolbar';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
@@ -55,10 +55,40 @@ const ImperativeHandlePlugin = forwardRef<
     () => ({
       insertHtml(html: string) {
         editor.update(() => {
-          const dom = new DOMParser().parseFromString(html, 'text/html');
-          const nodes = $generateNodesFromDOM(editor, dom);
-          const root = $getRoot();
-          root.append(...nodes);
+          const parser = new DOMParser();
+          const dom = parser.parseFromString(
+            `<div>${html}</div>`,
+            'text/html'
+          );
+
+          let nodes = $generateNodesFromDOM(editor, dom);
+
+          // 3. Nettoyer et wrap TextNode en ParagraphNode
+          nodes = nodes
+          .map(node => {
+            const type = node.getType();
+            if (type === 'text') {
+              // si vide, on jette
+              if (node.getTextContent().trim() === '') {
+                return null;
+              }
+              // sinon on wrappe dans un paragraphe
+              return $createParagraphNode().append(node);
+            }
+            if (type === 'linebreak') {
+              return null;
+            }
+            return node;
+          })
+          .filter((n): n is LexicalNode => n !== null);
+
+          // 4. Insérer au curseur ou à la fin
+          const selection = $getSelection();
+          if (selection && !selection.isCollapsed()) {
+            $insertNodes(nodes);
+          } else {
+            $getRoot().append(...nodes);
+          }
         });
       },
     }),
