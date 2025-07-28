@@ -19,7 +19,10 @@ describe('App navigation', () => {
       (state) => ({ ...state, profileId: 'p1' }) as UserProfileState,
     );
     global.fetch = vi.fn(() =>
-      Promise.resolve({ ok: true, json: () => Promise.resolve({ id: '1' }) }),
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve([]),
+      }),
     );
     render(
       <MemoryRouter initialEntries={['/']}>
