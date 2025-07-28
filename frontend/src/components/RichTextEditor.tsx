@@ -126,14 +126,14 @@ function EditorCore(
   return (
     <LexicalComposer initialConfig={initialConfig}>
       {!readOnly && (
-        <ToolbarPlugin className="bg-white shadow-sm px-4 py-2 rounded-t" />
+        <ToolbarPlugin/>
       )}
-      <div className="flex flex-col h-screen bg-gray-100 border border-gray-300 p-8">
-        <div className="flex-1 overflow-auto">
-          <div className="h-full w-full bg-white border border-gray-300 rounded shadow p-4">
+      <div className="h-full bg-gray-100 p-8 overflow-auto">
+        <div className="flex justify-center">
+          <div className="bg-white border border-gray-300 rounded shadow p-4 w-full max-w-prose min-h-[100vh] flex flex-col">
             <RichTextPlugin
               contentEditable={
-                <ContentEditable className="h-full outline-none w-full" />
+                <ContentEditable className="outline-none flex-1" />
               }
               placeholder={<div className="text-gray-400">…</div>}
               ErrorBoundary={LexicalErrorBoundary}

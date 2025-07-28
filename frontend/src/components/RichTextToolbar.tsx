@@ -34,7 +34,7 @@ export function ToolbarPlugin() {
   );
 
   return (
-    <div className="mb-2 space-x-2 bg-white rounded border border-gray-300 p-2">
+    <div className="sticky top-0 z-10 flex space-x-2 bg-white border-b border-gray-300 p-2">
       <Button type="button" onClick={() => format('bold')} variant="secondary">
         B
       </Button>

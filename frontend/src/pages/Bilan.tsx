@@ -52,7 +52,7 @@ export default function Bilan() {
   if (!bilan) return <div>Chargement...</div>;
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-screen overflow-hidden">
       <div className="flex items-center bg-white border border-gray-300 p-4">
         <Button
           variant="ghost"
@@ -66,7 +66,7 @@ export default function Bilan() {
 
       <div className="flex-1 overflow-hidden">
         <div className="flex h-full">
-          <div className="flex-1 overflow-auto space-y-4 p-4">
+          <div className="flex-1">
             <Suspense fallback="Chargement...">
               <RichTextEditor
                 ref={editorRef}
@@ -74,11 +74,8 @@ export default function Bilan() {
                 onChange={setHtml}
               />
             </Suspense>
-            <div className="flex space-x-2">
-              <Button onClick={save}>Enregistrer</Button>
-            </div>
           </div>
-          <div className="block w-96 border-l overflow-auto">
+          <div className="block w-104 border-l border-gray-300 overflow-auto shadow-sm ">
             <Suspense fallback="Chargement...">
               {bilanId && (
                 <AiRightPanel
