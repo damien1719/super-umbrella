@@ -103,7 +103,7 @@ export function DataEntry({ questions, answers, onChange }: DataEntryProps) {
             <Button
               size="sm"
               variant="outline"
-              className="w-full text-xs border-2 border-dashed border-gray-300 text-gray-600 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50 bg-transparent"
+              className="w-full text-xs border-2 border-dashed border-gray-300 text-gray-600 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50"
             >
               <Plus className="h-3 w-3 mr-2" /> Ajouter
             </Button>
@@ -149,7 +149,7 @@ export function DataEntry({ questions, answers, onChange }: DataEntryProps) {
               <Button
                 size="sm"
                 variant="outline"
-                className="w-full text-xs bg-transparent"
+                className="w-full text-xs"
               >
                 <Edit2 className="h-3 w-3 mr-2" /> Modifier
               </Button>
