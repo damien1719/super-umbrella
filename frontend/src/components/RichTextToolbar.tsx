@@ -6,9 +6,14 @@ import {
 } from '@lexical/list';
 import { TOGGLE_LINK_COMMAND } from '@lexical/link';
 import { useCallback } from 'react';
+import { Save } from 'lucide-react';
 import { Button } from './ui/button';
 
-export function ToolbarPlugin() {
+interface Props {
+  onSave?: () => void;
+}
+
+export function ToolbarPlugin({ onSave }: Props) {
   const [editor] = useLexicalComposerContext();
 
   const format = useCallback(
@@ -38,21 +43,47 @@ export function ToolbarPlugin() {
       <Button type="button" onClick={() => format('bold')} variant="secondary">
         B
       </Button>
-      <Button type="button" onClick={() => format('italic')} variant="secondary">
+      <Button
+        type="button"
+        onClick={() => format('italic')}
+        variant="secondary"
+      >
         I
       </Button>
-      <Button type="button" onClick={() => format('underline')} variant="secondary">
+      <Button
+        type="button"
+        onClick={() => format('underline')}
+        variant="secondary"
+      >
         U
       </Button>
-      <Button type="button" onClick={() => insertList(false)} variant="secondary">
+      <Button
+        type="button"
+        onClick={() => insertList(false)}
+        variant="secondary"
+      >
         •
       </Button>
-      <Button type="button" onClick={() => insertList(true)} variant="secondary">
+      <Button
+        type="button"
+        onClick={() => insertList(true)}
+        variant="secondary"
+      >
         1.
       </Button>
       <Button type="button" onClick={insertLink} variant="secondary">
         Link
       </Button>
+      {onSave && (
+        <Button
+          type="button"
+          onClick={onSave}
+          variant="secondary"
+          aria-label="Save"
+        >
+          <Save className="w-4 h-4" />
+        </Button>
+      )}
     </div>
   );
 }

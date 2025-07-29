@@ -2,6 +2,15 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState, Suspense, lazy, useRef } from 'react';
 import DOMPurify from 'dompurify';
 import { Button } from '../components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../components/ui/alert-dialog';
 import { apiFetch } from '../utils/api';
 import { useAuth } from '../store/auth';
 import { useBilanDraft } from '../store/bilanDraft';
@@ -23,6 +32,17 @@ export default function Bilan() {
   const [bilan, setBilan] = useState<BilanData | null>(null);
   const { descriptionHtml, setHtml, reset } = useBilanDraft();
   const editorRef = useRef<RichTextEditorHandle>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const hasChanges = bilan?.descriptionHtml !== descriptionHtml;
+
+  const handleBack = () => {
+    if (hasChanges) {
+      setShowConfirm(true);
+    } else {
+      navigate('/');
+    }
+  };
 
   useEffect(() => {
     if (!bilanId) return;
@@ -34,7 +54,6 @@ export default function Bilan() {
     });
   }, [bilanId, token, setHtml]);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const save = async () => {
     if (!bilanId) return;
     const clean = DOMPurify.sanitize(descriptionHtml);
@@ -55,11 +74,7 @@ export default function Bilan() {
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       <div className="flex items-center bg-white border border-gray-300 p-4">
-        <Button
-          variant="ghost"
-          onClick={() => navigate(-1)}
-          className="px-2 py-1"
-        >
+        <Button variant="ghost" onClick={handleBack} className="px-2 py-1">
           Retour
         </Button>
         <h1 className="flex-1 text-center text-lg font-semibold">Mon Bilan</h1>
@@ -73,6 +88,7 @@ export default function Bilan() {
                 ref={editorRef}
                 initialHtml={descriptionHtml ?? ''}
                 onChange={setHtml}
+                onSave={save}
               />
             </Suspense>
           </div>
@@ -88,6 +104,28 @@ export default function Bilan() {
           </div>
         </div>
       </div>
+      <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Souhaitez-vous conserver les modifications apportées ?
+            </AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => navigate('/')}>
+              Non
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                await save();
+                navigate('/');
+              }}
+            >
+              Oui
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
