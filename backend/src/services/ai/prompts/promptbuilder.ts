@@ -1,5 +1,5 @@
 /** Message OpenAI unique */
-export type SingleMessage = { role: "system" | "user"; content: string };
+export type SingleMessage = { role: 'system' | 'user' | 'assistant'; content: string };
 
 /** Paramètres génériques pour tout type de prompt */
 export interface PromptParams {
@@ -7,9 +7,9 @@ export interface PromptParams {
   systemPrompt?: string;
   /** Ton contexte métier (BDD, docs…) */
   contextData?: string;
-  /** Les instructions spécifiques à ton cas d’usage */
+  /** Les instructions spécifiques à ton cas d'usage */
   instructions: string;
-  /** Les données brutes / notes / question de l’utilisateur */
+  /** Les données brutes / notes / question de l'utilisateur */
   userContent: string;
   /** Exemples de textes pour guider la génération */
   examples?: string[];
@@ -17,43 +17,55 @@ export interface PromptParams {
 
 /** Valeur par défaut pour ton system prompt */
 export const DEFAULT_SYSTEM = `
-Tu es une psychomotricienne diplômée d’État en France.
+Tu es une psychomotricienne diplômée d'État en France.
 
 Ton écriture suit :
 • les référentiels français de psychomotricité et les recos HAS pour le bilan ;
 • un ton descriptif, empathique, nuancé, sans jargon inutile ;
-• la confidentialité : jamais de nom de famille, d’adresse ou d’information stigmatisante ;
+• la confidentialité : jamais de nom de famille, d'adresse ou d'information stigmatisante ;
 • la mise en avant des liens entre sensorimotricité, affectif et cognitif (schéma corporel, praxies, régulation tonico‑émotionnelle, etc.).
 `.trim();
 
 /**
- * Construit UN SEUL message pour l’API OpenAI,
- * en concaténant tous tes blocs dans `content`.
+ * Construit les messages pour l'API OpenAI en structurant le prompt en plusieurs parties
  */
-export function buildSinglePrompt(params: PromptParams): readonly SingleMessage[] {
-  // 1. Choix du system prompt
-  const system = (params.systemPrompt ?? DEFAULT_SYSTEM).trim();
+export function buildPrompt(params: PromptParams): readonly SingleMessage[] {
+  const msgs: SingleMessage[] = [];
 
-  // 2. Bloc contexte (optionnel)
-  const ctx = params.contextData
-    ? `### Contexte\n${params.contextData.trim()}`
-    : "";
+  // 1. System prompt global
+  msgs.push({ role: 'system', content: (params.systemPrompt ?? DEFAULT_SYSTEM).trim() });
 
-  // 3. Instructions spécifiques
-  const instr = params.instructions.trim();
+  // 2. Format de sortie pour limiter les hallucinations
+  msgs.push({ role: 'user', content: 
+    `### Format de sortie
+` +
+    `- Structure Markdown (titres #, ##)
+` +
+    `- Ne rien inventer, si info manquante écrire '_Informations non communiquées.'
+` +
+    `- Citer la source entre parenthèses (ex. "selon la mère")`
+  });
 
-  // 4. Données utilisateur
-  const user = params.userContent.trim();
+  // 3. Contexte métier (optionnel)
+  if (params.contextData) {
+    msgs.push({ role: 'user', content: `### Contexte\n${params.contextData.trim()}` });
+  }
 
-  const examples = params.examples && params.examples.length > 0
-    ? `### Exemples\n${params.examples.join("\n")}`
-    : "";
+  // 4. Instructions spécifiques
+  msgs.push({ role: 'user', content: `### Instructions\n${params.instructions.trim()}` });
 
-  // On assemble tous les blocs, en saut de ligne entre chacun
-  const content = [system, ctx, instr, user, examples]
-    .filter((blk) => blk.length > 0)
-    .join("\n\n");
+  // 5. Données utilisateur
+  msgs.push({ role: 'user', content: `### Données\n${params.userContent.trim()}` });
 
-  // Retourne un array d’un seul message
-  return [{ role: "system", content }] as const;
+  // 6. Exemples de génération (optionnel)
+  if (params.examples && params.examples.length > 0) {
+    params.examples.slice(0, 3).forEach(example => {
+      msgs.push({ role: 'assistant', content: example.trim() });
+    });
+  }
+
+  return msgs as const;
 }
+
+// Alias pour la rétrocompatibilité
+export const buildSinglePrompt = buildPrompt;
