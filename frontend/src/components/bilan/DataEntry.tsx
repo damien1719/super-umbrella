@@ -10,13 +10,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+
 import { Badge } from '@/components/ui/badge';
 import { Plus, Edit2 } from 'lucide-react';
 import type { Question, Answers } from '@/types/question';
@@ -30,6 +24,7 @@ interface DataEntryProps {
 export function DataEntry({ questions, answers, onChange }: DataEntryProps) {
   const [open, setOpen] = useState(false);
   const [local, setLocal] = useState<Answers>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     setLocal(answers);
@@ -37,7 +32,27 @@ export function DataEntry({ questions, answers, onChange }: DataEntryProps) {
 
   const answeredCount = Object.keys(answers).length;
 
+  const validateEchelle = (q: Question, v: string) => {
+    if (q.type !== 'echelle' || !q.echelle) return;
+    const num = Number(v);
+    if (v === '') {
+      setErrors((p) => ({ ...p, [q.id]: '' }));
+      return;
+    }
+    if (isNaN(num) || num < q.echelle.min || num > q.echelle.max) {
+      setErrors((p) => ({
+        ...p,
+        [q.id]: `Valeur entre ${q.echelle.min} et ${q.echelle.max}`,
+      }));
+    } else {
+      setErrors((p) => ({ ...p, [q.id]: '' }));
+    }
+  };
+
   const save = () => {
+    if (Object.values(errors).some((e) => e)) {
+      return;
+    }
     onChange(local);
     setOpen(false);
   };
@@ -56,31 +71,36 @@ export function DataEntry({ questions, answers, onChange }: DataEntryProps) {
         );
       case 'choix-multiple':
         return (
-          <Select
-            value={String(value)}
-            onValueChange={(v) => setLocal({ ...local, [q.id]: v })}
-          >
-            <SelectTrigger className="h-8">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {q.options?.map((opt) => (
-                <SelectItem key={opt} value={opt}>
-                  {opt}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex flex-wrap gap-2">
+            {q.options?.map((opt) => (
+              <Button
+                key={opt}
+                size="sm"
+                variant={value === opt ? 'default' : 'outline'}
+                onClick={() => setLocal({ ...local, [q.id]: opt })}
+              >
+                {opt}
+              </Button>
+            ))}
+          </div>
         );
       case 'echelle':
         return (
-          <Input
-            type="number"
-            value={String(value)}
-            min={q.echelle?.min}
-            max={q.echelle?.max}
-            onChange={(e) => setLocal({ ...local, [q.id]: e.target.value })}
-          />
+          <div className="space-y-1">
+            <Input
+              type="number"
+              value={String(value)}
+              min={q.echelle?.min}
+              max={q.echelle?.max}
+              onChange={(e) => {
+                setLocal({ ...local, [q.id]: e.target.value });
+                validateEchelle(q, e.target.value);
+              }}
+            />
+            {errors[q.id] && (
+              <p className="text-xs text-red-600">{errors[q.id]}</p>
+            )}
+          </div>
         );
       default:
         return null;
@@ -116,7 +136,12 @@ export function DataEntry({ questions, answers, onChange }: DataEntryProps) {
             </DialogHeader>
             <div className="space-y-4">
               {questions.map((q) => (
-                <div key={q.id} className="space-y-2">
+                <div
+                  key={q.id}
+                  className={`space-y-2 p-2 rounded-md border ${
+                    q.type === 'notes' ? 'focus-within:bg-blue-50/50' : ''
+                  }`}
+                >
                   <Label className="text-sm font-medium">{q.titre}</Label>
                   {renderQuestion(q)}
                 </div>
@@ -146,11 +171,7 @@ export function DataEntry({ questions, answers, onChange }: DataEntryProps) {
           </div>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button
-                size="sm"
-                variant="outline"
-                className="w-full text-xs"
-              >
+              <Button size="sm" variant="outline" className="w-full text-xs">
                 <Edit2 className="h-3 w-3 mr-2" /> Modifier
               </Button>
             </DialogTrigger>
@@ -162,7 +183,12 @@ export function DataEntry({ questions, answers, onChange }: DataEntryProps) {
               </DialogHeader>
               <div className="space-y-4">
                 {questions.map((q) => (
-                  <div key={q.id} className="space-y-2">
+                  <div
+                    key={q.id}
+                    className={`space-y-2 p-2 rounded-md border ${
+                      q.type === 'notes' ? 'focus-within:bg-blue-50/50' : ''
+                    }`}
+                  >
                     <Label className="text-sm font-medium">{q.titre}</Label>
                     {renderQuestion(q)}
                   </div>
