@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { vi } from 'vitest';
-import Bilan from './Bilan';
+import Bilan from './EditeurBilan';
 import { useAuth, type AuthState } from '../store/auth';
 
 vi.stubGlobal('fetch', vi.fn());
