@@ -82,7 +82,12 @@ export default function AiRightPanel({
   onInsertText,
 }: AiRightPanelProps) {
   const trames = useTrames();
-  const { items: examples, fetchAll } = useSectionExampleStore();
+  const {
+    items: examples,
+    fetchAll,
+    create,
+    remove,
+  } = useSectionExampleStore();
   const token = useAuth((s) => s.token);
 
   useEffect(() => {
@@ -94,9 +99,6 @@ export default function AiRightPanel({
     {},
   );
   const [answers, setAnswers] = useState<Record<string, Answers>>({});
-  const [extraExamples, setExtraExamples] = useState<
-    Record<string, TrameExample[]>
-  >({});
   const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
@@ -111,8 +113,7 @@ export default function AiRightPanel({
     }
   }, [trames]);
 
-  const getExamples = (sectionId: string, trameId: string) => {
-    const key = `${sectionId}-${trameId}`;
+  const getExamples = (_sectionId: string, trameId: string) => {
     const base = examples
       .filter((e) => e.sectionId === trameId)
       .map((e) => ({
@@ -121,24 +122,22 @@ export default function AiRightPanel({
         content: e.content,
         category: '',
       }));
-    return [...base, ...(extraExamples[key] || [])];
+    return base;
   };
 
   const addExample = (
-    sectionId: string,
+    _sectionId: string,
     trameId: string,
     ex: Omit<TrameExample, 'id'>,
   ) => {
-    const key = `${sectionId}-${trameId}`;
-    const newEx = { ...ex, id: Date.now().toString() };
-    setExtraExamples((p) => ({ ...p, [key]: [...(p[key] || []), newEx] }));
+    create({
+      sectionId: trameId,
+      label: ex.title,
+      content: ex.content,
+    }).catch(() => {});
   };
-  const removeExample = (sectionId: string, trameId: string, id: string) => {
-    const key = `${sectionId}-${trameId}`;
-    setExtraExamples((p) => ({
-      ...p,
-      [key]: (p[key] || []).filter((e) => e.id !== id),
-    }));
+  const removeExample = (_sectionId: string, _trameId: string, id: string) => {
+    remove(id).catch(() => {});
   };
 
   const handleGenerate = async (section: SectionInfo) => {
