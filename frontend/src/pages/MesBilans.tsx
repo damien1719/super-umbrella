@@ -1,6 +1,12 @@
 'use client';
 
-import { FileText, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  FileText,
+  Plus,
+  ChevronLeft,
+  ChevronRight,
+  Trash2,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -17,6 +23,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { NewPatientModal } from '@/components/ui/new-patient-modal';
 import { ExistingPatientModal } from '@/components/ui/existing-patient-modal';
 import { useAuth } from '../store/auth';
@@ -37,6 +52,7 @@ export default function Component() {
   const [isNewPatientModalOpen, setIsNewPatientModalOpen] = useState(false);
   const [isExistingPatientModalOpen, setIsExistingPatientModalOpen] =
     useState(false);
+  const [toDelete, setToDelete] = useState<BilanItem | null>(null);
   const bilansPerPage = 8;
   const token = useAuth((s) => s.token);
   const navigate = useNavigate();
@@ -59,6 +75,14 @@ export default function Component() {
       body: JSON.stringify({ patientId }),
     });
     navigate(`/bilan/${res.id}`);
+  };
+
+  const removeBilan = async (id: string) => {
+    await apiFetch(`/api/v1/bilans/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setBilans((prev) => prev.filter((b) => b.id !== id));
   };
 
   const formatDate = (dateString: string) => {
@@ -185,12 +209,13 @@ export default function Component() {
                       <TableHead className="w-32">Date</TableHead>
                       <TableHead>Nom Patient</TableHead>
                       <TableHead>Nom bilan</TableHead>
+                      <TableHead className="w-10" />
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {currentBilansPage.map((bilan) => (
-                      <TableRow 
-                        key={bilan.id} 
+                      <TableRow
+                        key={bilan.id}
                         onClick={() => navigate(`/bilan/${bilan.id}`)}
                         className="hover:bg-gray-200 cursor-pointer"
                       >
@@ -203,6 +228,17 @@ export default function Component() {
                             : ''}
                         </TableCell>
                         <TableCell>{bilan.bilanType?.name ?? ''}</TableCell>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="text-red-600"
+                            aria-label="Supprimer le bilan"
+                            onClick={() => setToDelete(bilan)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -272,6 +308,27 @@ export default function Component() {
         onClose={() => setIsExistingPatientModalOpen(false)}
         onPatientSelected={createBilan}
       />
+      <AlertDialog open={!!toDelete} onOpenChange={() => setToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer ce bilan ?</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              onClick={async () => {
+                if (toDelete) {
+                  await removeBilan(toDelete.id);
+                  setToDelete(null);
+                }
+              }}
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
