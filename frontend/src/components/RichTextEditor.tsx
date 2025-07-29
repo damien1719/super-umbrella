@@ -30,6 +30,7 @@ interface Props {
   initialHtml: string;
   readOnly?: boolean;
   onChange?: (html: string) => void;
+  onSave?: () => void;
 }
 
 function HtmlPlugin({ html }: { html: string }) {
@@ -107,10 +108,11 @@ const ImperativeHandlePlugin = forwardRef<
 });
 
 function EditorCore(
-  { initialHtml = '', readOnly = false, onChange = () => {} }: Props = {
+  { initialHtml = '', readOnly = false, onChange = () => {}, onSave }: Props = {
     initialHtml: '',
     readOnly: false,
     onChange: () => {},
+    onSave: undefined,
   },
   ref: React.ForwardedRef<RichTextEditorHandle>,
 ) {
@@ -125,9 +127,7 @@ function EditorCore(
   };
   return (
     <LexicalComposer initialConfig={initialConfig}>
-      {!readOnly && (
-        <ToolbarPlugin/>
-      )}
+      {!readOnly && <ToolbarPlugin onSave={onSave} />}
       <div className="h-full bg-gray-100 p-8 overflow-auto">
         <div className="flex justify-center">
           <div className="bg-white border border-gray-300 rounded shadow p-4 w-full max-w-prose min-h-[100vh] flex flex-col">
