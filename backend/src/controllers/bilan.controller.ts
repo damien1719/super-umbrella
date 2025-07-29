@@ -56,6 +56,7 @@ export const BilanController = {
     try {
       const section = req.body.section as keyof typeof promptConfigs;
       const answers = req.body.answers ?? {};
+      const examples = Array.isArray(req.body.examples) ? req.body.examples : [];
       const cfg = promptConfigs[section];
       if (!cfg) {
         res.status(400).json({ error: 'invalid section' });
@@ -64,6 +65,7 @@ export const BilanController = {
       const text = await generateText({
         instructions: cfg.instructions,
         userContent: JSON.stringify(answers),
+        examples,
       });
       res.json({ text });
     } catch (e) {

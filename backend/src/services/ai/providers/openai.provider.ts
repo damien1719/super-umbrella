@@ -23,11 +23,13 @@ export class OpenAIProvider {
         });
 
         if (onChunk) {
-          for await (const chunk of res as any)
+          for await (const chunk of res as AsyncIterable<{ choices: { delta: { content?: string } }[] }>) {
             onChunk(chunk.choices[0].delta.content ?? "");
+          }
           return ""; // le flux est déjà renvoyé au caller
         }
-        return (res as any).choices[0].message.content ?? "";
+        const full = res as { choices: { message: { content?: string } }[] };
+        return full.choices[0].message.content ?? "";
       } catch (err) {
         if (attempt >= 3) throw err;
         await new Promise(r => setTimeout(r, attempt * 500)); // back-off

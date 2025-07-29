@@ -1,7 +1,7 @@
 
 import { openaiProvider } from "./providers/openai.provider";
 import { buildSinglePrompt, type PromptParams } from "./prompts/promptbuilder";
-import { ChatCompletionMessageParam } from "openai/resources/index";
+import { ChatCompletionMessageParam, ChatCompletionCreateParams } from "openai/resources/index";
 import * as guardrails from "./guardrails";
 
 export async function generateText(
@@ -19,12 +19,12 @@ export async function generateText(
   // 3. Appel modèle (avec ou sans streaming)
   if (stream) {
     return openaiProvider.chat(
-      { messages } as any,
+      { messages } as ChatCompletionCreateParams,
       chunk => process.stdout.write(chunk) // ici on renvoie vers stdout, à toi de brancher SSE/WS
     );
   }
 
-  const result = await openaiProvider.chat({ messages } as any);
+  const result = await openaiProvider.chat({ messages } as ChatCompletionCreateParams);
   // 4. Post-traitement
-  return guardrails.post(result);
+  return guardrails.post(result || "");
 }
