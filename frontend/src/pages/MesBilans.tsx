@@ -189,7 +189,11 @@ export default function Component() {
                   </TableHeader>
                   <TableBody>
                     {currentBilansPage.map((bilan) => (
-                      <TableRow key={bilan.id} className="hover:bg-gray-50">
+                      <TableRow 
+                        key={bilan.id} 
+                        onClick={() => navigate(`/bilan/${bilan.id}`)}
+                        className="hover:bg-gray-200 cursor-pointer"
+                      >
                         <TableCell className="font-medium">
                           {formatDate(bilan.date)}
                         </TableCell>
