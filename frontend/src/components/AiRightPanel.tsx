@@ -4,6 +4,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSectionStore } from '@/store/sections';
 import { useSectionExampleStore } from '@/store/sectionExamples';
 import { SectionCard, SectionInfo } from './bilan/SectionCard';
+import WizardAIRightPanel from './WizardAIRightPanel';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import type { TrameOption, TrameExample } from './bilan/TrameSelector';
 import type { Answers, Question } from '@/types/question';
 import { FileText, Eye, Brain, Activity } from 'lucide-react';
@@ -100,6 +103,8 @@ export default function AiRightPanel({
   );
   const [answers, setAnswers] = useState<Record<string, Answers>>({});
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generated, setGenerated] = useState<Record<string, boolean>>({});
+  const [wizardSection, setWizardSection] = useState<string | null>(null);
 
   useEffect(() => {
     const defaults: Record<string, string> = {};
@@ -160,9 +165,11 @@ export default function AiRightPanel({
         },
       );
       onInsertText(res.text);
+      setGenerated((g) => ({ ...g, [section.id]: true }));
     } finally {
       setIsGenerating(false);
       setSelectedSection(null);
+      setWizardSection(null);
     }
   };
 
@@ -179,6 +186,71 @@ export default function AiRightPanel({
               const selected = trameOpts.find(
                 (t) => t.value === selectedTrames[section.id],
               );
+
+              if (wizardSection === section.id) {
+                return (
+                  <WizardAIRightPanel
+                    key={section.id}
+                    section={section}
+                    trameOptions={trameOpts}
+                    selectedTrame={selected}
+                    onTrameChange={(v) =>
+                      setSelectedTrames({ ...selectedTrames, [section.id]: v })
+                    }
+                    examples={getExamples(
+                      section.id,
+                      selectedTrames[section.id],
+                    )}
+                    onAddExample={(ex) =>
+                      addExample(section.id, selectedTrames[section.id], ex)
+                    }
+                    onRemoveExample={(id) =>
+                      removeExample(section.id, selectedTrames[section.id], id)
+                    }
+                    questions={(selected?.schema as Question[]) || []}
+                    answers={answers[section.id] || {}}
+                    onAnswersChange={(a) =>
+                      setAnswers({ ...answers, [section.id]: a })
+                    }
+                    onGenerate={() => handleGenerate(section)}
+                    isGenerating={
+                      isGenerating && selectedSection === section.id
+                    }
+                    onCancel={() => setWizardSection(null)}
+                  />
+                );
+              }
+
+              if (!generated[section.id]) {
+                return (
+                  <Card key={section.id} className="hover:shadow-md">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 rounded-lg bg-gray-100">
+                          <section.icon className="h-4 w-4 text-gray-600" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-medium text-sm mb-1">
+                            {section.title}
+                          </h3>
+                          <p className="text-xs text-gray-500 mb-4">
+                            {section.description}
+                          </p>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="w-full text-xs"
+                            onClick={() => setWizardSection(section.id)}
+                          >
+                            Démarrer la génération
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              }
+
               return (
                 <SectionCard
                   key={section.id}
