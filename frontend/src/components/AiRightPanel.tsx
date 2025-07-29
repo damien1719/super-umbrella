@@ -147,6 +147,9 @@ export default function AiRightPanel({
       const body = {
         section: kindMap[section.id],
         answers: answers[section.id] || {},
+        examples: examples
+          .filter((e) => e.sectionId === selectedTrames[section.id])
+          .map((e) => e.content),
       };
       const res = await apiFetch<{ text: string }>(
         `/api/v1/bilans/${bilanId}/generate`,

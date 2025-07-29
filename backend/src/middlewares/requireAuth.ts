@@ -28,7 +28,7 @@ export const requireAuth: RequestHandler = async (
 
   try {
     const decoded = jwt.decode(token, { complete: true });
-    console.log(' decoded header:', (decoded as any)?.header);
+    console.log(' decoded header:', (decoded as jwt.Jwt | null)?.header);
     console.log('key', process.env.SUPABASE_JWT_SECRET);
   
     const payload = jwt.verify(token, process.env.SUPABASE_JWT_SECRET as string, {

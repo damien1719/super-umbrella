@@ -11,6 +11,8 @@ export interface PromptParams {
   instructions: string;
   /** Les données brutes / notes / question de l’utilisateur */
   userContent: string;
+  /** Exemples de textes pour guider la génération */
+  examples?: string[];
 }
 
 /** Valeur par défaut pour ton system prompt */
@@ -43,8 +45,12 @@ export function buildSinglePrompt(params: PromptParams): readonly SingleMessage[
   // 4. Données utilisateur
   const user = params.userContent.trim();
 
+  const examples = params.examples && params.examples.length > 0
+    ? `### Exemples\n${params.examples.join("\n")}`
+    : "";
+
   // On assemble tous les blocs, en saut de ligne entre chacun
-  const content = [system, ctx, instr, user]
+  const content = [system, ctx, instr, user, examples]
     .filter((blk) => blk.length > 0)
     .join("\n\n");
 

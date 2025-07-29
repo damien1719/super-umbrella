@@ -56,7 +56,11 @@ describe("POST /api/v1/bilans/:id/generate", () => {
   it("calls ai service with prompt params", async () => {
     mockedGenerate.mockResolvedValueOnce("texte");
     const id = "11111111-1111-1111-1111-111111111111";
-    const body = { section: "anamnesis", answers: { foo: "bar" } };
+    const body = {
+      section: "anamnese",
+      answers: { foo: "bar" },
+      examples: ["demo"],
+    };
 
     const res = await request(app)
       .post(`/api/v1/bilans/${id}/generate`)
@@ -65,8 +69,9 @@ describe("POST /api/v1/bilans/:id/generate", () => {
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ text: "texte" });
     expect(mockedGenerate).toHaveBeenCalledWith({
-      instructions: promptConfigs.anamnesis.instructions,
+      instructions: promptConfigs.anamnese.instructions,
       userContent: JSON.stringify(body.answers),
+      examples: ["demo"],
     });
   });
 });
