@@ -36,4 +36,18 @@ describe('DataEntry', () => {
     fireEvent.change(input, { target: { value: '10' } });
     expect(screen.getByText(/Valeur entre 1 et 5/)).toBeInTheDocument();
   });
+
+  it('shows fields inline when inline prop is true', () => {
+    render(
+      <DataEntry
+        questions={[mcQuestion]}
+        answers={{}}
+        onChange={noop}
+        inline
+      />,
+    );
+    // buttons should be visible without clicking "Ajouter"
+    expect(screen.getByRole('button', { name: 'Opt1' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Opt2' })).toBeInTheDocument();
+  });
 });

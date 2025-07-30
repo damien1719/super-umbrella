@@ -85,6 +85,7 @@ export default function WizardAIRightPanel({
         questions={questions}
         answers={answers}
         onChange={onAnswersChange}
+        inline
       />
     );
   }
