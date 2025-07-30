@@ -29,6 +29,7 @@ export const SectionService = {
         ],
       },
       orderBy: { createdAt: 'desc' },
+      include: { author: { select: { prenom: true } } },
     });
   },
 
@@ -41,6 +42,7 @@ export const SectionService = {
           { author: { userId } },
         ],
       },
+      include: { author: { select: { prenom: true } } },
     });
   },
 

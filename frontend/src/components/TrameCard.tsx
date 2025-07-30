@@ -6,6 +6,7 @@ export interface TrameInfo {
   id: string;
   title: string;
   description?: string | null;
+  sharedBy?: string | null;
 }
 
 interface TrameCardProps {
@@ -63,8 +64,11 @@ export default function TrameCard({
           {trame.title}
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-1">
         <p className="text-sm text-gray-600">{trame.description}</p>
+        {trame.sharedBy && (
+          <p className="text-xs text-gray-500">Partagée par {trame.sharedBy}</p>
+        )}
       </CardContent>
     </Card>
   );

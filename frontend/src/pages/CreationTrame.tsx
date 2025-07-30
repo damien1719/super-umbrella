@@ -57,6 +57,7 @@ export default function CreationTrame() {
   const [nomTrame, setNomTrame] = useState('');
   const [categorie, setCategorie] = useState('');
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [isPublic, setIsPublic] = useState(false);
   const [typeQuestionSelectionnee, setTypeQuestionSelectionnee] = useState('');
 
   useEffect(() => {
@@ -64,6 +65,7 @@ export default function CreationTrame() {
     fetchOne(sectionId).then((section) => {
       setNomTrame(section.title);
       setCategorie(section.kind);
+      setIsPublic(section.isPublic ?? false);
       if (Array.isArray(section.schema)) {
         setQuestions(section.schema as Question[]);
       }
@@ -129,6 +131,7 @@ export default function CreationTrame() {
       title: nomTrame,
       kind: categorie,
       schema: questions,
+      isPublic,
     });
     if (state?.returnTo) {
       navigate(state.returnTo, {
@@ -156,6 +159,20 @@ export default function CreationTrame() {
         </div>
 
         <div className="space-y-6">
+        <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={isPublic}
+              onChange={(e) => setIsPublic(e.target.checked)}
+            />
+            <span className="text-sm text-gray-700">
+              Rendre cette trame publique ?{' '}
+              <span className="text-gray-500">
+                (visible par les autres utilisateurs de SoignezVotrePlume)
+              </span>
+            </span>
+          </label>
+
           {/* Ajouter une question */}
           <Card>
             <CardHeader>
