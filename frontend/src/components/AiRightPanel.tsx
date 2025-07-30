@@ -146,13 +146,13 @@ export default function AiRightPanel({
     remove(id).catch(() => {});
   };
 
-  const handleGenerate = async (section: SectionInfo) => {
+  const handleGenerate = async (section: SectionInfo, newAnswers?: Answers) => {
     setIsGenerating(true);
     setSelectedSection(section.id);
     try {
       const body = {
         section: kindMap[section.id],
-        answers: answers[section.id] || {},
+        answers: newAnswers || answers[section.id] || {},
         examples: examples
           .filter((e) => e.sectionId === selectedTrames[section.id])
           .map((e) => e.content),
@@ -190,7 +190,11 @@ export default function AiRightPanel({
 
               if (wizardSection === section.id) {
                 return (
-                  <Dialog open={true} onOpenChange={(open) => !open && setWizardSection(null)}>
+                  <Dialog
+                    key={section.id}
+                    open={true}
+                    onOpenChange={(open) => !open && setWizardSection(null)}
+                  >
                     <DialogContent className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[100vw] h-[80vh] max-w-none max-h-none overflow-auto bg-white rounded-lg shadow-lg">
                       <WizardAIRightPanel
                         sectionInfo={section}
@@ -221,7 +225,7 @@ export default function AiRightPanel({
                         onAnswersChange={(a) =>
                           setAnswers({ ...answers, [section.id]: a })
                         }
-                        onGenerate={() => handleGenerate(section)}
+                        onGenerate={(latest) => handleGenerate(section, latest)}
                         isGenerating={
                           isGenerating && selectedSection === section.id
                         }
@@ -283,7 +287,7 @@ export default function AiRightPanel({
                   onAnswersChange={(a) =>
                     setAnswers({ ...answers, [section.id]: a })
                   }
-                  onGenerate={() => handleGenerate(section)}
+                  onGenerate={(latest) => handleGenerate(section, latest)}
                   isGenerating={isGenerating && selectedSection === section.id}
                   active={selectedSection === section.id}
                 />
