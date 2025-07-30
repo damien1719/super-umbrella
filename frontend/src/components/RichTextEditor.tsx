@@ -11,7 +11,7 @@ import {
   $getSelection,
   $insertNodes,
   $createParagraphNode,
-  $createNodeSelection,
+  $createRangeSelection,
   $setSelection,
   LexicalNode,
 } from 'lexical';
@@ -96,15 +96,23 @@ const ImperativeHandlePlugin = forwardRef<
 
           // 4. Insérer au curseur ou à la fin
           const selection = $getSelection();
-          if (selection && !selection.isCollapsed()) {
+          if (selection) {
             $insertNodes(nodes);
           } else {
             $getRoot().append(...nodes);
           }
 
-          const sel = $createNodeSelection();
-          nodes.forEach((n) => sel.add(n.getKey()));
-          $setSelection(sel);
+          const firstNode = nodes[0];
+          const lastNode = nodes[nodes.length - 1];
+          if (firstNode && lastNode) {
+            const range = $createRangeSelection();
+            range.anchor.set(firstNode.getKey(), 0, 'element');
+            const length = lastNode.getTextContentSize
+              ? lastNode.getTextContentSize()
+              : lastNode.getTextContent().length;
+            range.focus.set(lastNode.getKey(), length, 'element');
+            $setSelection(range);
+          }
         });
       },
     }),
