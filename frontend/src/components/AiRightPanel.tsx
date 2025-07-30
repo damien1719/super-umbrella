@@ -189,35 +189,47 @@ export default function AiRightPanel({
 
               if (wizardSection === section.id) {
                 return (
-                  <WizardAIRightPanel
+                  <div
                     key={section.id}
-                    section={section}
-                    trameOptions={trameOpts}
-                    selectedTrame={selected}
-                    onTrameChange={(v) =>
-                      setSelectedTrames({ ...selectedTrames, [section.id]: v })
-                    }
-                    examples={getExamples(
-                      section.id,
-                      selectedTrames[section.id],
-                    )}
-                    onAddExample={(ex) =>
-                      addExample(section.id, selectedTrames[section.id], ex)
-                    }
-                    onRemoveExample={(id) =>
-                      removeExample(section.id, selectedTrames[section.id], id)
-                    }
-                    questions={(selected?.schema as Question[]) || []}
-                    answers={answers[section.id] || {}}
-                    onAnswersChange={(a) =>
-                      setAnswers({ ...answers, [section.id]: a })
-                    }
-                    onGenerate={() => handleGenerate(section)}
-                    isGenerating={
-                      isGenerating && selectedSection === section.id
-                    }
-                    onCancel={() => setWizardSection(null)}
-                  />
+                    className="fixed inset-0 z-50 overflow-y-auto bg-white p-4"
+                  >
+                    <div className="max-w-2xl mx-auto">
+                      <WizardAIRightPanel
+                        trameOptions={trameOpts}
+                        selectedTrame={selected}
+                        onTrameChange={(v) =>
+                          setSelectedTrames({
+                            ...selectedTrames,
+                            [section.id]: v,
+                          })
+                        }
+                        examples={getExamples(
+                          section.id,
+                          selectedTrames[section.id],
+                        )}
+                        onAddExample={(ex) =>
+                          addExample(section.id, selectedTrames[section.id], ex)
+                        }
+                        onRemoveExample={(id) =>
+                          removeExample(
+                            section.id,
+                            selectedTrames[section.id],
+                            id,
+                          )
+                        }
+                        questions={(selected?.schema as Question[]) || []}
+                        answers={answers[section.id] || {}}
+                        onAnswersChange={(a) =>
+                          setAnswers({ ...answers, [section.id]: a })
+                        }
+                        onGenerate={() => handleGenerate(section)}
+                        isGenerating={
+                          isGenerating && selectedSection === section.id
+                        }
+                        onCancel={() => setWizardSection(null)}
+                      />
+                    </div>
+                  </div>
                 );
               }
 

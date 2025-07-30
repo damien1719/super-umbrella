@@ -19,9 +19,15 @@ interface DataEntryProps {
   questions: Question[];
   answers: Answers;
   onChange: (answers: Answers) => void;
+  inline?: boolean;
 }
 
-export function DataEntry({ questions, answers, onChange }: DataEntryProps) {
+export function DataEntry({
+  questions,
+  answers,
+  onChange,
+  inline = false,
+}: DataEntryProps) {
   const [open, setOpen] = useState(false);
   const [local, setLocal] = useState<Answers>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -106,6 +112,29 @@ export function DataEntry({ questions, answers, onChange }: DataEntryProps) {
         return null;
     }
   };
+
+  const form = (
+    <div className="space-y-4">
+      {questions.map((q) => (
+        <div
+          key={q.id}
+          className={`space-y-2 p-2 rounded-md border ${
+            q.type === 'notes' ? 'focus-within:bg-blue-50/50' : ''
+          }`}
+        >
+          <Label className="text-sm font-medium">{q.titre}</Label>
+          {renderQuestion(q)}
+        </div>
+      ))}
+      <Button onClick={save} className="w-full mt-4">
+        Sauvegarder
+      </Button>
+    </div>
+  );
+
+  if (inline) {
+    return <div className="mb-4">{form}</div>;
+  }
 
   return (
     <div className="mb-4">
