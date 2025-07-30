@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useSectionStore } from '../store/sections';
 import type { Question } from '../types/question';
 import { Button } from '@/components/ui/button';
@@ -49,6 +49,9 @@ const typesQuestions = [
 export default function CreationTrame() {
   const { sectionId } = useParams<{ sectionId: string }>();
   const navigate = useNavigate();
+  const { state } = useLocation() as {
+    state?: { returnTo?: string; wizardSection?: string; trameId?: string };
+  };
   const fetchOne = useSectionStore((s) => s.fetchOne);
   const updateSection = useSectionStore((s) => s.update);
   const [nomTrame, setNomTrame] = useState('');
@@ -127,7 +130,13 @@ export default function CreationTrame() {
       kind: categorie,
       schema: questions,
     });
-    navigate('/bibliotheque');
+    if (state?.returnTo) {
+      navigate(state.returnTo, {
+        state: { wizardSection: state.wizardSection, trameId: sectionId },
+      });
+    } else {
+      navigate('/bibliotheque');
+    }
   };
 
   return (

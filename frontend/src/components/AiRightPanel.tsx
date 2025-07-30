@@ -79,11 +79,15 @@ const useTrames = () => {
 interface AiRightPanelProps {
   bilanId: string;
   onInsertText: (text: string) => void;
+  initialWizardSection?: string;
+  initialTrameId?: string;
 }
 
 export default function AiRightPanel({
   bilanId,
   onInsertText,
+  initialWizardSection,
+  initialTrameId,
 }: AiRightPanelProps) {
   const trames = useTrames();
   const {
@@ -100,12 +104,16 @@ export default function AiRightPanel({
 
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const [selectedTrames, setSelectedTrames] = useState<Record<string, string>>(
-    {},
+    initialWizardSection && initialTrameId
+      ? { [initialWizardSection]: initialTrameId }
+      : {},
   );
   const [answers, setAnswers] = useState<Record<string, Answers>>({});
   const [isGenerating, setIsGenerating] = useState(false);
   const [generated, setGenerated] = useState<Record<string, boolean>>({});
-  const [wizardSection, setWizardSection] = useState<string | null>(null);
+  const [wizardSection, setWizardSection] = useState<string | null>(
+    initialWizardSection || null,
+  );
 
   useEffect(() => {
     const defaults: Record<string, string> = {};
@@ -230,6 +238,7 @@ export default function AiRightPanel({
                           isGenerating && selectedSection === section.id
                         }
                         onCancel={() => setWizardSection(null)}
+                        bilanId={bilanId}
                       />
                     </DialogContent>
                   </Dialog>

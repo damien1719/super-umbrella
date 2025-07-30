@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useEffect, useState, Suspense, lazy, useRef } from 'react';
 import DOMPurify from 'dompurify';
 import { Button } from '../components/ui/button';
@@ -28,6 +28,9 @@ import type { RichTextEditorHandle } from '../components/RichTextEditor';
 export default function Bilan() {
   const { bilanId } = useParams<{ bilanId: string }>();
   const navigate = useNavigate();
+  const { state } = useLocation() as {
+    state?: { wizardSection?: string; trameId?: string };
+  };
   const token = useAuth((s) => s.token);
   const [bilan, setBilan] = useState<BilanData | null>(null);
   const { descriptionHtml, setHtml, reset } = useBilanDraft();
@@ -98,6 +101,8 @@ export default function Bilan() {
                 <AiRightPanel
                   bilanId={bilanId}
                   onInsertText={(text) => editorRef.current?.insertHtml(text)}
+                  initialWizardSection={state?.wizardSection}
+                  initialTrameId={state?.trameId}
                 />
               )}
             </Suspense>

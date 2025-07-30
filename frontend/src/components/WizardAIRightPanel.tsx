@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
   DialogHeader,
@@ -6,6 +7,14 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import TrameCard from './TrameCard';
+import CreerTrameModal from './ui/creer-trame-modale';
+import { Plus } from 'lucide-react';
+const kindMap: Record<string, string> = {
+  anamnese: 'anamnese',
+  'profil-sensoriel': 'profil_sensoriel',
+  'observations-cliniques': 'observations',
+  'tests-mabc': 'tests_standards',
+};
 import type { TrameOption, TrameExample } from './bilan/TrameSelector';
 import { DataEntry, type DataEntryHandle } from './bilan/DataEntry';
 import ExampleManager from './bilan/ExampleManager';
@@ -25,6 +34,7 @@ interface WizardAIRightPanelProps {
   onAnswersChange: (a: Answers) => void;
   onGenerate: (latest?: Answers) => void;
   isGenerating: boolean;
+  bilanId: string;
 }
 
 export default function WizardAIRightPanel({
@@ -40,9 +50,11 @@ export default function WizardAIRightPanel({
   onAnswersChange,
   onGenerate,
   isGenerating,
+  bilanId,
 }: WizardAIRightPanelProps) {
   const [step, setStep] = useState(1);
   const dataEntryRef = useRef<DataEntryHandle>(null);
+  const navigate = useNavigate();
   const total = 3;
 
   const next = () => setStep((s) => Math.min(total, s + 1));
@@ -57,9 +69,10 @@ export default function WizardAIRightPanel({
       <div className="space-y-4">
         <h3 className="text-center font-medium">{stepTitles[0]}</h3>
         <p className="text-sm text-center">
-        Choisissez une trame parmi la bibliothèque. 
-        <br />
-        Pour personnaliser les questions ou les résultats que vous souhaitez entrer vous pouvez créer votre propre trame
+          Choisissez une trame parmi la bibliothèque.
+          <br />
+          Pour personnaliser les questions ou les résultats que vous souhaitez
+          entrer vous pouvez créer votre propre trame
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-60 overflow-y-auto">
           {trameOptions.map((trame) => (
@@ -74,6 +87,23 @@ export default function WizardAIRightPanel({
               onSelect={() => onTrameChange(trame.value)}
             />
           ))}
+          <CreerTrameModal
+            trigger={
+              <div className="border border-dashed rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer text-gray-600 hover:bg-gray-50">
+                <Plus className="h-6 w-6 mb-2" />
+                Créer sa trame
+              </div>
+            }
+            initialCategory={kindMap[sectionInfo.id]}
+            onCreated={(id) =>
+              navigate(`/creation-trame/${id}`, {
+                state: {
+                  returnTo: `/bilan/${bilanId}`,
+                  wizardSection: sectionInfo.id,
+                },
+              })
+            }
+          />
         </div>
       </div>
     );
@@ -82,9 +112,10 @@ export default function WizardAIRightPanel({
       <div className="space-y-4">
         <h3 className="text-center font-medium">{stepTitles[1]}</h3>
         <p className="text-sm text-center">
-        Ajoutez un exemple de rédaction d’un bilan déjà rédigé pour aider l'IA à mieux coller à votre style de rédaction
-        <br />
-        Important: veuillez anonymiser les données (pas de nom et de prénom)
+          Ajoutez un exemple de rédaction d’un bilan déjà rédigé pour aider
+          l&apos;IA à mieux coller à votre style de rédaction
+          <br />
+          Important: veuillez anonymiser les données (pas de nom et de prénom)
         </p>
         <ExampleManager
           examples={examples}
@@ -98,9 +129,11 @@ export default function WizardAIRightPanel({
       <div className="space-y-4">
         <h3 className="text-center font-medium">{stepTitles[2]}</h3>
         <p className="text-sm text-center">
-        Entrez les notes, les résultats chiffrés que vous avez sur la patient. C’est le coeur de la matière qui est utilisé par l’IA pour générer le bilan.
-        <br />
-        Important: veuillez anonymiser les données (pas de nom et de prénom)
+          Entrez les notes, les résultats chiffrés que vous avez sur la patient.
+          C’est le coeur de la matière qui est utilisé par l’IA pour générer le
+          bilan.
+          <br />
+          Important: veuillez anonymiser les données (pas de nom et de prénom)
         </p>
         <DataEntry
           ref={dataEntryRef}
