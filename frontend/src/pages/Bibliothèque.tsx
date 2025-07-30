@@ -12,7 +12,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { FileText, ClipboardList, Eye, Brain} from 'lucide-react';
+import { FileText, ClipboardList, Eye, Brain } from 'lucide-react';
 import CreerTrameModal from '@/components/ui/creer-trame-modale';
 import { useSectionStore, type Section } from '@/store/sections';
 
@@ -78,6 +78,10 @@ export default function Bibliotheque() {
                         id: trame.id,
                         title: trame.title,
                         description: trame.description,
+                        sharedBy:
+                        trame.isPublic && trame.author?.prenom
+                          ? trame.author.prenom
+                          : undefined,
                       }}
                       onEdit={() => navigate(`/creation-trame/${trame.id}`)}
                       onDelete={() => setToDelete(trame)}
