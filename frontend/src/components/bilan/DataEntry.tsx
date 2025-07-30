@@ -214,7 +214,7 @@ export function DataEntry({
                 {questions.map((q) => (
                   <div
                     key={q.id}
-                    className={`space-y-2 p-2 rounded-md border ${
+                    className={`space-y-2 p-2 rounded-md border border-gray-200${
                       q.type === 'notes' ? 'focus-within:bg-blue-50/50' : ''
                     }`}
                   >

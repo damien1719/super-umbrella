@@ -93,24 +93,6 @@ export function ExampleManager({
             className="min-h-20"
           />
         </div>
-        <div>
-          <Label className="text-xs">Catégorie</Label>
-          <Select
-            value={newExample.category}
-            onValueChange={(v) => setNewExample({ ...newExample, category: v })}
-          >
-            <SelectTrigger className="h-8">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="general">Général</SelectItem>
-              <SelectItem value="motricite">Motricité</SelectItem>
-              <SelectItem value="cognitif">Cognitif</SelectItem>
-              <SelectItem value="social">Social</SelectItem>
-              <SelectItem value="sensoriel">Sensoriel</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
         <Button
           onClick={addExample}
           disabled={!newExample.title || !newExample.content}

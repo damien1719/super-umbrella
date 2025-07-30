@@ -103,52 +103,54 @@ export default function WizardAIRightPanel({
   }
 
   return (
-    <div className="p-4 space-y-4">
-      <DialogHeader>
-        <DialogTitle className="flex items-center gap-2">
-          {sectionInfo?.icon && (
-            <sectionInfo.icon className="h-5 w-5" />
-          )}
-          {sectionInfo?.title} - Étape {step}/3
-        </DialogTitle>
-        <DialogDescription>
-          Configuration de la génération pour {sectionInfo?.title?.toLowerCase()}
-        </DialogDescription>
-      </DialogHeader>
+    <div className="p-4 space-y-4 flex flex-col h-full">
+      <div className="flex-1 space-y-4">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            {sectionInfo?.icon && (
+              <sectionInfo.icon className="h-5 w-5" />
+            )}
+            {sectionInfo?.title} - Étape {step}/3
+          </DialogTitle>
+          <DialogDescription>
+            Configuration de la génération pour {sectionInfo?.title?.toLowerCase()}
+          </DialogDescription>
+        </DialogHeader>
 
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-2">
-          {[1, 2, 3].map((s) => (
-            <div
-              key={s}
-              className={`flex items-center ${s < 3 ? 'flex-1' : ''}`}
-            >
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            {[1, 2, 3].map((s) => (
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                  s <= step
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-200 text-gray-600'
-                }`}
+                key={s}
+                className={`flex items-center ${s < 3 ? 'flex-1' : ''}`}
               >
-                {s}
-              </div>
-              {s < 3 && (
                 <div
-                  className={`flex-1 h-1 mx-2 ${s < step ? 'bg-blue-500' : 'bg-gray-200'}`}
-                />
-              )}
-            </div>
-          ))}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                    s <= step
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-200 text-gray-600'
+                  }`}
+                >
+                  {s}
+                </div>
+                {s < 3 && (
+                  <div
+                    className={`flex-1 h-1 mx-2 ${s < step ? 'bg-blue-500' : 'bg-gray-200'}`}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-between text-xs text-gray-500">
+            <span>Trame</span>
+            <span>Exemples</span>
+            <span>Données</span>
+          </div>
         </div>
-        <div className="flex justify-between text-xs text-gray-500">
-          <span>Trame</span>
-          <span>Exemples</span>
-          <span>Données</span>
-        </div>
+        
+        {content}
       </div>
-      
-      {content}
-      <div className="flex justify-between pt-2">
+      <div className="flex justify-between pt-4">
         {step > 1 ? (
           <Button variant="secondary" onClick={prev} type="button">
             Précédent
@@ -165,16 +167,6 @@ export default function WizardAIRightPanel({
             {isGenerating ? 'Génération...' : 'Générer'}
           </Button>
         )}
-      </div>
-      <div className="pt-2">
-        <Button
-          variant="ghost"
-          onClick={onCancel}
-          type="button"
-          className="w-full text-xs"
-        >
-          Annuler
-        </Button>
       </div>
     </div>
   );
