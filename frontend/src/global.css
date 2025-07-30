@@ -3,3 +3,12 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+    --background: #ffffff; 
+}
+
+html, body, #root {
+    height: 100%;
+    margin: 0;
+  }

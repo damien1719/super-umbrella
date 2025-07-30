@@ -33,7 +33,7 @@ const DropdownMenuSubContent = React.forwardRef<
   <DropdownMenuPrimitive.SubContent
     ref={ref}
     className={cn(
-      'z-50 min-w-[8rem] overflow-hidden rounded-md border bg-white text-gray-900 shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out',
+      'z-50 min-w-[8rem] overflow-hidden rounded-md border bg-white bg-opacity-100 text-gray-900 shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out',
       className,
     )}
     {...props}
@@ -50,7 +50,7 @@ const DropdownMenuContent = React.forwardRef<
     ref={ref}
     sideOffset={sideOffset}
     className={cn(
-      'z-50 min-w-[8rem] overflow-hidden rounded-md border bg-white text-gray-900 shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out',
+      'z-50 min-w-[8rem] overflow-hidden rounded-md border bg-white bg-opacity-100 text-gray-900 shadow-lg backdrop-blur-0 data-[state=open]:animate-in data-[state=closed]:animate-out',
       className,
     )}
     {...props}
@@ -65,7 +65,7 @@ const DropdownMenuItem = React.forwardRef<
   <DropdownMenuPrimitive.Item
     ref={ref}
     className={cn(
-      'relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-blue-50 focus:text-blue-700 data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+      'bg-white relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-blue-50 focus:text-blue-700 data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
       inset && 'pl-8',
       className,
     )}

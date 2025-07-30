@@ -2,12 +2,12 @@ import * as React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Home,
-  Calendar,
   CreditCard,
-  FileText,
   Crown,
   User,
+  Library,
   LogOut,
+  LayoutDashboard,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import {
@@ -44,20 +44,18 @@ const items: {
   path: string;
   icon: React.ComponentType<{ className?: string }>;
 }[] = [
-  /*   { title: 'Mon Compte', page: 'MonCompte', path: '/compte', icon: Calendar },
-   */ /* {
-    title: 'Dashboard',
-    page: 'Dashboard',
+  {
+    title: 'Mes Bilans',
+    page: 'MesBilans',
     path: '/',
     icon: LayoutDashboard,
-  }, */
-  { title: 'Mes Biens', page: 'MesBiens', path: '/biens', icon: Home },
-  { title: 'Mon Agenda', page: 'Agenda', path: '/agenda', icon: Calendar },
+  },
+  { title: 'Mes Patients', page: 'Patients', path: '/patients', icon: User },
   {
-    title: 'Déclaration Fiscale',
-    page: 'Resultats',
-    path: '/resultats',
-    icon: FileText,
+    title: 'Bibliothèque',
+    page: 'Bibliotheque',
+    path: '/bibliotheque',
+    icon: Library,
   },
   {
     title: 'Abonnement',
@@ -81,7 +79,7 @@ export function AppSidebar({ onNavigate }: SidebarProps) {
         <div className="flex items-center gap-3 px-3 py-2">
           <Home className="h-6 w-6 text-blue-600" />
           <span className="font-semibold text-lg group-data-[collapsible=icon]:hidden">
-            Gestion Locative
+            PlumePsychomot
           </span>
         </div>
       </SidebarHeader>

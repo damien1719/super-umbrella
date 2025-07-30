@@ -17,5 +17,8 @@ declare module '@prisma/client' {
       updateMany: (args: unknown) => { count: number };
       deleteMany: (args: unknown) => { count: number };
     };
+    user: {
+      upsert: (args: unknown) => unknown;
+    };
   }
 }

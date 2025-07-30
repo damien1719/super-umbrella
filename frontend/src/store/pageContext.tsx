@@ -3,12 +3,13 @@ import { createStore } from 'zustand';
 import { StoreApi, useStore } from 'zustand';
 
 export type Page =
-  | 'Dashboard'
-  | 'MesBiens'
+  | 'MesBilans'
+  | 'Patients'
   | 'Agenda'
   | 'Resultats'
   | 'Abonnement'
-  | 'MonCompte';
+  | 'MonCompte'
+  | 'Bibliotheque';
 
 interface PageState {
   currentPage: Page;
@@ -16,7 +17,7 @@ interface PageState {
 }
 
 const pageStore = createStore<PageState>((set) => ({
-  currentPage: 'Dashboard',
+  currentPage: 'MesBilans',
   setCurrentPage: (page) => set({ currentPage: page }),
 }));
 
