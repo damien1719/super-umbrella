@@ -250,7 +250,7 @@ export default function AiRightPanel({
                           </p>
                           <Button
                             size="sm"
-                            variant="outline"
+                            variant="black"
                             className="w-full text-xs"
                             onClick={() => setWizardSection(section.id)}
                           >
