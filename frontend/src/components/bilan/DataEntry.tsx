@@ -136,9 +136,6 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
             {renderQuestion(q)}
           </div>
         ))}
-        <Button onClick={save} className="w-full mt-4">
-          Sauvegarder
-        </Button>
       </div>
     );
 

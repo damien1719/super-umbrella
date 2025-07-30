@@ -65,18 +65,6 @@ export function ExampleManager({
           Ajouter un nouvel exemple :
         </Label>
         <div>
-          <Label className="text-xs">Titre de l&apos;exemple</Label>
-          <Textarea
-            value={newExample.title}
-            onChange={(e) =>
-              setNewExample({ ...newExample, title: e.target.value })
-            }
-            placeholder="Ex: Questions sur le développement moteur"
-            className="h-8"
-          />
-        </div>
-        <div>
-          <Label className="text-xs">Contenu de l&apos;exemple</Label>
           <Textarea
             value={newExample.content}
             onChange={(e) =>
