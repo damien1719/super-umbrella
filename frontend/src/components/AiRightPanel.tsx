@@ -7,6 +7,7 @@ import { SectionCard, SectionInfo } from './bilan/SectionCard';
 import WizardAIRightPanel from './WizardAIRightPanel';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import type { TrameOption, TrameExample } from './bilan/TrameSelector';
 import type { Answers, Question } from '@/types/question';
@@ -114,6 +115,8 @@ export default function AiRightPanel({
   const [wizardSection, setWizardSection] = useState<string | null>(
     initialWizardSection || null,
   );
+  const [regenSection, setRegenSection] = useState<string | null>(null);
+  const [regenPrompt, setRegenPrompt] = useState('');
 
   useEffect(() => {
     const defaults: Record<string, string> = {};
@@ -175,6 +178,8 @@ export default function AiRightPanel({
       );
       onInsertText(res.text);
       setGenerated((g) => ({ ...g, [section.id]: true }));
+      setRegenSection(section.id);
+      setRegenPrompt('');
     } finally {
       setIsGenerating(false);
       setSelectedSection(null);
@@ -186,124 +191,166 @@ export default function AiRightPanel({
     <div className="w-full max-w-md bg-white rounded-lg shadow-lg">
       <div className="p-6">
         <div className="flex items-center gap-2 mb-6">
+          {regenSection && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setRegenSection(null)}
+            >
+              Retour
+            </Button>
+          )}
           <span className="font-semibold">Assistant IA</span>
         </div>
-        <ScrollArea className="h-[calc(100vh-120px)]">
+        {regenSection ? (
           <div className="space-y-4">
-            {sections.map((section) => {
-              const trameOpts = trames[section.id];
-              const selected = trameOpts.find(
-                (t) => t.value === selectedTrames[section.id],
-              );
+            <h3 className="text-sm font-medium">
+              Si vous voulez ajuster le contenu généré, vous pouvez précisez ici
+              les éléments que vous souhaiterez re-générer
+            </h3>
+            <Input
+              value={regenPrompt}
+              onChange={(e) => setRegenPrompt(e.target.value)}
+            />
+            <Button
+              onClick={() => {
+                const section = sections.find((s) => s.id === regenSection)!;
+                handleGenerate(section);
+              }}
+              disabled={isGenerating}
+            >
+              {isGenerating ? 'Génération...' : 'Re-générer'}
+            </Button>
+          </div>
+        ) : (
+          <ScrollArea className="h-[calc(100vh-120px)]">
+            <div className="space-y-4">
+              {sections.map((section) => {
+                const trameOpts = trames[section.id];
+                const selected = trameOpts.find(
+                  (t) => t.value === selectedTrames[section.id],
+                );
 
-              if (wizardSection === section.id) {
-                return (
-                  <Dialog
-                    key={section.id}
-                    open={true}
-                    onOpenChange={(open) => !open && setWizardSection(null)}
-                  >
-                    <DialogContent className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[100vw] h-[80vh] max-w-none max-h-none overflow-auto bg-white rounded-lg shadow-lg">
-                      <WizardAIRightPanel
-                        sectionInfo={section}
-                        trameOptions={trameOpts}
-                        selectedTrame={selected}
-                        onTrameChange={(v) =>
-                          setSelectedTrames({
-                            ...selectedTrames,
-                            [section.id]: v,
-                          })
-                        }
-                        examples={getExamples(
-                          section.id,
-                          selectedTrames[section.id],
-                        )}
-                        onAddExample={(ex) =>
-                          addExample(section.id, selectedTrames[section.id], ex)
-                        }
-                        onRemoveExample={(id) =>
-                          removeExample(
+                if (wizardSection === section.id) {
+                  return (
+                    <Dialog
+                      key={section.id}
+                      open={true}
+                      onOpenChange={(open) => !open && setWizardSection(null)}
+                    >
+                      <DialogContent className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[100vw] h-[80vh] max-w-none max-h-none overflow-auto bg-white rounded-lg shadow-lg">
+                        <WizardAIRightPanel
+                          sectionInfo={section}
+                          trameOptions={trameOpts}
+                          selectedTrame={selected}
+                          onTrameChange={(v) =>
+                            setSelectedTrames({
+                              ...selectedTrames,
+                              [section.id]: v,
+                            })
+                          }
+                          examples={getExamples(
                             section.id,
                             selectedTrames[section.id],
-                            id,
-                          )
-                        }
-                        questions={(selected?.schema as Question[]) || []}
-                        answers={answers[section.id] || {}}
-                        onAnswersChange={(a) =>
-                          setAnswers({ ...answers, [section.id]: a })
-                        }
-                        onGenerate={(latest) => handleGenerate(section, latest)}
-                        isGenerating={
-                          isGenerating && selectedSection === section.id
-                        }
-                        onCancel={() => setWizardSection(null)}
-                        bilanId={bilanId}
-                      />
-                    </DialogContent>
-                  </Dialog>
-                );
-              }
+                          )}
+                          onAddExample={(ex) =>
+                            addExample(
+                              section.id,
+                              selectedTrames[section.id],
+                              ex,
+                            )
+                          }
+                          onRemoveExample={(id) =>
+                            removeExample(
+                              section.id,
+                              selectedTrames[section.id],
+                              id,
+                            )
+                          }
+                          questions={(selected?.schema as Question[]) || []}
+                          answers={answers[section.id] || {}}
+                          onAnswersChange={(a) =>
+                            setAnswers({ ...answers, [section.id]: a })
+                          }
+                          onGenerate={(latest) =>
+                            handleGenerate(section, latest)
+                          }
+                          isGenerating={
+                            isGenerating && selectedSection === section.id
+                          }
+                          onCancel={() => setWizardSection(null)}
+                          bilanId={bilanId}
+                        />
+                      </DialogContent>
+                    </Dialog>
+                  );
+                }
 
-              if (!generated[section.id]) {
+                if (!generated[section.id]) {
+                  return (
+                    <Card key={section.id} className="hover:shadow-md">
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="p-2 rounded-lg bg-gray-100">
+                            <section.icon className="h-4 w-4 text-gray-600" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-medium text-sm mb-1">
+                              {section.title}
+                            </h3>
+                            <p className="text-xs text-gray-500 mb-4">
+                              {section.description}
+                            </p>
+                            <Button
+                              size="sm"
+                              variant="black"
+                              className="w-full text-xs"
+                              onClick={() => setWizardSection(section.id)}
+                            >
+                              Démarrer la génération
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                }
+
                 return (
-                  <Card key={section.id} className="hover:shadow-md">
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="p-2 rounded-lg bg-gray-100">
-                          <section.icon className="h-4 w-4 text-gray-600" />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-medium text-sm mb-1">
-                            {section.title}
-                          </h3>
-                          <p className="text-xs text-gray-500 mb-4">
-                            {section.description}
-                          </p>
-                          <Button
-                            size="sm"
-                            variant="black"
-                            className="w-full text-xs"
-                            onClick={() => setWizardSection(section.id)}
-                          >
-                            Démarrer la génération
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <SectionCard
+                    key={section.id}
+                    section={section}
+                    trameOptions={trameOpts}
+                    selectedTrame={selected}
+                    onTrameChange={(v) =>
+                      setSelectedTrames({ ...selectedTrames, [section.id]: v })
+                    }
+                    examples={getExamples(
+                      section.id,
+                      selectedTrames[section.id],
+                    )}
+                    onAddExample={(ex) =>
+                      addExample(section.id, selectedTrames[section.id], ex)
+                    }
+                    onRemoveExample={(id) =>
+                      removeExample(section.id, selectedTrames[section.id], id)
+                    }
+                    questions={(selected?.schema as Question[]) || []}
+                    answers={answers[section.id] || {}}
+                    onAnswersChange={(a) =>
+                      setAnswers({ ...answers, [section.id]: a })
+                    }
+                    onGenerate={(latest) => handleGenerate(section, latest)}
+                    isGenerating={
+                      isGenerating && selectedSection === section.id
+                    }
+                    active={selectedSection === section.id}
+                  />
                 );
-              }
-
-              return (
-                <SectionCard
-                  key={section.id}
-                  section={section}
-                  trameOptions={trameOpts}
-                  selectedTrame={selected}
-                  onTrameChange={(v) =>
-                    setSelectedTrames({ ...selectedTrames, [section.id]: v })
-                  }
-                  examples={getExamples(section.id, selectedTrames[section.id])}
-                  onAddExample={(ex) =>
-                    addExample(section.id, selectedTrames[section.id], ex)
-                  }
-                  onRemoveExample={(id) =>
-                    removeExample(section.id, selectedTrames[section.id], id)
-                  }
-                  questions={(selected?.schema as Question[]) || []}
-                  answers={answers[section.id] || {}}
-                  onAnswersChange={(a) =>
-                    setAnswers({ ...answers, [section.id]: a })
-                  }
-                  onGenerate={(latest) => handleGenerate(section, latest)}
-                  isGenerating={isGenerating && selectedSection === section.id}
-                  active={selectedSection === section.id}
-                />
-              );
-            })}
-          </div>
-        </ScrollArea>
+              })}
+            </div>
+          </ScrollArea>
+        )}
       </div>
     </div>
   );
