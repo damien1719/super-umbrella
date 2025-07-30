@@ -208,7 +208,7 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
                 <Button size="sm" variant="outline" className="w-full text-xs">
-                  <Edit2 className="h-3 w-3 mr-2" /> Modifier
+                  <Edit2 className="h-3 w-3 mr-2" /> Modifier mes réponses
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">

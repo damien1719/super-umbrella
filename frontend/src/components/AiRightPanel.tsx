@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSectionStore } from '@/store/sections';
 import { useSectionExampleStore } from '@/store/sectionExamples';
@@ -125,6 +125,14 @@ export default function AiRightPanel({
   const [regenSection, setRegenSection] = useState<string | null>(null);
   const [regenPrompt, setRegenPrompt] = useState('');
 
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (regenSection && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, [regenSection]);
+
   useEffect(() => {
     const defaults: Record<string, string> = {};
     Object.entries(trames).forEach(([key, list]) => {
@@ -219,8 +227,10 @@ export default function AiRightPanel({
               </h3>
               <div className="w-full">
                 <Textarea
+                  ref={textareaRef}
                   value={regenPrompt}
                   onChange={(e) => setRegenPrompt(e.target.value)}
+                  onContextMenu={(e) => e.stopPropagation()}
                   className="min-h-[60vh] w-full text-left"
                   placeholder="Décrivez les modifications souhaitées..."
                 />

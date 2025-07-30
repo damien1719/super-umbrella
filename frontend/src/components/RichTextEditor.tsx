@@ -14,6 +14,7 @@ import {
   $createRangeSelection,
   $setSelection,
   LexicalNode,
+  TextNode
 } from 'lexical';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { ToolbarPlugin } from './RichTextToolbar';
@@ -102,7 +103,31 @@ const ImperativeHandlePlugin = forwardRef<
             $getRoot().append(...nodes);
           }
 
-          const firstNode = nodes[0];
+          editor.focus();
+
+          const allTextNodes = nodes
+            .flatMap((node) => node.getChildren())      // on ne descend que d’un niveau
+            .filter((n): n is TextNode => n.getType() === 'text');
+          const firstText = allTextNodes[0];
+          const lastText = allTextNodes[allTextNodes.length - 1];
+
+          if (firstText && lastText) {
+            // 6) créer une RangeSelection sur ces text nodes
+            const range = $createRangeSelection();
+            range.anchor.set(firstText.getKey(), 0, 'text');
+            range.focus.set(
+              lastText.getKey(),
+              lastText.getTextContent().length,
+              'text'
+            );
+          
+            setTimeout(() => {
+              editor.update(() => {
+                $setSelection(range);
+              });
+            }, 0);
+        } 
+   /*        const firstNode = nodes[0];
           const lastNode = nodes[nodes.length - 1];
           if (firstNode && lastNode) {
             const range = $createRangeSelection();
@@ -112,7 +137,8 @@ const ImperativeHandlePlugin = forwardRef<
               : lastNode.getTextContent().length;
             range.focus.set(lastNode.getKey(), length, 'element');
             $setSelection(range);
-          }
+          } */
+         
         });
       },
     }),
