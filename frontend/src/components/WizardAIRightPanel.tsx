@@ -1,14 +1,13 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { WizardProgress } from './WizardProgress';
 import {
-DialogHeader,
-DialogTitle,
-DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import TrameCard from './TrameCard';
 import type { TrameOption, TrameExample } from './bilan/TrameSelector';
-import { DataEntry } from './bilan/DataEntry';
+import { DataEntry, type DataEntryHandle } from './bilan/DataEntry';
 import ExampleManager from './bilan/ExampleManager';
 import type { Answers, Question } from '@/types/question';
 import type { SectionInfo } from './bilan/SectionCard';
@@ -24,9 +23,8 @@ interface WizardAIRightPanelProps {
   questions: Question[];
   answers: Answers;
   onAnswersChange: (a: Answers) => void;
-  onGenerate: () => void;
+  onGenerate: (latest?: Answers) => void;
   isGenerating: boolean;
-  onCancel: () => void;
 }
 
 export default function WizardAIRightPanel({
@@ -42,9 +40,9 @@ export default function WizardAIRightPanel({
   onAnswersChange,
   onGenerate,
   isGenerating,
-  onCancel,
 }: WizardAIRightPanelProps) {
   const [step, setStep] = useState(1);
+  const dataEntryRef = useRef<DataEntryHandle>(null);
   const total = 3;
 
   const next = () => setStep((s) => Math.min(total, s + 1));
@@ -93,6 +91,7 @@ export default function WizardAIRightPanel({
       <div className="space-y-4">
         <h3 className="text-center font-medium">{stepTitles[2]}</h3>
         <DataEntry
+          ref={dataEntryRef}
           questions={questions}
           answers={answers}
           onChange={onAnswersChange}
@@ -107,13 +106,12 @@ export default function WizardAIRightPanel({
       <div className="flex-1 space-y-4">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            {sectionInfo?.icon && (
-              <sectionInfo.icon className="h-5 w-5" />
-            )}
+            {sectionInfo?.icon && <sectionInfo.icon className="h-5 w-5" />}
             {sectionInfo?.title} - Étape {step}/3
           </DialogTitle>
           <DialogDescription>
-            Configuration de la génération pour {sectionInfo?.title?.toLowerCase()}
+            Configuration de la génération pour{' '}
+            {sectionInfo?.title?.toLowerCase()}
           </DialogDescription>
         </DialogHeader>
 
@@ -147,7 +145,7 @@ export default function WizardAIRightPanel({
             <span>Données</span>
           </div>
         </div>
-        
+
         {content}
       </div>
       <div className="flex justify-between pt-4">
@@ -163,7 +161,14 @@ export default function WizardAIRightPanel({
             Suivant
           </Button>
         ) : (
-          <Button onClick={onGenerate} disabled={isGenerating} type="button">
+          <Button
+            onClick={() => {
+              const data = dataEntryRef.current?.save() as Answers | undefined;
+              onGenerate(data);
+            }}
+            disabled={isGenerating}
+            type="button"
+          >
             {isGenerating ? 'Génération...' : 'Générer'}
           </Button>
         )}

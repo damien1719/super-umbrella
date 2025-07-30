@@ -24,7 +24,7 @@ interface SectionCardProps {
   questions: Question[];
   answers: Answers;
   onAnswersChange: (a: Answers) => void;
-  onGenerate: () => void;
+  onGenerate: (latest?: Answers) => void;
   isGenerating: boolean;
   active: boolean;
 }
@@ -76,7 +76,7 @@ export function SectionCard({
             <Button
               size="sm"
               variant={active ? 'default' : 'outline'}
-              onClick={onGenerate}
+              onClick={() => onGenerate()}
               disabled={isGenerating}
               className="w-full text-xs"
             >

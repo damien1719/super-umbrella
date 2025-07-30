@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
-import { DataEntry } from './DataEntry';
+import { describe, it, expect, vi } from 'vitest';
+import React from 'react';
+import { DataEntry, type DataEntryHandle } from './DataEntry';
 import type { Question } from '@/types/question';
 
 const noop = () => {};
@@ -49,5 +50,22 @@ describe('DataEntry', () => {
     // buttons should be visible without clicking "Ajouter"
     expect(screen.getByRole('button', { name: 'Opt1' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Opt2' })).toBeInTheDocument();
+  });
+
+  it('allows saving through ref', () => {
+    const handle = vi.fn();
+    const ref = React.createRef<DataEntryHandle>();
+    render(
+      <DataEntry
+        ref={ref}
+        questions={[mcQuestion]}
+        answers={{}}
+        onChange={handle}
+        inline
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Opt1' }));
+    ref.current?.save();
+    expect(handle).toHaveBeenCalledWith({ [mcQuestion.id]: 'Opt1' });
   });
 });
