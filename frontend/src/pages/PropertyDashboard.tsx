@@ -1,0 +1,247 @@
+'use client';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { Euro } from 'lucide-react';
+import { PropertyTabList } from '../components/ui/PropertyTabList';
+import {
+  PropertyInfoCard,
+  PropertyInfo,
+} from '../components/ui/PropertyInfoCard';
+import { LeaseInfoCard, LeaseInfo } from '../components/ui/LeaseInfoCard';
+import { TenantInfoCard, TenantInfo } from '../components/ui/TenantInfoCard';
+import { DocumentList } from '../components/ui/DocumentList';
+import { useDocumentStore } from '../store/documents';
+import InventoryPage from '../components/Inventory';
+import LocationForm1 from '../components/LocationForm1';
+import { useBienStore, type Bien } from '../store/biens';
+import { useLocationStore } from '../store/locations';
+import { useLocataireStore } from '../store/locataires';
+import type { NewLocation } from '@monorepo/shared';
+import { Button } from '../components/ui/button';
+import { ChargesCard } from '../components/ui/ChargesCard';
+import { RevenueCard } from '../components/ui/RevenueCard';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '../components/ui/card';
+import { Progress } from '../components/ui/progress';
+import { Separator } from '../components/ui/separator';
+import NoLeaseCard from '../components/ui/NoLeaseCard';
+
+export default function PropertyDashboard() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab =
+    (searchParams.get('tab') as
+      | 'view'
+      | 'documents'
+      | 'finances'
+      | 'inventaire') ?? 'view';
+  const [tab, setTab] = useState<
+    'view' | 'documents' | 'finances' | 'inventaire'
+  >(initialTab);
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { items: documents, fetchAll, create, remove } = useDocumentStore();
+  const fetchBien = useBienStore((s) => s.fetchOne);
+  const [bien, setBien] = useState<Bien | null>(null);
+  const {
+    current: location,
+    fetchForBien: fetchLocation,
+    update: updateLocation,
+    remove: removeLocation,
+  } = useLocationStore();
+  const { items: locataires, fetchForLocation: fetchLocataires } =
+    useLocataireStore();
+  const [editLoc, setEditLoc] = useState(false);
+  const [locData, setLocData] = useState<Partial<NewLocation>>({});
+
+  useEffect(() => {
+    if (tab === 'documents' && id) fetchAll(id);
+  }, [tab, id, fetchAll]);
+
+  useEffect(() => {
+    if (!id) return;
+    fetchBien(id).then(setBien);
+    fetchLocation(id).then((loc) => {
+      if (loc) fetchLocataires(loc.id);
+    });
+  }, [id, fetchBien, fetchLocation, fetchLocataires]);
+
+  useEffect(() => {
+    if (location) setLocData(location as Partial<NewLocation>);
+  }, [location]);
+
+  const today = new Date();
+  const activeLocation =
+    location &&
+    new Date(location.leaseStartDate) <= today &&
+    (!location.leaseEndDate || new Date(location.leaseEndDate) >= today);
+
+  const propertyData: PropertyInfo | null = bien
+    ? {
+        address: bien.adresse,
+        type: bien.typeBien,
+        surface: bien.surfaceHabitable ? `${bien.surfaceHabitable} m²` : '-',
+        value: '-',
+        status: activeLocation ? 'Occupé' : 'Disponible',
+      }
+    : null;
+
+  const leaseData: LeaseInfo | null = location
+    ? {
+        tenant:
+          locataires.length > 0
+            ? locataires.map((l) => `${l.prenom} ${l.nom}`).join(', ')
+            : 'N/A',
+        startDate: new Date(location.leaseStartDate).toLocaleDateString(),
+        endDate: location.leaseEndDate
+          ? new Date(location.leaseEndDate).toLocaleDateString()
+          : '—',
+        rent: `${location.baseRent.toLocaleString()} €`,
+        deposit: location.depositAmount
+          ? `${location.depositAmount.toLocaleString()} €`
+          : '-',
+        status: activeLocation ? 'En cours' : 'Terminé',
+      }
+    : null;
+
+  const tenantInfos: TenantInfo[] = locataires.map((loc) => ({
+    name: `${loc.prenom} ${loc.nom}`,
+    email: loc.emailSecondaire ?? '',
+    phone: loc.telephone ?? loc.mobile ?? '',
+    profession: loc.profession ?? '',
+    avatar: '/placeholder.svg?height=40&width=40',
+  }));
+
+  const financialData = {
+    monthlyRent: 1800,
+    yearlyIncome: 21600,
+    expenses: 3200,
+    netIncome: 18400,
+    rentPayments: [
+      { month: 'Jan', amount: 1800, status: 'Payé' },
+      { month: 'Fév', amount: 1800, status: 'En attente' },
+    ],
+  };
+
+  const changeTab = (t: 'view' | 'documents' | 'finances' | 'inventaire') => {
+    setTab(t);
+    setSearchParams({ tab: t });
+  };
+
+  return (
+    <div className="space-y-4">
+      <PropertyTabList value={tab} onChange={changeTab} />
+      {tab === 'view' && (
+        <div className="grid grid-cols-1 gap-6">
+          {propertyData && <PropertyInfoCard property={propertyData} />}
+          {activeLocation && leaseData && tenantInfos.length > 0 ? (
+            <>
+              <div>
+                {editLoc ? (
+                  <div className="space-y-2">
+                    <LocationForm1 data={locData} onChange={setLocData} />
+                    <Button
+                      onClick={async () => {
+                        if (location) {
+                          await updateLocation(location.id, locData);
+                          setEditLoc(false);
+                        }
+                      }}
+                    >
+                      Valider
+                    </Button>
+                  </div>
+                ) : (
+                  <div>
+                    <LeaseInfoCard lease={leaseData} />
+                    <div className="space-x-2 mt-2">
+                      <Button
+                        variant="secondary"
+                        onClick={() => setEditLoc(true)}
+                      >
+                        Modifier
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={() => location && removeLocation(location.id)}
+                      >
+                        Supprimer
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="space-y-2">
+                {tenantInfos.map((t, i) => (
+                  <TenantInfoCard tenant={t} key={i} />
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="col-span-2">
+              {id && (
+                <NoLeaseCard
+                  onCreateNew={() =>
+                    navigate(`/biens/${id}/locations/new`, {
+                      state: { returnTo: 'dashboard' },
+                    })
+                  }
+                  onAddExisting={() =>
+                    navigate(`/biens/${id}/locations/new`, {
+                      state: { returnTo: 'dashboard' },
+                    })
+                  }
+                />
+              )}
+            </div>
+          )}
+        </div>
+      )}
+      {tab === 'documents' && (
+        <DocumentList
+          documents={documents}
+          onUpload={(file, type) => id && create(id, file, type)}
+          onDelete={remove}
+        />
+      )}
+      {tab === 'inventaire' && <InventoryPage />}
+      {tab === 'finances' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Euro className="h-5 w-5 mr-2" /> Finances
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <RevenueCard amount={financialData.yearlyIncome} />
+                  <ChargesCard amount={financialData.expenses} />
+                </div>
+                <Separator />
+                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                  <h3 className="text-sm font-medium text-blue-600 mb-2">
+                    Revenus Nets Annuels
+                  </h3>
+                  <p className="text-3xl font-bold text-blue-700">
+                    {financialData.netIncome.toLocaleString()} €
+                  </p>
+                  <div className="mt-2">
+                    <Progress value={85} className="h-2" />
+                    <p className="text-xs text-blue-600 mt-1">
+                      Rentabilité: 85%
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </div>
+  );
+}

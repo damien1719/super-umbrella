@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@monorepo/shared": ["shared/src/index.ts"]
+    }
+  }
+}

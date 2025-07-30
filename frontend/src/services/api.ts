@@ -1,0 +1,51 @@
+// api.ts — point d'entrée HTTP avec VITE_API_URL
+const API_URL = import.meta.env.VITE_API_URL as string;
+if (!API_URL) console.error('[api.ts] VITE_API_URL non défini');
+
+function buildURL(
+  path: string,
+  params?: Record<string, string | number | undefined>,
+): string {
+  const base = API_URL ?? 'http://dummy';
+  const url = new URL(path, base);
+  Object.entries(params ?? {}).forEach(([key, val]) => {
+    if (val != null) url.searchParams.set(key, String(val));
+  });
+  return API_URL ? url.toString() : url.pathname + url.search;
+}
+
+async function fetchBlob(
+  path: string,
+  params?: Record<string, string | number | undefined>,
+): Promise<Blob> {
+  const res = await fetch(buildURL(path, params), { credentials: 'include' });
+  if (!res.ok) throw new Error(`Erreur ${res.status} ${res.statusText}`);
+  return res.blob();
+}
+
+export const downloadCerfa2031 = (
+  anneeId: string | number,
+  activityId: string | number,
+) => fetchBlob('/api/v1/cerfa/2031-sd', { anneeId, activityId });
+
+export const downloadCerfa2033 = (
+  anneeId: string | number,
+  activityId: string | number,
+) => fetchBlob('/api/v1/cerfa/2033', { anneeId, activityId });
+
+export const downloadCerfa2042 = (
+  anneeId: string | number,
+  activityId: string | number,
+) => fetchBlob('/api/v1/cerfa/2042', { anneeId, activityId });
+
+export const downloadFec = (
+  anneeId: string | number,
+  activityId: string | number,
+) => fetchBlob('/api/v1/fec', { anneeId, activityId });
+
+export const downloadReportPdf = (
+  anneeId: string | number,
+  activityId: string | number,
+) => fetchBlob('/api/v1/reports/pdf', { anneeId, activityId });
+
+export { buildURL, fetchBlob };

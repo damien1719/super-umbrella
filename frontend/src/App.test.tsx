@@ -1,11 +1,114 @@
-// frontend/src/App.test.tsx
-import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
-import App from './App'; // ← sans extension .js/.tsx
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import type { User } from '@supabase/supabase-js';
+import App from './App';
+import { PageProvider } from './store/pageContext';
+import { MemoryRouter } from 'react-router-dom';
+import { useAuth } from './store/auth';
+import {
+  useUserProfileStore,
+  type UserProfileState,
+} from './store/userProfile';
 
-describe('App component', () => {
-  it('affiche le texte de bienvenue', () => {
-    render(<App />);
-    expect(screen.getByText(/Test/i)).toBeInTheDocument();
+// Tests simplifiés pour la navigation
+
+describe('App navigation', () => {
+  it('affiche le bouton nouveau bilan', async () => {
+    useAuth.setState({ user: { id: '1' } as unknown as User, loading: false });
+    useUserProfileStore.setState(
+      (state) => ({ ...state, profileId: 'p1' }) as UserProfileState,
+    );
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve([]),
+      }),
+    );
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <PageProvider>
+          <App />
+        </PageProvider>
+      </MemoryRouter>,
+    );
+    expect(
+      await screen.findByRole('button', { name: /rédiger un nouveau bilan/i }),
+    ).toBeInTheDocument();
+  });
+
+  it('fetches profile after login', async () => {
+    const fetchProfileMock = vi.fn(() => Promise.resolve());
+    useAuth.setState({
+      user: { id: '1' } as unknown as User,
+      token: 'tok',
+      loading: false,
+    });
+    useUserProfileStore.setState(
+      (state) =>
+        ({
+          ...state,
+          profileId: null,
+          fetchProfile: fetchProfileMock,
+        }) as UserProfileState,
+    );
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, json: () => Promise.resolve([]) }),
+    ) as unknown as typeof fetch;
+
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <PageProvider>
+          <App />
+        </PageProvider>
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(fetchProfileMock).toHaveBeenCalled());
+    useUserProfileStore.setState(
+      (state) => ({ ...state, profileId: 'p1' }) as UserProfileState,
+    );
+  });
+
+  it('active le menu MesBiens après clic', async () => {
+    useAuth.setState({ user: { id: '1' } as unknown as User, loading: false });
+    useUserProfileStore.setState(
+      (state) => ({ ...state, profileId: 'p1' }) as UserProfileState,
+    );
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, json: () => Promise.resolve([]) }),
+    ) as unknown as typeof fetch;
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <PageProvider>
+          <App />
+        </PageProvider>
+      </MemoryRouter>,
+    );
+    const btn = await screen.findByRole('button', { name: /mes\s?bilans/i });
+    fireEvent.click(btn);
+    expect(btn).toHaveAttribute('data-active', 'true');
+  });
+
+  it('cache la sidebar sur la page bilan', async () => {
+    useAuth.setState({ user: { id: '1' } as unknown as User, loading: false });
+    useUserProfileStore.setState(
+      (state) => ({ ...state, profileId: 'p1' }) as UserProfileState,
+    );
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, json: () => Promise.resolve([]) }),
+    ) as unknown as typeof fetch;
+    render(
+      <MemoryRouter initialEntries={['/bilan/123']}>
+        <PageProvider>
+          <App />
+        </PageProvider>
+      </MemoryRouter>,
+    );
+    expect(
+      screen.queryByRole('button', { name: /mes\s?biens/i }),
+    ).not.toBeInTheDocument();
+    expect(
+      await screen.findByRole('button', { name: /retour/i }),
+    ).toBeInTheDocument();
   });
 });

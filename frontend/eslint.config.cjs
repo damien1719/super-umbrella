@@ -13,7 +13,11 @@ module.exports = [
       'node_modules/',
       'dist/',
       'prettier.config.ts',
-      'vite.config.ts'
+      'prettier.config.js',
+      'vite.config.ts',
+      'postcss.config.js',
+      'tailwind.config.js',
+      'pages/'
     ]
   },
 
@@ -42,7 +46,8 @@ module.exports = [
       'react-hooks/rules-of-hooks': 'error',
       'jsx-a11y/accessible-emoji': 'warn',
       'prettier/prettier': 'error',
-      'react/react-in-jsx-scope': 'off'
+      'react/react-in-jsx-scope': 'off',
+      'react/prop-types': 'off'
     },
   }
 ];

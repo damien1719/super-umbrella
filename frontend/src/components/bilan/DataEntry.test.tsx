@@ -1,0 +1,71 @@
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import React from 'react';
+import { DataEntry, type DataEntryHandle } from './DataEntry';
+import type { Question } from '@/types/question';
+
+const noop = () => {};
+
+const mcQuestion: Question = {
+  id: '1',
+  type: 'choix-multiple',
+  titre: 'Choix',
+  options: ['Opt1', 'Opt2'],
+};
+
+const scaleQuestion: Question = {
+  id: '2',
+  type: 'echelle',
+  titre: 'Scale',
+  echelle: { min: 1, max: 5 },
+};
+
+describe('DataEntry', () => {
+  it('renders multiple choice options as buttons', () => {
+    render(<DataEntry questions={[mcQuestion]} answers={{}} onChange={noop} />);
+    fireEvent.click(screen.getByText(/ajouter/i));
+    expect(screen.getByRole('button', { name: 'Opt1' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Opt2' })).toBeInTheDocument();
+  });
+
+  it('validates scale input', () => {
+    render(
+      <DataEntry questions={[scaleQuestion]} answers={{}} onChange={noop} />,
+    );
+    fireEvent.click(screen.getByText(/ajouter/i));
+    const input = screen.getByRole('spinbutton');
+    fireEvent.change(input, { target: { value: '10' } });
+    expect(screen.getByText(/Valeur entre 1 et 5/)).toBeInTheDocument();
+  });
+
+  it('shows fields inline when inline prop is true', () => {
+    render(
+      <DataEntry
+        questions={[mcQuestion]}
+        answers={{}}
+        onChange={noop}
+        inline
+      />,
+    );
+    // buttons should be visible without clicking "Ajouter"
+    expect(screen.getByRole('button', { name: 'Opt1' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Opt2' })).toBeInTheDocument();
+  });
+
+  it('allows saving through ref', () => {
+    const handle = vi.fn();
+    const ref = React.createRef<DataEntryHandle>();
+    render(
+      <DataEntry
+        ref={ref}
+        questions={[mcQuestion]}
+        answers={{}}
+        onChange={handle}
+        inline
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Opt1' }));
+    ref.current?.save();
+    expect(handle).toHaveBeenCalledWith({ [mcQuestion.id]: 'Opt1' });
+  });
+});
