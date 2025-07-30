@@ -39,5 +39,13 @@ export const promptConfigs = {
   4. Cite la source réglementaire ou bibliographique pour chaque point (HAS, textes officiels, articles).
       `.trim(),
     },
+    conclusions: {
+      title: "Conclusions",
+      instructions: `
+  ### BLOC INSTRUCTIONS – CONCLUSIONS
+  1. Présente les conclusions du bilan psychomoteur.
+  2. Utilise un ton descriptif, nuancé et factuel.
+      `.trim(),
+    },
   } as const;
   

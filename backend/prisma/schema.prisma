@@ -118,6 +118,7 @@ enum SectionKind {
   tests_standards  // NPMOT, MABC‑2, etc.
   observations // Ex : Dunn, Sensory Processing Measure
   profil_sensoriel //
+  conclusion //
   CUSTOM_FORM    // mix perso
 
   @@schema("psychomot")

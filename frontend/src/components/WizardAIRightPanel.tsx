@@ -14,6 +14,7 @@ const kindMap: Record<string, string> = {
   'profil-sensoriel': 'profil_sensoriel',
   'observations-cliniques': 'observations',
   'tests-mabc': 'tests_standards',
+  conclusions: 'conclusions',
 };
 import type { TrameOption, TrameExample } from './bilan/TrameSelector';
 import { DataEntry, type DataEntryHandle } from './bilan/DataEntry';

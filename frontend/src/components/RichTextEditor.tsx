@@ -23,6 +23,7 @@ import { ListNode, ListItemNode } from '@lexical/list';
 import { useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
 import DOMPurify from 'dompurify';
 import { marked } from 'marked';
+import { HeadingNode, QuoteNode } from '@lexical/rich-text';
 
 export interface RichTextEditorHandle {
   insertHtml: (html: string) => void;
@@ -128,8 +129,13 @@ function EditorCore(
     onError: console.error,
     theme: {
       paragraph: 'mb-2',
+      heading: {
+        h1: 'text-2xl font-bold mb-4',
+        h2: 'text-xl font-semibold mb-3',
+        h3: 'text-lg font-medium mb-2',
+      },
     },
-    nodes: [ListNode, ListItemNode, LinkNode],
+    nodes: [ListNode, ListItemNode, LinkNode, HeadingNode, QuoteNode],
   };
   return (
     <LexicalComposer initialConfig={initialConfig}>

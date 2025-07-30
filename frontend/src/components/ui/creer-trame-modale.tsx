@@ -27,6 +27,7 @@ const categories = [
   { id: 'tests_standards', title: 'Tests standards', icon: ClipboardList },
   { id: 'observations', title: 'Observations', icon: Eye },
   { id: 'profil_sensoriel', title: 'Profil sensoriel', icon: Brain },
+  { id: 'conclusions', title: 'Conclusions', icon: Brain },
 ];
 
 interface CreerTrameModalProps {
