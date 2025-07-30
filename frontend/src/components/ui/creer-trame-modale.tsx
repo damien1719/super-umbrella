@@ -29,10 +29,21 @@ const categories = [
   { id: 'profil_sensoriel', title: 'Profil sensoriel', icon: Brain },
 ];
 
-export default function CreerTrameModal() {
+interface CreerTrameModalProps {
+  trigger?: React.ReactNode;
+  initialCategory?: string;
+  onCreated?: (id: string) => void;
+}
+
+export default function CreerTrameModal({
+  trigger,
+  initialCategory = '',
+  onCreated,
+}: CreerTrameModalProps = {}) {
   const [open, setOpen] = useState(false);
   const [nomTrame, setNomTrame] = useState('');
-  const [categorieSelectionnee, setCategorieSelectionnee] = useState('');
+  const [categorieSelectionnee, setCategorieSelectionnee] =
+    useState(initialCategory);
   const navigate = useNavigate();
   const createSection = useSectionStore((s) => s.create);
 
@@ -42,19 +53,25 @@ export default function CreerTrameModal() {
       title: nomTrame,
       kind: categorieSelectionnee,
     });
-    navigate(`/creation-trame/${section.id}`);
+    if (onCreated) {
+      onCreated(section.id);
+    } else {
+      navigate(`/creation-trame/${section.id}`);
+    }
     setOpen(false);
     setNomTrame('');
-    setCategorieSelectionnee('');
+    setCategorieSelectionnee(initialCategory);
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-blue-600 hover:bg-blue-700 text-white ">
-          <Plus className="h-4 w-4 mr-2" />
-          Créer sa trame
-        </Button>
+        {trigger || (
+          <Button className="bg-blue-600 hover:bg-blue-700 text-white ">
+            <Plus className="h-4 w-4 mr-2" />
+            Créer sa trame
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md bg-white">
         <DialogHeader>
