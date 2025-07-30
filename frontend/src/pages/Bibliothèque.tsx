@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import TrameCard from '@/components/TrameCard';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -72,40 +71,16 @@ export default function Bibliotheque() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {sections.map((trame) => (
-                    <Card
+                    <TrameCard
                       key={trame.id}
-                      className="relative hover:shadow-md transition-shadow"
-                    >
-                      <div className="absolute top-2 right-2 flex gap-1">
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() =>
-                            navigate(`/creation-trame/${trame.id}`)
-                          }
-                        >
-                          <Pen className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="text-red-600"
-                          onClick={() => setToDelete(trame)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base font-medium text-gray-900">
-                          {trame.title}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-gray-600">
-                          {trame.description}
-                        </p>
-                      </CardContent>
-                    </Card>
+                      trame={{
+                        id: trame.id,
+                        title: trame.title,
+                        description: trame.description,
+                      }}
+                      onEdit={() => navigate(`/creation-trame/${trame.id}`)}
+                      onDelete={() => setToDelete(trame)}
+                    />
                   ))}
                 </div>
               </div>

@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import TrameCard from './TrameCard';
 import type { TrameOption, TrameExample } from './bilan/TrameSelector';
 import { DataEntry } from './bilan/DataEntry';
 import ExampleManager from './bilan/ExampleManager';
@@ -54,21 +55,20 @@ export default function WizardAIRightPanel({
     content = (
       <div className="space-y-4">
         <p className="text-sm">Choisissez une trame parmi la bibliothèque :</p>
-        <Select
-          value={selectedTrame?.value || ''}
-          onValueChange={onTrameChange}
-        >
-          <SelectTrigger className="h-8">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {trameOptions.map((trame) => (
-              <SelectItem key={trame.value} value={trame.value}>
-                {trame.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-60 overflow-y-auto">
+          {trameOptions.map((trame) => (
+            <TrameCard
+              key={trame.value}
+              trame={{
+                id: trame.value,
+                title: trame.label,
+                description: trame.description,
+              }}
+              selected={selectedTrame?.value === trame.value}
+              onSelect={() => onTrameChange(trame.value)}
+            />
+          ))}
+        </div>
       </div>
     );
   } else if (step === 2) {
