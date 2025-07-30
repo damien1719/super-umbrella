@@ -2,19 +2,19 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { WizardProgress } from './WizardProgress';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+DialogHeader,
+DialogTitle,
+DialogDescription,
+} from '@/components/ui/dialog';
 import TrameCard from './TrameCard';
 import type { TrameOption, TrameExample } from './bilan/TrameSelector';
 import { DataEntry } from './bilan/DataEntry';
 import ExampleManager from './bilan/ExampleManager';
 import type { Answers, Question } from '@/types/question';
+import type { SectionInfo } from './bilan/SectionCard';
 
 interface WizardAIRightPanelProps {
+  sectionInfo: SectionInfo;
   trameOptions: TrameOption[];
   selectedTrame: TrameOption | undefined;
   onTrameChange: (value: string) => void;
@@ -30,6 +30,7 @@ interface WizardAIRightPanelProps {
 }
 
 export default function WizardAIRightPanel({
+  sectionInfo,
   trameOptions,
   selectedTrame,
   onTrameChange,
@@ -49,12 +50,17 @@ export default function WizardAIRightPanel({
   const next = () => setStep((s) => Math.min(total, s + 1));
   const prev = () => setStep((s) => Math.max(1, s - 1));
 
+  const stepTitles = ['Trame', 'Exemples', 'Données'];
+
   let content: JSX.Element | null = null;
 
   if (step === 1) {
     content = (
       <div className="space-y-4">
-        <p className="text-sm">Choisissez une trame parmi la bibliothèque :</p>
+        <h3 className="text-center font-medium">{stepTitles[0]}</h3>
+        <p className="text-sm text-center">
+          Choisissez une trame parmi la bibliothèque :
+        </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-60 overflow-y-auto">
           {trameOptions.map((trame) => (
             <TrameCard
@@ -73,26 +79,74 @@ export default function WizardAIRightPanel({
     );
   } else if (step === 2) {
     content = (
-      <ExampleManager
-        examples={examples}
-        onAddExample={onAddExample}
-        onRemoveExample={onRemoveExample}
-      />
+      <div className="space-y-4">
+        <h3 className="text-center font-medium">{stepTitles[1]}</h3>
+        <ExampleManager
+          examples={examples}
+          onAddExample={onAddExample}
+          onRemoveExample={onRemoveExample}
+        />
+      </div>
     );
   } else {
     content = (
-      <DataEntry
-        questions={questions}
-        answers={answers}
-        onChange={onAnswersChange}
-        inline
-      />
+      <div className="space-y-4">
+        <h3 className="text-center font-medium">{stepTitles[2]}</h3>
+        <DataEntry
+          questions={questions}
+          answers={answers}
+          onChange={onAnswersChange}
+          inline
+        />
+      </div>
     );
   }
 
   return (
     <div className="p-4 space-y-4">
-      <WizardProgress step={step} total={total} />
+      <DialogHeader>
+        <DialogTitle className="flex items-center gap-2">
+          {sectionInfo?.icon && (
+            <sectionInfo.icon className="h-5 w-5" />
+          )}
+          {sectionInfo?.title} - Étape {step}/3
+        </DialogTitle>
+        <DialogDescription>
+          Configuration de la génération pour {sectionInfo?.title?.toLowerCase()}
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-2">
+          {[1, 2, 3].map((s) => (
+            <div
+              key={s}
+              className={`flex items-center ${s < 3 ? 'flex-1' : ''}`}
+            >
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                  s <= step
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-200 text-gray-600'
+                }`}
+              >
+                {s}
+              </div>
+              {s < 3 && (
+                <div
+                  className={`flex-1 h-1 mx-2 ${s < step ? 'bg-blue-500' : 'bg-gray-200'}`}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+        <div className="flex justify-between text-xs text-gray-500">
+          <span>Trame</span>
+          <span>Exemples</span>
+          <span>Données</span>
+        </div>
+      </div>
+      
       {content}
       <div className="flex justify-between pt-2">
         {step > 1 ? (

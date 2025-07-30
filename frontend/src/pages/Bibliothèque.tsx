@@ -12,7 +12,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { FileText, ClipboardList, Eye, Brain, Pen, Trash2 } from 'lucide-react';
+import { FileText, ClipboardList, Eye, Brain} from 'lucide-react';
 import CreerTrameModal from '@/components/ui/creer-trame-modale';
 import { useSectionStore, type Section } from '@/store/sections';
 

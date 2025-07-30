@@ -7,6 +7,7 @@ import { SectionCard, SectionInfo } from './bilan/SectionCard';
 import WizardAIRightPanel from './WizardAIRightPanel';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import type { TrameOption, TrameExample } from './bilan/TrameSelector';
 import type { Answers, Question } from '@/types/question';
 import { FileText, Eye, Brain, Activity } from 'lucide-react';
@@ -189,12 +190,10 @@ export default function AiRightPanel({
 
               if (wizardSection === section.id) {
                 return (
-                  <div
-                    key={section.id}
-                    className="fixed inset-0 z-50 overflow-y-auto bg-white p-4"
-                  >
-                    <div className="max-w-2xl mx-auto">
+                  <Dialog open={true} onOpenChange={(open) => !open && setWizardSection(null)}>
+                    <DialogContent className="max-w-2xl">
                       <WizardAIRightPanel
+                        sectionInfo={section}
                         trameOptions={trameOpts}
                         selectedTrame={selected}
                         onTrameChange={(v) =>
@@ -228,8 +227,8 @@ export default function AiRightPanel({
                         }
                         onCancel={() => setWizardSection(null)}
                       />
-                    </div>
-                  </div>
+                    </DialogContent>
+                  </Dialog>
                 );
               }
 
