@@ -11,6 +11,8 @@ import {
   $getSelection,
   $insertNodes,
   $createParagraphNode,
+  $createNodeSelection,
+  $setSelection,
   LexicalNode,
 } from 'lexical';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
@@ -98,6 +100,10 @@ const ImperativeHandlePlugin = forwardRef<
           } else {
             $getRoot().append(...nodes);
           }
+
+          const sel = $createNodeSelection();
+          nodes.forEach((n) => sel.add(n.getKey()));
+          $setSelection(sel);
         });
       },
     }),
