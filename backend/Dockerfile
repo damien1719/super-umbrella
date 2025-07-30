@@ -22,7 +22,11 @@ RUN apt-get update -qq && \
 
 # Install node modules
 COPY package-lock.json package.json ./
-RUN npm ci
+# ensure pnpm is available
+RUN npm install -g pnpm@8
+
+# install only prod deps, refusing to rebuild lockfile
+RUN pnpm install --frozen-lockfile --prod
 
 # Copy application code
 COPY . .
