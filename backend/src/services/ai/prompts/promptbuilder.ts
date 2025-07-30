@@ -43,7 +43,9 @@ export function buildPrompt(params: PromptParams): readonly SingleMessage[] {
 ` +
     `- Ne rien inventer, si info manquante écrire '_Informations non communiquées.'
 ` +
-    `- Citer la source entre parenthèses (ex. "selon la mère")`
+    `- Ne pas utiliser les données patients des exemples pour générer le bilan - veuillez à utiliser uniquement les informations des Données du patient actuel.'
+` +
+    `- Citer la source entre parenthèses`
   });
 
   // 3. Contexte métier (optionnel)
@@ -54,15 +56,19 @@ export function buildPrompt(params: PromptParams): readonly SingleMessage[] {
   // 4. Instructions spécifiques
   msgs.push({ role: 'user', content: `### Instructions\n${params.instructions.trim()}` });
 
-  // 5. Données utilisateur
-  msgs.push({ role: 'user', content: `### Données\n${params.userContent.trim()}` });
-
-  // 6. Exemples de génération (optionnel)
-  if (params.examples && params.examples.length > 0) {
+  
+   // 5. démonstration de style (exemples de réponses)
+   if (params.examples && params.examples.length > 0) {
+    msgs.push({ role: 'user', content: `### Exemples de bilan précédemment rédigés pour d'autres patients` });
+    // on ne précise pas d'"userContent" : c'est juste une réponse à prendre comme modèle
     params.examples.slice(0, 3).forEach(example => {
       msgs.push({ role: 'assistant', content: example.trim() });
     });
   }
+
+  // 6. Données utilisateur
+  msgs.push({ role: 'user', content: `### Données du patient actuel\n${params.userContent.trim()}` });
+
 
   return msgs as const;
 }

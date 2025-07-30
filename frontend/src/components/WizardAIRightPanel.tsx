@@ -57,7 +57,9 @@ export default function WizardAIRightPanel({
       <div className="space-y-4">
         <h3 className="text-center font-medium">{stepTitles[0]}</h3>
         <p className="text-sm text-center">
-          Choisissez une trame parmi la bibliothèque :
+        Choisissez une trame parmi la bibliothèque. 
+        <br />
+        Pour personnaliser les questions ou les résultats que vous souhaitez entrer vous pouvez créer votre propre trame
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-60 overflow-y-auto">
           {trameOptions.map((trame) => (
@@ -79,6 +81,11 @@ export default function WizardAIRightPanel({
     content = (
       <div className="space-y-4">
         <h3 className="text-center font-medium">{stepTitles[1]}</h3>
+        <p className="text-sm text-center">
+        Ajoutez un exemple de rédaction d’un bilan déjà rédigé pour aider l'IA à mieux coller à votre style de rédaction
+        <br />
+        Important: veuillez anonymiser les données (pas de nom et de prénom)
+        </p>
         <ExampleManager
           examples={examples}
           onAddExample={onAddExample}
@@ -90,6 +97,11 @@ export default function WizardAIRightPanel({
     content = (
       <div className="space-y-4">
         <h3 className="text-center font-medium">{stepTitles[2]}</h3>
+        <p className="text-sm text-center">
+        Entrez les notes, les résultats chiffrés que vous avez sur la patient. C’est le coeur de la matière qui est utilisé par l’IA pour générer le bilan.
+        <br />
+        Important: veuillez anonymiser les données (pas de nom et de prénom)
+        </p>
         <DataEntry
           ref={dataEntryRef}
           questions={questions}
