@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useSectionStore } from '../store/sections';
 import type { Question } from '../types/question';
-import { categories } from '../types/trame';
+import { categories, type CategoryId } from '../types/trame';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -48,6 +49,9 @@ const typesQuestions = [
 ];
 
 export default function CreationTrame() {
+
+
+
   const { sectionId } = useParams<{ sectionId: string }>();
   const navigate = useNavigate();
   const { state } = useLocation() as {
@@ -59,9 +63,7 @@ export default function CreationTrame() {
   const [categorie, setCategorie] = useState('');
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isPublic, setIsPublic] = useState(false);
-  const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(
-    null,
-  );
+  const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
 
   const createDefaultNote = (): Question => ({
     id: Date.now().toString(),
@@ -69,6 +71,14 @@ export default function CreationTrame() {
     titre: 'Question sans titre',
     contenu: '',
   });
+
+  const createDefaultMultiple = (): Question => ({
+    id: Date.now().toString(),
+    type: 'choix-multiple',
+    titre: '',
+    options: ['Option 1'], // <-- default single option
+  });
+
 
   useEffect(() => {
     if (!sectionId) return;
@@ -89,23 +99,28 @@ export default function CreationTrame() {
 
   const ajouterQuestion = () => {
     const nouvelleQuestion = createDefaultNote();
-
+  
     setQuestions((qs) => {
       if (!selectedQuestionId) return [...qs, nouvelleQuestion];
-
+  
       const idx = qs.findIndex((q) => q.id === selectedQuestionId);
       if (idx === -1) return [...qs, nouvelleQuestion];
-
-      return [...qs.slice(0, idx + 1), nouvelleQuestion, ...qs.slice(idx + 1)];
+  
+      return [
+        ...qs.slice(0, idx + 1),
+        nouvelleQuestion,
+        ...qs.slice(idx + 1),
+      ];
     });
     setSelectedQuestionId(nouvelleQuestion.id);
   };
-
+  
+  
   const dupliquerQuestion = (id: string) => {
     // On trouve d'abord l'index de la question à dupliquer
-    const idx = questions.findIndex((q) => q.id === id);
+    const idx = questions.findIndex(q => q.id === id);
     if (idx === -1) return;
-
+  
     // On clone l'objet
     const original = questions[idx];
     const clone: Question = {
@@ -113,14 +128,19 @@ export default function CreationTrame() {
       id: Date.now().toString(),
       titre: 'Question sans titre',
     };
-
+  
     // On reconstruit le tableau en insérant la copie juste après l'original
     const before = questions.slice(0, idx + 1);
     const after = questions.slice(idx + 1);
-    const newList = [...before, clone, ...after];
+    const newList = [
+      ...before,
+      clone,
+      ...after,
+    ];
     setQuestions(newList);
     setSelectedQuestionId(clone.id);
   };
+  
 
   const supprimerQuestion = (id: string) => {
     setQuestions(questions.filter((q) => q.id !== id));
@@ -129,6 +149,16 @@ export default function CreationTrame() {
   const mettreAJourQuestion = (id: string, champ: string, valeur: unknown) => {
     setQuestions(
       questions.map((q) => (q.id === id ? { ...q, [champ]: valeur } : q)),
+    );
+  };
+
+  const ajouterOption = (questionId: string) => {
+    setQuestions(
+      questions.map((q) =>
+        q.id === questionId && q.options
+          ? { ...q, options: [...q.options, `Option ${q.options.length + 1}`] }
+          : q,
+      ),
     );
   };
 
@@ -177,8 +207,7 @@ export default function CreationTrame() {
             <Select
               value={categorie}
               onValueChange={(v) => setCategorie(v)}
-              className="w-48"
-            >
+              className="w-48">
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Catégorie" />
               </SelectTrigger>
@@ -192,15 +221,15 @@ export default function CreationTrame() {
             </Select>
           </div>
           <Button
-            onClick={sauvegarderTrame}
-            className="ml-auto bg-blue-600 hover:bg-blue-700"
-          >
-            Sauvegarder la trame
+              onClick={sauvegarderTrame}
+              className="ml-auto bg-blue-600 hover:bg-blue-700"
+            >
+              Sauvegarder la trame
           </Button>
         </div>
 
         <div className="space-y-6">
-          <label className="flex items-center gap-2">
+        <label className="flex items-center gap-2">
             <input
               type="checkbox"
               checked={isPublic}
@@ -214,192 +243,177 @@ export default function CreationTrame() {
           {/* Liste des questions */}
           {questions.map((question, index) => (
             <div key={question.id} className="relative w-full">
-              <Card
-                onClick={() => setSelectedQuestionId(question.id)}
-                className={`w-[90%] mx-auto cursor-pointer transition-shadow ${
-                  selectedQuestionId === question.id
-                    ? 'border-blue-500 ring-1 ring-blue-500 shadow-md'
-                    : ''
-                }`}
-              >
-                <CardHeader>
-                  {/* Titre de la question + sélecteur de type */}
-                  <div className="flex items-center gap-4">
-                    <Input
-                      className="flex-1"
-                      placeholder={`Question ${index + 1}`}
-                      value={question.titre}
-                      onChange={(e) =>
-                        mettreAJourQuestion(
-                          question.id,
-                          'titre',
-                          e.target.value,
-                        )
-                      }
-                    />
-                    {selectedQuestionId === question.id && (
-                      <Select
-                        value={question.type}
-                        onValueChange={(v) =>
-                          mettreAJourQuestion(question.id, 'type', v)
-                        }
-                      >
-                        <SelectTrigger className="w-44">
-                          <SelectValue placeholder="Type de réponse" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {typesQuestions.map((t) => (
-                            <SelectItem key={t.id} value={t.id}>
-                              {t.title}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {question.type === 'notes' && (
-                    <div className="w-full rounded px-3 py-2 border-b border-dotted border-gray-200 text-gray-600">
-                      Réponse (prise de notes)
-                    </div>
-                  )}
-
-                  {question.type === 'choix-multiple' && (
-                    <div>
-                      <Label>Options de réponse</Label>
-                      <div className="space-y-2">
-                        {/* Existing options as editable inputs */}
-                        {question.options?.map((option, optionIndex) => (
-                          <div
-                            key={optionIndex}
-                            className="flex items-center gap-2"
-                          >
-                            <Input
-                              value={option}
-                              onChange={(e) => {
-                                const opts = [...(question.options || [])];
-                                opts[optionIndex] = e.target.value;
-                                mettreAJourQuestion(
-                                  question.id,
-                                  'options',
-                                  opts,
-                                );
-                              }}
-                            />
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                supprimerOption(question.id, optionIndex)
-                              }
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ))}
-
-                        {/* Modified: inline add field */}
-                        <Input
-                          placeholder="Ajouter une option"
-                          onKeyDown={(e) => {
-                            if (
-                              e.key === 'Enter' &&
-                              e.currentTarget.value.trim()
-                            ) {
-                              const nouvelleOpt = e.currentTarget.value.trim();
-                              const opts = [
-                                ...(question.options || []),
-                                nouvelleOpt,
-                              ];
-                              mettreAJourQuestion(question.id, 'options', opts);
-                              e.currentTarget.value = '';
-                            }
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {question.type === 'echelle' && (
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor={`min-${question.id}`}>
-                          Valeur minimum
-                        </Label>
-                        <Input
-                          id={`min-${question.id}`}
-                          type="number"
-                          value={question.echelle?.min || 1}
-                          onChange={(e) =>
-                            mettreAJourQuestion(question.id, 'echelle', {
-                              ...question.echelle,
-                              min: Number.parseInt(e.target.value),
-                            })
-                          }
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor={`max-${question.id}`}>
-                          Valeur maximum
-                        </Label>
-                        <Input
-                          id={`max-${question.id}`}
-                          type="number"
-                          value={question.echelle?.max || 5}
-                          onChange={(e) =>
-                            mettreAJourQuestion(question.id, 'echelle', {
-                              ...question.echelle,
-                              max: Number.parseInt(e.target.value),
-                            })
-                          }
-                        />
-                      </div>
-                    </div>
-                  )}
-                  {/* Icônes Dupliquer / Supprimer en bas */}
+            <Card
+              onClick={() => setSelectedQuestionId(question.id)}
+              className={`w-[90%] mx-auto cursor-pointer transition-shadow ${
+                selectedQuestionId === question.id
+                  ? 'border-blue-500 ring-1 ring-blue-500 shadow-md'
+                  : ''
+              }`}
+            >
+              <CardHeader>
+                {/* Titre de la question + sélecteur de type */}
+                <div className="flex items-center gap-4">
+                  <Input
+                    className="flex-1"
+                    placeholder={`Question ${index + 1}`}
+                    value={question.titre}
+                    onChange={(e) =>
+                      mettreAJourQuestion(question.id, 'titre', e.target.value)
+                    }
+                  />
                   {selectedQuestionId === question.id && (
-                    <div className="flex justify-end gap-2 pt-4">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          dupliquerQuestion(question.id);
-                        }}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          supprimerQuestion(question.id);
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <Select
+                      value={question.type}
+                      onValueChange={(v) =>
+                        mettreAJourQuestion(question.id, 'type', v)
+                      }
+                    >
+                      <SelectTrigger className="w-44">
+                        <SelectValue placeholder="Type de réponse" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {typesQuestions.map((t) => (
+                          <SelectItem key={t.id} value={t.id}>
+                            {t.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+                
+              </CardHeader>
+              <CardContent className="space-y-4">
 
+                {question.type === 'notes' && (
+                  <div className="w-full rounded px-3 py-2 border-b border-dotted border-gray-200 text-gray-600">
+                  Réponse (prise de notes)
+                  </div>
+                )}
+
+                {question.type === 'choix-multiple' && (
+                  <div>
+                    <Label>Options de réponse</Label>
+                    <div className="space-y-2">
+                      {/* Existing options as editable inputs */}
+                      {question.options?.map((option, optionIndex) => (
+                        <div key={optionIndex} className="flex items-center gap-2">
+                          <Input
+                            value={option}
+                            onChange={(e) => {
+                              const opts = [...(question.options || [])];
+                              opts[optionIndex] = e.target.value;
+                              mettreAJourQuestion(question.id, 'options', opts);
+                            }}
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => supprimerOption(question.id, optionIndex)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+
+                      {/* Modified: inline add field */}
+                      <Input
+                        placeholder="Ajouter une option"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                            const nouvelleOpt = e.currentTarget.value.trim();
+                            const opts = [...(question.options || []), nouvelleOpt];
+                            mettreAJourQuestion(question.id, 'options', opts);
+                            e.currentTarget.value = '';
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {question.type === 'echelle' && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor={`min-${question.id}`}>
+                        Valeur minimum
+                      </Label>
+                      <Input
+                        id={`min-${question.id}`}
+                        type="number"
+                        value={question.echelle?.min || 1}
+                        onChange={(e) =>
+                          mettreAJourQuestion(question.id, 'echelle', {
+                            ...question.echelle,
+                            min: Number.parseInt(e.target.value),
+                          })
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`max-${question.id}`}>
+                        Valeur maximum
+                      </Label>
+                      <Input
+                        id={`max-${question.id}`}
+                        type="number"
+                        value={question.echelle?.max || 5}
+                        onChange={(e) =>
+                          mettreAJourQuestion(question.id, 'echelle', {
+                            ...question.echelle,
+                            max: Number.parseInt(e.target.value),
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+                )}
+              {/* Icônes Dupliquer / Supprimer en bas */}
               {selectedQuestionId === question.id && (
-                <div className="absolute top-1/2 -translate-y-1/2 -right-4">
+                <div className="flex justify-end gap-2 pt-4">
                   <Button
-                    variant="primary"
-                    size="icon"
+                    variant="outline"
+                    size="sm"
                     onClick={(e) => {
                       e.stopPropagation();
-                      ajouterQuestion();
+                      dupliquerQuestion(question.id);
                     }}
                   >
-                    <Plus className="h-6 w-6 text-white" />
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      supprimerQuestion(question.id);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               )}
-            </div>
+            </CardContent>
+          </Card>
+
+
+            {selectedQuestionId === question.id && (
+              <div className="absolute top-1/2 -translate-y-1/2 -right-4">
+                <Button
+                  variant="primary"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    ajouterQuestion();
+                  }}
+                >
+                  <Plus className="h-6 w-6 text-white" />
+                </Button>
+              </div>
+            )}
+          </div>
+          
           ))}
 
           {/* Actions */}
@@ -407,7 +421,7 @@ export default function CreationTrame() {
             <Button variant="outline" onClick={() => navigate(-1)}>
               Annuler
             </Button>
-
+            
             <Button
               onClick={sauvegarderTrame}
               className="bg-blue-600 hover:bg-blue-700"
