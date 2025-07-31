@@ -1,21 +1,161 @@
-// 1. Source de données
-datasource db {
-  provider   = "postgresql"
-  url        = env("DATABASE_URL")
-  directUrl  = env("DATABASE_URL")
-  schemas  = ["public", "gestion", "psychomot"]
-}
-
-// 2. Générateur de client
 generator clientPublic {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["multiSchema"]
 }
 
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL")
+  schemas   = ["gestion", "psychomot", "public"]
+}
+
+model User {
+  id           String        @id @default(uuid()) @db.Uuid
+  role         UserRole      @default(THERAPIST)
+  createdAt    DateTime      @default(now())
+  authAccounts AuthAccount[]
+  profile      Profile?
+
+  @@schema("public")
+}
+
+model AuthAccount {
+  id                Int     @id @default(autoincrement())
+  provider          String
+  providerAccountId String
+  email             String?
+  accessToken       String?
+  refreshToken      String?
+  expiresAt         Int?
+  userId            String  @db.Uuid
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@schema("public")
+}
+
+model Profile {
+  id                 String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId             String      @unique @db.Uuid
+  civilite           Civilite?
+  nom                String?     @db.VarChar(100)
+  nomUsage           String?     @db.VarChar(100)
+  prenom             String?     @db.VarChar(100)
+  email              String?     @db.VarChar(255)
+  telephonePersoNum  String?     @db.VarChar(50)
+  telephoneMobileNum String?     @db.VarChar(50)
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  bilantypes         BilanType[] @relation("AuthorBilanTypes")
+  patients           Patient[]
+  sections           Section[]   @relation("AuthorSections")
+  user               User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profile")
+  @@schema("public")
+}
+
+model Patient {
+  id        String    @id @default(uuid())
+  firstName String
+  lastName  String
+  dob       DateTime?
+  notes     String?
+  createdAt DateTime  @default(now())
+  profileId String    @db.Uuid
+  bilans    Bilan[]
+  profile   Profile   @relation(fields: [profileId], references: [id])
+
+  @@schema("psychomot")
+}
+
+model BilanType {
+  id          String             @id @default(uuid())
+  name        String
+  description String?
+  isPublic    Boolean            @default(false)
+  authorId    String?            @db.Uuid
+  createdAt   DateTime           @default(now())
+  bilans      Bilan[]
+  author      Profile?           @relation("AuthorBilanTypes", fields: [authorId], references: [id])
+  sections    BilanTypeSection[]
+
+  @@schema("psychomot")
+}
+
+model Section {
+  id                String                 @id @default(uuid())
+  title             String
+  kind              SectionKind
+  description       String?
+  schema            Json?
+  defaultContent    Json?
+  isPublic          Boolean                @default(false)
+  authorId          String?                @db.Uuid
+  createdAt         DateTime               @default(now())
+  instances         BilanSectionInstance[]
+  bilanTypeSections BilanTypeSection[]
+  author            Profile?               @relation("AuthorSections", fields: [authorId], references: [id])
+  examples          SectionExample[]
+
+  @@schema("psychomot")
+}
+
+model BilanTypeSection {
+  id          String    @id @default(uuid())
+  bilanTypeId String
+  sectionId   String
+  sortOrder   Int
+  settings    Json?
+  bilanType   BilanType @relation(fields: [bilanTypeId], references: [id])
+  section     Section   @relation(fields: [sectionId], references: [id])
+
+  @@schema("psychomot")
+}
+
+model SectionExample {
+  id        String  @id @default(uuid())
+  sectionId String
+  label     String?
+  content   String
+  section   Section @relation(fields: [sectionId], references: [id])
+
+  @@schema("psychomot")
+}
+
+model Bilan {
+  id              String                 @id @default(uuid())
+  patientId       String?
+  bilanTypeId     String?
+  descriptionHtml String?
+  date            DateTime               @default(now())
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  bilanType       BilanType?             @relation(fields: [bilanTypeId], references: [id])
+  patient         Patient?               @relation(fields: [patientId], references: [id])
+  sections        BilanSectionInstance[]
+
+  @@schema("psychomot")
+}
+
+model BilanSectionInstance {
+  id        String  @id @default(uuid())
+  bilanId   String
+  sectionId String
+  order     Int
+  content   Json
+  bilan     Bilan   @relation(fields: [bilanId], references: [id])
+  section   Section @relation(fields: [sectionId], references: [id])
+
+  @@index([bilanId, order])
+  @@schema("psychomot")
+}
+
 enum Civilite {
-  M    // Monsieur
-  MME  // Madame
-  MLLE // Mademoiselle
+  M
+  MME
+  MLLE
 
   @@schema("public")
 }
@@ -26,188 +166,13 @@ enum UserRole {
   @@schema("public")
 }
 
-model User {
-  id          String        @id @default(uuid()) @db.Uuid
-  role        UserRole      @default(THERAPIST)
-  profile     Profile?
-  authAccounts AuthAccount[]
-  createdAt   DateTime      @default(now())
-  @@schema("public")
-}
-
-model AuthAccount {
-  id                Int      @id @default(autoincrement())
-  userId            String   @db.Uuid
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  provider          String
-  providerAccountId String
-  email             String?
-  accessToken       String?
-  refreshToken      String?
-  expiresAt         Int?
-
-  @@unique([provider, providerAccountId])
-  @@schema("public")
-}
-
-//Profile
-model Profile {
-  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId              String    @unique @db.Uuid
-  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  civilite            Civilite?
-  nom                 String?   @db.VarChar(100)
-  nomUsage            String?   @db.VarChar(100)
-  prenom              String?   @db.VarChar(100)
-  email               String?   @db.VarChar(255)
-  telephonePersoNum   String?   @db.VarChar(50)
-  telephoneMobileNum  String?   @db.VarChar(50)
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
-
-  patients      Patient[]
-  bilantypes    BilanType[] @relation("AuthorBilanTypes")
-  sections      Section[]    @relation("AuthorSections")
-
-  @@map("profile")
-  @@schema("public")
-
-}
-
-// -------------- ENUMS --------------
-
-
-model Patient {
-  id        String   @id @default(uuid())
-  profile      Profile  @relation(fields: [profileId], references: [id])
-  profileId    String   @db.Uuid // -> multi‑tenant : 1 psy == 1 tenant
-  firstName String
-  lastName  String
-  dob       DateTime?
-  notes     String?
-
-  bilans    Bilan[]
-
-  createdAt DateTime  @default(now())
-
-  @@schema("psychomot")
-
-}
-
-// -------------- BILAN TEMPLATES --------------
-model BilanType {
-  id          String   @id @default(uuid())
-  name        String
-  description String?
-  isPublic    Boolean  @default(false)
-
-  author      Profile?    @relation("AuthorBilanTypes", fields: [authorId], references: [id])
-  authorId    String? @db.Uuid
-
-  bilans      Bilan[]     
-  sections    BilanTypeSection[]
-
-  createdAt   DateTime @default(now())
-
-  @@schema("psychomot")
-
-}
-
 enum SectionKind {
-  anamnese      // Anamnèse, Observations cliniques…
-  tests_standards  // NPMOT, MABC‑2, etc.
-  observations // Ex : Dunn, Sensory Processing Measure
-  profil_sensoriel //
-  conclusion //
-  CUSTOM_FORM    // mix perso
-
-  @@schema("psychomot")
-
-}
-
-model Section {
-  id             String      @id @default(uuid())
-  title          String
-  kind           SectionKind
-  description    String?
-  // "schema" décrit la structure d’entrée (questions, champs markdown…)
-  // Pour kind = NARRATIVE tu peux laisser null ou stocker un placeholder.
-  schema         Json?       @db.JsonB
-
-  defaultContent Json?       @db.JsonB   // modèle vierge si tu veux pré‑remplir
-  isPublic       Boolean     @default(false)
-
-  author         Profile?       @relation("AuthorSections", fields: [authorId], references: [id])
-  authorId       String?     @db.Uuid
-  examples       SectionExample[]
-  instances      BilanSectionInstance[]
-  bilanTypeSections BilanTypeSection[]
-
-  createdAt      DateTime    @default(now())
-
-  @@schema("psychomot")
-
-}
-
-
-model BilanTypeSection {
-  id          String   @id @default(uuid())
-  bilanType   BilanType @relation(fields: [bilanTypeId], references: [id])
-  bilanTypeId String
-  section     Section   @relation(fields: [sectionId], references: [id])
-  sectionId   String
-  sortOrder   Int
-  settings    Json?     // ex : contraintes, score max…
-
-  @@schema("psychomot")
-
-}
-
-// -------------- EXEMPLES (facultatif mais prêt) --------------
-model SectionExample {
-  id         String   @id @default(uuid())
-  section    Section  @relation(fields: [sectionId], references: [id])
-  sectionId  String
-  label      String?
-  content    String   // markdown ou texte simple
-
-  @@schema("psychomot")
-
-}
-
-// -------------- BILAN INSTANCIES --------------
-model Bilan {
-  id          String   @id @default(uuid())
-  patient     Patient?  @relation(fields: [patientId], references: [id])
-  patientId   String?
-
-  bilanType   BilanType? @relation(fields: [bilanTypeId], references: [id])
-  bilanTypeId String?
-
-  descriptionHtml String? @db.Text
-
-  date        DateTime    @default(now())
-
-  sections    BilanSectionInstance[]
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@schema("psychomot")
-
-}
-
-model BilanSectionInstance {
-  id        String   @id @default(uuid())
-  bilan     Bilan    @relation(fields: [bilanId], references: [id])
-  bilanId   String
-  section   Section  @relation(fields: [sectionId], references: [id])
-  sectionId String
-  order     Int
-  content   Json         // Rich text, réponses, scores… tout est sérialisé
-
-  // index composite pour requêtes rapides
-  @@index([bilanId, order])
+  anamnese
+  tests_standards
+  observations
+  profil_sensoriel
+  CUSTOM_FORM
+  conclusion
 
   @@schema("psychomot")
 }

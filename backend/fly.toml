@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for backend-long-mountain-5959 on 2025-07-30T17:30:39+02:00
+# fly.toml app configuration file generated for backend-winter-smoke-5652 on 2025-07-31T08:49:48+02:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'backend-long-mountain-5959'
+app = 'backend-winter-smoke-5652'
 primary_region = 'cdg'
 
 [build]

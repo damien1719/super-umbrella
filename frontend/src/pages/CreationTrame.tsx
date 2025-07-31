@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useSectionStore } from '../store/sections';
 import type { Question } from '../types/question';
+import { categories, type CategoryId } from '../types/trame';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,6 +19,7 @@ import {
 } from '@/components/ui/select';
 import {
   ArrowLeft,
+  Copy,
   Plus,
   Trash2,
   FileText,
@@ -28,7 +30,7 @@ import {
 const typesQuestions = [
   {
     id: 'notes',
-    title: 'Notes brutes',
+    title: 'Réponse (prise de notes)',
     icon: FileText,
     description: 'Zone de texte libre',
   },
@@ -47,6 +49,9 @@ const typesQuestions = [
 ];
 
 export default function CreationTrame() {
+
+
+
   const { sectionId } = useParams<{ sectionId: string }>();
   const navigate = useNavigate();
   const { state } = useLocation() as {
@@ -58,7 +63,22 @@ export default function CreationTrame() {
   const [categorie, setCategorie] = useState('');
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isPublic, setIsPublic] = useState(false);
-  const [typeQuestionSelectionnee, setTypeQuestionSelectionnee] = useState('');
+  const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
+
+  const createDefaultNote = (): Question => ({
+    id: Date.now().toString(),
+    type: 'notes',
+    titre: 'Question sans titre',
+    contenu: '',
+  });
+
+  const createDefaultMultiple = (): Question => ({
+    id: Date.now().toString(),
+    type: 'choix-multiple',
+    titre: '',
+    options: ['Option 1'], // <-- default single option
+  });
+
 
   useEffect(() => {
     if (!sectionId) return;
@@ -66,34 +86,61 @@ export default function CreationTrame() {
       setNomTrame(section.title);
       setCategorie(section.kind);
       setIsPublic(section.isPublic ?? false);
-      if (Array.isArray(section.schema)) {
-        setQuestions(section.schema as Question[]);
+      const loaded: Question[] =
+        Array.isArray(section.schema) && section.schema.length > 0
+          ? (section.schema as Question[])
+          : [createDefaultNote()];
+      setQuestions(loaded);
+      if (loaded.length > 0) {
+        setSelectedQuestionId(loaded[0].id);
       }
     });
   }, [sectionId, fetchOne]);
 
   const ajouterQuestion = () => {
-    if (!typeQuestionSelectionnee) return;
-
-    const nouvelleQuestion: Question = {
-      id: Date.now().toString(),
-      type: typeQuestionSelectionnee as Question['type'],
-      titre: '',
-    };
-
-    if (typeQuestionSelectionnee === 'choix-multiple') {
-      nouvelleQuestion.options = ['Option 1', 'Option 2'];
-    } else if (typeQuestionSelectionnee === 'echelle') {
-      nouvelleQuestion.echelle = {
-        min: 1,
-        max: 5,
-        labels: { min: 'Faible', max: 'Élevé' },
-      };
-    }
-
-    setQuestions([...questions, nouvelleQuestion]);
-    setTypeQuestionSelectionnee('');
+    const nouvelleQuestion = createDefaultNote();
+  
+    setQuestions((qs) => {
+      if (!selectedQuestionId) return [...qs, nouvelleQuestion];
+  
+      const idx = qs.findIndex((q) => q.id === selectedQuestionId);
+      if (idx === -1) return [...qs, nouvelleQuestion];
+  
+      return [
+        ...qs.slice(0, idx + 1),
+        nouvelleQuestion,
+        ...qs.slice(idx + 1),
+      ];
+    });
+    setSelectedQuestionId(nouvelleQuestion.id);
   };
+  
+  
+  const dupliquerQuestion = (id: string) => {
+    // On trouve d'abord l'index de la question à dupliquer
+    const idx = questions.findIndex(q => q.id === id);
+    if (idx === -1) return;
+  
+    // On clone l'objet
+    const original = questions[idx];
+    const clone: Question = {
+      ...JSON.parse(JSON.stringify(original)),
+      id: Date.now().toString(),
+      titre: 'Question sans titre',
+    };
+  
+    // On reconstruit le tableau en insérant la copie juste après l'original
+    const before = questions.slice(0, idx + 1);
+    const after = questions.slice(idx + 1);
+    const newList = [
+      ...before,
+      clone,
+      ...after,
+    ];
+    setQuestions(newList);
+    setSelectedQuestionId(clone.id);
+  };
+  
 
   const supprimerQuestion = (id: string) => {
     setQuestions(questions.filter((q) => q.id !== id));
@@ -150,12 +197,35 @@ export default function CreationTrame() {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Retour
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">{nomTrame}</h1>
-            <p className="text-gray-600 capitalize">
-              {categorie?.replace('-', ' ')}
-            </p>
+          <Input
+            value={nomTrame}
+            onChange={(e) => setNomTrame(e.target.value)}
+            placeholder="Titre de la trame"
+            className="text-2xl font-bold text-gray-900 flex-1"
+          />
+          <div className="w-48 flex-shrink-0">
+            <Select
+              value={categorie}
+              onValueChange={(v) => setCategorie(v)}
+              className="w-48">
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Catégorie" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.id}>
+                    {cat.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
+          <Button
+              onClick={sauvegarderTrame}
+              className="ml-auto bg-blue-600 hover:bg-blue-700"
+            >
+              Sauvegarder la trame
+          </Button>
         </div>
 
         <div className="space-y-6">
@@ -165,108 +235,60 @@ export default function CreationTrame() {
               checked={isPublic}
               onChange={(e) => setIsPublic(e.target.checked)}
             />
-            <span className="text-sm text-gray-700">
-              Rendre cette trame publique ?{' '}
-              <span className="text-gray-500">
-                (visible par les autres utilisateurs de SoignezVotrePlume)
-              </span>
+            <span className="text-md text-gray-700">
+              Partager la trame aux autres utilisateurs de SoignezVotrePlume
             </span>
           </label>
 
-          {/* Ajouter une question */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Ajouter une question</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-4">
-                <Select
-                  value={typeQuestionSelectionnee}
-                  onValueChange={setTypeQuestionSelectionnee}
-                >
-                  <SelectTrigger className="flex-1">
-                    <SelectValue placeholder="Choisir le type de question" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {typesQuestions.map((type) => {
-                      const IconComponent = type.icon;
-                      return (
-                        <SelectItem key={type.id} value={type.id}>
-                          <div className="flex items-center gap-2">
-                            <IconComponent className="h-4 w-4" />
-                            <div>
-                              <div className="font-medium">{type.title}</div>
-                              <div className="text-xs text-gray-500">
-                                {type.description}
-                              </div>
-                            </div>
-                          </div>
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-                <Button
-                  onClick={ajouterQuestion}
-                  disabled={!typeQuestionSelectionnee}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Ajouter
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Liste des questions */}
           {questions.map((question, index) => (
-            <Card key={question.id}>
+            <div key={question.id} className="relative w-full">
+            <Card
+              onClick={() => setSelectedQuestionId(question.id)}
+              className={`w-[90%] mx-auto cursor-pointer transition-shadow ${
+                selectedQuestionId === question.id
+                  ? 'border-blue-500 ring-1 ring-blue-500 shadow-md'
+                  : ''
+              }`}
+            >
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">
-                    Question {index + 1} -{' '}
-                    {typesQuestions.find((t) => t.id === question.type)?.title}
-                  </CardTitle>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => supprimerQuestion(question.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor={`titre-${question.id}`}>
-                    Titre de la question
-                  </Label>
+                {/* Titre de la question + sélecteur de type */}
+                <div className="flex items-center gap-4">
                   <Input
-                    id={`titre-${question.id}`}
+                    className="flex-1"
+                    placeholder={`Question ${index + 1}`}
                     value={question.titre}
                     onChange={(e) =>
                       mettreAJourQuestion(question.id, 'titre', e.target.value)
                     }
-                    placeholder="Ex: Décrivez les difficultés observées..."
                   />
+                  {selectedQuestionId === question.id && (
+                    <Select
+                      value={question.type}
+                      onValueChange={(v) =>
+                        mettreAJourQuestion(question.id, 'type', v)
+                      }
+                    >
+                      <SelectTrigger className="w-44">
+                        <SelectValue placeholder="Type de réponse" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {typesQuestions.map((t) => (
+                          <SelectItem key={t.id} value={t.id}>
+                            {t.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
+                
+              </CardHeader>
+              <CardContent className="space-y-4">
 
                 {question.type === 'notes' && (
-                  <div>
-                    <Label htmlFor={`contenu-${question.id}`}>
-                      Instructions (optionnel)
-                    </Label>
-                    <Textarea
-                      id={`contenu-${question.id}`}
-                      value={question.contenu || ''}
-                      onChange={(e) =>
-                        mettreAJourQuestion(
-                          question.id,
-                          'contenu',
-                          e.target.value,
-                        )
-                      }
-                      placeholder="Instructions pour remplir cette section..."
-                    />
+                  <div className="w-full rounded px-3 py-2 border-b border-dotted border-gray-200 text-gray-600">
+                  Réponse (prise de notes)
                   </div>
                 )}
 
@@ -274,41 +296,39 @@ export default function CreationTrame() {
                   <div>
                     <Label>Options de réponse</Label>
                     <div className="space-y-2">
+                      {/* Existing options as editable inputs */}
                       {question.options?.map((option, optionIndex) => (
-                        <div key={optionIndex} className="flex gap-2">
+                        <div key={optionIndex} className="flex items-center gap-2">
                           <Input
                             value={option}
                             onChange={(e) => {
-                              const nouvellesOptions = [
-                                ...(question.options || []),
-                              ];
-                              nouvellesOptions[optionIndex] = e.target.value;
-                              mettreAJourQuestion(
-                                question.id,
-                                'options',
-                                nouvellesOptions,
-                              );
+                              const opts = [...(question.options || [])];
+                              opts[optionIndex] = e.target.value;
+                              mettreAJourQuestion(question.id, 'options', opts);
                             }}
                           />
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() =>
-                              supprimerOption(question.id, optionIndex)
-                            }
+                            onClick={() => supprimerOption(question.id, optionIndex)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       ))}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => ajouterOption(question.id)}
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Ajouter une option
-                      </Button>
+
+                      {/* Modified: inline add field */}
+                      <Input
+                        placeholder="Ajouter une option"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                            const nouvelleOpt = e.currentTarget.value.trim();
+                            const opts = [...(question.options || []), nouvelleOpt];
+                            mettreAJourQuestion(question.id, 'options', opts);
+                            e.currentTarget.value = '';
+                          }
+                        }}
+                      />
                     </div>
                   </div>
                 )}
@@ -349,8 +369,51 @@ export default function CreationTrame() {
                     </div>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              {/* Icônes Dupliquer / Supprimer en bas */}
+              {selectedQuestionId === question.id && (
+                <div className="flex justify-end gap-2 pt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      dupliquerQuestion(question.id);
+                    }}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      supprimerQuestion(question.id);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+
+            {selectedQuestionId === question.id && (
+              <div className="absolute top-1/2 -translate-y-1/2 -right-4">
+                <Button
+                  variant="primary"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    ajouterQuestion();
+                  }}
+                >
+                  <Plus className="h-6 w-6 text-white" />
+                </Button>
+              </div>
+            )}
+          </div>
+          
           ))}
 
           {/* Actions */}
@@ -358,6 +421,7 @@ export default function CreationTrame() {
             <Button variant="outline" onClick={() => navigate(-1)}>
               Annuler
             </Button>
+            
             <Button
               onClick={sauvegarderTrame}
               className="bg-blue-600 hover:bg-blue-700"

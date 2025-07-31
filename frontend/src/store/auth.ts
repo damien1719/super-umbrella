@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { auth } from '../lib/auth';
+import { apiFetch } from '../utils/api';
 import type { User, Session } from '@supabase/supabase-js';
 
 export interface AuthState {
@@ -118,6 +119,19 @@ export const useAuth = create<AuthState>((set) => {
           loading: false,
           initialized: true,
         });
+
+        // Création du profil après l'inscription
+        try {
+          await apiFetch('/api/v1/profile/', {
+            method: 'GET',
+            headers: { 
+              'Authorization': `Bearer ${session.access_token}` 
+            }
+          });
+        } catch (e) {
+          console.error('Erreur lors de la création du profil:', e);
+          // Ne pas bloquer le flux en cas d'échec
+        }
       } else {
         set({ loading: false });
       }
