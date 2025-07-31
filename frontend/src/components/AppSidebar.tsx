@@ -98,7 +98,7 @@ export function AppSidebar({ onNavigate }: SidebarProps) {
                         className="w-full"
                       >
                         <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
+                        <span className="font-normal text-base">{item.title}</span>
                         {item.page === 'Abonnement' && (
                           <Crown className="h-3 w-3 ml-auto text-yellow-500" />
                         )}
