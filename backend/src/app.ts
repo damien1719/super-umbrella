@@ -76,6 +76,7 @@ app.get('/health', (req: Request, res: Response) => {
 
 app.use(requireAuth);
 
+
 app.use('/api/v1/patients', patientRouter);
 app.use('/api/v1/bilans', bilanRouter);
 app.use('/api/v1/profile', profileRouter);
