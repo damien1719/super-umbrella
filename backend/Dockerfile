@@ -23,13 +23,15 @@ RUN apt-get update -qq && \
 # Install node modules
 COPY package.json pnpm-lock.yaml ./
 # ensure pnpm is available
+
 RUN npm install -g pnpm@10.12.1
 
 # install only prod deps, refusing to rebuild lockfile
-RUN pnpm install --prod --no-frozen-lockfile
+RUN pnpm install --no-frozen-lockfile
 
 # Copy application code
 COPY . .
+RUN npx prisma generate
 
 
 # Final stage for app image
@@ -40,4 +42,4 @@ COPY --from=build /app /app
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
-CMD [ "pnpm", "run", "start" ]
+CMD ["sh", "-c", "npx prisma migrate deploy && pnpm run start"]
