@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useSectionStore } from '../store/sections';
 import type { Question } from '../types/question';
+import { categories, type CategoryId } from '../types/trame';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -90,6 +91,9 @@ export default function CreationTrame() {
           ? (section.schema as Question[])
           : [createDefaultNote()];
       setQuestions(loaded);
+      if (loaded.length > 0) {
+        setSelectedQuestionId(loaded[0].id);
+      }
     });
   }, [sectionId, fetchOne]);
 
@@ -193,11 +197,28 @@ export default function CreationTrame() {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Retour
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">{nomTrame}</h1>
-            <p className="text-gray-600 capitalize">
-              {categorie?.replace('-', ' ')}
-            </p>
+          <Input
+            value={nomTrame}
+            onChange={(e) => setNomTrame(e.target.value)}
+            placeholder="Titre de la trame"
+            className="text-2xl font-bold text-gray-900 flex-1"
+          />
+          <div className="w-48 flex-shrink-0">
+            <Select
+              value={categorie}
+              onValueChange={(v) => setCategorie(v)}
+              className="w-48">
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Catégorie" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.id}>
+                    {cat.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <Button
               onClick={sauvegarderTrame}
@@ -214,11 +235,8 @@ export default function CreationTrame() {
               checked={isPublic}
               onChange={(e) => setIsPublic(e.target.checked)}
             />
-            <span className="text-sm text-gray-700">
-              Rendre cette trame publique ?{' '}
-              <span className="text-gray-500">
-                (visible par les autres utilisateurs de SoignezVotrePlume)
-              </span>
+            <span className="text-md text-gray-700">
+              Partager la trame aux autres utilisateurs de SoignezVotrePlume
             </span>
           </label>
 
