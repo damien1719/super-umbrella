@@ -39,8 +39,7 @@ const corsOptions: CorsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
-
+app.options(/.*/, cors(corsOptions));
 
 //// DEBUGGING /////
 // Middleware de logging pour afficher l'appel HTTP brut
