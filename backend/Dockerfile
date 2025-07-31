@@ -31,7 +31,7 @@ RUN pnpm install --no-frozen-lockfile
 
 # Copy application code
 COPY . .
-RUN npx prisma generate
+RUN pnpm run build && npx prisma generate
 
 
 # ---------- final stage ----------    
