@@ -14,17 +14,26 @@ import {
   $createRangeSelection,
   $setSelection,
   LexicalNode,
-  TextNode
+  TextNode,
 } from 'lexical';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { ToolbarPlugin } from './RichTextToolbar';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { LinkNode } from '@lexical/link';
 import { ListNode, ListItemNode } from '@lexical/list';
-import { useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
+import {
+  useRef,
+  useEffect,
+  useImperativeHandle,
+  forwardRef,
+  useState,
+  useLayoutEffect,
+} from 'react';
 import DOMPurify from 'dompurify';
 import { marked } from 'marked';
 import { HeadingNode, QuoteNode } from '@lexical/rich-text';
+import { useVirtualSelection } from '../hooks/useVirtualSelection';
+import { useEditorUi } from '../store/editorUi';
 
 export interface RichTextEditorHandle {
   insertHtml: (html: string) => void;
@@ -106,7 +115,7 @@ const ImperativeHandlePlugin = forwardRef<
           editor.focus();
 
           const allTextNodes = nodes
-            .flatMap((node) => node.getChildren())      // on ne descend que d’un niveau
+            .flatMap((node) => node.getChildren()) // on ne descend que d’un niveau
             .filter((n): n is TextNode => n.getType() === 'text');
           const firstText = allTextNodes[0];
           const lastText = allTextNodes[allTextNodes.length - 1];
@@ -118,16 +127,16 @@ const ImperativeHandlePlugin = forwardRef<
             range.focus.set(
               lastText.getKey(),
               lastText.getTextContent().length,
-              'text'
+              'text',
             );
-          
+
             setTimeout(() => {
               editor.update(() => {
                 $setSelection(range);
               });
             }, 0);
-        } 
-   /*        const firstNode = nodes[0];
+          }
+          /*        const firstNode = nodes[0];
           const lastNode = nodes[nodes.length - 1];
           if (firstNode && lastNode) {
             const range = $createRangeSelection();
@@ -138,7 +147,6 @@ const ImperativeHandlePlugin = forwardRef<
             range.focus.set(lastNode.getKey(), length, 'element');
             $setSelection(range);
           } */
-         
         });
       },
     }),
@@ -147,6 +155,59 @@ const ImperativeHandlePlugin = forwardRef<
 
   return null;
 });
+
+function SelectionOverlay({
+  editorRef,
+}: {
+  editorRef: React.RefObject<HTMLElement>;
+}) {
+  const snap = useEditorUi((s) => s.selection);
+  const [offsets, setOffsets] = useState({
+    left: 0,
+    top: 0,
+    scrollLeft: 0,
+    scrollTop: 0,
+  });
+
+  useLayoutEffect(() => {
+    const update = () => {
+      const el = editorRef.current;
+      if (!el) return;
+      const b = el.getBoundingClientRect();
+      setOffsets({
+        left: b.left,
+        top: b.top,
+        scrollLeft: el.scrollLeft,
+        scrollTop: el.scrollTop,
+      });
+    };
+    update();
+    window.addEventListener('resize', update);
+    editorRef.current?.addEventListener('scroll', update);
+    return () => {
+      window.removeEventListener('resize', update);
+      editorRef.current?.removeEventListener('scroll', update);
+    };
+  }, [editorRef]);
+
+  if (!snap) return null;
+  return (
+    <div className="pointer-events-none absolute inset-0 z-10">
+      {snap.rects.map((r, i) => (
+        <div
+          key={i}
+          className="absolute rounded bg-yellow-200/60"
+          style={{
+            left: r.left - offsets.left + offsets.scrollLeft,
+            top: r.top - offsets.top + offsets.scrollTop,
+            width: r.width,
+            height: r.height,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
 function EditorCore(
   { initialHtml = '', readOnly = false, onChange = () => {}, onSave }: Props = {
@@ -157,6 +218,8 @@ function EditorCore(
   },
   ref: React.ForwardedRef<RichTextEditorHandle>,
 ) {
+  const editorRef = useRef<HTMLDivElement>(null);
+  useVirtualSelection(editorRef);
   const initialConfig = {
     namespace: 'rte',
     editable: !readOnly,
@@ -174,33 +237,36 @@ function EditorCore(
   return (
     <LexicalComposer initialConfig={initialConfig}>
       {!readOnly && <ToolbarPlugin onSave={onSave} />}
-      <div className="h-full bg-gray-100 p-8 overflow-auto">
-        <div className="flex justify-center">
-          <div className="bg-white border border-gray-300 rounded shadow p-16 w-full max-w-prose min-h-[100vh] flex flex-col">
-            <RichTextPlugin
-              contentEditable={
-                <ContentEditable className="outline-none flex-1" />
-              }
-              placeholder={<div className="text-gray-400">…</div>}
-              ErrorBoundary={LexicalErrorBoundary}
-            />
-            <HistoryPlugin />
-            <ListPlugin />
-            <LinkPlugin />
-            <OnChangePlugin
-              onChange={(state, editor) => {
-                state.read(() => {
-                  const html = DOMPurify.sanitize(
-                    $generateHtmlFromNodes(editor),
-                  );
-                  onChange?.(html);
-                });
-              }}
-            />
-            <HtmlPlugin html={initialHtml} />
-            <ImperativeHandlePlugin ref={ref} />
+      <div className="relative">
+        <div ref={editorRef} className="h-full bg-gray-100 p-8 overflow-auto">
+          <div className="flex justify-center">
+            <div className="bg-white border border-gray-300 rounded shadow p-16 w-full max-w-prose min-h-[100vh] flex flex-col">
+              <RichTextPlugin
+                contentEditable={
+                  <ContentEditable className="outline-none flex-1" />
+                }
+                placeholder={<div className="text-gray-400">…</div>}
+                ErrorBoundary={LexicalErrorBoundary}
+              />
+              <HistoryPlugin />
+              <ListPlugin />
+              <LinkPlugin />
+              <OnChangePlugin
+                onChange={(state, editor) => {
+                  state.read(() => {
+                    const html = DOMPurify.sanitize(
+                      $generateHtmlFromNodes(editor),
+                    );
+                    onChange?.(html);
+                  });
+                }}
+              />
+              <HtmlPlugin html={initialHtml} />
+              <ImperativeHandlePlugin ref={ref} />
+            </div>
           </div>
         </div>
+        <SelectionOverlay editorRef={editorRef} />
       </div>
     </LexicalComposer>
   );
