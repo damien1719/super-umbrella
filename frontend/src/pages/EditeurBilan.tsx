@@ -36,9 +36,6 @@ export default function Bilan() {
   const { descriptionHtml, setHtml, reset } = useBilanDraft();
   const editorRef = useRef<RichTextEditorHandle>(null);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [wizardElement, setWizardElement] = useState<React.ReactNode | null>(
-    null,
-  );
 
   const hasChanges = bilan?.descriptionHtml !== descriptionHtml;
 
@@ -106,14 +103,12 @@ export default function Bilan() {
                   onInsertText={(text) => editorRef.current?.insertHtml(text)}
                   initialWizardSection={state?.wizardSection}
                   initialTrameId={state?.trameId}
-                  onWizardChange={setWizardElement}
                 />
               )}
             </Suspense>
           </div>
         </div>
       </div>
-      {wizardElement}
       <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
