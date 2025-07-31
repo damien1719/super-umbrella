@@ -38,6 +38,8 @@ import { useAuth } from '../store/auth';
 import { apiFetch } from '../utils/api';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { CreationBilan } from '@/components/ui/creation-bilan-modal';
+
 
 interface BilanItem {
   id: string;
@@ -56,6 +58,8 @@ export default function Component() {
   const bilansPerPage = 8;
   const token = useAuth((s) => s.token);
   const navigate = useNavigate();
+  const [isCreationModalOpen, setIsCreationModalOpen] = useState(false);
+
 
   useEffect(() => {
     if (!token) return;
@@ -119,26 +123,13 @@ export default function Component() {
                 Il semble que vous n&rsquo;ayez pas encore rédigé de bilan.
                 Commencez par en créer un nouveau.
               </p>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button className="bg-blue-600 hover:bg-blue-700">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Rédiger un nouveau bilan
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="center">
-                  <DropdownMenuItem
-                    onClick={() => setIsNewPatientModalOpen(true)}
-                  >
-                    Nouveau patient
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => setIsExistingPatientModalOpen(true)}
-                  >
-                    Patient existant
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <Button
+                className="bg-blue-600 hover:bg-blue-700"
+                onClick={() => setIsCreationModalOpen(true)}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Rédiger un nouveau bilan
+              </Button>
             </CardContent>
           </Card>
         </div>
@@ -167,26 +158,13 @@ export default function Component() {
                   </p>
                 </div>
               </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button className="bg-blue-600 hover:bg-blue-700">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Rédiger un nouveau bilan
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="center">
-                  <DropdownMenuItem
-                    onClick={() => setIsNewPatientModalOpen(true)}
-                  >
-                    Nouveau patient
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => setIsExistingPatientModalOpen(true)}
-                  >
-                    Patient existant
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <Button
+                className="bg-blue-600 hover:bg-blue-700"
+                onClick={() => setIsCreationModalOpen(true)}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Rédiger un nouveau bilan
+              </Button>
             </CardContent>
           </Card>
 
@@ -298,6 +276,12 @@ export default function Component() {
           </Card>
         </div>
       </div>
+      <CreationBilan
+        isOpen={isCreationModalOpen}
+        onClose={() => setIsCreationModalOpen(false)}
+        onNewPatient={() => setIsNewPatientModalOpen(true)}
+        onExistingPatient={() => setIsExistingPatientModalOpen(true)}
+      />
       <NewPatientModal
         isOpen={isNewPatientModalOpen}
         onClose={() => setIsNewPatientModalOpen(false)}
