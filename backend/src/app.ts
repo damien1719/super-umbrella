@@ -20,8 +20,10 @@ const app = express();
 
 const FRONTEND_PREFIX = process.env.FRONTEND_PREFIX ?? '';
 
-const corsOptions: cors.CorsOptions = {
-  origin(origin, callback) {
+type CorsOptions = Parameters<typeof cors>[0];
+
+const corsOptions: CorsOptions = {
+  origin(origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
     // autorise si pas d'origin (ex: Postman) ou si l'origin commence par ton prefix
     if (!origin || origin.startsWith(FRONTEND_PREFIX)) {
       callback(null, true);
