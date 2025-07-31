@@ -21,12 +21,12 @@ RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential node-gyp pkg-config python-is-python3
 
 # Install node modules
-COPY package-lock.json package.json ./
+COPY package.json pnpm-lock.yaml ./
 # ensure pnpm is available
-RUN npm install -g pnpm@8
+RUN npm install -g pnpm@10.12.1
 
 # install only prod deps, refusing to rebuild lockfile
-RUN pnpm install --frozen-lockfile --prod
+RUN pnpm install --prod --no-frozen-lockfile
 
 # Copy application code
 COPY . .
@@ -40,4 +40,4 @@ COPY --from=build /app /app
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
-CMD [ "npm", "run", "start" ]
+CMD [ "pnpm", "run", "start" ]
