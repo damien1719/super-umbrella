@@ -18,7 +18,6 @@ const kindMap: Record<string, string> = {
 };
 import type { TrameOption, TrameExample } from './bilan/TrameSelector';
 import { DataEntry, type DataEntryHandle } from './bilan/DataEntry';
-import ExampleManager from './bilan/ExampleManager';
 import type { Answers, Question } from '@/types/question';
 import type { SectionInfo } from './bilan/SectionCard';
 
@@ -43,9 +42,6 @@ export default function WizardAIRightPanel({
   trameOptions,
   selectedTrame,
   onTrameChange,
-  examples,
-  onAddExample,
-  onRemoveExample,
   questions,
   answers,
   onAnswersChange,
@@ -66,9 +62,9 @@ export default function WizardAIRightPanel({
   const headerTitle =
     step === 1
       ? 'Choisissez une trame pour votre rédaction'
-      : 'Ajoutez les données anonymisées du patient'
+      : 'Ajoutez les données anonymisées du patient';
 
-  const headerDescription = `Étape ${step}/${total} – ${stepTitles[step - 1]}`
+  const headerDescription = `Étape ${step}/${total} – ${stepTitles[step - 1]}`;
 
   let content: JSX.Element | null = null;
 
@@ -93,33 +89,33 @@ export default function WizardAIRightPanel({
           ))}
         </div>
 
-        <p className="text-md">
-          Créez votre propre trame personnalisée:
-        </p>
+        <p className="text-md">Créez votre propre trame personnalisée:</p>
         <CreerTrameModal
           trigger={
             <div className="border border-dashed rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer text-gray-600 hover:bg-gray-50">
               <Plus className="h-6 w-6 mb-2" />
               Créer sa trame
             </div>
-            }
-            initialCategory={kindMap[sectionInfo.id]}
-            onCreated={(id) =>
-              navigate(`/creation-trame/${id}`, {
-                state: {
-                  returnTo: `/bilan/${bilanId}`,
-                  wizardSection: sectionInfo.id,
-                },
-              })
-            }
-          />
+          }
+          initialCategory={kindMap[sectionInfo.id]}
+          onCreated={(id) =>
+            navigate(`/creation-trame/${id}`, {
+              state: {
+                returnTo: `/bilan/${bilanId}`,
+                wizardSection: sectionInfo.id,
+              },
+            })
+          }
+        />
       </div>
     );
   } else {
     content = (
       <div className="space-y-4">
         <p className="text-md">
-          Ecrivez vos notes brutes ou saisissez les résultats de vos observations: c'est la matière brute utilisée par l'IA pour rédiger
+          Ecrivez vos notes brutes ou saisissez les résultats de vos
+          observations: c&apos;est la matière brute utilisée par l&apos;IA pour
+          rédiger
         </p>
         <DataEntry
           ref={dataEntryRef}
@@ -143,8 +139,6 @@ export default function WizardAIRightPanel({
             {headerDescription}
           </DialogDescription>
         </DialogHeader>
-
-      
 
         {content}
       </div>
