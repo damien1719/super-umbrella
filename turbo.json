@@ -1,20 +1,31 @@
 {
-    "$schema": "https://turbo.build/schema.json",
-    "tasks": {
-      "dev": {
-        "dependsOn": [],
-        "cache": false
-      },
-      "build": {
-        "outputs": ["dist/**"]
-      },
-      "test": {
-        "dependsOn": ["^test"],
-        "outputs": []
-      },
-      "lint": {
-        "outputs": []
-      }
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "dev": {
+      "dependsOn": [],
+      "cache": false,
+      "env": [
+        "VITE_API_URL",
+        "VITE_SUPABASE_URL",
+        "VITE_SUPABASE_ANON_KEY",
+        "VITE_AUTH_PROVIDER"
+      ]
+    },
+    "build": {
+      "outputs": ["dist/**"],
+      "env": [
+        "VITE_API_URL",
+        "VITE_SUPABASE_URL",
+        "VITE_SUPABASE_ANON_KEY",
+        "VITE_AUTH_PROVIDER"
+      ]
+    },
+    "test": {
+      "dependsOn": ["^test"],
+      "outputs": []
+    },
+    "lint": {
+      "outputs": []
     }
   }
-  
+}
