@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { CreationBilan } from '@/components/ui/creation-bilan-modal';
 import EmptyState from '@/components/bilans/EmptyState';
-import BilansTable, { BilanItem } from '@/components/bilans/BilansTable';
+import GenericTable, { BilanItem } from '@/components/bilans/GenericTable';
 import PaginationControls from '@/components/bilans/PaginationControls';
 import DeleteDialog from '@/components/bilans/DeleteDialog';
 
@@ -99,7 +99,7 @@ export default function Component() {
             </Button>
           </div>
         </div>
-        
+
         {hasBilans ? (
           <div className="space-y-6">
             <Card className="bg-blue-50 border-blue-200">
@@ -127,8 +127,9 @@ export default function Component() {
               </CardContent>
             </Card>
 
-            <BilansTable
-              bilans={currentBilansPage}
+            <GenericTable
+              variant="bilan"
+              items={currentBilansPage}
               onSelect={(id) => navigate(`/bilan/${id}`)}
               onDelete={(b) => setToDelete(b)}
               formatDate={formatDate}
@@ -147,7 +148,7 @@ export default function Component() {
           <EmptyState onCreate={() => setIsCreationModalOpen(true)} />
         )}
       </div>
-      
+
       <CreationBilan
         isOpen={isCreationModalOpen}
         onClose={() => setIsCreationModalOpen(false)}
