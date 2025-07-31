@@ -74,57 +74,80 @@ export default function Component() {
     setCurrentPage(Math.max(1, Math.min(page, totalPages)));
   };
 
-  if (bilans.length === 0) {
-    return <EmptyState onCreate={() => setIsCreationModalOpen(true)} />;
-  }
+  const hasBilans = bilans.length > 0;
 
   // État avec bilans existants
   return (
-    <>
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-4xl mx-auto space-y-6">
-          <Card className="bg-blue-50 border-blue-200">
-            <CardContent className="flex items-center justify-between p-6">
-              <div className="flex items-center space-x-4">
-                <div className="bg-blue-100 p-3 rounded-full">
-                  <Plus className="w-6 h-6 text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    Créer un nouveau bilan
-                  </h3>
-                  <p className="text-gray-600">
-                    Commencez la rédaction d&rsquo;un nouveau bilan patient
-                  </p>
-                </div>
-              </div>
-              <Button
-                className="bg-blue-600 hover:bg-blue-700"
-                onClick={() => setIsCreationModalOpen(true)}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Rédiger un nouveau bilan
-              </Button>
-            </CardContent>
-          </Card>
-
-          <BilansTable
-            bilans={currentBilansPage}
-            onSelect={(id) => navigate(`/bilan/${id}`)}
-            onDelete={(b) => setToDelete(b)}
-            formatDate={formatDate}
-          />
-
-          <PaginationControls
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalItems={bilans.length}
-            startIndex={startIndex}
-            endIndex={endIndex}
-            onPageChange={goToPage}
-          />
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Mes bilans
+              </h1>
+              <p className="text-gray-600">
+                Consultez et gérez tous vos bilans
+              </p>
+            </div>
+            <Button
+              className="bg-blue-600 hover:bg-blue-700"
+              onClick={() => setIsCreationModalOpen(true)}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Nouveau bilan
+            </Button>
+          </div>
         </div>
+        
+        {hasBilans ? (
+          <div className="space-y-6">
+            <Card className="bg-blue-50 border-blue-200">
+              <CardContent className="flex items-center justify-between p-6">
+                <div className="flex items-center space-x-4">
+                  <div className="bg-blue-100 p-3 rounded-full">
+                    <Plus className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Créer un nouveau bilan
+                    </h3>
+                    <p className="text-gray-600">
+                      Commencez la rédaction d&rsquo;un nouveau bilan patient
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  className="bg-blue-600 hover:bg-blue-700"
+                  onClick={() => setIsCreationModalOpen(true)}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Rédiger un nouveau bilan
+                </Button>
+              </CardContent>
+            </Card>
+
+            <BilansTable
+              bilans={currentBilansPage}
+              onSelect={(id) => navigate(`/bilan/${id}`)}
+              onDelete={(b) => setToDelete(b)}
+              formatDate={formatDate}
+            />
+
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={bilans.length}
+              startIndex={startIndex}
+              endIndex={endIndex}
+              onPageChange={goToPage}
+            />
+          </div>
+        ) : (
+          <EmptyState onCreate={() => setIsCreationModalOpen(true)} />
+        )}
       </div>
+      
       <CreationBilan
         isOpen={isCreationModalOpen}
         onClose={() => setIsCreationModalOpen(false)}
@@ -151,6 +174,6 @@ export default function Component() {
           }
         }}
       />
-    </>
+    </div>
   );
 }

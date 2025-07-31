@@ -43,7 +43,7 @@ export default function Bibliotheque() {
                 Bibliothèque
               </h1>
               <p className="text-gray-600">
-                Vos sections pour composer le bilan psychomoteur
+                Vos trames pour composer le bilan psychomoteur
               </p>
             </div>
             <CreerTrameModal />
@@ -57,7 +57,7 @@ export default function Bibliotheque() {
             return (
               <div
                 key={category.id}
-                className="bg-white rounded-lg shadow-sm border p-6"
+                className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
               >
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-2 bg-blue-100 rounded-lg">

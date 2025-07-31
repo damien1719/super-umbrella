@@ -272,7 +272,7 @@ export default function AiRightPanel({
                         open={true}
                         onOpenChange={(open) => !open && setWizardSection(null)}
                       >
-                        <DialogContent className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[100vw] h-[80vh] max-w-none max-h-none overflow-auto bg-white rounded-lg shadow-lg">
+                        <DialogContent className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[100vw] max-w-[100vw] sm:max-w-5xl h-[90vh] max-w-none max-h-none overflow-auto bg-white rounded-lg shadow-lg">
                           <WizardAIRightPanel
                             sectionInfo={section}
                             trameOptions={trameOpts}

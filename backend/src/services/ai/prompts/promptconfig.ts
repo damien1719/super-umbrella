@@ -7,6 +7,7 @@ export const promptConfigs = {
   2. Organise le texte de manière claire et professionnelle ; intertitres ou paragraphes continus.
   3. Situe chaque info (périnatal, développement, familial, santé, intérêts, événements marquants).
   4. Cite la source pour tout propos rapporté (“selon la mère”, “d’après l’enseignante”).
+  5. Très important : ne formuler aucun commentaire ni interprétation ; l’objectif est de rester strictement factuel et descriptif des informations rapportées par les parents.
       `.trim(),
     },
     profil_sensoriel: {
