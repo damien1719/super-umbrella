@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSectionStore } from '@/store/sections';
 import { useSectionExampleStore } from '@/store/sectionExamples';
@@ -8,7 +8,6 @@ import WizardAIRightPanel from './WizardAIRightPanel';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from './ui/textarea';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
 import type { TrameOption, TrameExample } from './bilan/TrameSelector';
 import type { Answers, Question } from '@/types/question';
 import { FileText, Eye, Brain, Activity } from 'lucide-react';
@@ -20,7 +19,7 @@ const kindMap: Record<string, string> = {
   'profil-sensoriel': 'profil_sensoriel',
   'observations-cliniques': 'observations',
   'tests-mabc': 'tests_standards',
-  'conclusions': 'conclusions',
+  conclusions: 'conclusions',
 };
 
 const sections: SectionInfo[] = [
@@ -89,6 +88,7 @@ interface AiRightPanelProps {
   onInsertText: (text: string) => void;
   initialWizardSection?: string;
   initialTrameId?: string;
+  onWizardChange?: (node: ReactNode | null) => void;
 }
 
 export default function AiRightPanel({
@@ -96,6 +96,7 @@ export default function AiRightPanel({
   onInsertText,
   initialWizardSection,
   initialTrameId,
+  onWizardChange,
 }: AiRightPanelProps) {
   const trames = useTrames();
   const {
@@ -202,6 +203,69 @@ export default function AiRightPanel({
     }
   };
 
+  useEffect(() => {
+    if (!onWizardChange) return;
+    if (!wizardSection) {
+      onWizardChange(null);
+      return;
+    }
+    const section = sections.find((s) => s.id === wizardSection);
+    if (!section) return;
+    const trameOpts = trames[section.id];
+    const selected = trameOpts.find(
+      (t) => t.value === selectedTrames[section.id],
+    );
+    const element = (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+        onClick={() => setWizardSection(null)}
+      >
+        <div
+          className="w-[100vw] h-[80vh] max-w-none max-h-none overflow-auto bg-white rounded-lg shadow-lg relative"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            type="button"
+            className="absolute top-2 right-2 text-gray-500"
+            onClick={() => setWizardSection(null)}
+          >
+            ×
+          </button>
+          <WizardAIRightPanel
+            sectionInfo={section}
+            trameOptions={trameOpts}
+            selectedTrame={selected}
+            onTrameChange={(v) =>
+              setSelectedTrames({ ...selectedTrames, [section.id]: v })
+            }
+            examples={getExamples(section.id, selectedTrames[section.id])}
+            onAddExample={(ex) =>
+              addExample(section.id, selectedTrames[section.id], ex)
+            }
+            onRemoveExample={(id) =>
+              removeExample(section.id, selectedTrames[section.id], id)
+            }
+            questions={(selected?.schema as Question[]) || []}
+            answers={answers[section.id] || {}}
+            onAnswersChange={(a) => setAnswers({ ...answers, [section.id]: a })}
+            onGenerate={(latest) => handleGenerate(section, latest)}
+            isGenerating={isGenerating && selectedSection === section.id}
+            bilanId={bilanId}
+          />
+        </div>
+      </div>
+    );
+    onWizardChange(element);
+  }, [
+    wizardSection,
+    trames,
+    selectedTrames,
+    answers,
+    isGenerating,
+    selectedSection,
+    onWizardChange,
+  ]);
+
   return (
     <div className="w-full max-w-md bg-white rounded-lg shadow-lg">
       <div className="flex flex-col h-full">
@@ -222,8 +286,8 @@ export default function AiRightPanel({
           {regenSection ? (
             <div className="space-y-4">
               <h3 className="text-sm font-medium text-left">
-                Si vous voulez ajuster le contenu généré, vous pouvez préciser ici
-                les éléments que vous souhaitez re-générer
+                Si vous voulez ajuster le contenu généré, vous pouvez préciser
+                ici les éléments que vous souhaitez re-générer
               </h3>
               <div className="w-full">
                 <Textarea
@@ -247,7 +311,9 @@ export default function AiRightPanel({
                 <Button
                   size="sm"
                   onClick={() => {
-                    const section = sections.find((s) => s.id === regenSection)!;
+                    const section = sections.find(
+                      (s) => s.id === regenSection,
+                    )!;
                     handleGenerate(section);
                   }}
                   disabled={isGenerating}
@@ -266,58 +332,7 @@ export default function AiRightPanel({
                   );
 
                   if (wizardSection === section.id) {
-                    return (
-                      <Dialog
-                        key={section.id}
-                        open={true}
-                        onOpenChange={(open) => !open && setWizardSection(null)}
-                      >
-                        <DialogContent className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[100vw] h-[80vh] max-w-none max-h-none overflow-auto bg-white rounded-lg shadow-lg">
-                          <WizardAIRightPanel
-                            sectionInfo={section}
-                            trameOptions={trameOpts}
-                            selectedTrame={selected}
-                            onTrameChange={(v) =>
-                              setSelectedTrames({
-                                ...selectedTrames,
-                                [section.id]: v,
-                              })
-                            }
-                            examples={getExamples(
-                              section.id,
-                              selectedTrames[section.id],
-                            )}
-                            onAddExample={(ex) =>
-                              addExample(
-                                section.id,
-                                selectedTrames[section.id],
-                                ex,
-                              )
-                            }
-                            onRemoveExample={(id) =>
-                              removeExample(
-                                section.id,
-                                selectedTrames[section.id],
-                                id,
-                              )
-                            }
-                            questions={(selected?.schema as Question[]) || []}
-                            answers={answers[section.id] || {}}
-                            onAnswersChange={(a) =>
-                              setAnswers({ ...answers, [section.id]: a })
-                            }
-                            onGenerate={(latest) =>
-                              handleGenerate(section, latest)
-                            }
-                            isGenerating={
-                              isGenerating && selectedSection === section.id
-                            }
-                            onCancel={() => setWizardSection(null)}
-                            bilanId={bilanId}
-                          />
-                        </DialogContent>
-                      </Dialog>
-                    );
+                    return null;
                   }
 
                   if (!generated[section.id]) {
@@ -357,7 +372,10 @@ export default function AiRightPanel({
                       trameOptions={trameOpts}
                       selectedTrame={selected}
                       onTrameChange={(v) =>
-                        setSelectedTrames({ ...selectedTrames, [section.id]: v })
+                        setSelectedTrames({
+                          ...selectedTrames,
+                          [section.id]: v,
+                        })
                       }
                       examples={getExamples(
                         section.id,
@@ -367,7 +385,11 @@ export default function AiRightPanel({
                         addExample(section.id, selectedTrames[section.id], ex)
                       }
                       onRemoveExample={(id) =>
-                        removeExample(section.id, selectedTrames[section.id], id)
+                        removeExample(
+                          section.id,
+                          selectedTrames[section.id],
+                          id,
+                        )
                       }
                       questions={(selected?.schema as Question[]) || []}
                       answers={answers[section.id] || {}}
