@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for backend-autumn-sound-5678 on 2025-06-11T07:38:46+02:00
+# fly.toml app configuration file generated for backend-long-mountain-5959 on 2025-07-30T17:30:39+02:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'backend-autumn-sound-5678'
+app = 'backend-long-mountain-5959'
 primary_region = 'cdg'
 
 [build]
@@ -17,6 +17,6 @@ primary_region = 'cdg'
   processes = ['app']
 
 [[vm]]
-  memory = '512mb'
+  memory = '1gb'
   cpu_kind = 'shared'
   cpus = 1

@@ -147,11 +147,6 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
       <div className="mb-4">
         <div className="flex items-center justify-between mb-2">
           <Label className="text-xs font-medium text-gray-700">Réponses</Label>
-          {answeredCount > 0 && (
-            <Badge variant="outline" className="text-xs">
-              {answeredCount}/{questions.length}
-            </Badge>
-          )}
         </div>
         {answeredCount === 0 ? (
           <Dialog open={open} onOpenChange={setOpen}>
