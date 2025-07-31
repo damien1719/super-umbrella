@@ -31,7 +31,7 @@ RUN pnpm install --no-frozen-lockfile
 
 # Copy application code
 COPY . .
-RUN npx prisma generate
+RUN pnpm run build && npx prisma generate
 
 
 # ---------- final stage ----------    
@@ -44,7 +44,9 @@ RUN apt-get update -qq \
  && rm -rf /var/lib/apt/lists/*
 
 # 2) copie l’app *avec* node_modules depuis build
-COPY --from=build /app /app
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/prisma ./prisma
 
 # 3) expose le port
 EXPOSE 3000
