@@ -20,17 +20,24 @@ const app = express();
 
 const FRONTEND_PREFIX = process.env.FRONTEND_PREFIX ?? '';
 
-app.use(cors({
-  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    // autorise si pas d'origin (ex : Postman) ou si l'origin commence bien par ton prefix
+const corsOptions: cors.CorsOptions = {
+  origin(origin, callback) {
+    // autorise si pas d'origin (ex: Postman) ou si l'origin commence par ton prefix
     if (!origin || origin.startsWith(FRONTEND_PREFIX)) {
       callback(null, true);
     } else {
       callback(new Error(`Origin ${origin} non autorisé par CORS`));
     }
   },
-  credentials: true,      // si tu envoies des cookies
-}));
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // CHANGEMENT
+  allowedHeaders: ['Content-Type', 'Authorization'],             // CHANGEMENT
+  credentials: true,                                             // inchangé
+  maxAge: 600,                                                   // CHANGEMENT: cache preflight 10 min
+  optionsSuccessStatus: 204                                      // CHANGEMENT: 204 pour OPTIONS
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 
 //// DEBUGGING /////
