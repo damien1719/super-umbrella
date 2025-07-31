@@ -13,20 +13,20 @@ WORKDIR /app
 ENV NODE_ENV="production"
 
 
-# Throw-away build stage to reduce size of final image
+# ---------- build stage ----------
 FROM base AS build
 
 # Install packages needed to build node modules
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential node-gyp pkg-config python-is-python3
-
-# Install node modules
-COPY package.json pnpm-lock.yaml ./
-# ensure pnpm is available
+    apt-get install --no-install-recommends -y build-essential node-gyp pkg-config python-is-python3 \
+    openssl
 
 RUN npm install -g pnpm@10.12.1
 
-# install only prod deps, refusing to rebuild lockfile
+# Install node modules
+COPY package.json pnpm-lock.yaml ./
+
+
 RUN pnpm install --no-frozen-lockfile
 
 # Copy application code
@@ -34,12 +34,23 @@ COPY . .
 RUN npx prisma generate
 
 
-# Final stage for app image
-FROM base
+# ---------- final stage ----------    
+FROM base AS runtime
 
-# Copy built application
+# 1) installe juste pnpm et openssl pour faire tourner l’app (pas les toolchains)
+RUN apt-get update -qq \
+ && apt-get install --no-install-recommends -y openssl \
+ && npm install -g pnpm@10.12.1 \
+ && rm -rf /var/lib/apt/lists/*
+
+# 2) copie l’app *avec* node_modules depuis build
 COPY --from=build /app /app
 
-# Start the server by default, this can be overwritten at runtime
+# 3) expose le port
 EXPOSE 3000
+
+# 4) log clair si souhaité
+ENV DEBUG_STARTUP=true
+
+# 5) lance les migrations (une fois) puis l’app
 CMD ["sh", "-c", "npx prisma migrate deploy && pnpm run start"]
