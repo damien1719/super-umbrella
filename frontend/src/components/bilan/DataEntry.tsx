@@ -11,7 +11,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 
-import { Badge } from '@/components/ui/badge';
 import { Plus, Edit2 } from 'lucide-react';
 import type { Question, Answers } from '@/types/question';
 
