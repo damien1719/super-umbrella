@@ -14,6 +14,10 @@ export const requireAuth: RequestHandler = async (
   res,
   next
 ) => {
+  if (req.method === 'OPTIONS') {
+    return next();
+  }
+  
   if (process.env.AUTH_PROVIDER === 'fake') {
     req.user = { id: 'demo-user' }
     next()
