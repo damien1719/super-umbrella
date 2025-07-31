@@ -55,4 +55,4 @@ EXPOSE 3000
 ENV DEBUG_STARTUP=true
 
 # 5) lance les migrations (une fois) puis l’app
-CMD ["sh", "-c", "npx prisma migrate deploy && pnpm run start"]
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]
