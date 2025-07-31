@@ -70,7 +70,7 @@ export function buildPrompt(params: PromptParams): readonly SingleMessage[] {
   msgs.push({ role: 'user', content: `### Données du patient actuel\n${params.userContent.trim()}` });
 
 
-  return msgs as const;
+  return msgs ;
 }
 
 // Alias pour la rétrocompatibilité
