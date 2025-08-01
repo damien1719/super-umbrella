@@ -5,7 +5,7 @@ export interface Question {
   contenu?: string;
   options?: string[];
   echelle?: { min: number; max: number; labels?: { min: string; max: string } };
-  tableau?: { lignes: string[] };
+  tableau?: { lignes: string[]; colonnes?: string[] };
 }
 
 export type Answers = Record<

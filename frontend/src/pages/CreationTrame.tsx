@@ -139,6 +139,19 @@ export default function CreationTrame() {
     );
   };
 
+  const mettreAJourTableau = (
+    id: string,
+    valeurs: { lignes?: string[]; colonnes?: string[] },
+  ) => {
+    setQuestions(
+      questions.map((q) =>
+        q.id === id
+          ? { ...q, tableau: { ...(q.tableau || {}), ...valeurs } }
+          : q,
+      ),
+    );
+  };
+
   const supprimerOption = (questionId: string, index: number) => {
     setQuestions(
       questions.map((q) =>
@@ -150,13 +163,31 @@ export default function CreationTrame() {
   };
 
   const supprimerLigne = (questionId: string, index: number) => {
+    if (!questions) return;
     setQuestions(
       questions.map((q) =>
         q.id === questionId && q.tableau?.lignes
           ? {
               ...q,
               tableau: {
+                ...q.tableau,
                 lignes: q.tableau.lignes.filter((_, i) => i !== index),
+              },
+            }
+          : q,
+      ),
+    );
+  };
+
+  const supprimerColonne = (questionId: string, index: number) => {
+    setQuestions(
+      questions.map((q) =>
+        q.id === questionId && q.tableau?.colonnes
+          ? {
+              ...q,
+              tableau: {
+                ...q.tableau,
+                colonnes: q.tableau.colonnes.filter((_, i) => i !== index),
               },
             }
           : q,
@@ -381,57 +412,125 @@ export default function CreationTrame() {
                   )}
 
                   {question.type === 'tableau' && (
-                    <div>
-                      <Label>Lignes du tableau</Label>
-                      <div className="space-y-2">
-                        {question.tableau?.lignes?.map((ligne, ligneIdx) => (
-                          <div
-                            key={ligneIdx}
-                            className="flex items-center gap-2"
-                          >
-                            <Input
-                              value={ligne}
-                              onChange={(e) => {
-                                const lignes = [
-                                  ...(question.tableau?.lignes || []),
-                                ];
-                                lignes[ligneIdx] = e.target.value;
-                                mettreAJourQuestion(question.id, 'tableau', {
-                                  lignes,
-                                });
-                              }}
-                            />
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                supprimerLigne(question.id, ligneIdx)
-                              }
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ))}
-                        <Input
-                          placeholder="Ajouter une ligne"
-                          onKeyDown={(e) => {
-                            if (
-                              e.key === 'Enter' &&
-                              e.currentTarget.value.trim()
-                            ) {
-                              const nouvelle = e.currentTarget.value.trim();
-                              const lignes = [
-                                ...(question.tableau?.lignes || []),
-                                nouvelle,
-                              ];
-                              mettreAJourQuestion(question.id, 'tableau', {
-                                lignes,
-                              });
-                              e.currentTarget.value = '';
-                            }
-                          }}
-                        />
-                      </div>
+                    <div className="overflow-auto">
+                      <table className="border-collapse">
+                        <thead>
+                          <tr>
+                            <th className="border p-1"></th>
+                            {question.tableau?.colonnes?.map((col, colIdx) => (
+                              <th key={colIdx} className="border p-1">
+                                <div className="flex items-center gap-2">
+                                  <Input
+                                    value={col}
+                                    onChange={(e) => {
+                                      const colonnes = [
+                                        ...(question.tableau?.colonnes || []),
+                                      ];
+                                      colonnes[colIdx] = e.target.value;
+                                      mettreAJourTableau(question.id, {
+                                        colonnes,
+                                      });
+                                    }}
+                                  />
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() =>
+                                      supprimerColonne(question.id, colIdx)
+                                    }
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </th>
+                            ))}
+                            <th className="border p-1">
+                              <Input
+                                placeholder="Ajouter une colonne"
+                                onKeyDown={(e) => {
+                                  if (
+                                    e.key === 'Enter' &&
+                                    e.currentTarget.value.trim()
+                                  ) {
+                                    const nouvelle =
+                                      e.currentTarget.value.trim();
+                                    const colonnes = [
+                                      ...(question.tableau?.colonnes || []),
+                                      nouvelle,
+                                    ];
+                                    mettreAJourTableau(question.id, {
+                                      colonnes,
+                                    });
+                                    e.currentTarget.value = '';
+                                  }
+                                }}
+                              />
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {question.tableau?.lignes?.map((ligne, ligneIdx) => (
+                            <tr key={ligneIdx}>
+                              <th className="border p-1">
+                                <div className="flex items-center gap-2">
+                                  <Input
+                                    value={ligne}
+                                    onChange={(e) => {
+                                      const lignes = [
+                                        ...(question.tableau?.lignes || []),
+                                      ];
+                                      lignes[ligneIdx] = e.target.value;
+                                      mettreAJourTableau(question.id, {
+                                        lignes,
+                                      });
+                                    }}
+                                  />
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() =>
+                                      supprimerLigne(question.id, ligneIdx)
+                                    }
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </th>
+                              {question.tableau?.colonnes?.map((_, colIdx) => (
+                                <td key={colIdx} className="border p-1">
+                                  <Input
+                                    disabled
+                                    className="pointer-events-none"
+                                  />
+                                </td>
+                              ))}
+                              <td className="border p-1"></td>
+                            </tr>
+                          ))}
+                          <tr>
+                            <th className="border p-1">
+                              <Input
+                                placeholder="Ajouter une ligne"
+                                onKeyDown={(e) => {
+                                  if (
+                                    e.key === 'Enter' &&
+                                    e.currentTarget.value.trim()
+                                  ) {
+                                    const nouvelle =
+                                      e.currentTarget.value.trim();
+                                    const lignes = [
+                                      ...(question.tableau?.lignes || []),
+                                      nouvelle,
+                                    ];
+                                    mettreAJourTableau(question.id, { lignes });
+                                    e.currentTarget.value = '';
+                                  }
+                                }}
+                              />
+                            </th>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
                   )}
                   {/* Icônes Dupliquer / Supprimer en bas */}
