@@ -45,7 +45,7 @@ const DEFAULT_SCHEMA = {
     required: ['result']
   }
 
-export function buildTransformPrompt(params: TransformPromptParams): readonly SingleMessage[] {
+export function buildTransformPrompt(params: TransformPromptParams): SingleMessage[] {
   const msgs: SingleMessage[] = []
 
   msgs.push({
@@ -92,7 +92,7 @@ Pour chaque question en entrée :
 export async function generateStructuredJSON(params: TransformPromptParams) {
   const openai = new OpenAI()
 
-  const messages = buildTransformPrompt(params)
+  const messages = [...buildTransformPrompt(params)]
   const rawSchema = DEFAULT_SCHEMA
 
 const schemaObject = {
@@ -114,6 +114,10 @@ const schemaObject = {
     },
   })
 
-  // Le modèle renvoie **uniquement** le JSON strict :
-  return JSON.parse(response.choices[0].message.content)
+  const content = response.choices[0].message.content
+  if (!content) {
+    throw new Error('No content in response from OpenAI API')
+  }
+  
+  return JSON.parse(content)
 }
