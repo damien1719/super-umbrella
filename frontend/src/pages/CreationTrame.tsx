@@ -366,13 +366,17 @@ export default function CreationTrame() {
                     draggable
                     onDragStart={() => handleDragStart(index)}
                     onDragEnd={handleDragEnd}
-                    className="absolute -top-3 left-1/2 -translate-x-1/2 cursor-move"
+                    className={`absolute top left-1/2 cursor-move p-1 rounded transition-opacity opacity-0 ${
+                      selectedQuestionId === question.id
+                        ? 'opacity-100'
+                        : 'group-hover:opacity-100'
+                    }`}
                   >
-                    <GripVertical className="h-4 w-4 text-gray-500" />
+                    <GripVertical className="h-4 w-4 text-gray-400 rotate-90" />
                   </button>
                   <Card
                     onClick={() => setSelectedQuestionId(question.id)}
-                    className={`w-[90%] mx-auto cursor-pointer transition-shadow ${
+                    className={`group w-[90%] mx-auto cursor-pointer transition-shadow ${
                       selectedQuestionId === question.id
                         ? 'border-blue-500 ring-1 ring-blue-500 shadow-md'
                         : ''
