@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useSectionStore } from '../store/sections';
+import { useSectionExampleStore } from '../store/sectionExamples';
 import type { Question } from '../types/question';
 
 interface ImportResponse {
@@ -23,6 +24,8 @@ import {
 } from '@/components/ui/select';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import ImportMagique from '@/components/ImportMagique';
+import SaisieExempleTrame from '@/components/SaisieExempleTrame';
+import { DataEntry } from '@/components/bilan/DataEntry';
 import {
   ArrowLeft,
   Copy,
@@ -69,6 +72,14 @@ export default function CreationTrame() {
   };
   const fetchOne = useSectionStore((s) => s.fetchOne);
   const updateSection = useSectionStore((s) => s.update);
+  const createExample = useSectionExampleStore((s) => s.create);
+  const [tab, setTab] = useState<'questions' | 'preview' | 'examples'>(
+    'questions',
+  );
+  const [previewAnswers, setPreviewAnswers] = useState<Record<string, unknown>>(
+    {},
+  );
+  const [newExamples, setNewExamples] = useState<string[]>([]);
   const [nomTrame, setNomTrame] = useState('');
   const [categorie, setCategorie] = useState('');
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -211,6 +222,10 @@ export default function CreationTrame() {
       schema: questions,
       isPublic,
     });
+    for (const content of newExamples) {
+      await createExample({ sectionId, content });
+    }
+    setNewExamples([]);
     if (state?.returnTo) {
       navigate(state.returnTo, {
         state: { wizardSection: state.wizardSection, trameId: sectionId },
@@ -263,345 +278,415 @@ export default function CreationTrame() {
           </Button>
         </div>
 
+        <div className="border-b mb-4">
+          <nav className="flex gap-4">
+            <button
+              className={`pb-2 px-1 border-b-2 ${
+                tab === 'questions' ? 'border-blue-600' : 'border-transparent'
+              }`}
+              onClick={() => setTab('questions')}
+            >
+              Questions
+            </button>
+            <button
+              className={`pb-2 px-1 border-b-2 ${
+                tab === 'preview' ? 'border-blue-600' : 'border-transparent'
+              }`}
+              onClick={() => setTab('preview')}
+            >
+              Pré-visualisation
+            </button>
+            <button
+              className={`pb-2 px-1 border-b-2 ${
+                tab === 'examples' ? 'border-blue-600' : 'border-transparent'
+              }`}
+              onClick={() => setTab('examples')}
+            >
+              Exemples
+            </button>
+          </nav>
+        </div>
+
         <div className="space-y-6">
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={isPublic}
-              onChange={(e) => setIsPublic(e.target.checked)}
-            />
-            <span className="text-md text-gray-700">
-              Partager la trame aux autres utilisateurs de SoignezVotrePlume
-            </span>
-          </label>
+          {tab === 'questions' && (
+            <>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={isPublic}
+                  onChange={(e) => setIsPublic(e.target.checked)}
+                />
+                <span className="text-md text-gray-700">
+                  Partager la trame aux autres utilisateurs de SoignezVotrePlume
+                </span>
+              </label>
 
-          {/* Liste des questions */}
-          {questions.map((question, index) => (
-            <div key={question.id} className="relative w-full">
-              <Card
-                onClick={() => setSelectedQuestionId(question.id)}
-                className={`w-[90%] mx-auto cursor-pointer transition-shadow ${
-                  selectedQuestionId === question.id
-                    ? 'border-blue-500 ring-1 ring-blue-500 shadow-md'
-                    : ''
-                }`}
-              >
-                <CardHeader>
-                  {/* Titre de la question + sélecteur de type */}
-                  <div className="flex items-center gap-4">
-                    <Input
-                      className="flex-1"
-                      placeholder={`Question ${index + 1}`}
-                      value={question.titre}
-                      onChange={(e) =>
-                        mettreAJourQuestion(
-                          question.id,
-                          'titre',
-                          e.target.value,
-                        )
-                      }
-                    />
-                    {selectedQuestionId === question.id && (
-                      <Select
-                        value={question.type}
-                        onValueChange={(v) =>
-                          mettreAJourQuestion(question.id, 'type', v)
-                        }
-                      >
-                        <SelectTrigger className="w-44">
-                          <SelectValue placeholder="Type de réponse" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {typesQuestions.map((t) => (
-                            <SelectItem key={t.id} value={t.id}>
-                              {t.title}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {question.type === 'notes' && (
-                    <div className="w-full rounded px-3 py-2 border-b border-dotted border-gray-200 text-gray-600">
-                      Réponse (prise de notes)
-                    </div>
-                  )}
-
-                  {question.type === 'choix-multiple' && (
-                    <div>
-                      <Label>Options de réponse</Label>
-                      <div className="space-y-2">
-                        {/* Existing options as editable inputs */}
-                        {question.options?.map((option, optionIndex) => (
-                          <div
-                            key={optionIndex}
-                            className="flex items-center gap-2"
+              {/* Liste des questions */}
+              {questions.map((question, index) => (
+                <div key={question.id} className="relative w-full">
+                  <Card
+                    onClick={() => setSelectedQuestionId(question.id)}
+                    className={`w-[90%] mx-auto cursor-pointer transition-shadow ${
+                      selectedQuestionId === question.id
+                        ? 'border-blue-500 ring-1 ring-blue-500 shadow-md'
+                        : ''
+                    }`}
+                  >
+                    <CardHeader>
+                      {/* Titre de la question + sélecteur de type */}
+                      <div className="flex items-center gap-4">
+                        <Input
+                          className="flex-1"
+                          placeholder={`Question ${index + 1}`}
+                          value={question.titre}
+                          onChange={(e) =>
+                            mettreAJourQuestion(
+                              question.id,
+                              'titre',
+                              e.target.value,
+                            )
+                          }
+                        />
+                        {selectedQuestionId === question.id && (
+                          <Select
+                            value={question.type}
+                            onValueChange={(v) =>
+                              mettreAJourQuestion(question.id, 'type', v)
+                            }
                           >
+                            <SelectTrigger className="w-44">
+                              <SelectValue placeholder="Type de réponse" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {typesQuestions.map((t) => (
+                                <SelectItem key={t.id} value={t.id}>
+                                  {t.title}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {question.type === 'notes' && (
+                        <div className="w-full rounded px-3 py-2 border-b border-dotted border-gray-200 text-gray-600">
+                          Réponse (prise de notes)
+                        </div>
+                      )}
+
+                      {question.type === 'choix-multiple' && (
+                        <div>
+                          <Label>Options de réponse</Label>
+                          <div className="space-y-2">
+                            {/* Existing options as editable inputs */}
+                            {question.options?.map((option, optionIndex) => (
+                              <div
+                                key={optionIndex}
+                                className="flex items-center gap-2"
+                              >
+                                <Input
+                                  value={option}
+                                  onChange={(e) => {
+                                    const opts = [...(question.options || [])];
+                                    opts[optionIndex] = e.target.value;
+                                    mettreAJourQuestion(
+                                      question.id,
+                                      'options',
+                                      opts,
+                                    );
+                                  }}
+                                />
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() =>
+                                    supprimerOption(question.id, optionIndex)
+                                  }
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ))}
+
+                            {/* Modified: inline add field */}
                             <Input
-                              value={option}
-                              onChange={(e) => {
-                                const opts = [...(question.options || [])];
-                                opts[optionIndex] = e.target.value;
-                                mettreAJourQuestion(
-                                  question.id,
-                                  'options',
-                                  opts,
-                                );
+                              placeholder="Ajouter une option"
+                              onKeyDown={(e) => {
+                                if (
+                                  e.key === 'Enter' &&
+                                  e.currentTarget.value.trim()
+                                ) {
+                                  const nouvelleOpt =
+                                    e.currentTarget.value.trim();
+                                  const opts = [
+                                    ...(question.options || []),
+                                    nouvelleOpt,
+                                  ];
+                                  mettreAJourQuestion(
+                                    question.id,
+                                    'options',
+                                    opts,
+                                  );
+                                  e.currentTarget.value = '';
+                                }
                               }}
                             />
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                supprimerOption(question.id, optionIndex)
-                              }
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
                           </div>
-                        ))}
+                        </div>
+                      )}
 
-                        {/* Modified: inline add field */}
-                        <Input
-                          placeholder="Ajouter une option"
-                          onKeyDown={(e) => {
-                            if (
-                              e.key === 'Enter' &&
-                              e.currentTarget.value.trim()
-                            ) {
-                              const nouvelleOpt = e.currentTarget.value.trim();
-                              const opts = [
-                                ...(question.options || []),
-                                nouvelleOpt,
-                              ];
-                              mettreAJourQuestion(question.id, 'options', opts);
-                              e.currentTarget.value = '';
-                            }
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
+                      {question.type === 'echelle' && (
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor={`min-${question.id}`}>
+                              Valeur minimum
+                            </Label>
+                            <Input
+                              id={`min-${question.id}`}
+                              type="number"
+                              value={question.echelle?.min || 1}
+                              onChange={(e) =>
+                                mettreAJourQuestion(question.id, 'echelle', {
+                                  ...question.echelle,
+                                  min: Number.parseInt(e.target.value),
+                                })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor={`max-${question.id}`}>
+                              Valeur maximum
+                            </Label>
+                            <Input
+                              id={`max-${question.id}`}
+                              type="number"
+                              value={question.echelle?.max || 5}
+                              onChange={(e) =>
+                                mettreAJourQuestion(question.id, 'echelle', {
+                                  ...question.echelle,
+                                  max: Number.parseInt(e.target.value),
+                                })
+                              }
+                            />
+                          </div>
+                        </div>
+                      )}
 
-                  {question.type === 'echelle' && (
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor={`min-${question.id}`}>
-                          Valeur minimum
-                        </Label>
-                        <Input
-                          id={`min-${question.id}`}
-                          type="number"
-                          value={question.echelle?.min || 1}
-                          onChange={(e) =>
-                            mettreAJourQuestion(question.id, 'echelle', {
-                              ...question.echelle,
-                              min: Number.parseInt(e.target.value),
-                            })
-                          }
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor={`max-${question.id}`}>
-                          Valeur maximum
-                        </Label>
-                        <Input
-                          id={`max-${question.id}`}
-                          type="number"
-                          value={question.echelle?.max || 5}
-                          onChange={(e) =>
-                            mettreAJourQuestion(question.id, 'echelle', {
-                              ...question.echelle,
-                              max: Number.parseInt(e.target.value),
-                            })
-                          }
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {question.type === 'tableau' && (
-                    <div className="overflow-auto">
-                      <table className="border-collapse">
-                        <thead>
-                          <tr>
-                            <th className="p-1"></th>
-                            {question.tableau?.colonnes?.map((col, colIdx) => (
-                              <th key={colIdx} className="p-1">
-                                <div className="flex items-center gap-2">
+                      {question.type === 'tableau' && (
+                        <div className="overflow-auto">
+                          <table className="border-collapse">
+                            <thead>
+                              <tr>
+                                <th className="p-1"></th>
+                                {question.tableau?.colonnes?.map(
+                                  (col, colIdx) => (
+                                    <th key={colIdx} className="p-1">
+                                      <div className="flex items-center gap-2">
+                                        <Input
+                                          value={col}
+                                          onChange={(e) => {
+                                            const colonnes = [
+                                              ...(question.tableau?.colonnes ||
+                                                []),
+                                            ];
+                                            colonnes[colIdx] = e.target.value;
+                                            mettreAJourTableau(question.id, {
+                                              colonnes,
+                                            });
+                                          }}
+                                        />
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() =>
+                                            supprimerColonne(
+                                              question.id,
+                                              colIdx,
+                                            )
+                                          }
+                                        >
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    </th>
+                                  ),
+                                )}
+                                <th className="p-1">
                                   <Input
-                                    value={col}
-                                    onChange={(e) => {
-                                      const colonnes = [
-                                        ...(question.tableau?.colonnes || []),
-                                      ];
-                                      colonnes[colIdx] = e.target.value;
-                                      mettreAJourTableau(question.id, {
-                                        colonnes,
-                                      });
+                                    placeholder="Ajouter une colonne"
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === 'Enter' &&
+                                        e.currentTarget.value.trim()
+                                      ) {
+                                        const nouvelle =
+                                          e.currentTarget.value.trim();
+                                        const colonnes = [
+                                          ...(question.tableau?.colonnes || []),
+                                          nouvelle,
+                                        ];
+                                        mettreAJourTableau(question.id, {
+                                          colonnes,
+                                        });
+                                        e.currentTarget.value = '';
+                                      }
                                     }}
                                   />
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() =>
-                                      supprimerColonne(question.id, colIdx)
-                                    }
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </th>
-                            ))}
-                            <th className="p-1">
-                              <Input
-                                placeholder="Ajouter une colonne"
-                                onKeyDown={(e) => {
-                                  if (
-                                    e.key === 'Enter' &&
-                                    e.currentTarget.value.trim()
-                                  ) {
-                                    const nouvelle =
-                                      e.currentTarget.value.trim();
-                                    const colonnes = [
-                                      ...(question.tableau?.colonnes || []),
-                                      nouvelle,
-                                    ];
-                                    mettreAJourTableau(question.id, {
-                                      colonnes,
-                                    });
-                                    e.currentTarget.value = '';
-                                  }
-                                }}
-                              />
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {question.tableau?.lignes?.map((ligne, ligneIdx) => (
-                            <tr key={ligneIdx}>
-                              <th className="p-1">
-                                <div className="flex items-center gap-2">
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {question.tableau?.lignes?.map(
+                                (ligne, ligneIdx) => (
+                                  <tr key={ligneIdx}>
+                                    <th className="p-1">
+                                      <div className="flex items-center gap-2">
+                                        <Input
+                                          value={ligne}
+                                          onChange={(e) => {
+                                            const lignes = [
+                                              ...(question.tableau?.lignes ||
+                                                []),
+                                            ];
+                                            lignes[ligneIdx] = e.target.value;
+                                            mettreAJourTableau(question.id, {
+                                              lignes,
+                                            });
+                                          }}
+                                        />
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() =>
+                                            supprimerLigne(
+                                              question.id,
+                                              ligneIdx,
+                                            )
+                                          }
+                                        >
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    </th>
+                                    {question.tableau?.colonnes?.map(
+                                      (_, colIdx) => (
+                                        <td key={colIdx} className="p-1">
+                                          <Input
+                                            disabled
+                                            className="pointer-events-none"
+                                          />
+                                        </td>
+                                      ),
+                                    )}
+                                    <td className="p-1"></td>
+                                  </tr>
+                                ),
+                              )}
+                              <tr>
+                                <th className="p-1">
                                   <Input
-                                    value={ligne}
-                                    onChange={(e) => {
-                                      const lignes = [
-                                        ...(question.tableau?.lignes || []),
-                                      ];
-                                      lignes[ligneIdx] = e.target.value;
-                                      mettreAJourTableau(question.id, {
-                                        lignes,
-                                      });
+                                    placeholder="Ajouter une ligne"
+                                    onKeyDown={(e) => {
+                                      if (
+                                        e.key === 'Enter' &&
+                                        e.currentTarget.value.trim()
+                                      ) {
+                                        const nouvelle =
+                                          e.currentTarget.value.trim();
+                                        const lignes = [
+                                          ...(question.tableau?.lignes || []),
+                                          nouvelle,
+                                        ];
+                                        mettreAJourTableau(question.id, {
+                                          lignes,
+                                        });
+                                        e.currentTarget.value = '';
+                                      }
                                     }}
                                   />
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() =>
-                                      supprimerLigne(question.id, ligneIdx)
-                                    }
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </th>
-                              {question.tableau?.colonnes?.map((_, colIdx) => (
-                                <td key={colIdx} className="p-1">
-                                  <Input
-                                    disabled
-                                    className="pointer-events-none"
-                                  />
-                                </td>
-                              ))}
-                              <td className="p-1"></td>
-                            </tr>
-                          ))}
-                          <tr>
-                            <th className="p-1">
-                              <Input
-                                placeholder="Ajouter une ligne"
-                                onKeyDown={(e) => {
-                                  if (
-                                    e.key === 'Enter' &&
-                                    e.currentTarget.value.trim()
-                                  ) {
-                                    const nouvelle =
-                                      e.currentTarget.value.trim();
-                                    const lignes = [
-                                      ...(question.tableau?.lignes || []),
-                                      nouvelle,
-                                    ];
-                                    mettreAJourTableau(question.id, { lignes });
-                                    e.currentTarget.value = '';
-                                  }
-                                }}
-                              />
-                            </th>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                  {/* Icônes Dupliquer / Supprimer en bas */}
+                                </th>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                      {/* Icônes Dupliquer / Supprimer en bas */}
+                      {selectedQuestionId === question.id && (
+                        <div className="flex justify-end gap-2 pt-4">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              dupliquerQuestion(question.id);
+                            }}
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              supprimerQuestion(question.id);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
                   {selectedQuestionId === question.id && (
-                    <div className="flex justify-end gap-2 pt-4">
+                    <div className="absolute top-1/2 -translate-y-1/2 -right-4">
                       <Button
-                        variant="outline"
-                        size="sm"
+                        variant="primary"
+                        size="icon"
                         onClick={(e) => {
                           e.stopPropagation();
-                          dupliquerQuestion(question.id);
+                          ajouterQuestion();
                         }}
                       >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          supprimerQuestion(question.id);
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4" />
+                        <Plus className="h-6 w-6 text-white" />
                       </Button>
                     </div>
                   )}
-                </CardContent>
-              </Card>
-
-              {selectedQuestionId === question.id && (
-                <div className="absolute top-1/2 -translate-y-1/2 -right-4">
-                  <Button
-                    variant="primary"
-                    size="icon"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      ajouterQuestion();
-                    }}
-                  >
-                    <Plus className="h-6 w-6 text-white" />
-                  </Button>
                 </div>
-              )}
-            </div>
-          ))}
+              ))}
 
-          {/* Actions */}
-          <div className="flex justify-end gap-4 pt-6">
-            <Button variant="outline" onClick={() => navigate(-1)}>
-              Annuler
-            </Button>
+              {/* Actions */}
+              <div className="flex justify-end gap-4 pt-6">
+                <Button variant="outline" onClick={() => navigate(-1)}>
+                  Annuler
+                </Button>
 
-            <Button
-              onClick={sauvegarderTrame}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              Sauvegarder la trame
-            </Button>
-          </div>
+                <Button
+                  onClick={sauvegarderTrame}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Sauvegarder la trame
+                </Button>
+              </div>
+            </>
+          )}
+
+          {tab === 'preview' && (
+            <DataEntry
+              inline
+              questions={questions}
+              answers={previewAnswers}
+              onChange={setPreviewAnswers}
+            />
+          )}
+
+          {tab === 'examples' && (
+            <SaisieExempleTrame
+              examples={newExamples}
+              onAdd={(c) => setNewExamples((p) => [...p, c])}
+            />
+          )}
         </div>
       </div>
       <Dialog open={showImport} onOpenChange={setShowImport}>
@@ -609,20 +694,23 @@ export default function CreationTrame() {
           <ImportMagique
             onDone={(res: unknown) => {
               let newQuestions: Question[] = [];
-              
+
               // Si c'est déjà un tableau, on l'utilise directement (rétrocompatibilité)
               if (Array.isArray(res)) {
                 newQuestions = res;
-              } 
+              }
               // Sinon on extrait le premier niveau de result et on aplatit
               else if (res && typeof res === 'object' && 'result' in res) {
                 const response = res as ImportResponse;
                 newQuestions = response.result.flat();
               }
-              
+
               // Ajoute les nouvelles questions à la fin des questions existantes
               if (newQuestions.length > 0) {
-                setQuestions(prevQuestions => [...prevQuestions, ...newQuestions]);
+                setQuestions((prevQuestions) => [
+                  ...prevQuestions,
+                  ...newQuestions,
+                ]);
               }
             }}
             onCancel={() => setShowImport(false)}

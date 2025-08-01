@@ -4,7 +4,7 @@ import CreationTrame from './CreationTrame';
 import { useSectionStore } from '../store/sections';
 import { vi } from 'vitest';
 
-it('shows import magique button', () => {
+it('shows navigation tabs', () => {
   useSectionStore.setState({
     fetchOne: vi.fn().mockResolvedValue({ title: '', kind: '', schema: [] }),
     update: vi.fn(),
@@ -19,4 +19,11 @@ it('shows import magique button', () => {
   expect(
     screen.getByRole('button', { name: /import magique/i }),
   ).toBeInTheDocument();
+  expect(
+    screen.getByRole('button', { name: /Questions/i }),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByRole('button', { name: /Pré-visualisation/i }),
+  ).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /Exemples/i })).toBeInTheDocument();
 });

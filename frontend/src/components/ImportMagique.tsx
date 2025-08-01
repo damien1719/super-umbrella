@@ -1,11 +1,7 @@
 import { useState } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import {
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
+import { DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { apiFetch } from '@/utils/api';
 import { useAuth } from '@/store/auth';
 import type { Question } from '@/types/question';
@@ -60,12 +56,17 @@ export default function ImportMagique({
       </div>
       <div className="px-6 py-4 border-t bg-muted/20">
         <div className="flex justify-end gap-3">
-          <Button variant="outline" onClick={onCancel} type="button" className="min-w-[100px]">
+          <Button
+            variant="outline"
+            onClick={onCancel}
+            type="button"
+            className="min-w-[100px]"
+          >
             Annuler
           </Button>
-          <Button 
-            onClick={handle} 
-            disabled={loading || !text.trim()} 
+          <Button
+            onClick={handle}
+            disabled={loading || !text.trim()}
             type="button"
             className="min-w-[120px]"
           >
