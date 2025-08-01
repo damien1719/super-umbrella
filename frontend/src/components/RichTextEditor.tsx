@@ -196,7 +196,7 @@ function SelectionOverlay({
       {snap.rects.map((r, i) => (
         <div
           key={i}
-          className="absolute rounded bg-yellow-200/60"
+          className="absolute rounded bg-blue-300/60"
           style={{
             left: r.left - offsets.left + offsets.scrollLeft,
             top: r.top - offsets.top + offsets.scrollTop,
@@ -237,7 +237,7 @@ function EditorCore(
   return (
     <LexicalComposer initialConfig={initialConfig}>
       {!readOnly && <ToolbarPlugin onSave={onSave} />}
-      <div className="relative">
+      <div className="relative h-full">
         <div ref={editorRef} className="h-full bg-gray-100 p-8 overflow-auto">
           <div className="flex justify-center">
             <div className="bg-white border border-gray-300 rounded shadow p-16 w-full max-w-prose min-h-[100vh] flex flex-col">
