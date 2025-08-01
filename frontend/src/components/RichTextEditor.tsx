@@ -21,19 +21,11 @@ import { ToolbarPlugin } from './RichTextToolbar';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { LinkNode } from '@lexical/link';
 import { ListNode, ListItemNode } from '@lexical/list';
-import {
-  useRef,
-  useEffect,
-  useImperativeHandle,
-  forwardRef,
-  useState,
-  useLayoutEffect,
-} from 'react';
+import { useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
 import DOMPurify from 'dompurify';
 import { marked } from 'marked';
 import { HeadingNode, QuoteNode } from '@lexical/rich-text';
 import { useVirtualSelection } from '../hooks/useVirtualSelection';
-import { useEditorUi } from '../store/editorUi';
 
 export interface RichTextEditorHandle {
   insertHtml: (html: string) => void;
@@ -155,59 +147,6 @@ const ImperativeHandlePlugin = forwardRef<
 
   return null;
 });
-
-function SelectionOverlay({
-  editorRef,
-}: {
-  editorRef: React.RefObject<HTMLElement>;
-}) {
-  const snap = useEditorUi((s) => s.selection);
-  const [offsets, setOffsets] = useState({
-    left: 0,
-    top: 0,
-    scrollLeft: 0,
-    scrollTop: 0,
-  });
-
-  useLayoutEffect(() => {
-    const update = () => {
-      const el = editorRef.current;
-      if (!el) return;
-      const b = el.getBoundingClientRect();
-      setOffsets({
-        left: b.left,
-        top: b.top,
-        scrollLeft: el.scrollLeft,
-        scrollTop: el.scrollTop,
-      });
-    };
-    update();
-    window.addEventListener('resize', update);
-    editorRef.current?.addEventListener('scroll', update);
-    return () => {
-      window.removeEventListener('resize', update);
-      editorRef.current?.removeEventListener('scroll', update);
-    };
-  }, [editorRef]);
-
-  if (!snap) return null;
-  return (
-    <div className="pointer-events-none absolute inset-0 z-10">
-      {snap.rects.map((r, i) => (
-        <div
-          key={i}
-          className="absolute rounded bg-blue-300/60"
-          style={{
-            left: r.left - offsets.left + offsets.scrollLeft,
-            top: r.top - offsets.top + offsets.scrollTop,
-            width: r.width,
-            height: r.height,
-          }}
-        />
-      ))}
-    </div>
-  );
-}
 
 function EditorCore(
   { initialHtml = '', readOnly = false, onChange = () => {}, onSave }: Props = {

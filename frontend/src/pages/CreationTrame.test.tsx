@@ -4,7 +4,7 @@ import CreationTrame from './CreationTrame';
 import { useSectionStore } from '../store/sections';
 import { vi } from 'vitest';
 
-it('shows navigation tabs', () => {
+it('shows navigation tabs', async () => {
   useSectionStore.setState({
     fetchOne: vi.fn().mockResolvedValue({ title: '', kind: '', schema: [] }),
     update: vi.fn(),
@@ -26,4 +26,7 @@ it('shows navigation tabs', () => {
     screen.getByRole('button', { name: /Pré-visualisation/i }),
   ).toBeInTheDocument();
   expect(screen.getByRole('button', { name: /Exemples/i })).toBeInTheDocument();
+  expect(
+    await screen.findByRole('button', { name: /Déplacer la question/i }),
+  ).toBeInTheDocument();
 });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useSectionStore } from '../store/sections';
 import { useSectionExampleStore } from '../store/sectionExamples';
@@ -36,6 +36,7 @@ import {
   BarChart3,
   Table,
   Heading3,
+  GripVertical,
 } from 'lucide-react';
 
 const typesQuestions = [
@@ -157,6 +158,30 @@ export default function CreationTrame() {
 
   const supprimerQuestion = (id: string) => {
     setQuestions(questions.filter((q) => q.id !== id));
+  };
+
+  const dragIndex = useRef<number | null>(null);
+
+  const handleDragStart = (index: number) => {
+    dragIndex.current = index;
+  };
+
+  const handleDragEnd = () => {
+    dragIndex.current = null;
+  };
+
+  const handleDrop = (index: number) => {
+    if (dragIndex.current === null || dragIndex.current === index) {
+      dragIndex.current = null;
+      return;
+    }
+    setQuestions((qs) => {
+      const updated = [...qs];
+      const [moved] = updated.splice(dragIndex.current as number, 1);
+      updated.splice(index, 0, moved);
+      return updated;
+    });
+    dragIndex.current = null;
   };
 
   const mettreAJourQuestion = (id: string, champ: string, valeur: unknown) => {
@@ -330,7 +355,21 @@ export default function CreationTrame() {
 
               {/* Liste des questions */}
               {questions.map((question, index) => (
-                <div key={question.id} className="relative w-full">
+                <div
+                  key={question.id}
+                  className="relative w-full"
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => handleDrop(index)}
+                >
+                  <button
+                    aria-label="Déplacer la question"
+                    draggable
+                    onDragStart={() => handleDragStart(index)}
+                    onDragEnd={handleDragEnd}
+                    className="absolute -top-3 left-1/2 -translate-x-1/2 cursor-move"
+                  >
+                    <GripVertical className="h-4 w-4 text-gray-500" />
+                  </button>
                   <Card
                     onClick={() => setSelectedQuestionId(question.id)}
                     className={`w-[90%] mx-auto cursor-pointer transition-shadow ${
