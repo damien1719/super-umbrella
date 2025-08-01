@@ -48,5 +48,9 @@ export const promptConfigs = {
   2. Utilise un ton descriptif, nuancé et factuel.
       `.trim(),
     },
+    transformationImport: {
+      title: "Transformation Import",
+      instructions: `transforme en liste de questions`.trim(),
+    },
   } as const;
   
