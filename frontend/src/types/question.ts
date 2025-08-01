@@ -1,6 +1,6 @@
 export interface Question {
   id: string;
-  type: 'notes' | 'choix-multiple' | 'echelle' | 'tableau';
+  type: 'notes' | 'choix-multiple' | 'echelle' | 'tableau' | 'titre';
   titre: string;
   contenu?: string;
   options?: string[];
