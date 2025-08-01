@@ -125,7 +125,7 @@ export default function AiRightPanel({
   );
   const [regenSection, setRegenSection] = useState<string | null>(null);
   const [regenPrompt, setRegenPrompt] = useState('');
-  const { selection } = useEditorUi();
+  useEditorUi();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
