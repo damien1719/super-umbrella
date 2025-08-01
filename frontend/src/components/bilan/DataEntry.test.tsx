@@ -27,6 +27,12 @@ const tableQuestion: Question = {
   tableau: { lignes: ['L1', 'L2'], colonnes: ['C1'] },
 };
 
+const titleQuestion: Question = {
+  id: '4',
+  type: 'titre',
+  titre: 'Titre Section',
+};
+
 describe('DataEntry', () => {
   it('renders multiple choice options as buttons', () => {
     render(<DataEntry questions={[mcQuestion]} answers={{}} onChange={noop} />);
@@ -86,5 +92,19 @@ describe('DataEntry', () => {
       />,
     );
     expect(screen.getAllByRole('textbox').length).toBe(2);
+  });
+
+  it('renders heading for title question', () => {
+    render(
+      <DataEntry
+        questions={[titleQuestion]}
+        answers={{}}
+        onChange={noop}
+        inline
+      />,
+    );
+    expect(
+      screen.getByRole('heading', { name: 'Titre Section' }),
+    ).toBeInTheDocument();
   });
 });

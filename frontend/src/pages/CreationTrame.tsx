@@ -35,6 +35,7 @@ import {
   CheckSquare,
   BarChart3,
   Table,
+  Heading3,
 } from 'lucide-react';
 
 const typesQuestions = [
@@ -61,6 +62,12 @@ const typesQuestions = [
     title: 'Tableaux de résultats',
     icon: Table,
     description: 'Liste de lignes avec notation',
+  },
+  {
+    id: 'titre',
+    title: 'Titre de section',
+    icon: Heading3,
+    description: 'Titre sans réponse',
   },
 ];
 

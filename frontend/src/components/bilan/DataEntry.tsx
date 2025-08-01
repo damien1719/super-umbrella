@@ -120,44 +120,56 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
         case 'tableau':
           // Safely handle the type conversion for table data
           let data: Record<string, Record<string, string>> = {};
-          if (local[q.id] && typeof local[q.id] === 'object' && !Array.isArray(local[q.id])) {
+          if (
+            local[q.id] &&
+            typeof local[q.id] === 'object' &&
+            !Array.isArray(local[q.id])
+          ) {
             data = local[q.id] as Record<string, Record<string, string>>;
           }
-            return (
-              <table className="w-full table-fixed border-collapse">
-                <thead>
-                  <tr>
-                    <th className="px-2 py-1"></th>
+          return (
+            <table className="w-full table-fixed border-collapse">
+              <thead>
+                <tr>
+                  <th className="px-2 py-1"></th>
+                  {q.tableau?.colonnes?.map((col) => (
+                    <th
+                      key={col}
+                      className="px-2 py-1 text-xs font-medium text-left"
+                    >
+                      {col}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {q.tableau?.lignes?.map((ligne) => (
+                  <tr key={ligne}>
+                    <td className="px-2 py-1 text-xs font-medium">{ligne}</td>
                     {q.tableau?.colonnes?.map((col) => (
-                      <th key={col} className="px-2 py-1 text-xs font-medium text-left">
-                        {col}
-                      </th>
+                      <td key={col} className="px-2 py-1">
+                        <Input
+                          size="sm"
+                          value={data[ligne]?.[col] ?? ''}
+                          onChange={(e) => {
+                            const row = data[ligne] || {};
+                            const updatedRow = {
+                              ...row,
+                              [col]: e.target.value,
+                            };
+                            const updated = { ...data, [ligne]: updatedRow };
+                            setLocal({ ...local, [q.id]: updated });
+                          }}
+                        />
+                      </td>
                     ))}
                   </tr>
-                </thead>
-                <tbody>
-                  {q.tableau?.lignes?.map((ligne) => (
-                    <tr key={ligne}>
-                      <td className="px-2 py-1 text-xs font-medium">{ligne}</td>
-                      {q.tableau?.colonnes?.map((col) => (
-                        <td key={col} className="px-2 py-1">
-                          <Input
-                            size="sm"
-                            value={data[ligne]?.[col] ?? ''}
-                            onChange={(e) => {
-                              const row = data[ligne] || {};
-                              const updatedRow = { ...row, [col]: e.target.value };
-                              const updated = { ...data, [ligne]: updatedRow };
-                              setLocal({ ...local, [q.id]: updated });
-                            }}
-                          />
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            );
+                ))}
+              </tbody>
+            </table>
+          );
+        case 'titre':
+          return null;
         default:
           return null;
       }
@@ -172,8 +184,14 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
               q.type === 'notes' ? 'focus-within:bg-blue-50/50' : ''
             }`}
           >
-            <Label className="text-sm font-medium">{q.titre}</Label>
-            {renderQuestion(q)}
+            {q.type === 'titre' ? (
+              <h3 className="text-lg font-semibold">{q.titre}</h3>
+            ) : (
+              <>
+                <Label className="text-sm font-medium">{q.titre}</Label>
+                {renderQuestion(q)}
+              </>
+            )}
           </div>
         ))}
       </div>
@@ -213,8 +231,14 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
                       q.type === 'notes' ? 'focus-within:bg-blue-50/50' : ''
                     }`}
                   >
-                    <Label className="text-sm font-medium">{q.titre}</Label>
-                    {renderQuestion(q)}
+                    {q.type === 'titre' ? (
+                      <h3 className="text-lg font-semibold">{q.titre}</h3>
+                    ) : (
+                      <>
+                        <Label className="text-sm font-medium">{q.titre}</Label>
+                        {renderQuestion(q)}
+                      </>
+                    )}
                   </div>
                 ))}
                 <Button onClick={save} className="w-full mt-4">
@@ -260,8 +284,16 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
                         q.type === 'notes' ? 'focus-within:bg-blue-50/50' : ''
                       }`}
                     >
-                      <Label className="text-sm font-medium">{q.titre}</Label>
-                      {renderQuestion(q)}
+                      {q.type === 'titre' ? (
+                        <h3 className="text-lg font-semibold">{q.titre}</h3>
+                      ) : (
+                        <>
+                          <Label className="text-sm font-medium">
+                            {q.titre}
+                          </Label>
+                          {renderQuestion(q)}
+                        </>
+                      )}
                     </div>
                   ))}
                   <Button onClick={save} className="w-full mt-4">
