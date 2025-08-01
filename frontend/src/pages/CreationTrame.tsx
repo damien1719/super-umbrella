@@ -16,6 +16,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import ImportMagique from '@/components/ImportMagique';
 import {
   ArrowLeft,
   Copy,
@@ -69,6 +71,7 @@ export default function CreationTrame() {
   const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(
     null,
   );
+  const [showImport, setShowImport] = useState(false);
 
   const createDefaultNote = (): Question => ({
     id: Date.now().toString(),
@@ -249,6 +252,9 @@ export default function CreationTrame() {
             className="ml-auto bg-blue-600 hover:bg-blue-700"
           >
             Sauvegarder la trame
+          </Button>
+          <Button variant="outline" onClick={() => setShowImport(true)}>
+            Import Magique
           </Button>
         </div>
 
@@ -593,6 +599,14 @@ export default function CreationTrame() {
           </div>
         </div>
       </div>
+      <Dialog open={showImport} onOpenChange={setShowImport}>
+        <DialogContent>
+          <ImportMagique
+            onDone={(qs) => setQuestions(qs)}
+            onCancel={() => setShowImport(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

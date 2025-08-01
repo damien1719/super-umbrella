@@ -24,7 +24,7 @@ const tableQuestion: Question = {
   id: '3',
   type: 'tableau',
   titre: 'Table',
-  tableau: { lignes: ['L1', 'L2'] },
+  tableau: { lignes: ['L1', 'L2'], colonnes: ['C1'] },
 };
 
 describe('DataEntry', () => {
