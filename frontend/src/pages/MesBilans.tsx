@@ -13,7 +13,7 @@ import { CreationBilan } from '@/components/ui/creation-bilan-modal';
 import EmptyState from '@/components/bilans/EmptyState';
 import GenericTable, { BilanItem } from '@/components/bilans/GenericTable';
 import PaginationControls from '@/components/bilans/PaginationControls';
-import DeleteDialog from '@/components/bilans/DeleteDialog';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 export default function Component() {
   const [bilans, setBilans] = useState<BilanItem[]>([]);
@@ -165,9 +165,10 @@ export default function Component() {
         onClose={() => setIsExistingPatientModalOpen(false)}
         onPatientSelected={createBilan}
       />
-      <DeleteDialog
+      <ConfirmDialog
         open={!!toDelete}
-        onClose={() => setToDelete(null)}
+        title="Supprimer ce bilan ?"
+        onOpenChange={(open) => !open && setToDelete(null)}
         onConfirm={async () => {
           if (toDelete) {
             await removeBilan(toDelete.id);
