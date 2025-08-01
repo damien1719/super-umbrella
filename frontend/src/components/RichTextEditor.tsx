@@ -266,7 +266,7 @@ function EditorCore(
             </div>
           </div>
         </div>
-        <SelectionOverlay editorRef={editorRef} />
+        {/* <SelectionOverlay editorRef={editorRef} /> */}
       </div>
     </LexicalComposer>
   );

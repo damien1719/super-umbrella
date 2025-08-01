@@ -206,12 +206,12 @@ export default function AiRightPanel({
   return (
     <div className="w-full max-w-md bg-white rounded-lg shadow-lg">
       <div className="flex flex-col h-full">
-        {selection?.text && (
+{/*         {selection?.text && (
           <div className="bg-blue-50 text-blue-800 text-sm p-2 border-b border-blue-100">
             <div className="font-medium mb-1">Texte sélectionné :</div>
             <div className="italic truncate">&quot;{selection.text}&quot;</div>
           </div>
-        )}
+        )} */}
         <div className="sticky top-0 z-10 flex items-center justify-between bg-white border-b border-gray-200 px-4 py-2 h-14">
           <span className="font-medium text-sm">Assistant IA</span>
           {regenSection && (
