@@ -183,19 +183,15 @@ export default function AiRightPanel({
       const questions: Question[] = (trame?.schema as Question[]) || []
       const ans = newAnswers || answers[section.id] || {}
   
-      // 1) Grouper les Q/A sous chaque titre, ou sous un groupe par défaut
       const grouped: Record<string, Record<string, string>> = {};
-      // on commence avec un groupe par défaut = le titre de la section
       let currentTitle = "";
       grouped[currentTitle] = {};
 
       for (const q of questions) {
         if (q.type === 'titre') {
-          // quand on tombe sur un titre, on change de groupe
           currentTitle = "Titre de la partie : " + q.titre;
           grouped[currentTitle] = {};
         } else {
-          // pour toute autre question, on s'assure d'avoir un groupe actif
           const value = (ans[q.id] ?? '').trim();
           if (value) {
             grouped[currentTitle][q.titre] = value;
@@ -203,7 +199,6 @@ export default function AiRightPanel({
         }
       }
   
-      // 2) Construire le body en gardant le même shape que vous aviez
       const body = {
         section: kindMap[section.id],
         answers: grouped,
