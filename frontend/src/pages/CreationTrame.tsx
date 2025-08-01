@@ -4,6 +4,11 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useSectionStore } from '../store/sections';
 import type { Question } from '../types/question';
+
+interface ImportResponse {
+  result: Question[][];
+}
+
 import { categories } from '../types/trame';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -602,7 +607,24 @@ export default function CreationTrame() {
       <Dialog open={showImport} onOpenChange={setShowImport}>
         <DialogContent>
           <ImportMagique
-            onDone={(qs) => setQuestions(qs)}
+            onDone={(res: unknown) => {
+              let newQuestions: Question[] = [];
+              
+              // Si c'est déjà un tableau, on l'utilise directement (rétrocompatibilité)
+              if (Array.isArray(res)) {
+                newQuestions = res;
+              } 
+              // Sinon on extrait le premier niveau de result et on aplatit
+              else if (res && typeof res === 'object' && 'result' in res) {
+                const response = res as ImportResponse;
+                newQuestions = response.result.flat();
+              }
+              
+              // Ajoute les nouvelles questions à la fin des questions existantes
+              if (newQuestions.length > 0) {
+                setQuestions(prevQuestions => [...prevQuestions, ...newQuestions]);
+              }
+            }}
             onCancel={() => setShowImport(false)}
           />
         </DialogContent>

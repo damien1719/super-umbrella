@@ -50,7 +50,7 @@ export const promptConfigs = {
     },
     transformationImport: {
       title: "Transformation Import",
-      instructions: `transforme en liste de questions`.trim(),
+      instructions: `Le psychomotricien t'a copier coller un exemple de trame Word qu'il utilise. Ton objectif est de proposer une structure en liste de questions pour lui permettre de le remplir efficacement. Ce qui compte c'est la structure. Il peut y avoir beaucoup de commentaires sur les instructions pour des exercices à faire qui ne sont pas forcément pertinentes`.trim(),
     },
   } as const;
   

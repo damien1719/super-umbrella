@@ -117,12 +117,12 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
               )}
             </div>
           );
-          case 'tableau':
-            // Safely handle the type conversion for table data
-            let data: Record<string, Record<string, string>> = {};
-            if (local[q.id] && typeof local[q.id] === 'object' && !Array.isArray(local[q.id])) {
-              data = local[q.id] as Record<string, Record<string, string>>;
-            }
+        case 'tableau':
+          // Safely handle the type conversion for table data
+          let data: Record<string, Record<string, string>> = {};
+          if (local[q.id] && typeof local[q.id] === 'object' && !Array.isArray(local[q.id])) {
+            data = local[q.id] as Record<string, Record<string, string>>;
+          }
             return (
               <table className="w-full table-fixed border-collapse">
                 <thead>
@@ -139,7 +139,7 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
                   {q.tableau?.lignes?.map((ligne) => (
                     <tr key={ligne}>
                       <td className="px-2 py-1 text-xs font-medium">{ligne}</td>
-                      {q.tableau.colonnes.map((col) => (
+                      {q.tableau?.colonnes?.map((col) => (
                         <td key={col} className="px-2 py-1">
                           <Input
                             size="sm"

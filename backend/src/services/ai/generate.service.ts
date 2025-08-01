@@ -28,3 +28,19 @@ export async function generateText(
   // 4. Post-traitement
   return guardrails.post(result || "");
 }
+
+// Transform text into structured JSON using transformPrompt
+import { generateStructuredJSON, type TransformPromptParams } from "./prompts/transformPrompt";
+
+export async function transformText(params: TransformPromptParams) {
+  // 1. RGPD pre-processing similar to generateText
+  const sanitized = guardrails.pre(JSON.stringify(params));
+
+  // 2. Call the dedicated structured JSON generator
+  const structured = await generateStructuredJSON(
+    JSON.parse(sanitized) as TransformPromptParams,
+  );
+
+  // 3. Post-processing (still run through guardrails for consistency)
+  return guardrails.post(structured);
+}

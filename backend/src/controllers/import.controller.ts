@@ -1,20 +1,16 @@
 import type { Request, Response, NextFunction } from 'express';
-import { generateText } from '../services/ai/generate.service';
+import { transformText } from '../services/ai/generate.service';
+import { promptConfigs } from '../services/ai/prompts/promptconfig';
 
 export const ImportController = {
   async transform(req: Request, res: Response, next: NextFunction) {
     try {
       const content = String(req.body.content || '');
-      const text = (await generateText({
-        instructions: 'transforme en liste de questions',
+      const result = await transformText({
+        instructions: promptConfigs.transformationImport.instructions,
         userContent: content,
-      })) as string;
-      let result: unknown;
-      try {
-        result = JSON.parse(text);
-      } catch {
-        result = text;
-      }
+        outputSchema: JSON.stringify({}) // utilise le schéma par défaut défini dans transformPrompt
+      });
       res.json({ result });
     } catch (e) {
       next(e);
