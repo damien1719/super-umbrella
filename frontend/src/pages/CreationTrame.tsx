@@ -416,9 +416,9 @@ export default function CreationTrame() {
                       <table className="border-collapse">
                         <thead>
                           <tr>
-                            <th className="border p-1"></th>
+                            <th className="p-1"></th>
                             {question.tableau?.colonnes?.map((col, colIdx) => (
-                              <th key={colIdx} className="border p-1">
+                              <th key={colIdx} className="p-1">
                                 <div className="flex items-center gap-2">
                                   <Input
                                     value={col}
@@ -444,7 +444,7 @@ export default function CreationTrame() {
                                 </div>
                               </th>
                             ))}
-                            <th className="border p-1">
+                            <th className="p-1">
                               <Input
                                 placeholder="Ajouter une colonne"
                                 onKeyDown={(e) => {
@@ -471,7 +471,7 @@ export default function CreationTrame() {
                         <tbody>
                           {question.tableau?.lignes?.map((ligne, ligneIdx) => (
                             <tr key={ligneIdx}>
-                              <th className="border p-1">
+                              <th className="p-1">
                                 <div className="flex items-center gap-2">
                                   <Input
                                     value={ligne}
@@ -497,18 +497,18 @@ export default function CreationTrame() {
                                 </div>
                               </th>
                               {question.tableau?.colonnes?.map((_, colIdx) => (
-                                <td key={colIdx} className="border p-1">
+                                <td key={colIdx} className="p-1">
                                   <Input
                                     disabled
                                     className="pointer-events-none"
                                   />
                                 </td>
                               ))}
-                              <td className="border p-1"></td>
+                              <td className="p-1"></td>
                             </tr>
                           ))}
                           <tr>
-                            <th className="border p-1">
+                            <th className="p-1">
                               <Input
                                 placeholder="Ajouter une ligne"
                                 onKeyDown={(e) => {

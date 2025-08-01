@@ -117,31 +117,47 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
               )}
             </div>
           );
-        case 'tableau':
-          return (
-            <div className="space-y-2">
-              {q.tableau?.lignes?.map((ligne) => (
-                <div key={ligne} className="flex items-center gap-2">
-                  <Label className="flex-1 text-xs">{ligne}</Label>
-                  <Input
-                    value={
-                      (value as Record<string, string | number> | undefined)?.[
-                        ligne
-                      ] ?? ''
-                    }
-                    onChange={(e) => {
-                      const current =
-                        (local[q.id] as
-                          | Record<string, string | number>
-                          | undefined) || {};
-                      const updated = { ...current, [ligne]: e.target.value };
-                      setLocal({ ...local, [q.id]: updated });
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-          );
+          case 'tableau':
+            // Safely handle the type conversion for table data
+            let data: Record<string, Record<string, string>> = {};
+            if (local[q.id] && typeof local[q.id] === 'object' && !Array.isArray(local[q.id])) {
+              data = local[q.id] as Record<string, Record<string, string>>;
+            }
+            return (
+              <table className="w-full table-fixed border-collapse">
+                <thead>
+                  <tr>
+                    <th className="px-2 py-1"></th>
+                    {q.tableau?.colonnes?.map((col) => (
+                      <th key={col} className="px-2 py-1 text-xs font-medium text-left">
+                        {col}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {q.tableau?.lignes?.map((ligne) => (
+                    <tr key={ligne}>
+                      <td className="px-2 py-1 text-xs font-medium">{ligne}</td>
+                      {q.tableau.colonnes.map((col) => (
+                        <td key={col} className="px-2 py-1">
+                          <Input
+                            size="sm"
+                            value={data[ligne]?.[col] ?? ''}
+                            onChange={(e) => {
+                              const row = data[ligne] || {};
+                              const updatedRow = { ...row, [col]: e.target.value };
+                              const updated = { ...data, [ligne]: updatedRow };
+                              setLocal({ ...local, [q.id]: updated });
+                            }}
+                          />
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            );
         default:
           return null;
       }
