@@ -20,6 +20,13 @@ const scaleQuestion: Question = {
   echelle: { min: 1, max: 5 },
 };
 
+const tableQuestion: Question = {
+  id: '3',
+  type: 'tableau',
+  titre: 'Table',
+  tableau: { lignes: ['L1', 'L2'], colonnes: ['C1'] },
+};
+
 describe('DataEntry', () => {
   it('renders multiple choice options as buttons', () => {
     render(<DataEntry questions={[mcQuestion]} answers={{}} onChange={noop} />);
@@ -67,5 +74,17 @@ describe('DataEntry', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Opt1' }));
     ref.current?.save();
     expect(handle).toHaveBeenCalledWith({ [mcQuestion.id]: 'Opt1' });
+  });
+
+  it('renders table rows', () => {
+    render(
+      <DataEntry
+        questions={[tableQuestion]}
+        answers={{}}
+        onChange={noop}
+        inline
+      />,
+    );
+    expect(screen.getAllByRole('textbox').length).toBe(2);
   });
 });

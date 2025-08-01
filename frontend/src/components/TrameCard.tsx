@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Pen, Trash2, Check } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export interface TrameInfo {
   id: string;
@@ -27,7 +28,10 @@ export default function TrameCard({
   return (
     <Card
       onClick={onSelect}
-      className={`relative hover:shadow-md transition-shadow cursor-pointer ${selected ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}
+      className={cn(
+        'relative hover:shadow-md transition-shadow cursor-pointer',
+        selected && 'border-2 border-blue-500 bg-blue-50'
+      )}
     >
       {(onEdit || onDelete) && (
         <div className="absolute top-2 right-2 flex gap-1 z-10">

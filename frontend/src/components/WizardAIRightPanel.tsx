@@ -18,7 +18,6 @@ const kindMap: Record<string, string> = {
 };
 import type { TrameOption, TrameExample } from './bilan/TrameSelector';
 import { DataEntry, type DataEntryHandle } from './bilan/DataEntry';
-import ExampleManager from './bilan/ExampleManager';
 import type { Answers, Question } from '@/types/question';
 import type { SectionInfo } from './bilan/SectionCard';
 
@@ -43,9 +42,6 @@ export default function WizardAIRightPanel({
   trameOptions,
   selectedTrame,
   onTrameChange,
-  examples,
-  onAddExample,
-  onRemoveExample,
   questions,
   answers,
   onAnswersChange,
@@ -56,24 +52,27 @@ export default function WizardAIRightPanel({
   const [step, setStep] = useState(1);
   const dataEntryRef = useRef<DataEntryHandle>(null);
   const navigate = useNavigate();
-  const total = 3;
+  const total = 2;
 
   const next = () => setStep((s) => Math.min(total, s + 1));
   const prev = () => setStep((s) => Math.max(1, s - 1));
 
-  const stepTitles = ['Trame', 'Exemples', 'Données'];
+  const stepTitles = ['Trame', 'Données'];
+
+  const headerTitle =
+    step === 1
+      ? 'Choisissez une trame pour votre rédaction'
+      : 'Ajoutez les données anonymisées du patient';
+
+  const headerDescription = `Étape ${step}/${total} – ${stepTitles[step - 1]}`;
 
   let content: JSX.Element | null = null;
 
   if (step === 1) {
     content = (
       <div className="space-y-4">
-        <h3 className="text-center font-medium">{stepTitles[0]}</h3>
-        <p className="text-sm text-center">
-          Choisissez une trame parmi la bibliothèque.
-          <br />
-          Pour personnaliser les questions ou les résultats que vous souhaitez
-          entrer vous pouvez créer votre propre trame
+        <p className="text-md">
+          Choisissez une trame parmi notre bibliothèque:
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-60 overflow-y-auto">
           {trameOptions.map((trame) => (
@@ -88,53 +87,35 @@ export default function WizardAIRightPanel({
               onSelect={() => onTrameChange(trame.value)}
             />
           ))}
-          <CreerTrameModal
-            trigger={
-              <div className="border border-dashed rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer text-gray-600 hover:bg-gray-50">
-                <Plus className="h-6 w-6 mb-2" />
-                Créer sa trame
-              </div>
-            }
-            initialCategory={kindMap[sectionInfo.id]}
-            onCreated={(id) =>
-              navigate(`/creation-trame/${id}`, {
-                state: {
-                  returnTo: `/bilan/${bilanId}`,
-                  wizardSection: sectionInfo.id,
-                },
-              })
-            }
-          />
         </div>
-      </div>
-    );
-  } else if (step === 2) {
-    content = (
-      <div className="space-y-4">
-        <h3 className="text-center font-medium">{stepTitles[1]}</h3>
-        <p className="text-sm text-center">
-          Ajoutez un exemple de rédaction d’un bilan déjà rédigé pour aider
-          l&apos;IA à mieux coller à votre style de rédaction
-          <br />
-          Important: veuillez anonymiser les données (pas de nom et de prénom)
-        </p>
-        <ExampleManager
-          examples={examples}
-          onAddExample={onAddExample}
-          onRemoveExample={onRemoveExample}
+
+        <p className="text-md">Créez votre propre trame personnalisée:</p>
+        <CreerTrameModal
+          trigger={
+            <div className="border border-dashed rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer text-gray-600 hover:bg-gray-50">
+              <Plus className="h-6 w-6 mb-2" />
+              Créer sa trame
+            </div>
+          }
+          initialCategory={kindMap[sectionInfo.id]}
+          onCreated={(id) =>
+            navigate(`/creation-trame/${id}`, {
+              state: {
+                returnTo: `/bilan/${bilanId}`,
+                wizardSection: sectionInfo.id,
+              },
+            })
+          }
         />
       </div>
     );
   } else {
     content = (
       <div className="space-y-4">
-        <h3 className="text-center font-medium">{stepTitles[2]}</h3>
-        <p className="text-sm text-center">
-          Entrez les notes, les résultats chiffrés que vous avez sur la patient.
-          C’est le coeur de la matière qui est utilisé par l’IA pour générer le
-          bilan.
-          <br />
-          Important: veuillez anonymiser les données (pas de nom et de prénom)
+        <p className="text-md">
+          Ecrivez vos notes brutes ou saisissez les résultats de vos
+          observations: c&apos;est la matière brute utilisée par l&apos;IA pour
+          rédiger
         </p>
         <DataEntry
           ref={dataEntryRef}
@@ -151,46 +132,13 @@ export default function WizardAIRightPanel({
     <div className="p-4 space-y-4 flex flex-col h-full">
       <div className="flex-1 space-y-4">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            {sectionInfo?.icon && <sectionInfo.icon className="h-5 w-5" />}
-            {sectionInfo?.title} - Étape {step}/3
+          <DialogTitle className="flex items-center gap-2 text-xl font-bold">
+            {headerTitle}
           </DialogTitle>
-          <DialogDescription>
-            Configuration de la génération pour{' '}
-            {sectionInfo?.title?.toLowerCase()}
+          <DialogDescription className="text-lg text-gray-600 mb-8">
+            {headerDescription}
           </DialogDescription>
         </DialogHeader>
-
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-2">
-            {[1, 2, 3].map((s) => (
-              <div
-                key={s}
-                className={`flex items-center ${s < 3 ? 'flex-1' : ''}`}
-              >
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                    s <= step
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-200 text-gray-600'
-                  }`}
-                >
-                  {s}
-                </div>
-                {s < 3 && (
-                  <div
-                    className={`flex-1 h-1 mx-2 ${s < step ? 'bg-blue-500' : 'bg-gray-200'}`}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-          <div className="flex justify-between text-xs text-gray-500">
-            <span>Trame</span>
-            <span>Exemples</span>
-            <span>Données</span>
-          </div>
-        </div>
 
         {content}
       </div>

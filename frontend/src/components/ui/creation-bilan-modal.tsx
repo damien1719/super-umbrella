@@ -1,0 +1,73 @@
+'use client';
+
+import { useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+
+interface CreationBilanProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onNewPatient: () => void;
+  onExistingPatient: () => void;
+}
+
+export function CreationBilan({
+  isOpen,
+  onClose,
+  onNewPatient,
+  onExistingPatient,
+}: CreationBilanProps) {
+  const [title, setTitle] = useState('');
+
+  const handleClose = () => {
+    setTitle('');
+    onClose();
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-md bg-white">
+        <DialogHeader>
+          <DialogTitle>Créer un nouveau bilan</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-2 py-4">
+          <Label htmlFor="bilan-title">Titre du bilan</Label>
+          <Input
+            id="bilan-title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+        </div>
+        <DialogFooter className="flex justify-end gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              onNewPatient();
+              handleClose();
+            }}
+          >
+            Nouveau patient
+          </Button>
+          <Button
+            type="button"
+            onClick={() => {
+              onExistingPatient();
+              handleClose();
+            }}
+          >
+            Patient existant
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

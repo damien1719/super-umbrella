@@ -2,6 +2,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSectionStore } from '@/store/sections';
+import { useEditorUi } from '@/store/editorUi';
 import { useSectionExampleStore } from '@/store/sectionExamples';
 import { SectionCard, SectionInfo } from './bilan/SectionCard';
 import WizardAIRightPanel from './WizardAIRightPanel';
@@ -124,7 +125,7 @@ export default function AiRightPanel({
   );
   const [regenSection, setRegenSection] = useState<string | null>(null);
   const [regenPrompt, setRegenPrompt] = useState('');
-
+  const { selection } = useEditorUi();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -205,6 +206,12 @@ export default function AiRightPanel({
   return (
     <div className="w-full max-w-md bg-white rounded-lg shadow-lg">
       <div className="flex flex-col h-full">
+        {selection?.text && (
+          <div className="bg-blue-50 text-blue-800 text-sm p-2 border-b border-blue-100">
+            <div className="font-medium mb-1">Texte sélectionné :</div>
+            <div className="italic truncate">&quot;{selection.text}&quot;</div>
+          </div>
+        )}
         <div className="sticky top-0 z-10 flex items-center justify-between bg-white border-b border-gray-200 px-4 py-2 h-14">
           <span className="font-medium text-sm">Assistant IA</span>
           {regenSection && (
@@ -272,7 +279,7 @@ export default function AiRightPanel({
                         open={true}
                         onOpenChange={(open) => !open && setWizardSection(null)}
                       >
-                        <DialogContent className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[100vw] h-[80vh] max-w-none max-h-none overflow-auto bg-white rounded-lg shadow-lg">
+                        <DialogContent className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[100vw] max-w-[100vw] sm:max-w-5xl h-[90vh] max-w-none max-h-none overflow-auto bg-white rounded-lg shadow-lg">
                           <WizardAIRightPanel
                             sectionInfo={section}
                             trameOptions={trameOpts}

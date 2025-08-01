@@ -1,0 +1,6 @@
+import { Router } from 'express';
+import { ImportController } from '../controllers/import.controller';
+
+export const importRouter = Router();
+
+importRouter.post('/transform', ImportController.transform);

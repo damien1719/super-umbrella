@@ -7,6 +7,7 @@ export const promptConfigs = {
   2. Organise le texte de manière claire et professionnelle ; intertitres ou paragraphes continus.
   3. Situe chaque info (périnatal, développement, familial, santé, intérêts, événements marquants).
   4. Cite la source pour tout propos rapporté (“selon la mère”, “d’après l’enseignante”).
+  5. Très important : ne formuler aucun commentaire ni interprétation ; l’objectif est de rester strictement factuel et descriptif des informations rapportées par les parents.
       `.trim(),
     },
     profil_sensoriel: {
@@ -46,6 +47,10 @@ export const promptConfigs = {
   1. Présente les conclusions du bilan psychomoteur.
   2. Utilise un ton descriptif, nuancé et factuel.
       `.trim(),
+    },
+    transformationImport: {
+      title: "Transformation Import",
+      instructions: `Le psychomotricien t'a copier coller un exemple de trame Word qu'il utilise. Ton objectif est de proposer une structure en liste de questions pour lui permettre de le remplir efficacement. Ce qui compte c'est la structure. Il peut y avoir beaucoup de commentaires sur les instructions pour des exercices à faire qui ne sont pas forcément pertinentes`.trim(),
     },
   } as const;
   
