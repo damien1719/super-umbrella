@@ -4,11 +4,11 @@ export const promptConfigs = {
       instructions: `
   ### BLOC INSTRUCTIONS – ANAMNÈSE
   1. Rédige la section « Anamnèse » d’un bilan psychomoteur.
-  2. Organise le texte de manière claire et professionnelle ; intertitres ou paragraphes continus.
-  3. Situe chaque info (périnatal, développement, familial, santé, intérêts, événements marquants).
-  4. Cite la source pour tout propos rapporté (“selon la mère”, “d’après l’enseignante”).
-  5. Très important : ne formuler aucun commentaire ni interprétation ; l’objectif est de rester strictement factuel et descriptif des informations rapportées par les parents.
-      `.trim(),
+  2. Adopte des phrases factuelles et descriptives.
+  3. Très important : ne formuler aucun commentaire ni interprétation ; l’objectif est de rester strictement factuel et descriptif des informations rapportées par les parents.
+  4. Très important : n'invente rien et n'oublie rien ce sont des données factuelles clés sur une personne
+  5. Lorsque précisée cite la source de l'information.
+  `.trim(),
     },
     profil_sensoriel: {
       title: "Profil sensoriel",

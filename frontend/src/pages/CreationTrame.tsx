@@ -342,18 +342,35 @@ export default function CreationTrame() {
                     <CardHeader>
                       {/* Titre de la question + sélecteur de type */}
                       <div className="flex items-center gap-4">
-                        <Input
-                          className="flex-1"
-                          placeholder={`Question ${index + 1}`}
-                          value={question.titre}
-                          onChange={(e) =>
-                            mettreAJourQuestion(
-                              question.id,
-                              'titre',
-                              e.target.value,
-                            )
-                          }
-                        />
+                        {question.type === 'titre' ? (
+                          <div className="w-full">
+                            <Input
+                              className="text-3xl font-bold border-none shadow-none focus-visible:ring-0 p-0"
+                              placeholder="Titre de section"
+                              value={question.titre}
+                              onChange={(e) =>
+                                mettreAJourQuestion(
+                                  question.id,
+                                  'titre',
+                                  e.target.value,
+                                )
+                              }
+                            />
+                          </div>
+                        ) : (
+                          <Input
+                            className="flex-1"
+                            placeholder={`Question ${index + 1}`}
+                            value={question.titre}
+                            onChange={(e) =>
+                              mettreAJourQuestion(
+                                question.id,
+                                'titre',
+                                e.target.value,
+                              )
+                            }
+                          />
+                        )}
                         {selectedQuestionId === question.id && (
                           <Select
                             value={question.type}
@@ -381,7 +398,6 @@ export default function CreationTrame() {
                           Réponse (prise de notes)
                         </div>
                       )}
-
                       {question.type === 'choix-multiple' && (
                         <div>
                           <Label>Options de réponse</Label>

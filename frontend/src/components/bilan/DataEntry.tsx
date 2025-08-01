@@ -185,7 +185,7 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
             }`}
           >
             {q.type === 'titre' ? (
-              <h3 className="text-lg font-semibold">{q.titre}</h3>
+              <h3 className="text-3xl font-semibold">{q.titre}</h3>
             ) : (
               <>
                 <Label className="text-sm font-medium">{q.titre}</Label>

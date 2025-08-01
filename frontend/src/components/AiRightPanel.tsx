@@ -176,14 +176,44 @@ export default function AiRightPanel({
   const handleGenerate = async (section: SectionInfo, newAnswers?: Answers) => {
     setIsGenerating(true);
     setSelectedSection(section.id);
+
     try {
+      const trameId = selectedTrames[section.id]
+      const trame = trames[section.id].find(t => t.value === trameId)
+      const questions: Question[] = (trame?.schema as Question[]) || []
+      const ans = newAnswers || answers[section.id] || {}
+  
+      // 1) Grouper les Q/A sous chaque titre, ou sous un groupe par défaut
+      const grouped: Record<string, Record<string, string>> = {};
+      // on commence avec un groupe par défaut = le titre de la section
+      let currentTitle = "";
+      grouped[currentTitle] = {};
+
+      for (const q of questions) {
+        if (q.type === 'titre') {
+          // quand on tombe sur un titre, on change de groupe
+          currentTitle = "Titre de la partie : " + q.titre;
+          grouped[currentTitle] = {};
+        } else {
+          // pour toute autre question, on s'assure d'avoir un groupe actif
+          const value = (ans[q.id] ?? '').trim();
+          if (value) {
+            grouped[currentTitle][q.titre] = value;
+          }
+        }
+      }
+  
+      // 2) Construire le body en gardant le même shape que vous aviez
       const body = {
         section: kindMap[section.id],
-        answers: newAnswers || answers[section.id] || {},
+        answers: grouped,
         examples: examples
-          .filter((e) => e.sectionId === selectedTrames[section.id])
-          .map((e) => e.content),
-      };
+          .filter(e => e.sectionId === trameId)
+          .map(e => e.content)
+      }
+
+      console.log("body", body)
+
       const res = await apiFetch<{ text: string }>(
         `/api/v1/bilans/${bilanId}/generate`,
         {
@@ -192,7 +222,11 @@ export default function AiRightPanel({
           body: JSON.stringify(body),
         },
       );
-      onInsertText(res.text);
+
+      const header = `## ${section.title}\n\n`;
+      const textWithHeader = header + res.text;
+      
+      onInsertText(textWithHeader);
       setGenerated((g) => ({ ...g, [section.id]: true }));
       setRegenSection(section.id);
       setRegenPrompt('');

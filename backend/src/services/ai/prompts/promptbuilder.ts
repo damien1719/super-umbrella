@@ -38,14 +38,9 @@ export function buildPrompt(params: PromptParams): readonly SingleMessage[] {
   // 2. Format de sortie pour limiter les hallucinations
   msgs.push({ role: 'user', content: 
     `### Format de sortie
-` +
-    `- Structure Markdown (titres #, ##)
-` +
-    `- Ne rien inventer, si info manquante écrire '_Informations non communiquées.'
-` +
-    `- Ne pas utiliser les données patients des exemples pour générer le bilan - veuillez à utiliser uniquement les informations des Données du patient actuel.'
-` +
-    `- Citer la source entre parenthèses`
+      1. Pour chaque section "Titre de partie" du JSON, utiliser un titre de niveau "###" avec le nom exact de la clé hormis Titre de la partie.  
+      2. Rédiger des phrases descriptives et factuelles pour les champs.`  
+    .trim()
   });
 
   // 3. Contexte métier (optionnel)
