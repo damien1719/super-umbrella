@@ -24,6 +24,7 @@ import {
   FileText,
   CheckSquare,
   BarChart3,
+  Table,
 } from 'lucide-react';
 
 const typesQuestions = [
@@ -44,6 +45,12 @@ const typesQuestions = [
     title: 'Échelle chiffrée',
     icon: BarChart3,
     description: 'Évaluation sur une échelle numérique',
+  },
+  {
+    id: 'tableau',
+    title: 'Tableaux de résultats',
+    icon: Table,
+    description: 'Liste de lignes avec notation',
   },
 ];
 
@@ -137,6 +144,21 @@ export default function CreationTrame() {
       questions.map((q) =>
         q.id === questionId && q.options
           ? { ...q, options: q.options.filter((_, i) => i !== index) }
+          : q,
+      ),
+    );
+  };
+
+  const supprimerLigne = (questionId: string, index: number) => {
+    setQuestions(
+      questions.map((q) =>
+        q.id === questionId && q.tableau?.lignes
+          ? {
+              ...q,
+              tableau: {
+                lignes: q.tableau.lignes.filter((_, i) => i !== index),
+              },
+            }
           : q,
       ),
     );
@@ -353,6 +375,61 @@ export default function CreationTrame() {
                               max: Number.parseInt(e.target.value),
                             })
                           }
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {question.type === 'tableau' && (
+                    <div>
+                      <Label>Lignes du tableau</Label>
+                      <div className="space-y-2">
+                        {question.tableau?.lignes?.map((ligne, ligneIdx) => (
+                          <div
+                            key={ligneIdx}
+                            className="flex items-center gap-2"
+                          >
+                            <Input
+                              value={ligne}
+                              onChange={(e) => {
+                                const lignes = [
+                                  ...(question.tableau?.lignes || []),
+                                ];
+                                lignes[ligneIdx] = e.target.value;
+                                mettreAJourQuestion(question.id, 'tableau', {
+                                  lignes,
+                                });
+                              }}
+                            />
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                supprimerLigne(question.id, ligneIdx)
+                              }
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                        <Input
+                          placeholder="Ajouter une ligne"
+                          onKeyDown={(e) => {
+                            if (
+                              e.key === 'Enter' &&
+                              e.currentTarget.value.trim()
+                            ) {
+                              const nouvelle = e.currentTarget.value.trim();
+                              const lignes = [
+                                ...(question.tableau?.lignes || []),
+                                nouvelle,
+                              ];
+                              mettreAJourQuestion(question.id, 'tableau', {
+                                lignes,
+                              });
+                              e.currentTarget.value = '';
+                            }
+                          }}
                         />
                       </div>
                     </div>
