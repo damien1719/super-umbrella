@@ -117,6 +117,31 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
               )}
             </div>
           );
+        case 'tableau':
+          return (
+            <div className="space-y-2">
+              {q.tableau?.lignes?.map((ligne) => (
+                <div key={ligne} className="flex items-center gap-2">
+                  <Label className="flex-1 text-xs">{ligne}</Label>
+                  <Input
+                    value={
+                      (value as Record<string, string | number> | undefined)?.[
+                        ligne
+                      ] ?? ''
+                    }
+                    onChange={(e) => {
+                      const current =
+                        (local[q.id] as
+                          | Record<string, string | number>
+                          | undefined) || {};
+                      const updated = { ...current, [ligne]: e.target.value };
+                      setLocal({ ...local, [q.id]: updated });
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          );
         default:
           return null;
       }
