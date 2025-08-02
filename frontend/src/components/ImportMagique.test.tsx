@@ -1,5 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+import { utils, write } from 'xlsx';
 import ImportMagique from './ImportMagique';
 import { useAuth } from '@/store/auth';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -8,7 +9,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 useAuth.setState({ token: 'tok' });
 
 describe('ImportMagique', () => {
-  it('converts pasted table into tableau question', async () => {
+  it('converts imported excel into tableau question', async () => {
     const onDone = vi.fn();
     const onCancel = vi.fn();
 
@@ -21,9 +22,23 @@ describe('ImportMagique', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Tableau' }));
-    fireEvent.change(screen.getByPlaceholderText(/Collez votre tableau/), {
-      target: { value: '\tC1\tC2\nL1\tA\tB\nL2\tC\tD' },
+
+    const data = [
+      ['', 'C1', 'C2'],
+      ['L1', 'A', 'B'],
+      ['L2', 'C', 'D'],
+    ];
+    const sheet = utils.aoa_to_sheet(data);
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, sheet, 'Sheet1');
+    const buffer = write(wb, { bookType: 'xlsx', type: 'array' });
+    const file = new File([buffer], 'test.xlsx', {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     });
+
+    const input = screen.getByTestId('file-input') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [file] } });
+    await waitFor(() => expect(input.files?.length).toBe(1));
     fireEvent.click(screen.getByRole('button', { name: 'Transformer' }));
 
     await waitFor(() => expect(onDone).toHaveBeenCalled());
