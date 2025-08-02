@@ -5,10 +5,16 @@ export interface Question {
   contenu?: string;
   options?: string[];
   echelle?: { min: number; max: number; labels?: { min: string; max: string } };
-  tableau?: { lignes: string[]; colonnes?: string[] };
+  tableau?: {
+    lignes: string[];
+    colonnes?: string[];
+    valeurType?: 'texte' | 'score' | 'choix-multiple' | 'case-a-cocher';
+    options?: string[];
+    commentaire?: boolean;
+  };
 }
 
 export type Answers = Record<
   string,
-  string | string[] | number | Record<string, string | number>
+  string | string[] | number | boolean | Record<string, unknown>
 >;

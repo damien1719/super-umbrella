@@ -27,6 +27,39 @@ const tableQuestion: Question = {
   tableau: { lignes: ['L1', 'L2'], colonnes: ['C1'] },
 };
 
+const tableCommentQuestion: Question = {
+  id: '5',
+  type: 'tableau',
+  titre: 'Table',
+  tableau: { lignes: ['L1'], colonnes: ['C1'], commentaire: true },
+};
+
+const tableScoreQuestion: Question = {
+  id: '6',
+  type: 'tableau',
+  titre: 'Table',
+  tableau: { lignes: ['L1'], colonnes: ['C1'], valeurType: 'score' },
+};
+
+const tableSelectQuestion: Question = {
+  id: '7',
+  type: 'tableau',
+  titre: 'Table',
+  tableau: {
+    lignes: ['L1'],
+    colonnes: ['C1'],
+    valeurType: 'choix-multiple',
+    options: ['A', 'B'],
+  },
+};
+
+const tableCheckQuestion: Question = {
+  id: '8',
+  type: 'tableau',
+  titre: 'Table',
+  tableau: { lignes: ['L1'], colonnes: ['C1'], valeurType: 'case-a-cocher' },
+};
+
 const titleQuestion: Question = {
   id: '4',
   type: 'titre',
@@ -92,6 +125,54 @@ describe('DataEntry', () => {
       />,
     );
     expect(screen.getAllByRole('textbox').length).toBe(2);
+  });
+
+  it('renders comment field when enabled', () => {
+    render(
+      <DataEntry
+        questions={[tableCommentQuestion]}
+        answers={{}}
+        onChange={noop}
+        inline
+      />,
+    );
+    expect(screen.getByText(/Commentaire/)).toBeInTheDocument();
+  });
+
+  it('uses number input for score type', () => {
+    render(
+      <DataEntry
+        questions={[tableScoreQuestion]}
+        answers={{}}
+        onChange={noop}
+        inline
+      />,
+    );
+    expect(screen.getByRole('spinbutton')).toBeInTheDocument();
+  });
+
+  it('renders select for choix multiple type', () => {
+    render(
+      <DataEntry
+        questions={[tableSelectQuestion]}
+        answers={{}}
+        onChange={noop}
+        inline
+      />,
+    );
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
+  });
+
+  it('renders checkbox for case a cocher type', () => {
+    render(
+      <DataEntry
+        questions={[tableCheckQuestion]}
+        answers={{}}
+        onChange={noop}
+        inline
+      />,
+    );
+    expect(screen.getByRole('checkbox')).toBeInTheDocument();
   });
 
   it('renders heading for title question', () => {
