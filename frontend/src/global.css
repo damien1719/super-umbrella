@@ -5,10 +5,12 @@
 @tailwind utilities;
 
 :root {
-    --background: #ffffff; 
+    --wood-50: #FAF9F7;
+    --background: var(--wood-50); 
 }
 
 html, body, #root {
     height: 100%;
     margin: 0;
-  }
+    background-color: var(--wood-50);
+}
