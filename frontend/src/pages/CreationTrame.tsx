@@ -701,23 +701,40 @@ export default function CreationTrame() {
                             </table>
                           </div>
                           <div className="mt-2 space-y-2">
-                            <Button
-                              variant={
-                                question.tableau?.commentaire
-                                  ? 'secondary'
-                                  : 'outline'
-                              }
-                              size="sm"
-                              onClick={() =>
-                                mettreAJourTableau(question.id, {
-                                  commentaire: !question.tableau?.commentaire,
-                                })
-                              }
-                            >
-                              {question.tableau?.commentaire
-                                ? 'Commentaire ajouté'
-                                : '+ Ajout case commentaire'}
-                            </Button>
+                            {question.tableau?.commentaire ? (
+                              <div className="space-y-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() =>
+                                    mettreAJourTableau(question.id, {
+                                      commentaire: false,
+                                    })
+                                  }
+                                  className="text-red-500 hover:text-red-700"
+                                >
+                                  Retirer le commentaire
+                                </Button>
+                                <div className="p-2 border rounded">
+                                  <p className="text-sm text-gray-500 mb-1">
+                                    La zone de commentaire sera disponible lors de
+                                    la saisie des données
+                                  </p>
+                                </div>
+                              </div>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  mettreAJourTableau(question.id, {
+                                    commentaire: true,
+                                  })
+                                }
+                              >
+                                + Ajouter une zone de commentaire
+                              </Button>
+                            )}
                             <div className="flex items-center gap-2">
                               <Label>Type de valeur</Label>
                               <Select

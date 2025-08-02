@@ -125,7 +125,7 @@ export default function AiRightPanel({
   );
   const [regenSection, setRegenSection] = useState<string | null>(null);
   const [regenPrompt, setRegenPrompt] = useState('');
-  useEditorUi();
+  const { selection } = useEditorUi();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -173,6 +173,44 @@ export default function AiRightPanel({
     remove(id).catch(() => {});
   };
 
+  function markdownifyTable(q: Question, ansTable: any): string {
+    if (!q.tableau?.colonnes) {
+      return '';
+    }
+
+    const header = `**${q.titre}**\n\n` +
+      `| ${['Ligne', ...q.tableau?.colonnes].join(' | ')} |\n` +
+      `| ${['---', ...q.tableau?.colonnes.map(() => '---')].join(' | ')} |\n`;
+
+    const body = q.tableau?.lignes
+      ?.map(ligne => {
+        const cells = q.tableau?.colonnes?.map(col => ansTable[ligne]?.[col] || '') || [];
+        return `| ${[ligne, ...cells].join(' | ')} |`;
+      })
+      .join('\n') || '';
+
+    const comment = ansTable.commentaire
+      ? `\n\n> **Commentaire** : ${ansTable.commentaire}`
+      : '';
+
+    return header + body + comment;
+  }
+
+  function markdownifyField(q: Question, value: string): string {
+    switch (q.type) {
+      case 'notes':
+        return `${q.titre}\n\n${value}`;  
+      case 'choix-multiple':
+        return `${q.titre}\n\n${value}`;  
+      case 'echelle':
+        return `${q.titre}\n\n${value}`; 
+      case 'titre':
+        return `## ${q.titre}\n\n${value}`;  
+      default:
+        return `${q.titre} : ${value}`;
+    }
+  }
+
   const handleGenerate = async (section: SectionInfo, newAnswers?: Answers) => {
     setIsGenerating(true);
     setSelectedSection(section.id);
@@ -183,25 +221,30 @@ export default function AiRightPanel({
       const questions: Question[] = (trame?.schema as Question[]) || []
       const ans = newAnswers || answers[section.id] || {}
   
-      const grouped: Record<string, Record<string, string>> = {};
-      let currentTitle = "";
-      grouped[currentTitle] = {};
+      const mdBlocks: string[] = [];
 
+      // Titre principal
+      // mdBlocks.push(`# ${section.title}\n`);
+  
       for (const q of questions) {
-        if (q.type === 'titre') {
-          currentTitle = "Titre de la partie : " + q.titre;
-          grouped[currentTitle] = {};
-        } else {
-          const value = (ans[q.id] ?? '').trim();
-          if (value) {
-            grouped[currentTitle][q.titre] = value;
+        if (q.type === 'tableau') {
+          const ansTable = (ans[q.id] as Record<string, any>) || {};
+          mdBlocks.push(markdownifyTable(q, ansTable));
+        }
+        else {
+          const raw = String(ans[q.id] ?? '').trim();
+          if (raw) {
+            mdBlocks.push(markdownifyField(q, raw));
           }
         }
       }
   
+      // 5) Concatène tout avec deux retours à la ligne
+      const promptMarkdown = mdBlocks.join('\n\n');
+
       const body = {
         section: kindMap[section.id],
-        answers: grouped,
+        answers: promptMarkdown,
         examples: examples
           .filter(e => e.sectionId === trameId)
           .map(e => e.content)
