@@ -30,3 +30,32 @@ it('shows navigation tabs', async () => {
     await screen.findByRole('button', { name: /Déplacer la question/i }),
   ).toBeInTheDocument();
 });
+
+it('shows table specific options', async () => {
+  useSectionStore.setState({
+    fetchOne: vi.fn().mockResolvedValue({
+      title: '',
+      kind: '',
+      schema: [
+        {
+          id: 't1',
+          type: 'tableau',
+          titre: 'Table',
+          tableau: { lignes: [], colonnes: [] },
+        },
+      ],
+    }),
+    update: vi.fn(),
+  });
+  render(
+    <MemoryRouter initialEntries={['/creation-trame/1']}>
+      <Routes>
+        <Route path="/creation-trame/:sectionId" element={<CreationTrame />} />
+      </Routes>
+    </MemoryRouter>,
+  );
+  expect(
+    await screen.findByRole('button', { name: /\+ Ajout case commentaire/i }),
+  ).toBeInTheDocument();
+  expect(screen.getByText(/Type de valeur/)).toBeInTheDocument();
+});
