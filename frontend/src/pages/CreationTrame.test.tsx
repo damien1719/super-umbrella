@@ -55,7 +55,9 @@ it('shows table specific options', async () => {
     </MemoryRouter>,
   );
   expect(
-    await screen.findByRole('button', { name: /\+ Ajout case commentaire/i }),
+    await screen.findByRole('button', {
+      name: /\+ Ajouter une zone de commentaire/i,
+    }),
   ).toBeInTheDocument();
   expect(screen.getByText(/Type de valeur/)).toBeInTheDocument();
 });

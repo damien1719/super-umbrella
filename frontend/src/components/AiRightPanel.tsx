@@ -21,7 +21,7 @@ const kindMap: Record<string, string> = {
   'profil-sensoriel': 'profil_sensoriel',
   'observations-cliniques': 'observations',
   'tests-mabc': 'tests_standards',
-  'conclusions': 'conclusions',
+  conclusions: 'conclusions',
 };
 
 const sections: SectionInfo[] = [
@@ -125,7 +125,7 @@ export default function AiRightPanel({
   );
   const [regenSection, setRegenSection] = useState<string | null>(null);
   const [regenPrompt, setRegenPrompt] = useState('');
-  const { selection } = useEditorUi();
+  useEditorUi((s) => s.selection);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -173,25 +173,36 @@ export default function AiRightPanel({
     remove(id).catch(() => {});
   };
 
-  function markdownifyTable(q: Question, ansTable: any): string {
+  type TableAnswers = Record<string, unknown> & { commentaire?: string };
+
+  function markdownifyTable(q: Question, ansTable: TableAnswers): string {
     if (!q.tableau?.colonnes) {
       return '';
     }
 
-    const header = `**${q.titre}**\n\n` +
+    const header =
+      `**${q.titre}**\n\n` +
       `| ${['Ligne', ...q.tableau?.colonnes].join(' | ')} |\n` +
       `| ${['---', ...q.tableau?.colonnes.map(() => '---')].join(' | ')} |\n`;
 
-    const body = q.tableau?.lignes
-      ?.map(ligne => {
-        const cells = q.tableau?.colonnes?.map(col => ansTable[ligne]?.[col] || '') || [];
-        return `| ${[ligne, ...cells].join(' | ')} |`;
-      })
-      .join('\n') || '';
+    const body =
+      q.tableau?.lignes
+        ?.map((ligne) => {
+          const row = ansTable[ligne] as Record<string, unknown> | undefined;
+          const cells =
+            q.tableau?.colonnes?.map((col) => {
+              const v = (row?.[col] as string) || '';
+              return v;
+            }) || [];
+          return `| ${[ligne, ...cells].join(' | ')} |`;
+        })
+        .join('\n') || '';
 
-    const comment = ansTable.commentaire
-      ? `\n\n> **Commentaire** : ${ansTable.commentaire}`
-      : '';
+    const commentVal = ansTable.commentaire;
+    const comment =
+      typeof commentVal === 'string'
+        ? `\n\n> **Commentaire** : ${commentVal}`
+        : '';
 
     return header + body + comment;
   }
@@ -199,13 +210,13 @@ export default function AiRightPanel({
   function markdownifyField(q: Question, value: string): string {
     switch (q.type) {
       case 'notes':
-        return `${q.titre}\n\n${value}`;  
+        return `${q.titre}\n\n${value}`;
       case 'choix-multiple':
-        return `${q.titre}\n\n${value}`;  
+        return `${q.titre}\n\n${value}`;
       case 'echelle':
-        return `${q.titre}\n\n${value}`; 
+        return `${q.titre}\n\n${value}`;
       case 'titre':
-        return `## ${q.titre}\n\n${value}`;  
+        return `## ${q.titre}\n\n${value}`;
       default:
         return `${q.titre} : ${value}`;
     }
@@ -216,29 +227,28 @@ export default function AiRightPanel({
     setSelectedSection(section.id);
 
     try {
-      const trameId = selectedTrames[section.id]
-      const trame = trames[section.id].find(t => t.value === trameId)
-      const questions: Question[] = (trame?.schema as Question[]) || []
-      const ans = newAnswers || answers[section.id] || {}
-  
+      const trameId = selectedTrames[section.id];
+      const trame = trames[section.id].find((t) => t.value === trameId);
+      const questions: Question[] = (trame?.schema as Question[]) || [];
+      const ans = newAnswers || answers[section.id] || {};
+
       const mdBlocks: string[] = [];
 
       // Titre principal
       // mdBlocks.push(`# ${section.title}\n`);
-  
+
       for (const q of questions) {
         if (q.type === 'tableau') {
-          const ansTable = (ans[q.id] as Record<string, any>) || {};
+          const ansTable = (ans[q.id] as TableAnswers) || {};
           mdBlocks.push(markdownifyTable(q, ansTable));
-        }
-        else {
+        } else {
           const raw = String(ans[q.id] ?? '').trim();
           if (raw) {
             mdBlocks.push(markdownifyField(q, raw));
           }
         }
       }
-  
+
       // 5) Concatène tout avec deux retours à la ligne
       const promptMarkdown = mdBlocks.join('\n\n');
 
@@ -246,11 +256,11 @@ export default function AiRightPanel({
         section: kindMap[section.id],
         answers: promptMarkdown,
         examples: examples
-          .filter(e => e.sectionId === trameId)
-          .map(e => e.content)
-      }
+          .filter((e) => e.sectionId === trameId)
+          .map((e) => e.content),
+      };
 
-      console.log("body", body)
+      console.log('body', body);
 
       const res = await apiFetch<{ text: string }>(
         `/api/v1/bilans/${bilanId}/generate`,
@@ -263,7 +273,7 @@ export default function AiRightPanel({
 
       const header = `## ${section.title}\n\n`;
       const textWithHeader = header + res.text;
-      
+
       onInsertText(textWithHeader);
       setGenerated((g) => ({ ...g, [section.id]: true }));
       setRegenSection(section.id);
@@ -278,7 +288,7 @@ export default function AiRightPanel({
   return (
     <div className="w-full max-w-md bg-white rounded-lg shadow-lg">
       <div className="flex flex-col h-full">
-{/*         {selection?.text && (
+        {/*         {selection?.text && (
           <div className="bg-blue-50 text-blue-800 text-sm p-2 border-b border-blue-100">
             <div className="font-medium mb-1">Texte sélectionné :</div>
             <div className="italic truncate">&quot;{selection.text}&quot;</div>
@@ -301,8 +311,8 @@ export default function AiRightPanel({
           {regenSection ? (
             <div className="space-y-4">
               <h3 className="text-sm font-medium text-left">
-                Si vous voulez ajuster le contenu généré, vous pouvez préciser ici
-                les éléments que vous souhaitez re-générer
+                Si vous voulez ajuster le contenu généré, vous pouvez préciser
+                ici les éléments que vous souhaitez re-générer
               </h3>
               <div className="w-full">
                 <Textarea
@@ -326,7 +336,9 @@ export default function AiRightPanel({
                 <Button
                   size="sm"
                   onClick={() => {
-                    const section = sections.find((s) => s.id === regenSection)!;
+                    const section = sections.find(
+                      (s) => s.id === regenSection,
+                    )!;
                     handleGenerate(section);
                   }}
                   disabled={isGenerating}
@@ -436,7 +448,10 @@ export default function AiRightPanel({
                       trameOptions={trameOpts}
                       selectedTrame={selected}
                       onTrameChange={(v) =>
-                        setSelectedTrames({ ...selectedTrames, [section.id]: v })
+                        setSelectedTrames({
+                          ...selectedTrames,
+                          [section.id]: v,
+                        })
                       }
                       examples={getExamples(
                         section.id,
@@ -446,7 +461,11 @@ export default function AiRightPanel({
                         addExample(section.id, selectedTrames[section.id], ex)
                       }
                       onRemoveExample={(id) =>
-                        removeExample(section.id, selectedTrames[section.id], id)
+                        removeExample(
+                          section.id,
+                          selectedTrames[section.id],
+                          id,
+                        )
                       }
                       questions={(selected?.schema as Question[]) || []}
                       answers={answers[section.id] || {}}
