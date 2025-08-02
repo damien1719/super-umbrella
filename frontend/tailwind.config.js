@@ -6,7 +6,13 @@ export default {
     './src/components/ui/*.{js,jsx,ts,tsx}',
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        wood: {
+          50: '#FAF9F7',
+        },
+      },
+    },
   },
   plugins: [],
 }
