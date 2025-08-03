@@ -323,7 +323,8 @@ export default function CreationTrame() {
           </div>
           <Button
             onClick={sauvegarderTrame}
-            className="ml-auto bg-blue-600 hover:bg-blue-700"
+            variant="primary"
+            className="ml-auto"
           >
             Sauvegarder la trame
           </Button>
@@ -336,7 +337,7 @@ export default function CreationTrame() {
           <nav className="flex gap-4">
             <button
               className={`pb-2 px-1 border-b-2 ${
-                tab === 'questions' ? 'border-blue-600' : 'border-transparent'
+                tab === 'questions' ? 'border-primary-600' : 'border-transparent'
               }`}
               onClick={() => setTab('questions')}
             >
@@ -344,7 +345,7 @@ export default function CreationTrame() {
             </button>
             <button
               className={`pb-2 px-1 border-b-2 ${
-                tab === 'preview' ? 'border-blue-600' : 'border-transparent'
+                tab === 'preview' ? 'border-primary-600' : 'border-transparent'
               }`}
               onClick={() => setTab('preview')}
             >
@@ -352,7 +353,7 @@ export default function CreationTrame() {
             </button>
             <button
               className={`pb-2 px-1 border-b-2 ${
-                tab === 'examples' ? 'border-blue-600' : 'border-transparent'
+                tab === 'examples' ? 'border-primary-600' : 'border-transparent'
               }`}
               onClick={() => setTab('examples')}
             >
@@ -400,7 +401,7 @@ export default function CreationTrame() {
                     onClick={() => setSelectedQuestionId(question.id)}
                     className={`group w-[90%] mx-auto cursor-pointer transition-shadow ${
                       selectedQuestionId === question.id
-                        ? 'border-blue-500 ring-1 ring-blue-500 shadow-md'
+                        ? 'border-primary-500 ring-1 ring-primary-500 shadow-md'
                         : ''
                     }`}
                   >
@@ -877,8 +878,8 @@ export default function CreationTrame() {
 
                 <Button
                   onClick={sauvegarderTrame}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
+                  variant="primary"
+                  >
                   Sauvegarder la trame
                 </Button>
               </div>

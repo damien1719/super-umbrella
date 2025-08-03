@@ -76,7 +76,7 @@ export default function Bilan() {
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
-      <div className="flex items-center bg-white border border-gray-300 p-4">
+      <div className="h-12 flex items-center bg-wood-50 border border-wood-300 p-4">
         <Button variant="ghost" onClick={handleBack} className="px-2 py-1">
           Retour
         </Button>
@@ -95,7 +95,7 @@ export default function Bilan() {
               />
             </Suspense>
           </div>
-          <div className="block w-104 border-l border-gray-300 overflow-auto shadow-sm ">
+          <div className="block w-104 border-l border-wood-300 overflow-auto shadow-sm ">
             <Suspense fallback="Chargement...">
               {bilanId && (
                 <AiRightPanel

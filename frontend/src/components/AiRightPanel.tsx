@@ -286,7 +286,7 @@ export default function AiRightPanel({
   };
 
   return (
-    <div className="w-full max-w-md bg-white rounded-lg shadow-lg">
+    <div className="w-full max-w-md bg-wood-50 rounded-lg shadow-lg">
       <div className="flex flex-col h-full">
         {/*         {selection?.text && (
           <div className="bg-blue-50 text-blue-800 text-sm p-2 border-b border-blue-100">
@@ -294,7 +294,7 @@ export default function AiRightPanel({
             <div className="italic truncate">&quot;{selection.text}&quot;</div>
           </div>
         )} */}
-        <div className="sticky top-0 z-10 flex items-center justify-between bg-white border-b border-gray-200 px-4 py-2 h-14">
+        <div className="sticky top-0 z-10 flex items-center justify-between bg-wood-50 border-b border-wood-200 px-4 py-2 h-14">
           <span className="font-medium text-sm">Assistant IA</span>
           {regenSection && (
             <Button
@@ -363,7 +363,7 @@ export default function AiRightPanel({
                         open={true}
                         onOpenChange={(open) => !open && setWizardSection(null)}
                       >
-                        <DialogContent className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[100vw] max-w-[100vw] sm:max-w-5xl h-[90vh] max-w-none max-h-none overflow-auto bg-white rounded-lg shadow-lg">
+                        <DialogContent className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[100vw] max-w-[100vw] sm:max-w-5xl h-[90vh] max-w-none max-h-none overflow-auto bg-wood rounded-lg shadow-lg">
                           <WizardAIRightPanel
                             sectionInfo={section}
                             trameOptions={trameOpts}
@@ -413,7 +413,7 @@ export default function AiRightPanel({
 
                   if (!generated[section.id]) {
                     return (
-                      <Card key={section.id} className="hover:shadow-md">
+                      <Card key={section.id} className="">
                         <CardContent className="p-4">
                           <div className="flex items-start gap-3">
                             <div className="p-2 rounded-lg bg-gray-100">
@@ -428,7 +428,7 @@ export default function AiRightPanel({
                               </p>
                               <Button
                                 size="sm"
-                                variant="black"
+                                variant="default"
                                 className="w-full text-xs"
                                 onClick={() => setWizardSection(section.id)}
                               >

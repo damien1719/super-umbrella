@@ -21,7 +21,7 @@ export function EmptyState({ onCreate }: EmptyStateProps) {
               Commencez par en créer un nouveau.
             </p>
             <Button
-              className="bg-blue-600 hover:bg-blue-700"
+              variant="primary"
               onClick={onCreate}
             >
               <Plus className="w-4 h-4 mr-2" />

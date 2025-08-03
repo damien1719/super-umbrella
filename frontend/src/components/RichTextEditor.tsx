@@ -177,9 +177,9 @@ function EditorCore(
     <LexicalComposer initialConfig={initialConfig}>
       {!readOnly && <ToolbarPlugin onSave={onSave} />}
       <div className="relative h-full">
-        <div ref={editorRef} className="h-full bg-gray-100 p-8 overflow-auto">
+        <div ref={editorRef} className="h-full bg-wood-100 p-8 overflow-auto">
           <div className="flex justify-center">
-            <div className="bg-white border border-gray-300 rounded shadow p-16 w-full max-w-prose min-h-[100vh] flex flex-col">
+            <div className="bg-paper-50 border border-gray-300 rounded shadow p-16 w-full max-w-prose min-h-[100vh] flex flex-col">
               <RichTextPlugin
                 contentEditable={
                   <ContentEditable className="outline-none flex-1" />

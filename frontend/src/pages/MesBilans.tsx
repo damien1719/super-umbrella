@@ -78,7 +78,7 @@ export default function Component() {
 
   // État avec bilans existants
   return (
-    <div className="min-h-screen bg-wood-50 p-6">
+    <div className="min-h-screen p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <div className="flex items-center justify-between">
@@ -91,7 +91,8 @@ export default function Component() {
               </p>
             </div>
             <Button
-              className="bg-blue-600 hover:bg-blue-700"
+              className=""
+              variant="primary"
               onClick={() => setIsCreationModalOpen(true)}
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -102,11 +103,11 @@ export default function Component() {
 
         {hasBilans ? (
           <div className="space-y-6">
-            <Card className="bg-blue-50 border-blue-200">
+            <Card className="bg-primary-50 border-primary-200">
               <CardContent className="flex items-center justify-between p-6">
                 <div className="flex items-center space-x-4">
-                  <div className="bg-blue-100 p-3 rounded-full">
-                    <Plus className="w-6 h-6 text-blue-600" />
+                  <div className="bg-primary-100 p-3 rounded-full">
+                    <Plus className="w-6 h-6 text-primary-600" />
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
@@ -118,7 +119,8 @@ export default function Component() {
                   </div>
                 </div>
                 <Button
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className=""
+                  variant="primary"
                   onClick={() => setIsCreationModalOpen(true)}
                 >
                   <Plus className="w-4 h-4 mr-2" />
