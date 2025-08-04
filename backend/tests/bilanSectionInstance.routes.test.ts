@@ -25,6 +25,8 @@ describe('GET /api/v1/bilan-section-instances', () => {
     expect(mockedService.list).toHaveBeenCalledWith(
       'demo-user',
       '00000000-0000-0000-0000-000000000001',
+      undefined,
+      false,
     );
   });
 });
