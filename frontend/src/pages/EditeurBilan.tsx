@@ -2,15 +2,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useEffect, useState, Suspense, lazy, useRef } from 'react';
 import DOMPurify from 'dompurify';
 import { Button } from '../components/ui/button';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '../components/ui/alert-dialog';
+import ExitConfirmation from '../components/ExitConfirmation';
 import { apiFetch } from '../utils/api';
 import { useAuth } from '../store/auth';
 import { useBilanDraft } from '../store/bilanDraft';
@@ -109,28 +101,15 @@ export default function Bilan() {
           </div>
         </div>
       </div>
-      <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              Souhaitez-vous conserver les modifications apportées ?
-            </AlertDialogTitle>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => navigate('/')}>
-              Non
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={async () => {
-                await save();
-                navigate('/');
-              }}
-            >
-              Oui
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ExitConfirmation
+        open={showConfirm}
+        onOpenChange={setShowConfirm}
+        onConfirm={async () => {
+          await save();
+          navigate('/');
+        }}
+        onCancel={() => navigate('/')}
+      />
     </div>
   );
 }

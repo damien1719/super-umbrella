@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import CreationTrame from './CreationTrame';
 import { useSectionStore } from '../store/sections';
+import { useSectionExampleStore } from '../store/sectionExamples';
 import { vi } from 'vitest';
 
 it('shows navigation tabs', async () => {
@@ -60,4 +61,35 @@ it('shows table specific options', async () => {
     }),
   ).toBeInTheDocument();
   expect(screen.getByText(/Type de valeur/)).toBeInTheDocument();
+});
+
+it('prompts to save when leaving and saves on confirm', async () => {
+  const update = vi.fn().mockResolvedValue(undefined);
+  useSectionStore.setState({
+    fetchOne: vi.fn().mockResolvedValue({ title: '', kind: '', schema: [] }),
+    update,
+  });
+  useSectionExampleStore.setState({ create: vi.fn() });
+
+  render(
+    <MemoryRouter initialEntries={['/creation-trame/1']}>
+      <Routes>
+        <Route path="/creation-trame/:sectionId" element={<CreationTrame />} />
+      </Routes>
+    </MemoryRouter>,
+  );
+
+  await screen.findByRole('button', { name: /Déplacer la question/i });
+
+  fireEvent.click(screen.getByRole('button', { name: /Retour/i }));
+
+  expect(
+    await screen.findByText(
+      /Souhaitez-vous conserver les modifications apportées/i,
+    ),
+  ).toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole('button', { name: 'Oui' }));
+
+  await waitFor(() => expect(update).toHaveBeenCalled());
 });

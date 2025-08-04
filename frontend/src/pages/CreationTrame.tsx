@@ -26,6 +26,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import ImportMagique from '@/components/ImportMagique';
 import SaisieExempleTrame from '@/components/SaisieExempleTrame';
 import { DataEntry } from '@/components/bilan/DataEntry';
+import ExitConfirmation from '@/components/ExitConfirmation';
 import {
   ArrowLeft,
   Copy,
@@ -96,6 +97,7 @@ export default function CreationTrame() {
     null,
   );
   const [showImport, setShowImport] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const createDefaultNote = (): Question => ({
     id: Date.now().toString(),
@@ -293,7 +295,7 @@ export default function CreationTrame() {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-4 mb-6">
-          <Button variant="outline" onClick={() => navigate(-1)}>
+          <Button variant="outline" onClick={() => setShowConfirm(true)}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Retour
           </Button>
@@ -337,7 +339,9 @@ export default function CreationTrame() {
           <nav className="flex gap-4">
             <button
               className={`pb-2 px-1 border-b-2 ${
-                tab === 'questions' ? 'border-primary-600' : 'border-transparent'
+                tab === 'questions'
+                  ? 'border-primary-600'
+                  : 'border-transparent'
               }`}
               onClick={() => setTab('questions')}
             >
@@ -718,8 +722,8 @@ export default function CreationTrame() {
                                 </Button>
                                 <div className="p-2 border rounded">
                                   <p className="text-sm text-gray-500 mb-1">
-                                    La zone de commentaire sera disponible lors de
-                                    la saisie des données
+                                    La zone de commentaire sera disponible lors
+                                    de la saisie des données
                                   </p>
                                 </div>
                               </div>
@@ -876,10 +880,7 @@ export default function CreationTrame() {
                   Annuler
                 </Button>
 
-                <Button
-                  onClick={sauvegarderTrame}
-                  variant="primary"
-                  >
+                <Button onClick={sauvegarderTrame} variant="primary">
                   Sauvegarder la trame
                 </Button>
               </div>
@@ -931,6 +932,12 @@ export default function CreationTrame() {
           />
         </DialogContent>
       </Dialog>
+      <ExitConfirmation
+        open={showConfirm}
+        onOpenChange={setShowConfirm}
+        onConfirm={sauvegarderTrame}
+        onCancel={() => navigate(-1)}
+      />
     </div>
   );
 }
