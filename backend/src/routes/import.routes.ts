@@ -4,3 +4,4 @@ import { ImportController } from '../controllers/import.controller';
 export const importRouter = Router();
 
 importRouter.post('/transform', ImportController.transform);
+importRouter.post('/transform-image', ImportController.transformImage);
