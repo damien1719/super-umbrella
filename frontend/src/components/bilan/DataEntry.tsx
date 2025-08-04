@@ -254,7 +254,7 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
           <div
             key={q.id}
             className={`space-y-2 p-2 rounded-md ${
-              q.type === 'notes' ? 'focus-within:bg-blue-50/50' : ''
+              q.type === 'notes' ? 'focus-within:bg-wood-200/50' : ''
             }`}
           >
             {q.type === 'titre' ? (
@@ -301,7 +301,7 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
                   <div
                     key={q.id}
                     className={`space-y-2 p-2 rounded-md border ${
-                      q.type === 'notes' ? 'focus-within:bg-blue-50/50' : ''
+                      q.type === 'notes' ? 'focus-within:bg-wood-200/50' : ''
                     }`}
                   >
                     {q.type === 'titre' ? (
