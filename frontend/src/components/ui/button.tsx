@@ -16,12 +16,14 @@ const buttonVariants = cva(
         secondary: 'bg-wood-200 text-gray-800 shadow-sm hover:bg-wood-300',
         ghost: 'hover:bg-primary-50 hover:text-primary-700',
         link: 'text-blue-600 underline-offset-4 hover:underline',
+        icon: 'bg-transparent hover:bg-wood-200 hover:text-primary-700',
       },
       size: {
         default: 'h-10 py-2 px-4',
         sm: 'h-9 rounded-md px-3',
         lg: 'h-11 rounded-md px-8',
         icon: 'h-10 w-10',
+        micro: 'h-6 w-6',
       },
     },
     defaultVariants: {

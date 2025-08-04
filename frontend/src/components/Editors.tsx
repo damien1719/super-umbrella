@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { Question } from '@/types/Typequestion';
-import { Trash2 } from 'lucide-react';
+import { Trash2, X } from 'lucide-react';
 
 export type EditorProps = {
   q: Question;
@@ -19,11 +19,6 @@ export type EditorProps = {
 export function NotesEditor({ q, onPatch }: EditorProps) {
   return (
     <div className="space-y-4">
-      <Input
-        value={q.titre}
-        placeholder="Question"
-        onChange={(e) => onPatch({ titre: e.target.value })}
-      />
       <div className="w-full rounded px-3 py-2 border-b border-dotted border-gray-200 text-gray-600">
         Réponse (prise de notes)
       </div>
@@ -49,11 +44,6 @@ export function MultiChoiceEditor({ q, onPatch }: EditorProps) {
   };
   return (
     <div className="space-y-4">
-      <Input
-        value={q.titre}
-        placeholder="Question"
-        onChange={(e) => onPatch({ titre: e.target.value })}
-      />
       <div>
         <Label>Options de réponse</Label>
         <div className="space-y-2">
@@ -68,7 +58,7 @@ export function MultiChoiceEditor({ q, onPatch }: EditorProps) {
                 size="sm"
                 onClick={() => removeOption(optionIndex)}
               >
-                <Trash2 className="h-4 w-4" />
+                <X className="h-4 w-4" />
               </Button>
             </div>
           ))}
@@ -94,11 +84,6 @@ export function MultiChoiceEditor({ q, onPatch }: EditorProps) {
 export function ScaleEditor({ q, onPatch }: EditorProps) {
   return (
     <div className="space-y-4">
-      <Input
-        value={q.titre}
-        placeholder="Question"
-        onChange={(e) => onPatch({ titre: e.target.value })}
-      />
       {/* Placeholder for scale configuration */}
     </div>
   );
@@ -166,36 +151,32 @@ export function TableEditor({ q, onPatch }: EditorProps) {
 
   return (
     <div className="space-y-4">
-      <Input
-        value={q.titre}
-        placeholder="Question"
-        onChange={(e) => onPatch({ titre: e.target.value })}
-      />
-      <div className="flex-shrink-0 w-full overflow-x-auto">
-        <table className="table-auto w-full border-collapse">
+      <div className="overflow-x-auto">
+        <table className="table-auto border-collapse">
           <thead>
             <tr>
               <th className="p-1"></th>
               {tableau.colonnes?.map((col, colIdx) => (
                 <th key={colIdx} className="p-1">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col items-center gap-2">
+                    <Button
+                      variant="icon"
+                      size="micro"
+                      onClick={() => removeColumn(colIdx)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
                     <Input
-                      className="flex-1"
+                      className="w-40 whitespace-normal break-words"
                       value={col}
                       onChange={(e) => updateColumn(colIdx, e.target.value)}
                     />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => removeColumn(colIdx)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
                   </div>
                 </th>
               ))}
               <th className="p-1">
                 <Input
+                  className="w-40 whitespace-normal break-words"
                   placeholder="Ajouter une colonne"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && e.currentTarget.value.trim()) {
@@ -217,19 +198,19 @@ export function TableEditor({ q, onPatch }: EditorProps) {
             {tableau.lignes?.map((ligne, ligneIdx) => (
               <tr key={ligneIdx}>
                 <th className="p-1">
-                  <div className="group relative flex items-center gap-2">
+                  <div className="flex items-center gap-2">
                     <Input
-                      className="w-50"
+                      className="w-40 whitespace-normal break-words"
                       value={ligne}
                       onChange={(e) => updateLine(ligneIdx, e.target.value)}
                     />
                     <Button
-                      className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                      variant="outline"
-                      size="sm"
+                      className=""
+                      variant="icon"
+                      size="micro"
                       onClick={() => removeLine(ligneIdx)}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <X className="h-4 w-4" />
                     </Button>
                   </div>
                 </th>
