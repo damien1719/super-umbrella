@@ -20,7 +20,9 @@ export default function ImportMagique({
   const [mode, setMode] = useState<'liste' | 'tableau'>('liste');
   const [text, setText] = useState('');
   const [file, setFile] = useState<File | null>(null);
+  const [image, setImage] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   const token = useAuth((s) => s.token);
 
@@ -71,6 +73,26 @@ export default function ImportMagique({
           header: 1,
         }) as (string | number)[][];
         onDone(transformTable(rows));
+      } else if (image) {
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const res = reader.result as string;
+            const b64 = res.split(',')[1] || '';
+            resolve(b64);
+          };
+          reader.onerror = () => reject(reader.error);
+          reader.readAsDataURL(image);
+        });
+        const res = await apiFetch<{ result: Question[] }>(
+          '/api/v1/import/transform-image',
+          {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ image: base64 }),
+          },
+        );
+        onDone(res.result);
       }
     } finally {
       setLoading(false);
@@ -95,6 +117,7 @@ export default function ImportMagique({
             onClick={() => {
               setMode('liste');
               setFile(null);
+              setImage(null);
             }}
           >
             Liste de questions
@@ -109,6 +132,8 @@ export default function ImportMagique({
             onClick={() => {
               setMode('tableau');
               setText('');
+              setFile(null);
+              setImage(null);
             }}
           >
             Tableau
@@ -125,21 +150,43 @@ export default function ImportMagique({
               />
             </div>
           ) : (
-            <div className="flex items-center justify-center min-h-[200px] max-h-[50vh] w-full border-2 border-dashed rounded-md">
+            <div className="flex flex-col gap-2 items-center justify-center min-h-[200px] max-h-[50vh] w-full border-2 border-dashed rounded-md">
               <input
                 ref={fileInputRef}
                 type="file"
                 accept=".xlsx,.xls"
-                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                onChange={(e) => {
+                  setFile(e.target.files?.[0] ?? null);
+                  setImage(null);
+                }}
                 className="hidden"
                 data-testid="file-input"
               />
-              <Button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                +Choisir un fichier
-              </Button>
+              <input
+                ref={imageInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/jpg,image/heic,image/heif,image/webp"
+                onChange={(e) => {
+                  setImage(e.target.files?.[0] ?? null);
+                  setFile(null);
+                }}
+                className="hidden"
+                data-testid="image-input"
+              />
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  +Choisir un fichier
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => imageInputRef.current?.click()}
+                >
+                  +Choisir une image
+                </Button>
+              </div>
             </div>
           )}
         </div>
@@ -156,7 +203,9 @@ export default function ImportMagique({
           </Button>
           <Button
             onClick={handle}
-            disabled={loading || (mode === 'liste' ? !text.trim() : !file)}
+            disabled={
+              loading || (mode === 'liste' ? !text.trim() : !file && !image)
+            }
             type="button"
             className="min-w-[120px]"
           >
