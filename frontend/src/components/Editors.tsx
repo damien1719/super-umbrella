@@ -16,7 +16,7 @@ export type EditorProps = {
   onPatch: (p: Partial<Question>) => void;
 };
 
-export function NotesEditor({ q, onPatch }: EditorProps) {
+export function NotesEditor({}: EditorProps) {
   return (
     <div className="space-y-4">
       <div className="w-full rounded px-3 py-2 border-b border-dotted border-gray-200 text-gray-600">
@@ -81,11 +81,9 @@ export function MultiChoiceEditor({ q, onPatch }: EditorProps) {
   );
 }
 
-export function ScaleEditor({ q, onPatch }: EditorProps) {
+export function ScaleEditor({}: EditorProps) {
   return (
-    <div className="space-y-4">
-      {/* Placeholder for scale configuration */}
-    </div>
+    <div className="space-y-4">{/* Placeholder for scale configuration */}</div>
   );
 }
 
@@ -323,8 +321,8 @@ export function TableEditor({ q, onPatch }: EditorProps) {
   );
 }
 
-export function TitleEditor({ q, onPatch }: EditorProps) {
-  return null; 
+export function TitleEditor({}: EditorProps) {
+  return null;
 }
 
 export const EDITORS: Record<
