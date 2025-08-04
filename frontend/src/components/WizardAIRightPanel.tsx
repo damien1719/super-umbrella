@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
@@ -62,6 +62,31 @@ export default function WizardAIRightPanel({
   const token = useAuth((s) => s.token);
   const [instanceId, setInstanceId] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
+
+  // Preload latest notes when section/trame changes
+  useEffect(() => {
+    if (!selectedTrame) return;
+    (async () => {
+      try {
+        const res = await apiFetch<Array<{ id: string; contentNotes: Answers }>>( 
+          `/api/v1/bilan-section-instances?bilanId=${bilanId}&sectionId=${selectedTrame.value}&latest=true`,
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+        if (res.length) {
+          setInstanceId(res[0].id);
+          // preload answers both in parent state and DataEntry local state
+          onAnswersChange(res[0].contentNotes as Answers);
+          dataEntryRef.current?.load?.(res[0].contentNotes as Answers);
+        } else {
+          setInstanceId(null);
+          onAnswersChange({});
+          dataEntryRef.current?.clear?.();
+        }
+      } catch (e) {
+        console.error('Failed to load latest section instance', e);
+      }
+    })();
+  }, [selectedTrame, bilanId, token]);
 
   const next = () => setStep((s) => Math.min(total, s + 1));
   const prev = () => setStep((s) => Math.max(1, s - 1));

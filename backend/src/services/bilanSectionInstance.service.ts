@@ -34,10 +34,20 @@ export const BilanSectionInstanceService = {
     return db.bilanSectionInstance.create({ data });
   },
 
-  list(userId: string, bilanId: string) {
+  list(
+    userId: string,
+    bilanId: string,
+    sectionId?: string,
+    latest = false,
+  ) {
     return db.bilanSectionInstance.findMany({
-      where: { bilanId, bilan: { patient: { profile: { userId } } } },
-      orderBy: { order: 'asc' },
+      where: {
+        bilanId,
+        ...(sectionId ? { sectionId } : {}),
+        bilan: { patient: { profile: { userId } } },
+      },
+      orderBy: latest ? { notesUpdatedAt: 'desc' } : { order: 'asc' },
+      take: latest ? 1 : undefined,
       include: { section: { select: { title: true } } },
     });
   },

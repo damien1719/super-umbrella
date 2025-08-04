@@ -13,8 +13,17 @@ export const BilanSectionInstanceController = {
 
   async list(req: Request, res: Response, next: NextFunction) {
     try {
-      const { bilanId } = req.query as { bilanId: string };
-      const instances = await BilanSectionInstanceService.list(req.user.id, bilanId);
+      const { bilanId, sectionId, latest } = req.query as {
+        bilanId: string;
+        sectionId?: string;
+        latest?: string;
+      };
+      const instances = await BilanSectionInstanceService.list(
+        req.user.id,
+        bilanId,
+        sectionId,
+        latest === 'true',
+      );
       res.json(instances);
     } catch (e) {
       next(e);

@@ -145,7 +145,13 @@ model BilanSectionInstance {
   sectionId         String
   order             Int
   contentNotes      Json
+  notesCreatedAt    DateTime @default(now())
+  notesUpdatedAt    DateTime @updatedAt
+  
   generatedContent  Json?
+  generatedContentCreatedAt    DateTime? @default(now())
+  generatedContentUpdatedAt    DateTime? @updatedAt
+  
   status            BilanSectionStatus @default(DRAFT)
   bilan             Bilan   @relation(fields: [bilanId], references: [id])
   section           Section @relation(fields: [sectionId], references: [id])

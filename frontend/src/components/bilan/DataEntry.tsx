@@ -31,6 +31,8 @@ interface DataEntryProps {
 export interface DataEntryHandle {
   save: () => Answers | void;
   getAnswers: () => Answers;
+  load: (values: Answers) => void;
+  clear: () => void;
 }
 
 export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
@@ -77,6 +79,8 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
     useImperativeHandle(ref, () => ({
       save,
       getAnswers: () => local,
+      load: (values: Answers) => setLocal(values ?? {}),
+      clear: () => setLocal({}),
     }));
 
     const renderQuestion = (q: Question) => {
