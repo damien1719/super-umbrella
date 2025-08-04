@@ -324,14 +324,7 @@ export function TableEditor({ q, onPatch }: EditorProps) {
 }
 
 export function TitleEditor({ q, onPatch }: EditorProps) {
-  return (
-    <Input
-      value={q.titre}
-      placeholder="Titre de section"
-      className="text-3xl font-bold border-none shadow-none focus-visible:ring-0 p-0"
-      onChange={(e) => onPatch({ titre: e.target.value })}
-    />
-  );
+  return null; 
 }
 
 export const EDITORS: Record<

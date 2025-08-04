@@ -21,7 +21,7 @@ const kindMap: Record<string, string> = {
   'profil-sensoriel': 'profil_sensoriel',
   'observations-cliniques': 'observations',
   'tests-mabc': 'tests_standards',
-  conclusions: 'conclusions',
+  'conclusion': 'conclusion',
 };
 
 const sections: SectionInfo[] = [
@@ -50,8 +50,8 @@ const sections: SectionInfo[] = [
     description: 'Résultats des tests standardisés',
   },
   {
-    id: 'conclusions',
-    title: 'Conclusions',
+    id: 'conclusion',
+    title: 'Conclusion',
     icon: Activity,
     description: 'Résultats des tests standardisés',
   },
@@ -70,6 +70,7 @@ const useTrames = () => {
       'profil-sensoriel': [],
       'observations-cliniques': [],
       'tests-mabc': [],
+      'conclusion': [],
     };
     Object.entries(kindMap).forEach(([key, kind]) => {
       res[key] = items

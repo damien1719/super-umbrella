@@ -9,12 +9,13 @@ import {
 import TrameCard from './TrameCard';
 import CreerTrameModal from './ui/creer-trame-modale';
 import { Plus } from 'lucide-react';
+
 const kindMap: Record<string, string> = {
   anamnese: 'anamnese',
   'profil-sensoriel': 'profil_sensoriel',
   'observations-cliniques': 'observations',
   'tests-mabc': 'tests_standards',
-  conclusions: 'conclusions',
+  conclusion: 'conclusion',
 };
 import type { TrameOption, TrameExample } from './bilan/TrameSelector';
 import { DataEntry, type DataEntryHandle } from './bilan/DataEntry';
