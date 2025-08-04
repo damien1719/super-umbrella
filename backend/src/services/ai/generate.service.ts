@@ -35,6 +35,10 @@ import {
   generateTableFromImage,
   type TransformImageToTableParams,
 } from "./prompts/transformImageToTable";
+import {
+  generateTableFromText,
+  type TransformTextToTableParams,
+} from "./prompts/transformTextToTable";
 
 export async function transformText(params: TransformPromptParams) {
   // 1. RGPD pre-processing similar to generateText
@@ -51,10 +55,20 @@ export async function transformText(params: TransformPromptParams) {
 
 export async function transformImageToTable(
   params: TransformImageToTableParams,
-) {
+): Promise<{ colonnes: string[]; lignes: string[] }> {
   const sanitized = guardrails.pre(JSON.stringify(params));
   const structured = await generateTableFromImage(
     JSON.parse(sanitized) as TransformImageToTableParams,
   );
-  return guardrails.post(structured);
+  return guardrails.post(structured) as { colonnes: string[]; lignes: string[] };
+}
+
+export async function transformTextToTable(
+  params: TransformTextToTableParams,
+): Promise<{ colonnes: string[]; lignes: string[] }> {
+  const sanitized = guardrails.pre(JSON.stringify(params));
+  const structured = await generateTableFromText(
+    JSON.parse(sanitized) as TransformTextToTableParams,
+  );
+  return guardrails.post(structured) as { colonnes: string[]; lignes: string[] };
 }

@@ -5,10 +5,10 @@ export function pre(text: string) {
   return text.replace(PHI_REGEX, "[REDACTED]");
 }
 
-export function post(text: string) {
+export function post<T>(text: T): T {
   // interdit contenu NSFW basique
-  if (/(\bsex\b|\bviolence\b)/i.test(text)) {
-    throw new Error("Content policy violation");
+  if (typeof text === 'string' && /(\bsex\b|\bviolence\b)/i.test(text)) {
+    throw new Error('Content policy violation');
   }
   return text;
 }
