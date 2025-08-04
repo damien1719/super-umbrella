@@ -1,4 +1,5 @@
 import OpenAI from 'openai'
+import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions'
 
 export interface TransformImageToTableParams {
   imageBase64: string
@@ -19,7 +20,7 @@ const DEFAULT_SCHEMA = {
 export function buildTransformImageToTablePrompt(
   params: TransformImageToTableParams,
 ) {
-  const msgs: any[] = []
+  const msgs: ChatCompletionMessageParam[] = []
 
   msgs.push({
     role: 'system',
