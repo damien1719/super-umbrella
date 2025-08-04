@@ -3,6 +3,7 @@ import { BilanService } from "../services/bilan.service";
 import { sanitizeHtml } from "../utils/sanitize";
 import { generateText } from "../services/ai/generate.service";
 import { promptConfigs } from "../services/ai/prompts/promptconfig";
+import { refineSelection } from "../services/ai/refineSelection.service";
 
 export const BilanController = {
   async create(req: Request, res: Response, next: NextFunction) {
@@ -77,6 +78,18 @@ export const BilanController = {
     try {
       await BilanService.remove(req.user.id, req.params.bilanId);
       res.sendStatus(204);
+    } catch (e) {
+      next(e);
+    }
+  },
+
+  async refine(req: Request, res: Response, next: NextFunction) {
+    try {
+      const text = await refineSelection({
+        refineInstruction: req.body.refineInstruction,
+        selectedText: req.body.selectedText,
+      });
+      res.json({ text });
     } catch (e) {
       next(e);
     }

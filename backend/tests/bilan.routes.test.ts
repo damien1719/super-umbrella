@@ -4,9 +4,11 @@ import { BilanService } from "../src/services/bilan.service";
 import { generateText } from "../src/services/ai/generate.service";
 import { promptConfigs } from "../src/services/ai/prompts/promptconfig";
 import { sanitizeHtml } from "../src/utils/sanitize";
+import { refineSelection } from "../src/services/ai/refineSelection.service";
 
 jest.mock("../src/services/bilan.service");
 jest.mock("../src/services/ai/generate.service");
+jest.mock("../src/services/ai/refineSelection.service");
 
 interface BilanStub {
   id: string;
@@ -15,6 +17,7 @@ interface BilanStub {
 
 const mockedService = BilanService as jest.Mocked<typeof BilanService>;
 const mockedGenerate = generateText as jest.MockedFunction<typeof generateText>;
+const mockedRefine = refineSelection as jest.MockedFunction<typeof refineSelection>;
 
 describe("GET /api/v1/bilans", () => {
   it("returns bilans from service", async () => {
@@ -72,6 +75,23 @@ describe("POST /api/v1/bilans/:id/generate", () => {
       instructions: promptConfigs.anamnese.instructions,
       userContent: JSON.stringify(body.answers),
       examples: ["demo"],
+    });
+  });
+});
+
+describe("POST /api/v1/bilans/:id/refine", () => {
+  it("calls refine service with selected text", async () => {
+    mockedRefine.mockResolvedValueOnce("refined");
+    const id = "11111111-1111-1111-1111-111111111111";
+    const body = { selectedText: "old", refineInstruction: "inst" };
+    const res = await request(app)
+      .post(`/api/v1/bilans/${id}/refine`)
+      .send(body);
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ text: "refined" });
+    expect(mockedRefine).toHaveBeenCalledWith({
+      selectedText: "old",
+      refineInstruction: "inst",
     });
   });
 });

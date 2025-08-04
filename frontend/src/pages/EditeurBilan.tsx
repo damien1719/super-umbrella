@@ -6,6 +6,7 @@ import ExitConfirmation from '../components/ExitConfirmation';
 import { apiFetch } from '../utils/api';
 import { useAuth } from '../store/auth';
 import { useBilanDraft } from '../store/bilanDraft';
+import SelectionOverlay from '../components/SelectionOverlay';
 
 const RichTextEditor = lazy(() => import('../components/RichTextEditor'));
 const AiRightPanel = lazy(() => import('../components/AiRightPanel'));
@@ -86,6 +87,7 @@ export default function Bilan() {
                 onSave={save}
               />
             </Suspense>
+            <SelectionOverlay />
           </div>
           <div className="block w-104 border-l border-wood-300 overflow-auto shadow-sm ">
             <Suspense fallback="Chargement...">
