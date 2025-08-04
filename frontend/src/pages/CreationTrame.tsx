@@ -1,77 +1,22 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useSectionStore } from '../store/sections';
 import { useSectionExampleStore } from '../store/sectionExamples';
-import type { Question } from '../types/question';
+import type { Question } from '../types/Typequestion';
+import { categories } from '../types/trame';
+import TrameHeader from '@/components/TrameHeader';
+import QuestionList from '@/components/QuestionList';
+import { DataEntry } from '@/components/bilan/DataEntry';
+import SaisieExempleTrame from '@/components/SaisieExempleTrame';
+import ImportMagique from '@/components/ImportMagique';
+import ExitConfirmation from '@/components/ExitConfirmation';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 interface ImportResponse {
   result: Question[][];
 }
-
-import { categories } from '../types/trame';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
-import ImportMagique from '@/components/ImportMagique';
-import SaisieExempleTrame from '@/components/SaisieExempleTrame';
-import { DataEntry } from '@/components/bilan/DataEntry';
-import ExitConfirmation from '@/components/ExitConfirmation';
-import {
-  ArrowLeft,
-  Copy,
-  Plus,
-  Trash2,
-  FileText,
-  CheckSquare,
-  BarChart3,
-  Table,
-  Heading3,
-  GripVertical,
-} from 'lucide-react';
-
-const typesQuestions = [
-  {
-    id: 'notes',
-    title: 'Réponse (prise de notes)',
-    icon: FileText,
-    description: 'Zone de texte libre',
-  },
-  {
-    id: 'choix-multiple',
-    title: 'Choix multiples',
-    icon: CheckSquare,
-    description: 'Question avec options prédéfinies',
-  },
-  {
-    id: 'echelle',
-    title: 'Échelle chiffrée',
-    icon: BarChart3,
-    description: 'Évaluation sur une échelle numérique',
-  },
-  {
-    id: 'tableau',
-    title: 'Tableaux de résultats',
-    icon: Table,
-    description: 'Liste de lignes avec notation',
-  },
-  {
-    id: 'titre',
-    title: 'Titre de section',
-    icon: Heading3,
-    description: 'Titre sans réponse',
-  },
-];
 
 export default function CreationTrame() {
   const { sectionId } = useParams<{ sectionId: string }>();
@@ -82,6 +27,7 @@ export default function CreationTrame() {
   const fetchOne = useSectionStore((s) => s.fetchOne);
   const updateSection = useSectionStore((s) => s.update);
   const createExample = useSectionExampleStore((s) => s.create);
+
   const [tab, setTab] = useState<'questions' | 'preview' | 'examples'>(
     'questions',
   );
@@ -91,11 +37,9 @@ export default function CreationTrame() {
   const [newExamples, setNewExamples] = useState<string[]>([]);
   const [nomTrame, setNomTrame] = useState('');
   const [categorie, setCategorie] = useState('');
-  const [questions, setQuestions] = useState<Question[]>([]);
   const [isPublic, setIsPublic] = useState(false);
-  const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(
-    null,
-  );
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showImport, setShowImport] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -117,160 +61,73 @@ export default function CreationTrame() {
           ? (section.schema as Question[])
           : [createDefaultNote()];
       setQuestions(loaded);
-      if (loaded.length > 0) {
-        setSelectedQuestionId(loaded[0].id);
-      }
+      if (loaded.length > 0) setSelectedId(loaded[0].id);
     });
   }, [sectionId, fetchOne]);
 
-  const ajouterQuestion = () => {
-    const nouvelleQuestion = createDefaultNote();
-
-    setQuestions((qs) => {
-      if (!selectedQuestionId) return [...qs, nouvelleQuestion];
-
-      const idx = qs.findIndex((q) => q.id === selectedQuestionId);
-      if (idx === -1) return [...qs, nouvelleQuestion];
-
-      return [...qs.slice(0, idx + 1), nouvelleQuestion, ...qs.slice(idx + 1)];
-    });
-    setSelectedQuestionId(nouvelleQuestion.id);
+  const onPatch = (id: string, partial: Partial<Question>) => {
+    setQuestions((qs) =>
+      qs.map((q) =>
+        q.id === id
+          ? {
+              ...q,
+              ...partial,
+              tableau: partial.tableau
+                ? {
+                    ...('tableau' in q && q.tableau ? q.tableau : {}),
+                    ...partial.tableau,
+                  }
+                : 'tableau' in q
+                  ? q.tableau
+                  : undefined,
+            }
+          : q,
+      ),
+    );
   };
 
-  const dupliquerQuestion = (id: string) => {
-    // On trouve d'abord l'index de la question à dupliquer
+  const onReorder = (from: number, to: number) => {
+    setQuestions((qs) => {
+      const updated = [...qs];
+      const [moved] = updated.splice(from, 1);
+      updated.splice(to, 0, moved);
+      return updated;
+    });
+  };
+
+  const onDuplicate = (id: string) => {
     const idx = questions.findIndex((q) => q.id === id);
     if (idx === -1) return;
-
-    // On clone l'objet
     const original = questions[idx];
     const clone: Question = {
-      ...JSON.parse(JSON.stringify(original)),
+      ...(JSON.parse(JSON.stringify(original)) as Question),
       id: Date.now().toString(),
       titre: 'Question sans titre',
     };
-
-    // On reconstruit le tableau en insérant la copie juste après l'original
-    const before = questions.slice(0, idx + 1);
-    const after = questions.slice(idx + 1);
-    const newList = [...before, clone, ...after];
-    setQuestions(newList);
-    setSelectedQuestionId(clone.id);
-  };
-
-  const supprimerQuestion = (id: string) => {
-    setQuestions(questions.filter((q) => q.id !== id));
-  };
-
-  const dragIndex = useRef<number | null>(null);
-
-  const handleDragStart = (index: number) => {
-    dragIndex.current = index;
-  };
-
-  const handleDragEnd = () => {
-    dragIndex.current = null;
-  };
-
-  const handleDrop = (index: number) => {
-    if (dragIndex.current === null || dragIndex.current === index) {
-      dragIndex.current = null;
-      return;
-    }
     setQuestions((qs) => {
-      const updated = [...qs];
-      const [moved] = updated.splice(dragIndex.current as number, 1);
-      updated.splice(index, 0, moved);
-      return updated;
+      const before = qs.slice(0, idx + 1);
+      const after = qs.slice(idx + 1);
+      return [...before, clone, ...after];
     });
-    dragIndex.current = null;
+    setSelectedId(clone.id);
   };
 
-  const mettreAJourQuestion = (id: string, champ: string, valeur: unknown) => {
-    setQuestions(
-      questions.map((q) => (q.id === id ? { ...q, [champ]: valeur } : q)),
-    );
+  const onDelete = (id: string) => {
+    setQuestions((qs) => qs.filter((q) => q.id !== id));
   };
 
-  const mettreAJourTableau = (
-    id: string,
-    valeurs: {
-      lignes?: string[];
-      colonnes?: string[];
-      valeurType?: 'texte' | 'score' | 'choix-multiple' | 'case-a-cocher';
-      options?: string[];
-      commentaire?: boolean;
-    },
-  ) => {
-    setQuestions(
-      questions.map((q) =>
-        q.id === id
-          ? { ...q, tableau: { ...(q.tableau || {}), ...valeurs } }
-          : q,
-      ),
-    );
+  const onAddAfter = () => {
+    const newQ = createDefaultNote();
+    setQuestions((qs) => {
+      if (!selectedId) return [...qs, newQ];
+      const idx = qs.findIndex((q) => q.id === selectedId);
+      if (idx === -1) return [...qs, newQ];
+      return [...qs.slice(0, idx + 1), newQ, ...qs.slice(idx + 1)];
+    });
+    setSelectedId(newQ.id);
   };
 
-  const supprimerOption = (questionId: string, index: number) => {
-    setQuestions(
-      questions.map((q) =>
-        q.id === questionId && q.options
-          ? { ...q, options: q.options.filter((_, i) => i !== index) }
-          : q,
-      ),
-    );
-  };
-
-  const supprimerLigne = (questionId: string, index: number) => {
-    if (!questions) return;
-    setQuestions(
-      questions.map((q) =>
-        q.id === questionId && q.tableau?.lignes
-          ? {
-              ...q,
-              tableau: {
-                ...q.tableau,
-                lignes: q.tableau.lignes.filter((_, i) => i !== index),
-              },
-            }
-          : q,
-      ),
-    );
-  };
-
-  const supprimerColonne = (questionId: string, index: number) => {
-    setQuestions(
-      questions.map((q) =>
-        q.id === questionId && q.tableau?.colonnes
-          ? {
-              ...q,
-              tableau: {
-                ...q.tableau,
-                colonnes: q.tableau.colonnes.filter((_, i) => i !== index),
-              },
-            }
-          : q,
-      ),
-    );
-  };
-
-  const supprimerOptionTableau = (questionId: string, index: number) => {
-    setQuestions(
-      questions.map((q) =>
-        q.id === questionId && q.tableau?.options
-          ? {
-              ...q,
-              tableau: {
-                ...q.tableau,
-                options: q.tableau.options.filter((_, i) => i !== index),
-              },
-            }
-          : q,
-      ),
-    );
-  };
-
-  const sauvegarderTrame = async () => {
+  const save = async () => {
     if (!sectionId) return;
     await updateSection(sectionId, {
       title: nomTrame,
@@ -291,68 +148,21 @@ export default function CreationTrame() {
     }
   };
 
-  const handleAddColumn = useCallback((value: string, clear: () => void) => {
-    const trimmed = value.trim()
-    if (!trimmed) return
-
-    const colonnes = [...(question?.tableau?.colonnes || []), trimmed]
-    mettreAJourTableau(question?.id, { colonnes })
-    clear()
-  }, [question, mettreAJourTableau])
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleAddColumn(e.currentTarget.value, () => { e.currentTarget.value = '' })
-    }
-  }
-
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    handleAddColumn(e.currentTarget.value, () => { e.currentTarget.value = '' })
-  }
-
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="outline" onClick={() => setShowConfirm(true)}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Retour
-          </Button>
-          <Input
-            value={nomTrame}
-            onChange={(e) => setNomTrame(e.target.value)}
-            placeholder="Titre de la trame"
-            className="text-2xl font-bold text-gray-900 flex-1"
-          />
-          <div className="w-48 flex-shrink-0">
-            <Select
-              value={categorie}
-              onValueChange={(v) => setCategorie(v)}
-              className="w-48"
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Catégorie" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.id}>
-                    {cat.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <Button
-            onClick={sauvegarderTrame}
-            variant="primary"
-            className="ml-auto"
-          >
-            Sauvegarder la trame
-          </Button>
-          <Button variant="outline" onClick={() => setShowImport(true)}>
-            Import Magique
-          </Button>
-        </div>
+        <TrameHeader
+          title={nomTrame}
+          category={categorie}
+          isPublic={isPublic}
+          categories={categories}
+          onTitleChange={setNomTrame}
+          onCategoryChange={setCategorie}
+          onPublicChange={setIsPublic}
+          onSave={save}
+          onImport={() => setShowImport(true)}
+          onBack={() => setShowConfirm(true)}
+        />
 
         <div className="border-b mb-4">
           <nav className="flex gap-4">
@@ -385,571 +195,48 @@ export default function CreationTrame() {
           </nav>
         </div>
 
-        <div className="space-y-6">
-          {tab === 'questions' && (
-            <>
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={isPublic}
-                  onChange={(e) => setIsPublic(e.target.checked)}
-                />
-                <span className="text-md text-gray-700">
-                  Partager la trame aux autres utilisateurs de SoignezVotrePlume
-                </span>
-              </label>
+        {tab === 'questions' && (
+          <QuestionList
+            questions={questions}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
+            onPatch={onPatch}
+            onReorder={onReorder}
+            onDuplicate={onDuplicate}
+            onDelete={onDelete}
+            onAddAfter={onAddAfter}
+          />
+        )}
 
-              {/* Liste des questions */}
-              {questions.map((question, index) => (
-                <div
-                  key={question.id}
-                  className="relative w-full"
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={() => handleDrop(index)}
-                >
-                  <button
-                    aria-label="Déplacer la question"
-                    draggable
-                    onDragStart={() => handleDragStart(index)}
-                    onDragEnd={handleDragEnd}
-                    className={`absolute top left-1/2 cursor-move p-1 rounded transition-opacity opacity-0 ${
-                      selectedQuestionId === question.id
-                        ? 'opacity-100'
-                        : 'group-hover:opacity-100'
-                    }`}
-                  >
-                    <GripVertical className="h-4 w-4 text-gray-400 rotate-90" />
-                  </button>
-                  <Card
-                    onClick={() => setSelectedQuestionId(question.id)}
-                    className={`group w-[90%] mx-auto cursor-pointer transition-shadow ${
-                      selectedQuestionId === question.id
-                        ? 'border-primary-500 ring-1 ring-primary-500 shadow-md'
-                        : ''
-                    }`}
-                  >
-                    <CardHeader>
-                      {/* Titre de la question + sélecteur de type */}
-                      <div className="flex items-center gap-4">
-                        {question.type === 'titre' ? (
-                          <div className="w-full">
-                            <Input
-                              className="text-3xl font-bold border-none shadow-none focus-visible:ring-0 p-0"
-                              placeholder="Titre de section"
-                              value={question.titre}
-                              onChange={(e) =>
-                                mettreAJourQuestion(
-                                  question.id,
-                                  'titre',
-                                  e.target.value,
-                                )
-                              }
-                            />
-                          </div>
-                        ) : (
-                          <Input
-                            className="flex-1"
-                            placeholder={`Question ${index + 1}`}
-                            value={question.titre}
-                            onChange={(e) =>
-                              mettreAJourQuestion(
-                                question.id,
-                                'titre',
-                                e.target.value,
-                              )
-                            }
-                          />
-                        )}
-                        {selectedQuestionId === question.id && (
-                          <Select
-                            value={question.type}
-                            onValueChange={(v) =>
-                              mettreAJourQuestion(question.id, 'type', v)
-                            }
-                          >
-                            <SelectTrigger className="w-44">
-                              <SelectValue placeholder="Type de réponse" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {typesQuestions.map((t) => (
-                                <SelectItem key={t.id} value={t.id}>
-                                  {t.title}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {question.type === 'notes' && (
-                        <div className="w-full rounded px-3 py-2 border-b border-dotted border-gray-200 text-gray-600">
-                          Réponse (prise de notes)
-                        </div>
-                      )}
-                      {question.type === 'choix-multiple' && (
-                        <div>
-                          <Label>Options de réponse</Label>
-                          <div className="space-y-2">
-                            {/* Existing options as editable inputs */}
-                            {question.options?.map((option, optionIndex) => (
-                              <div
-                                key={optionIndex}
-                                className="flex items-center gap-2"
-                              >
-                                <Input
-                                  value={option}
-                                  onChange={(e) => {
-                                    const opts = [...(question.options || [])];
-                                    opts[optionIndex] = e.target.value;
-                                    mettreAJourQuestion(
-                                      question.id,
-                                      'options',
-                                      opts,
-                                    );
-                                  }}
-                                />
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() =>
-                                    supprimerOption(question.id, optionIndex)
-                                  }
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            ))}
+        {tab === 'preview' && (
+          <DataEntry
+            inline
+            questions={questions}
+            answers={previewAnswers}
+            onChange={setPreviewAnswers}
+          />
+        )}
 
-                            {/* Modified: inline add field */}
-                            <Input
-                              placeholder="Ajouter une option"
-                              onKeyDown={(e) => {
-                                if (
-                                  e.key === 'Enter' &&
-                                  e.currentTarget.value.trim()
-                                ) {
-                                  const nouvelleOpt =
-                                    e.currentTarget.value.trim();
-                                  const opts = [
-                                    ...(question.options || []),
-                                    nouvelleOpt,
-                                  ];
-                                  mettreAJourQuestion(
-                                    question.id,
-                                    'options',
-                                    opts,
-                                  );
-                                  e.currentTarget.value = '';
-                                }
-                              }}
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      {question.type === 'echelle' && (
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor={`min-${question.id}`}>
-                              Valeur minimum
-                            </Label>
-                            <Input
-                              id={`min-${question.id}`}
-                              type="number"
-                              value={question.echelle?.min || 1}
-                              onChange={(e) =>
-                                mettreAJourQuestion(question.id, 'echelle', {
-                                  ...question.echelle,
-                                  min: Number.parseInt(e.target.value),
-                                })
-                              }
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor={`max-${question.id}`}>
-                              Valeur maximum
-                            </Label>
-                            <Input
-                              id={`max-${question.id}`}
-                              type="number"
-                              value={question.echelle?.max || 5}
-                              onChange={(e) =>
-                                mettreAJourQuestion(question.id, 'echelle', {
-                                  ...question.echelle,
-                                  max: Number.parseInt(e.target.value),
-                                })
-                              }
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      {question.type === 'tableau' && (
-                        <>
-                          <div className="flex-shrink-0 w-full overflow-x-auto">
-                            <table className="table-auto w-full border-collapse">
-                              <thead>
-                                <tr>
-                                  <th className="p-1"></th>
-                                  {question.tableau?.colonnes?.map(
-                                    (col, colIdx) => (
-                                      <th key={colIdx} className="p-1">
-                                        <div className="flex items-center gap-2">
-                                          <Input
-                                            className="flex-1"
-                                            value={col}
-                                            onChange={(e) => {
-                                              const colonnes = [
-                                                ...(question.tableau
-                                                  ?.colonnes || []),
-                                              ];
-                                              colonnes[colIdx] = e.target.value;
-                                              mettreAJourTableau(question.id, {
-                                                colonnes,
-                                              });
-                                            }}
-                                          />
-                                          <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() =>
-                                              supprimerColonne(
-                                                question.id,
-                                                colIdx,
-                                              )
-                                            }
-                                          >
-                                            <Trash2 className="h-4 w-4" />
-                                          </Button>
-                                        </div>
-                                      </th>
-                                    ),
-                                  )}
-                                  <th className="p-1">
-                                    <Input
-                                      placeholder="Ajouter une colonne"
-                                      onKeyDown={(e) => {
-                                        if (
-                                          e.key === 'Enter' &&
-                                          e.currentTarget.value.trim()
-                                        ) {
-                                          const nouvelle =
-                                            e.currentTarget.value.trim();
-                                          const colonnes = [
-                                            ...(question.tableau?.colonnes ||
-                                              []),
-                                            nouvelle,
-                                          ];
-                                          mettreAJourTableau(question.id, {
-                                            colonnes,
-                                          });
-                                          e.currentTarget.value = '';
-                                        }
-                                      }}
-                                      onBlur={handleBlur}
-                                    />
-                                  </th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {question.tableau?.lignes?.map(
-                                  (ligne, ligneIdx) => (
-                                    <tr key={ligneIdx}>
-                                      <th className="p-1">
-                                        <div className="group relative flex items-center gap-2">
-                                          <Input
-                                            className="w-50"
-                                            value={ligne}
-                                            onChange={(e) => {
-                                              const lignes = [
-                                                ...(question.tableau?.lignes ||
-                                                  []),
-                                              ];
-                                              lignes[ligneIdx] = e.target.value;
-                                              mettreAJourTableau(question.id, {
-                                                lignes,
-                                              });
-                                            }}
-                                          />
-                                          <Button
-                                            className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() =>
-                                              supprimerLigne(
-                                                question.id,
-                                                ligneIdx,
-                                              )
-                                            }
-                                          >
-                                            <Trash2 className="h-4 w-4" />
-                                          </Button>
-                                        </div>
-                                      </th>
-                                      {question.tableau?.colonnes?.map(
-                                        (_, colIdx) => (
-                                          <td key={colIdx} className="p-1">
-                                            <Input
-                                              disabled
-                                              className="pointer-events-none"
-                                            />
-                                          </td>
-                                        ),
-                                      )}
-                                      <td className="p-1"></td>
-                                    </tr>
-                                  ),
-                                )}
-                                <tr>
-                                  <th className="p-1">
-                                    <Input
-                                      placeholder="Ajouter une ligne"
-                                      onKeyDown={(e) => {
-                                        if (
-                                          e.key === 'Enter' &&
-                                          e.currentTarget.value.trim()
-                                        ) {
-                                          const nouvelle =
-                                            e.currentTarget.value.trim();
-                                          const lignes = [
-                                            ...(question.tableau?.lignes || []),
-                                            nouvelle,
-                                          ];
-                                          mettreAJourTableau(question.id, {
-                                            lignes,
-                                          });
-                                          e.currentTarget.value = '';
-                                        }
-                                      }}
-                                      onBlur={handleBlur}
-                                    />
-                                  </th>
-                                </tr>
-                              </tbody>
-                            </table>
-                          </div>
-                          <div className="mt-2 space-y-2">
-                            {question.tableau?.commentaire ? (
-                              <div className="space-y-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() =>
-                                    mettreAJourTableau(question.id, {
-                                      commentaire: false,
-                                    })
-                                  }
-                                  className="text-red-500 hover:text-red-700"
-                                >
-                                  Retirer le commentaire
-                                </Button>
-                                <div className="p-2 border rounded">
-                                  <p className="text-sm text-gray-500 mb-1">
-                                    La zone de commentaire sera disponible lors
-                                    de la saisie des données
-                                  </p>
-                                </div>
-                              </div>
-                            ) : (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() =>
-                                  mettreAJourTableau(question.id, {
-                                    commentaire: true,
-                                  })
-                                }
-                              >
-                                + Ajouter une zone de commentaire
-                              </Button>
-                            )}
-                            <div className="flex items-center gap-2">
-                              <Label>Type de valeur</Label>
-                              <Select
-                                value={question.tableau?.valeurType || 'texte'}
-                                onValueChange={(v) =>
-                                  mettreAJourTableau(question.id, {
-                                    valeurType: v as
-                                      | 'texte'
-                                      | 'score'
-                                      | 'choix-multiple'
-                                      | 'case-a-cocher',
-                                    options:
-                                      v === 'choix-multiple'
-                                        ? question.tableau?.options || []
-                                        : undefined,
-                                  })
-                                }
-                              >
-                                <SelectTrigger className="w-[180px]">
-                                  <SelectValue placeholder="Texte" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="texte">Texte</SelectItem>
-                                  <SelectItem value="score">Score</SelectItem>
-                                  <SelectItem value="choix-multiple">
-                                    Choix multiples
-                                  </SelectItem>
-                                  <SelectItem value="case-a-cocher">
-                                    Case à cocher
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            {question.tableau?.valeurType ===
-                              'choix-multiple' && (
-                              <div className="space-y-2">
-                                {question.tableau?.options?.map((opt, idx) => (
-                                  <div
-                                    key={idx}
-                                    className="flex items-center gap-2"
-                                  >
-                                    <Input
-                                      value={opt}
-                                      onChange={(e) => {
-                                        const options = [
-                                          ...(question.tableau?.options || []),
-                                        ];
-                                        options[idx] = e.target.value;
-                                        mettreAJourTableau(question.id, {
-                                          options,
-                                        });
-                                      }}
-                                    />
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() =>
-                                        supprimerOptionTableau(question.id, idx)
-                                      }
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                ))}
-                                <Input
-                                  placeholder="Ajouter une valeur"
-                                  onKeyDown={(e) => {
-                                    if (
-                                      e.key === 'Enter' &&
-                                      e.currentTarget.value.trim()
-                                    ) {
-                                      const nouvelle =
-                                        e.currentTarget.value.trim();
-                                      const options = [
-                                        ...(question.tableau?.options || []),
-                                        nouvelle,
-                                      ];
-                                      mettreAJourTableau(question.id, {
-                                        options,
-                                      });
-                                      e.currentTarget.value = '';
-                                    }
-                                  }}
-                                />
-                              </div>
-                            )}
-                          </div>
-                        </>
-                      )}
-                      {/* Icônes Dupliquer / Supprimer en bas */}
-                      {selectedQuestionId === question.id && (
-                        <div className="flex justify-end gap-2 pt-4">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              dupliquerQuestion(question.id);
-                            }}
-                          >
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              supprimerQuestion(question.id);
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-
-                  {selectedQuestionId === question.id && (
-                    <div className="absolute top-1/2 -translate-y-1/2 -right-4">
-                      <Button
-                        variant="primary"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          ajouterQuestion();
-                        }}
-                      >
-                        <Plus className="h-6 w-6 text-white" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              ))}
-
-              {/* Actions */}
-              <div className="flex justify-end gap-4 pt-6">
-                <Button variant="outline" onClick={() => navigate(-1)}>
-                  Annuler
-                </Button>
-
-                <Button onClick={sauvegarderTrame} variant="primary">
-                  Sauvegarder la trame
-                </Button>
-              </div>
-            </>
-          )}
-
-          {tab === 'preview' && (
-            <DataEntry
-              inline
-              questions={questions}
-              answers={previewAnswers}
-              onChange={setPreviewAnswers}
-            />
-          )}
-
-          {tab === 'examples' && (
-            <SaisieExempleTrame
-              examples={newExamples}
-              onAdd={(c) => setNewExamples((p) => [...p, c])}
-            />
-          )}
-        </div>
+        {tab === 'examples' && (
+          <SaisieExempleTrame
+            examples={newExamples}
+            onAdd={(c) => setNewExamples((p) => [...p, c])}
+          />
+        )}
       </div>
       <Dialog open={showImport} onOpenChange={setShowImport}>
         <DialogContent>
           <ImportMagique
             onDone={(res: unknown) => {
               let newQuestions: Question[] = [];
-
-              // Si c'est déjà un tableau, on l'utilise directement (rétrocompatibilité)
               if (Array.isArray(res)) {
-                newQuestions = res;
-              }
-              // Sinon on extrait le premier niveau de result et on aplatit
-              else if (res && typeof res === 'object' && 'result' in res) {
+                newQuestions = res as Question[];
+              } else if (res && typeof res === 'object' && 'result' in res) {
                 const response = res as ImportResponse;
                 newQuestions = response.result.flat();
               }
-
-              // Ajoute les nouvelles questions à la fin des questions existantes
               if (newQuestions.length > 0) {
-                setQuestions((prevQuestions) => [
-                  ...prevQuestions,
-                  ...newQuestions,
-                ]);
+                setQuestions((prev) => [...prev, ...newQuestions]);
               }
             }}
             onCancel={() => setShowImport(false)}
@@ -959,7 +246,7 @@ export default function CreationTrame() {
       <ExitConfirmation
         open={showConfirm}
         onOpenChange={setShowConfirm}
-        onConfirm={sauvegarderTrame}
+        onConfirm={save}
         onCancel={() => navigate(-1)}
       />
     </div>
