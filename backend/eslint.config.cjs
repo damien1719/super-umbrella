@@ -11,8 +11,10 @@ module.exports = [
       'coverage/',
       'prettier.config.ts',
       'jest.config.ts',
-      'prisma/seeds/**'
-      ,'__mocks__/**'
+      'prisma/seeds/**',
+      'prisma/*.js',
+      '__mocks__/**',
+      'tests/**/*.js',
     ]
   },
 
