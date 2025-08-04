@@ -118,6 +118,9 @@ export default function AiRightPanel({
       ? { [initialWizardSection]: initialTrameId }
       : {},
   );
+  const mode = useEditorUi((s) => s.mode);
+  const setMode = useEditorUi((s) => s.setMode);
+  const selection = useEditorUi((s) => s.selection);
   const [answers, setAnswers] = useState<Record<string, Answers>>({});
   const [isGenerating, setIsGenerating] = useState(false);
   const [generated, setGenerated] = useState<Record<string, boolean>>({});
@@ -126,6 +129,7 @@ export default function AiRightPanel({
   );
   const [regenSection, setRegenSection] = useState<string | null>(null);
   const [regenPrompt, setRegenPrompt] = useState('');
+  const [refinedText, setRefinedText] = useState('');
   useEditorUi((s) => s.selection);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -286,6 +290,28 @@ export default function AiRightPanel({
     }
   };
 
+  const handleRefine = async () => {
+    if (!selection) return;
+    setIsGenerating(true);
+    try {
+      const body = {
+        selectedText: selection.text,
+        refineInstruction: regenPrompt,
+      };
+      const res = await apiFetch<{ text: string }>(
+        `/api/v1/bilans/${bilanId}/refine`,
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: JSON.stringify(body),
+        },
+      );
+      setRefinedText(res.text);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
     <div className="w-full max-w-md bg-wood-50 rounded-lg shadow-lg">
       <div className="flex flex-col h-full">
@@ -297,19 +323,89 @@ export default function AiRightPanel({
         )} */}
         <div className="sticky top-0 z-10 flex items-center justify-between bg-wood-50 border-b border-wood-200 px-4 py-2 h-14">
           <span className="font-medium text-sm">Assistant IA</span>
-          {regenSection && (
+          {(regenSection || mode === 'refine') && (
             <Button
               variant="ghost"
               size="sm"
               className="h-8 px-2 text-xs"
-              onClick={() => setRegenSection(null)}
+              onClick={() => {
+                if (regenSection) setRegenSection(null);
+                if (mode === 'refine') {
+                  setMode('idle');
+                  setRefinedText('');
+                  setRegenPrompt('');
+                  selection?.clear();
+                }
+              }}
             >
               Retour
             </Button>
           )}
         </div>
         <div className="p-4 overflow-y-auto flex-1">
-          {regenSection ? (
+          {mode === 'refine' ? (
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium text-left">
+                Si vous voulez ajuster le contenu sélectionné, précisez les
+                modifications souhaitées
+              </h3>
+              <div className="w-full">
+                <Textarea
+                  ref={textareaRef}
+                  value={regenPrompt}
+                  onChange={(e) => setRegenPrompt(e.target.value)}
+                  onContextMenu={(e) => e.stopPropagation()}
+                  className="min-h-[40vh] w-full text-left"
+                  placeholder="Décrivez les modifications souhaitées..."
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setMode('idle');
+                    setRefinedText('');
+                    setRegenPrompt('');
+                    selection?.clear();
+                  }}
+                  disabled={isGenerating}
+                >
+                  Annuler
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleRefine}
+                  disabled={isGenerating}
+                >
+                  {isGenerating ? 'Génération...' : 'Re-générer'}
+                </Button>
+              </div>
+              {refinedText && (
+                <div className="space-y-2">
+                  <div className="p-2 border rounded bg-white whitespace-pre-wrap text-sm">
+                    {refinedText}
+                  </div>
+                  <div className="flex justify-end">
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        if (selection?.restore()) {
+                          onInsertText(refinedText);
+                          selection.clear();
+                        }
+                        setRefinedText('');
+                        setRegenPrompt('');
+                        setMode('idle');
+                      }}
+                    >
+                      Insérer
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : regenSection ? (
             <div className="space-y-4">
               <h3 className="text-sm font-medium text-left">
                 Si vous voulez ajuster le contenu généré, vous pouvez préciser
