@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/select';
 
 import { Plus, Edit2 } from 'lucide-react';
-import type { Question, Answers } from '@/types/question';
+import type { Question, Answers, ColumnDef } from '@/types/question';
 
 interface DataEntryProps {
   questions: Question[];
@@ -141,16 +141,16 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
               commentaire?: string;
             };
           }
-          const renderCell = (ligne: string, col: string) => {
-            const cellValue = data[ligne]?.[col];
+          const renderCell = (rowId: string, col: ColumnDef) => {
+            const cellValue = data[rowId]?.[col.id];
             const update = (v: unknown) => {
-              const row = data[ligne] || {};
-              const updatedRow = { ...row, [col]: v };
-              const updated = { ...data, [ligne]: updatedRow };
+              const row = data[rowId] || {};
+              const updatedRow = { ...row, [col.id]: v };
+              const updated = { ...data, [rowId]: updatedRow };
               setLocal({ ...local, [q.id]: updated });
             };
-            switch (q.tableau?.valeurType) {
-              case 'score':
+            switch (col.valueType) {
+              case 'number':
                 return (
                   <Input
                     type="number"
@@ -163,7 +163,7 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
                     }
                   />
                 );
-              case 'choix-multiple':
+              case 'choice':
                 return (
                   <Select
                     value={(cellValue as string) ?? ''}
@@ -173,7 +173,7 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {q.tableau?.options?.map((opt) => (
+                      {col.options?.map((opt) => (
                         <SelectItem key={opt} value={opt}>
                           {opt}
                         </SelectItem>
@@ -181,13 +181,22 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
                     </SelectContent>
                   </Select>
                 );
-              case 'case-a-cocher':
+              case 'bool':
                 return (
                   <input
                     type="checkbox"
                     className="h-4 w-4"
                     checked={Boolean(cellValue)}
                     onChange={(e) => update(e.target.checked)}
+                  />
+                );
+              case 'image':
+                return (
+                  <Input
+                    size="sm"
+                    value={(cellValue as string) ?? ''}
+                    onChange={(e) => update(e.target.value)}
+                    placeholder="URL"
                   />
                 );
               default:
@@ -202,33 +211,40 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
           };
           return (
             <div className="space-y-2">
-              <table className="w-full table-fixed border-collapse">
-                <thead>
-                  <tr>
-                    <th className="px-2 py-1"></th>
-                    {q.tableau?.colonnes?.map((col) => (
-                      <th
-                        key={col}
-                        className="px-2 py-1 text-xs font-medium text-left"
-                      >
-                        {col}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {q.tableau?.lignes?.map((ligne) => (
-                    <tr key={ligne}>
-                      <td className="px-2 py-1 text-xs font-medium">{ligne}</td>
-                      {q.tableau?.colonnes?.map((col) => (
-                        <td key={col} className="px-2 py-1">
-                          {renderCell(ligne, col)}
-                        </td>
+              {q.tableau?.sections?.map((section) => (
+                <table
+                  key={section.id}
+                  className="w-full table-fixed border-collapse mb-2"
+                >
+                  <thead>
+                    <tr>
+                      <th className="px-2 py-1"></th>
+                      {q.tableau?.columns?.map((col) => (
+                        <th
+                          key={col.id}
+                          className="px-2 py-1 text-xs font-medium text-left"
+                        >
+                          {col.label}
+                        </th>
                       ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {section.rows.map((row) => (
+                      <tr key={row.id}>
+                        <td className="px-2 py-1 text-xs font-medium">
+                          {row.label}
+                        </td>
+                        {q.tableau?.columns?.map((col) => (
+                          <td key={col.id} className="px-2 py-1">
+                            {renderCell(row.id, col)}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ))}
               {q.tableau?.commentaire && (
                 <div>
                   <Label className="text-sm font-medium">Commentaire</Label>

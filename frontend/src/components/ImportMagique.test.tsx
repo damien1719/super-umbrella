@@ -49,7 +49,20 @@ describe('ImportMagique', () => {
         id: expect.any(String),
         type: 'tableau',
         titre: 'Question sans titre',
-        tableau: { lignes: ['L1', 'L2'], colonnes: ['C1', 'C2'] },
+        tableau: expect.objectContaining({
+          columns: [
+            expect.objectContaining({ label: 'C1', valueType: 'text' }),
+            expect.objectContaining({ label: 'C2', valueType: 'text' }),
+          ],
+          sections: [
+            expect.objectContaining({
+              rows: [
+                expect.objectContaining({ label: 'L1' }),
+                expect.objectContaining({ label: 'L2' }),
+              ],
+            }),
+          ],
+        }),
       }),
     ]);
     expect(onCancel).toHaveBeenCalled();
@@ -65,7 +78,12 @@ describe('ImportMagique', () => {
           id: '1',
           type: 'tableau',
           titre: 'Question sans titre',
-          tableau: { lignes: ['L1'], colonnes: ['C1'] },
+          tableau: {
+            columns: [{ id: 'c1', label: 'C1', valueType: 'text' }],
+            sections: [
+              { id: 's1', title: '', rows: [{ id: 'r1', label: 'L1' }] },
+            ],
+          },
         },
       ],
     });
@@ -94,7 +112,14 @@ describe('ImportMagique', () => {
     expect(onDone).toHaveBeenCalledWith([
       expect.objectContaining({
         type: 'tableau',
-        tableau: { lignes: ['L1'], colonnes: ['C1'] },
+        tableau: expect.objectContaining({
+          columns: [expect.objectContaining({ label: 'C1' })],
+          sections: [
+            expect.objectContaining({
+              rows: [expect.objectContaining({ label: 'L1' })],
+            }),
+          ],
+        }),
       }),
     ]);
     expect(onCancel).toHaveBeenCalled();

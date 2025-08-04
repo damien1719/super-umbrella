@@ -1,15 +1,16 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import type { Question } from '@/types/Typequestion';
-import { Trash2, X } from 'lucide-react';
+import type {
+  Question,
+  SurveyTable,
+  ColumnDef,
+  Row,
+  Section,
+} from '@/types/Typequestion';
+import { X, MoreVertical } from 'lucide-react';
+import ChoixTypeDeValeurTableau from './ChoixTypeDeValeurTableau';
 
 export type EditorProps = {
   q: Question;
@@ -88,63 +89,84 @@ export function ScaleEditor({}: EditorProps) {
 }
 
 export function TableEditor({ q, onPatch }: EditorProps) {
-  const tableau = 'tableau' in q ? q.tableau || { lignes: [] } : { lignes: [] };
-  const addLine = (value: string) => {
-    const trimmed = value.trim();
-    if (!trimmed) return;
-    onPatch({
-      tableau: { ...tableau, lignes: [...(tableau.lignes || []), trimmed] },
-    } as Partial<Question>);
+  const genId = () => Math.random().toString(36).slice(2);
+  const tableau: SurveyTable & { commentaire?: boolean } = q.tableau || {
+    columns: [],
+    sections: [{ id: genId(), title: '', rows: [] }],
   };
+  const section: Section = tableau.sections[0] || {
+    id: genId(),
+    title: '',
+    rows: [],
+  };
+
+  const setTable = (tb: SurveyTable & { commentaire?: boolean }) => {
+    onPatch({ tableau: tb } as Partial<Question>);
+  };
+
   const addColumn = (value: string) => {
     const trimmed = value.trim();
     if (!trimmed) return;
-    onPatch({
-      tableau: { ...tableau, colonnes: [...(tableau.colonnes || []), trimmed] },
-    } as Partial<Question>);
+    const newCol: ColumnDef = {
+      id: genId(),
+      label: trimmed,
+      valueType: 'text',
+    };
+    setTable({ ...tableau, columns: [...tableau.columns, newCol] });
   };
+
   const updateColumn = (idx: number, value: string) => {
-    const colonnes = [...(tableau.colonnes || [])];
-    colonnes[idx] = value;
-    onPatch({ tableau: { ...tableau, colonnes } } as Partial<Question>);
+    const cols = [...tableau.columns];
+    cols[idx] = { ...cols[idx], label: value };
+    setTable({ ...tableau, columns: cols });
   };
+
   const removeColumn = (idx: number) => {
-    const colonnes = (tableau.colonnes || []).filter((_, i) => i !== idx);
-    onPatch({ tableau: { ...tableau, colonnes } } as Partial<Question>);
+    const cols = tableau.columns.filter((_, i) => i !== idx);
+    setTable({ ...tableau, columns: cols });
   };
-  const updateLine = (idx: number, value: string) => {
-    const lignes = [...(tableau.lignes || [])];
-    lignes[idx] = value;
-    onPatch({ tableau: { ...tableau, lignes } } as Partial<Question>);
-  };
-  const removeLine = (idx: number) => {
-    const lignes = (tableau.lignes || []).filter((_, i) => i !== idx);
-    onPatch({ tableau: { ...tableau, lignes } } as Partial<Question>);
-  };
-  const toggleComment = () => {
-    onPatch({
-      tableau: { ...tableau, commentaire: !tableau.commentaire },
-    } as Partial<Question>);
-  };
-  const setValeurType = (v: string) => {
-    onPatch({
-      tableau: {
-        ...tableau,
-        valeurType: v as 'texte' | 'score' | 'choix-multiple' | 'case-a-cocher',
-        options: v === 'choix-multiple' ? tableau.options || [] : undefined,
-      },
-    } as Partial<Question>);
-  };
-  const addOption = (value: string) => {
+
+  const addLine = (value: string) => {
     const trimmed = value.trim();
     if (!trimmed) return;
-    onPatch({
-      tableau: { ...tableau, options: [...(tableau.options || []), trimmed] },
-    } as Partial<Question>);
+    const newRow: Row = { id: genId(), label: trimmed };
+    const newSection = { ...section, rows: [...section.rows, newRow] };
+    setTable({
+      ...tableau,
+      sections: [newSection, ...tableau.sections.slice(1)],
+    });
   };
-  const removeOption = (idx: number) => {
-    const opts = (tableau.options || []).filter((_, i) => i !== idx);
-    onPatch({ tableau: { ...tableau, options: opts } } as Partial<Question>);
+
+  const updateLine = (idx: number, value: string) => {
+    const rows = [...section.rows];
+    rows[idx] = { ...rows[idx], label: value };
+    const newSection = { ...section, rows };
+    setTable({
+      ...tableau,
+      sections: [newSection, ...tableau.sections.slice(1)],
+    });
+  };
+
+  const removeLine = (idx: number) => {
+    const rows = section.rows.filter((_, i) => i !== idx);
+    const newSection = { ...section, rows };
+    setTable({
+      ...tableau,
+      sections: [newSection, ...tableau.sections.slice(1)],
+    });
+  };
+
+  const toggleComment = () => {
+    setTable({ ...tableau, commentaire: !tableau.commentaire });
+  };
+
+  const [editingColIdx, setEditingColIdx] = useState<number | null>(null);
+  const handleColumnTypeChange = (col: ColumnDef) => {
+    if (editingColIdx === null) return;
+    const cols = [...tableau.columns];
+    cols[editingColIdx] = col;
+    setTable({ ...tableau, columns: cols });
+    setEditingColIdx(null);
   };
 
   return (
@@ -154,19 +176,28 @@ export function TableEditor({ q, onPatch }: EditorProps) {
           <thead>
             <tr>
               <th className="p-1"></th>
-              {tableau.colonnes?.map((col, colIdx) => (
-                <th key={colIdx} className="p-1">
+              {tableau.columns.map((col, colIdx) => (
+                <th key={col.id} className="p-1">
                   <div className="flex flex-col items-center gap-2">
-                    <Button
-                      variant="icon"
-                      size="micro"
-                      onClick={() => removeColumn(colIdx)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="icon"
+                        size="micro"
+                        onClick={() => setEditingColIdx(colIdx)}
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="icon"
+                        size="micro"
+                        onClick={() => removeColumn(colIdx)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
                     <Input
                       className="w-40 whitespace-normal break-words"
-                      value={col}
+                      value={col.label}
                       onChange={(e) => updateColumn(colIdx, e.target.value)}
                     />
                   </div>
@@ -193,17 +224,16 @@ export function TableEditor({ q, onPatch }: EditorProps) {
             </tr>
           </thead>
           <tbody>
-            {tableau.lignes?.map((ligne, ligneIdx) => (
-              <tr key={ligneIdx}>
+            {section.rows.map((ligne, ligneIdx) => (
+              <tr key={ligne.id}>
                 <th className="p-1">
                   <div className="flex items-center gap-2">
                     <Input
                       className="w-40 whitespace-normal break-words"
-                      value={ligne}
+                      value={ligne.label}
                       onChange={(e) => updateLine(ligneIdx, e.target.value)}
                     />
                     <Button
-                      className=""
                       variant="icon"
                       size="micro"
                       onClick={() => removeLine(ligneIdx)}
@@ -212,8 +242,8 @@ export function TableEditor({ q, onPatch }: EditorProps) {
                     </Button>
                   </div>
                 </th>
-                {tableau.colonnes?.map((_, colIdx) => (
-                  <td key={colIdx} className="p-1">
+                {tableau.columns.map((col) => (
+                  <td key={col.id} className="p-1">
                     <Input disabled className="pointer-events-none" />
                   </td>
                 ))}
@@ -265,58 +295,12 @@ export function TableEditor({ q, onPatch }: EditorProps) {
             + Ajouter une zone de commentaire
           </Button>
         )}
-        <div className="flex items-center gap-2">
-          <Label>Type de valeur</Label>
-          <Select
-            value={tableau.valeurType || 'texte'}
-            onValueChange={setValeurType}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Texte" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="texte">Texte</SelectItem>
-              <SelectItem value="score">Score</SelectItem>
-              <SelectItem value="choix-multiple">Choix multiples</SelectItem>
-              <SelectItem value="case-a-cocher">Case à cocher</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        {tableau.valeurType === 'choix-multiple' && (
-          <div className="space-y-2">
-            {tableau.options?.map((opt, idx) => (
-              <div key={idx} className="flex items-center gap-2">
-                <Input
-                  value={opt}
-                  onChange={(e) => {
-                    const opts = [...(tableau.options || [])];
-                    opts[idx] = e.target.value;
-                    onPatch({
-                      tableau: { ...tableau, options: opts },
-                    } as Partial<Question>);
-                  }}
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => removeOption(idx)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-            <Input
-              placeholder="Ajouter une valeur"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && e.currentTarget.value.trim()) {
-                  addOption(e.currentTarget.value);
-                  e.currentTarget.value = '';
-                }
-              }}
-            />
-          </div>
-        )}
       </div>
+      <ChoixTypeDeValeurTableau
+        column={editingColIdx !== null ? tableau.columns[editingColIdx] : null}
+        onClose={() => setEditingColIdx(null)}
+        onChange={handleColumnTypeChange}
+      />
     </div>
   );
 }

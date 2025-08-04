@@ -6,7 +6,7 @@ import { DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { apiFetch } from '@/utils/api';
 import { useAuth } from '@/store/auth';
 import { cn } from '@/lib/utils';
-import type { Question } from '@/types/question';
+import type { Question, ColumnDef, Row } from '@/types/question';
 
 interface ImportMagiqueProps {
   onDone: (questions: Question[]) => void;
@@ -29,20 +29,24 @@ export default function ImportMagique({
   const transformTable = (rows: (string | number)[][]) => {
     if (rows.length === 0) return [];
     const header = rows[0];
-    const colonnes = header
+    const columns: ColumnDef[] = header
       .slice(1)
-      .map((c) => String(c).trim())
-      .filter(Boolean);
-    const lignes = rows
+      .map((c, idx) => ({
+        id: `c${idx}`,
+        label: String(c).trim(),
+        valueType: 'text',
+      }))
+      .filter((c) => c.label);
+    const lignes: Row[] = rows
       .slice(1)
-      .map((r) => String(r[0]).trim())
-      .filter(Boolean);
+      .map((r, idx) => ({ id: `r${idx}`, label: String(r[0]).trim() }))
+      .filter((r) => r.label);
     return [
       {
         id: Date.now().toString(),
         type: 'tableau' as const,
         titre: 'Question sans titre',
-        tableau: { lignes, colonnes },
+        tableau: { columns, sections: [{ id: 's1', title: '', rows: lignes }] },
       },
     ];
   };

@@ -181,26 +181,32 @@ export default function AiRightPanel({
   type TableAnswers = Record<string, unknown> & { commentaire?: string };
 
   function markdownifyTable(q: Question, ansTable: TableAnswers): string {
-    if (!q.tableau?.colonnes) {
+    if (!q.tableau?.columns) {
       return '';
     }
 
     const header =
       `**${q.titre}**\n\n` +
-      `| ${['Ligne', ...q.tableau?.colonnes].join(' | ')} |\n` +
-      `| ${['---', ...q.tableau?.colonnes.map(() => '---')].join(' | ')} |\n`;
+      `| ${['Ligne', ...q.tableau.columns.map((c) => c.label)].join(' | ')} |\n` +
+      `| ${['---', ...q.tableau.columns.map(() => '---')].join(' | ')} |\n`;
 
     const body =
-      q.tableau?.lignes
-        ?.map((ligne) => {
-          const row = ansTable[ligne] as Record<string, unknown> | undefined;
-          const cells =
-            q.tableau?.colonnes?.map((col) => {
-              const v = (row?.[col] as string) || '';
-              return v;
-            }) || [];
-          return `| ${[ligne, ...cells].join(' | ')} |`;
-        })
+      q.tableau.sections
+        ?.flatMap((section) =>
+          section.rows.map((row) => {
+            const rowData = ansTable[row.id] as
+              | Record<string, unknown>
+              | undefined;
+            const cells =
+              q.tableau?.columns?.map((col) => {
+                const v = rowData?.[col.id];
+                return typeof v === 'string' || typeof v === 'number'
+                  ? String(v)
+                  : '';
+              }) || [];
+            return `| ${[row.label, ...cells].join(' | ')} |`;
+          }),
+        )
         .join('\n') || '';
 
     const commentVal = ansTable.commentaire;

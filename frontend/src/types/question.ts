@@ -1,3 +1,39 @@
+export type ValueType = 'bool' | 'number' | 'text' | 'choice' | 'image';
+
+export interface ColumnDef {
+  id: string;
+  label: string;
+  valueType: ValueType;
+  options?: string[];
+}
+
+export interface Row {
+  id: string;
+  label: string;
+  media?: { src: string; alt?: string };
+  labelParts?: string[];
+}
+
+export interface Footer {
+  formula: string;
+  columnId?: string;
+  label?: string;
+}
+
+export interface Section {
+  id: string;
+  title: string;
+  rows: Row[];
+  footer?: Footer;
+  showIndex?: boolean;
+}
+
+export interface SurveyTable {
+  columns: ColumnDef[];
+  sections: Section[];
+  commentaire?: boolean;
+}
+
 export interface Question {
   id: string;
   type: 'notes' | 'choix-multiple' | 'echelle' | 'tableau' | 'titre';
@@ -5,13 +41,7 @@ export interface Question {
   contenu?: string;
   options?: string[];
   echelle?: { min: number; max: number; labels?: { min: string; max: string } };
-  tableau?: {
-    lignes: string[];
-    colonnes?: string[];
-    valeurType?: 'texte' | 'score' | 'choix-multiple' | 'case-a-cocher';
-    options?: string[];
-    commentaire?: boolean;
-  };
+  tableau?: SurveyTable;
 }
 
 export type Answers = Record<
