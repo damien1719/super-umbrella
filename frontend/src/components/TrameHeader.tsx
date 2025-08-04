@@ -1,0 +1,82 @@
+import { ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import type { Category } from '@/types/trame';
+
+interface Props {
+  title: string;
+  category: string;
+  isPublic: boolean;
+  categories: Category[];
+  onTitleChange: (v: string) => void;
+  onCategoryChange: (v: string) => void;
+  onPublicChange: (v: boolean) => void;
+  onSave: () => void;
+  onImport: () => void;
+  onBack: () => void;
+}
+
+export default function TrameHeader({
+  title,
+  category,
+  isPublic,
+  categories,
+  onTitleChange,
+  onCategoryChange,
+  onPublicChange,
+  onSave,
+  onImport,
+  onBack,
+}: Props) {
+  return (
+    <div className="flex flex-wrap items-center gap-4 mb-6">
+      <Button variant="outline" onClick={onBack}>
+        <ArrowLeft className="h-4 w-4 mr-2" />
+        Retour
+      </Button>
+      <Input
+        value={title}
+        onChange={(e) => onTitleChange(e.target.value)}
+        placeholder="Titre de la trame"
+        className="text-2xl font-bold text-gray-900 flex-1"
+      />
+      <div className="w-48 flex-shrink-0">
+        <Select value={category} onValueChange={onCategoryChange}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Catégorie" />
+          </SelectTrigger>
+          <SelectContent>
+            {categories.map((cat) => (
+              <SelectItem key={cat.id} value={cat.id}>
+                {cat.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          checked={isPublic}
+          onChange={(e) => onPublicChange(e.target.checked)}
+          aria-label="Partager la trame"
+        />
+        <Label className="text-md text-gray-700">Partager</Label>
+      </div>
+      <Button onClick={onSave} variant="primary" className="ml-auto">
+        Sauvegarder la trame
+      </Button>
+      <Button variant="outline" onClick={onImport}>
+        Import Magique
+      </Button>
+    </div>
+  );
+}

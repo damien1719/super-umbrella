@@ -52,7 +52,7 @@ function ProtectedLayout() {
   return (
     <div className="flex h-screen overflow-hidden">
       <AppSidebar onNavigate={setCurrentPage} />
-      <main className="flex-1 p-4 overflow-auto">
+      <main className="flex-1 p-4 overflow-auto bg-wood-50">
         <Outlet />
       </main>
     </div>

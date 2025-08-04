@@ -39,7 +39,7 @@ export function ToolbarPlugin({ onSave }: Props) {
   );
 
   return (
-    <div className="sticky top-0 z-10 flex space-x-2 bg-white border-b border-gray-300 p-2">
+    <div className="sticky top-0 z-10 flex space-x-2 bg-wood-50 border-b border-wood-200 p-2">
       <Button type="button" onClick={() => format('bold')} variant="secondary">
         B
       </Button>
@@ -68,7 +68,7 @@ export function ToolbarPlugin({ onSave }: Props) {
         type="button"
         onClick={() => insertList(true)}
         variant="secondary"
-      >
+      > 
         1.
       </Button>
       <Button type="button" onClick={insertLink} variant="secondary">

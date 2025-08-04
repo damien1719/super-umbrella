@@ -19,7 +19,7 @@ const ITEM_SCHEMA = {
         id: { type: 'string' },
         type: {
           type: 'string',
-          enum: ['notes', 'choix-multiple', 'echelle'],
+          enum: ['notes', 'choix-multiple', 'echelle', 'titre'],
         },
         titre: { type: 'string' },
         contenu: { type: 'string' },
@@ -60,13 +60,14 @@ export function buildTransformPrompt(params: TransformPromptParams): SingleMessa
     })
   }
 
-  const defaultInstr = `
+   const defaultInstr = `
 Pour chaque question en entrée :
 1. Génère un **id** unique basé sur un timestamp en millisecondes (format string).
 2. Détecte le **type** :
    - "notes" si question ouverte.
    - "choix-multiple" si tu trouves des options entre parenthèses ou séparées par des virgules.
    - "echelle" si tu repères une mention d'échelle (1-5, 1-10, etc.).
+   - "titre" si c'est uniquement un titre sans contenu associé.
   `.trim()
   msgs.push({
     role: 'user',

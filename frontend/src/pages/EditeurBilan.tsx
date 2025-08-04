@@ -2,15 +2,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useEffect, useState, Suspense, lazy, useRef } from 'react';
 import DOMPurify from 'dompurify';
 import { Button } from '../components/ui/button';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '../components/ui/alert-dialog';
+import ExitConfirmation from '../components/ExitConfirmation';
 import { apiFetch } from '../utils/api';
 import { useAuth } from '../store/auth';
 import { useBilanDraft } from '../store/bilanDraft';
@@ -76,7 +68,7 @@ export default function Bilan() {
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
-      <div className="flex items-center bg-white border border-gray-300 p-4">
+      <div className="h-12 flex items-center bg-wood-50 border border-wood-300 p-4">
         <Button variant="ghost" onClick={handleBack} className="px-2 py-1">
           Retour
         </Button>
@@ -95,7 +87,7 @@ export default function Bilan() {
               />
             </Suspense>
           </div>
-          <div className="block w-104 border-l border-gray-300 overflow-auto shadow-sm ">
+          <div className="block w-104 border-l border-wood-300 overflow-auto shadow-sm ">
             <Suspense fallback="Chargement...">
               {bilanId && (
                 <AiRightPanel
@@ -109,28 +101,15 @@ export default function Bilan() {
           </div>
         </div>
       </div>
-      <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              Souhaitez-vous conserver les modifications apportées ?
-            </AlertDialogTitle>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => navigate('/')}>
-              Non
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={async () => {
-                await save();
-                navigate('/');
-              }}
-            >
-              Oui
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ExitConfirmation
+        open={showConfirm}
+        onOpenChange={setShowConfirm}
+        onConfirm={async () => {
+          await save();
+          navigate('/');
+        }}
+        onCancel={() => navigate('/')}
+      />
     </div>
   );
 }

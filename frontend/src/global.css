@@ -1,14 +1,75 @@
 @import "tailwindcss";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+
+@theme {
+    --color-wood-50:  #FAF9F7;
+    --color-wood-100: #F5F2EE;
+    --color-wood-200: #E8E3DC;
+    --color-wood-300: #D9D3CB;
+    --color-wood-400: #B9B2A9;
+    --color-wood-500: #8B847B;
+    --color-wood-700: #4F4A45;
+    --color-wood-900: #2B2825;
+  
+    --color-accent-50:  #FFF1ED;
+    --color-accent-500: #E8836B;
+    --color-accent-600: #D96A50;
+  
+    --color-primary-50:  #EEF5F2;
+    --color-primary-100: #DDEBE6;
+    --color-primary-200: #C1D9CE;
+    --color-primary-300: #9EC5B4;
+    --color-primary-400: #7DAA99;
+    --color-primary-500: #5E927F;
+    --color-primary-600: #3E7C6A;
+    --color-primary-700: #2F6656;
+    --color-primary-800: #245146;
+    --color-primary-900: #19362F;
+  
+    --color-info-600:    #7B79D1;
+    --color-success-600: #22C55D;
+    --color-danger-600:  #EF4444;
+    --color-warning-600: #D97706;
+    
+    --color-paper-50:      #FFFEFC;                /* page "papier" */
+    --color-surface-50:    #FFFFFF;                /* cartes, barres */
+    --color-tools_bg-50:   #EFEAE3;                /* panneau droit */
+}
 
 :root {
-    --background: #ffffff; 
+    --wood-50: #FAF9F7;
+    --wood-100:#F5F2EE;
+    --wood-200:#E8E3DC;
+    --wood-300:#D9D3CB;
+    --wood-400:#B9B2A9;
+    --wood-500:#8B847B;
+    --wood-700:#4F4A45;
+    --wood-900:#2B2825;
+    --accent-50:#FFF1ED;
+    --accent-500:#E8836B;
+    --accent-600:#D96A50;
+    --primary-50:#EEF5F2;
+    --primary-100:#DDEBE6;
+    --primary-200:#C1D9CE;
+    --primary-300:#9EC5B4;
+    --primary-400:#7DAA99;
+    --primary-500:#5E927F;
+    --primary-600:#3E7C6A;
+    --primary-700:#2F6656;
+    --primary-800:#245146;
+    --primary-900:#19362F;
+    --info-600:#7B79D1;
+    --success-600:#22C55D;
+    --danger-600:#EF4444;
+    --warning-600:#D97706;
+    --success-600:#3F8F6B;
+    --warning-600:#CC8B37;
+    --danger-600:#D0495C;
+
+    --background: var(--wood-50); 
 }
 
 html, body, #root {
     height: 100%;
     margin: 0;
-  }
+}

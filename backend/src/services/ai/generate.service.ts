@@ -31,6 +31,10 @@ export async function generateText(
 
 // Transform text into structured JSON using transformPrompt
 import { generateStructuredJSON, type TransformPromptParams } from "./prompts/transformPrompt";
+import {
+  generateTableFromImage,
+  type TransformImageToTableParams,
+} from "./prompts/transformImageToTable";
 
 export async function transformText(params: TransformPromptParams) {
   // 1. RGPD pre-processing similar to generateText
@@ -42,5 +46,15 @@ export async function transformText(params: TransformPromptParams) {
   );
 
   // 3. Post-processing (still run through guardrails for consistency)
+  return guardrails.post(structured);
+}
+
+export async function transformImageToTable(
+  params: TransformImageToTableParams,
+) {
+  const sanitized = guardrails.pre(JSON.stringify(params));
+  const structured = await generateTableFromImage(
+    JSON.parse(sanitized) as TransformImageToTableParams,
+  );
   return guardrails.post(structured);
 }

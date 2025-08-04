@@ -43,7 +43,7 @@ export default function SaisieExempleTrame({
       <Button
         onClick={add}
         disabled={!text.trim()}
-        className="bg-blue-600 hover:bg-blue-700"
+        variant="primary"
       >
         Ajouter un exemple
       </Button>

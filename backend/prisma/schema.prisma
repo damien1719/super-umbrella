@@ -140,15 +140,26 @@ model Bilan {
 }
 
 model BilanSectionInstance {
-  id        String  @id @default(uuid())
-  bilanId   String
-  sectionId String
-  order     Int
-  content   Json
-  bilan     Bilan   @relation(fields: [bilanId], references: [id])
-  section   Section @relation(fields: [sectionId], references: [id])
+  id                String  @id @default(uuid())
+  bilanId           String
+  sectionId         String
+  order             Int
+  contentNotes      Json
+  generatedContent  Json?
+  status            BilanSectionStatus @default(DRAFT)
+  bilan             Bilan   @relation(fields: [bilanId], references: [id])
+  section           Section @relation(fields: [sectionId], references: [id])
 
   @@index([bilanId, order])
+  @@schema("psychomot")
+}
+
+enum BilanSectionStatus {
+  DRAFT
+  GENERATED
+  REFINED
+  PUBLISHED
+
   @@schema("psychomot")
 }
 
