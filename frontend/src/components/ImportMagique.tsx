@@ -19,6 +19,7 @@ export default function ImportMagique({
 }: ImportMagiqueProps) {
   const [mode, setMode] = useState<'liste' | 'tableau'>('liste');
   const [text, setText] = useState('');
+  const [html, setHtml] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [image, setImage] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -97,7 +98,19 @@ export default function ImportMagique({
           },
         );
         onDone(res.result);
+      } else if (text.trim() || html.trim()) {
+        const res = await apiFetch<{ result: Question[] }>(
+          '/api/v1/import/transform-text-table',
+          {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ content: html || text }),
+          },
+        );
+        onDone(res.result);
       }
+    } catch {
+      alert("Nous n'avons pas pu transformé votre tableau");
     } finally {
       setLoading(false);
       onCancel();
@@ -136,6 +149,7 @@ export default function ImportMagique({
             onClick={() => {
               setMode('tableau');
               setText('');
+              setHtml('');
               setFile(null);
               setImage(null);
             }}
@@ -154,44 +168,76 @@ export default function ImportMagique({
               />
             </div>
           ) : (
-            <div className="flex flex-col gap-2 items-center justify-center min-h-[200px] max-h-[50vh] w-full border-2 border-dashed rounded-md">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".xlsx,.xls"
-                onChange={(e) => {
-                  setFile(e.target.files?.[0] ?? null);
-                  setImage(null);
+            <>
+              <Textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                onPaste={(e) => {
+                  const items = Array.from(e.clipboardData.items);
+                  for (const item of items) {
+                    if (item.type.startsWith('image/')) {
+                      const f = item.getAsFile();
+                      if (f) {
+                        setImage(f);
+                        setFile(null);
+                        setText('');
+                        setHtml('');
+                        e.preventDefault();
+                        return;
+                      }
+                    }
+                  }
+                  const htmlData = e.clipboardData.getData('text/html');
+                  const plain = e.clipboardData.getData('text/plain');
+                  setHtml(htmlData);
+                  setText(plain);
                 }}
-                className="hidden"
-                data-testid="file-input"
+                className="min-h-[200px] max-h-[50vh] w-full resize-y"
+                placeholder="Copier-coller votre tableau ici..."
               />
-              <input
-                ref={imageInputRef}
-                type="file"
-                accept="image/png,image/jpeg,image/jpg,image/heic,image/heif,image/webp"
-                onChange={(e) => {
-                  setImage(e.target.files?.[0] ?? null);
-                  setFile(null);
-                }}
-                className="hidden"
-                data-testid="image-input"
-              />
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  +Choisir un fichier
-                </Button>
-                <Button
-                  type="button"
-                  onClick={() => imageInputRef.current?.click()}
-                >
-                  +Choisir une image
-                </Button>
+              <div className="flex flex-col gap-2 items-center justify-center min-h-[200px] max-h-[50vh] w-full border-2 border-dashed rounded-md">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={(e) => {
+                    setFile(e.target.files?.[0] ?? null);
+                    setImage(null);
+                    setHtml('');
+                    setText('');
+                  }}
+                  className="hidden"
+                  data-testid="file-input"
+                />
+                <input
+                  ref={imageInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/heic,image/heif,image/webp"
+                  onChange={(e) => {
+                    setImage(e.target.files?.[0] ?? null);
+                    setFile(null);
+                    setHtml('');
+                    setText('');
+                  }}
+                  className="hidden"
+                  data-testid="image-input"
+                />
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    +Choisir un fichier
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => imageInputRef.current?.click()}
+                  >
+                    +Choisir une image
+                  </Button>
+                </div>
               </div>
-            </div>
+            </>
           )}
         </div>
       </div>
@@ -208,7 +254,10 @@ export default function ImportMagique({
           <Button
             onClick={handle}
             disabled={
-              loading || (mode === 'liste' ? !text.trim() : !file && !image)
+              loading ||
+              (mode === 'liste'
+                ? !text.trim()
+                : !file && !image && !text.trim() && !html.trim())
             }
             type="button"
             className="min-w-[120px]"
