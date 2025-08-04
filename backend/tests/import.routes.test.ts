@@ -12,7 +12,7 @@ const mockedTransformImage = transformImageToTable as unknown as jest.Mock
 
 describe('POST /api/v1/import/transform', () => {
   it('calls ai service with content', async () => {
-    mockedTransformText.mockResolvedValueOnce(['q1'] as any)
+    mockedTransformText.mockResolvedValueOnce(['q1'] as unknown as string[])
     const res = await request(app)
       .post('/api/v1/import/transform')
       .send({ content: 'txt' })

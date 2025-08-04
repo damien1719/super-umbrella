@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
@@ -8,13 +8,17 @@ import {
 } from '@/components/ui/dialog';
 import TrameCard from './TrameCard';
 import CreerTrameModal from './ui/creer-trame-modale';
-import { Plus } from 'lucide-react';
+import ExitConfirmation from './ExitConfirmation';
+import { Plus, X } from 'lucide-react';
+import { apiFetch } from '@/utils/api';
+import { useAuth } from '@/store/auth';
+
 const kindMap: Record<string, string> = {
   anamnese: 'anamnese',
   'profil-sensoriel': 'profil_sensoriel',
   'observations-cliniques': 'observations',
   'tests-mabc': 'tests_standards',
-  conclusions: 'conclusions',
+  conclusion: 'conclusion',
 };
 import type { TrameOption, TrameExample } from './bilan/TrameSelector';
 import { DataEntry, type DataEntryHandle } from './bilan/DataEntry';
@@ -35,6 +39,7 @@ interface WizardAIRightPanelProps {
   onGenerate: (latest?: Answers) => void;
   isGenerating: boolean;
   bilanId: string;
+  onCancel: () => void;
 }
 
 export default function WizardAIRightPanel({
@@ -48,11 +53,40 @@ export default function WizardAIRightPanel({
   onGenerate,
   isGenerating,
   bilanId,
+  onCancel,
 }: WizardAIRightPanelProps) {
   const [step, setStep] = useState(1);
   const dataEntryRef = useRef<DataEntryHandle>(null);
   const navigate = useNavigate();
   const total = 2;
+  const token = useAuth((s) => s.token);
+  const [instanceId, setInstanceId] = useState<string | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  // Preload latest notes when section/trame changes
+  useEffect(() => {
+    if (!selectedTrame) return;
+    (async () => {
+      try {
+        const res = await apiFetch<Array<{ id: string; contentNotes: Answers }>>( 
+          `/api/v1/bilan-section-instances?bilanId=${bilanId}&sectionId=${selectedTrame.value}&latest=true`,
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+        if (res.length) {
+          setInstanceId(res[0].id);
+          // preload answers both in parent state and DataEntry local state
+          onAnswersChange(res[0].contentNotes as Answers);
+          dataEntryRef.current?.load?.(res[0].contentNotes as Answers);
+        } else {
+          setInstanceId(null);
+          onAnswersChange({});
+          dataEntryRef.current?.clear?.();
+        }
+      } catch (e) {
+        console.error('Failed to load latest section instance', e);
+      }
+    })();
+  }, [selectedTrame, bilanId, token]);
 
   const next = () => setStep((s) => Math.min(total, s + 1));
   const prev = () => setStep((s) => Math.max(1, s - 1));
@@ -128,8 +162,57 @@ export default function WizardAIRightPanel({
     );
   }
 
+  const saveNotes = async (notes: Answers | undefined) => {
+    if (!selectedTrame) return;
+    const body = instanceId
+      ? { contentNotes: notes }
+      : {
+          bilanId,
+          sectionId: selectedTrame.value,
+          order: 0,
+          contentNotes: notes,
+        };
+    const path = instanceId
+      ? `/api/v1/bilan-section-instances/${instanceId}`
+      : '/api/v1/bilan-section-instances';
+    const method = instanceId ? 'PUT' : 'POST';
+    const res = await apiFetch<{ id: string }>(path, {
+      method,
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(body),
+    });
+    if (!instanceId) setInstanceId(res.id);
+  };
+  const handleClose = () => {
+    if (step === 2) {
+      setShowConfirm(true);
+    } else {
+      onCancel();
+    }
+  };
+
   return (
-    <div className="p-4 space-y-4 flex flex-col h-full">
+    <div className="p-4 space-y-4 flex flex-col h-full relative">
+      <button
+        type="button"
+        className="absolute top-2 right-2 p-1 rounded hover:bg-gray-100"
+        onClick={handleClose}
+      >
+        <X className="h-4 w-4" />
+      </button>
+      <ExitConfirmation
+        open={showConfirm}
+        onOpenChange={setShowConfirm}
+        onConfirm={async () => {
+          const data = dataEntryRef.current?.save() as Answers | undefined;
+          await saveNotes(data);
+          onCancel();
+        }}
+        onCancel={() => {
+          setShowConfirm(false);
+          onCancel();
+        }}
+      />
       <div className="flex-1 space-y-4">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl font-bold">
@@ -156,8 +239,9 @@ export default function WizardAIRightPanel({
           </Button>
         ) : (
           <Button
-            onClick={() => {
+            onClick={async () => {
               const data = dataEntryRef.current?.save() as Answers | undefined;
+              await saveNotes(data);
               onGenerate(data);
             }}
             disabled={isGenerating}
