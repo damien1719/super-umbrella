@@ -7,7 +7,7 @@ import type {
   SurveyTable,
   ColumnDef,
   Row,
-  Section,
+  RowsGroup,
 } from '@/types/Typequestion';
 import { X, MoreVertical } from 'lucide-react';
 import ChoixTypeDeValeurTableau from './ChoixTypeDeValeurTableau';
@@ -92,9 +92,9 @@ export function TableEditor({ q, onPatch }: EditorProps) {
   const genId = () => Math.random().toString(36).slice(2);
   const tableau: SurveyTable & { commentaire?: boolean } = q.tableau || {
     columns: [],
-    sections: [{ id: genId(), title: '', rows: [] }],
+    rowsGroups: [{ id: genId(), title: '', rows: [] }],
   };
-  const section: Section = tableau.sections[0] || {
+  const rowsGroup: RowsGroup = tableau.rowsGroups[0] || {
     id: genId(),
     title: '',
     rows: [],
@@ -130,29 +130,29 @@ export function TableEditor({ q, onPatch }: EditorProps) {
     const trimmed = value.trim();
     if (!trimmed) return;
     const newRow: Row = { id: genId(), label: trimmed };
-    const newSection = { ...section, rows: [...section.rows, newRow] };
+    const newRowsGroup = { ...rowsGroup, rows: [...rowsGroup.rows, newRow] };
     setTable({
       ...tableau,
-      sections: [newSection, ...tableau.sections.slice(1)],
+      rowsGroups: [newRowsGroup, ...tableau.rowsGroups.slice(1)],
     });
   };
 
   const updateLine = (idx: number, value: string) => {
-    const rows = [...section.rows];
+    const rows = [...rowsGroup.rows];
     rows[idx] = { ...rows[idx], label: value };
-    const newSection = { ...section, rows };
+    const newRowsGroup = { ...rowsGroup, rows };
     setTable({
       ...tableau,
-      sections: [newSection, ...tableau.sections.slice(1)],
+      rowsGroups: [newRowsGroup, ...tableau.rowsGroups.slice(1)],
     });
   };
 
   const removeLine = (idx: number) => {
-    const rows = section.rows.filter((_, i) => i !== idx);
-    const newSection = { ...section, rows };
+    const rows = rowsGroup.rows.filter((_, i) => i !== idx);
+    const newRowsGroup = { ...rowsGroup, rows };
     setTable({
       ...tableau,
-      sections: [newSection, ...tableau.sections.slice(1)],
+      rowsGroups: [newRowsGroup, ...tableau.rowsGroups.slice(1)],
     });
   };
 
@@ -224,7 +224,7 @@ export function TableEditor({ q, onPatch }: EditorProps) {
             </tr>
           </thead>
           <tbody>
-            {section.rows.map((ligne, ligneIdx) => (
+            {rowsGroup.rows.map((ligne: Row, ligneIdx: number) => (
               <tr key={ligne.id}>
                 <th className="p-1">
                   <div className="flex items-center gap-2">
@@ -244,7 +244,9 @@ export function TableEditor({ q, onPatch }: EditorProps) {
                 </th>
                 {tableau.columns.map((col) => (
                   <td key={col.id} className="p-1">
-                    <Input disabled className="pointer-events-none" />
+                    <Input
+                      className="pointer-events-none"
+                    />
                   </td>
                 ))}
                 <td className="p-1"></td>

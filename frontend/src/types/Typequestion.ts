@@ -46,7 +46,7 @@ export type Footer = {
   label?: string; // "/5"
 };
 
-export type Section = {
+export type RowsGroup = {
   id: string;
   title: string; // 1. PROFIL HYPOREACTIF
   rows: Row[];
@@ -56,7 +56,7 @@ export type Section = {
 
 export type SurveyTable = {
   columns: ColumnDef[];
-  sections: Section[];
+  rowsGroups: RowsGroup[];
 };
 
 export type TableQuestion = {

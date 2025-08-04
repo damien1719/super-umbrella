@@ -211,9 +211,9 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
           };
           return (
             <div className="space-y-2">
-              {q.tableau?.sections?.map((section) => (
+              {q.tableau?.rowsGroups?.map((rowsGroup) => (
                 <table
-                  key={section.id}
+                  key={rowsGroup.id}
                   className="w-full table-fixed border-collapse mb-2"
                 >
                   <thead>
@@ -230,7 +230,7 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
                     </tr>
                   </thead>
                   <tbody>
-                    {section.rows.map((row) => (
+                    {rowsGroup.rows.map((row) => (
                       <tr key={row.id}>
                         <td className="px-2 py-1 text-xs font-medium">
                           {row.label}

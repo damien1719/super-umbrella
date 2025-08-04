@@ -20,7 +20,7 @@ export interface Footer {
   label?: string;
 }
 
-export interface Section {
+export interface RowsGroup {
   id: string;
   title: string;
   rows: Row[];
@@ -30,7 +30,7 @@ export interface Section {
 
 export interface SurveyTable {
   columns: ColumnDef[];
-  sections: Section[];
+  rowsGroups: RowsGroup[];
   commentaire?: boolean;
 }
 
