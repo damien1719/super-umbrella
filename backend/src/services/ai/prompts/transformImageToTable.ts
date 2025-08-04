@@ -36,7 +36,12 @@ export function buildTransformImageToTablePrompt(
   msgs.push({
     role: 'user',
     content: [
-      { type: 'input_image', image_base64: params.imageBase64 },
+      {
+        type: 'image_url',
+        image_url: {
+          url: `data:image/png;base64,${params.imageBase64}`,
+        },
+      },
       { type: 'text', text: instructionText },
     ],
   })

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useSectionStore } from '../store/sections';
 import { useSectionExampleStore } from '../store/sectionExamples';
@@ -291,6 +291,25 @@ export default function CreationTrame() {
     }
   };
 
+  const handleAddColumn = useCallback((value: string, clear: () => void) => {
+    const trimmed = value.trim()
+    if (!trimmed) return
+
+    const colonnes = [...(question?.tableau?.colonnes || []), trimmed]
+    mettreAJourTableau(question?.id, { colonnes })
+    clear()
+  }, [question, mettreAJourTableau])
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleAddColumn(e.currentTarget.value, () => { e.currentTarget.value = '' })
+    }
+  }
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    handleAddColumn(e.currentTarget.value, () => { e.currentTarget.value = '' })
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto">
@@ -568,8 +587,8 @@ export default function CreationTrame() {
 
                       {question.type === 'tableau' && (
                         <>
-                          <div className="overflow-auto">
-                            <table className="border-collapse">
+                          <div className="flex-shrink-0 w-full overflow-x-auto">
+                            <table className="table-auto w-full border-collapse">
                               <thead>
                                 <tr>
                                   <th className="p-1"></th>
@@ -578,6 +597,7 @@ export default function CreationTrame() {
                                       <th key={colIdx} className="p-1">
                                         <div className="flex items-center gap-2">
                                           <Input
+                                            className="flex-1"
                                             value={col}
                                             onChange={(e) => {
                                               const colonnes = [
@@ -627,6 +647,7 @@ export default function CreationTrame() {
                                           e.currentTarget.value = '';
                                         }
                                       }}
+                                      onBlur={handleBlur}
                                     />
                                   </th>
                                 </tr>
@@ -636,8 +657,9 @@ export default function CreationTrame() {
                                   (ligne, ligneIdx) => (
                                     <tr key={ligneIdx}>
                                       <th className="p-1">
-                                        <div className="flex items-center gap-2">
+                                        <div className="group relative flex items-center gap-2">
                                           <Input
+                                            className="w-50"
                                             value={ligne}
                                             onChange={(e) => {
                                               const lignes = [
@@ -651,6 +673,7 @@ export default function CreationTrame() {
                                             }}
                                           />
                                           <Button
+                                            className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
                                             variant="outline"
                                             size="sm"
                                             onClick={() =>
@@ -699,6 +722,7 @@ export default function CreationTrame() {
                                           e.currentTarget.value = '';
                                         }
                                       }}
+                                      onBlur={handleBlur}
                                     />
                                   </th>
                                 </tr>

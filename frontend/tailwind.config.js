@@ -6,6 +6,11 @@ module.exports = {
     './src/components/ui/*.{js,jsx,ts,tsx}',
   ],
   theme: {
+    variants: {
+      extend: {
+        opacity: ['group-hover'],
+      },
+    },
     extend: {
       colors: {
         wood: {

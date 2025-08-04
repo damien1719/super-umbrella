@@ -70,7 +70,11 @@ app.options(/.*/, cors(corsOptions));
   next();
 });
  */
-app.use(express.json());
+
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ limit: '1mb', extended: true }));
+
+
 
 app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ ok: true });

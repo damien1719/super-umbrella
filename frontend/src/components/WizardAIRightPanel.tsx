@@ -129,7 +129,7 @@ export default function WizardAIRightPanel({
   }
 
   return (
-    <div className="p-4 space-y-4 flex flex-col h-full bg-wood-50">
+    <div className="p-4 space-y-4 flex flex-col h-full">
       <div className="flex-1 space-y-4">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl font-bold">
