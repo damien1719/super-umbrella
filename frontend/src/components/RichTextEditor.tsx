@@ -178,8 +178,8 @@ function EditorCore(
       {!readOnly && <ToolbarPlugin onSave={onSave} />}
       <div className="relative h-full">
         <div ref={editorRef} className="h-full bg-wood-100 p-8 overflow-auto">
-          <div className="flex justify-center mt-8">
-            <div className="bg-paper-50 border border-gray-300 rounded shadow p-16 w-full max-w-3xl min-h-[80vh] flex flex-col">
+          <div className="flex justify-center">
+            <div className="bg-paper-50 border border-gray-300 rounded shadow p-16 w-full max-w-3xl min-h-[100vh] flex flex-col">
               <RichTextPlugin
                 contentEditable={
                   <ContentEditable className="outline-none flex-1" />
