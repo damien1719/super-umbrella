@@ -191,7 +191,11 @@ export default function ImportMagique({
             Tableau
           </button>
         </div>
+
         <div className="space-y-4">
+        <p className="text-sm text-muted-foreground">
+          L'import magique vous permet de copier coller un document Word de trame que vous utilisez actuellement pour l'importer directement et pour pouvoir l'utiliser dans l'application
+        </p>
           {mode === 'liste' ? (
             <div className="relative">
               <Textarea
@@ -200,23 +204,21 @@ export default function ImportMagique({
                 className="min-h-[200px] max-h-[50vh] w-full overflow-y-auto resize-none"
                 placeholder="Collez votre texte ici..."
               />
-              <div className="mt-2 flex justify-between">
-                <Button
-                  variant="outline"
-                  onClick={handleTransformToTable}
-                  disabled={!text.trim() || isTransforming}
-                >
-                  {isTransforming
-                    ? 'Transformation...'
-                    : 'Transformer en tableau'}
-                </Button>
-                <Button onClick={handle} disabled={!text.trim() || loading}>
-                  {loading ? 'Traitement...' : 'Valider'}
-                </Button>
-              </div>
             </div>
           ) : (
             <>
+            <label>
+              <input type="radio" name="mode" value="text" />
+              <label>Copier coller un texte issue de Word ou Excel</label>
+            </label>
+            <label>
+              <input type="radio" name="mode" value="table" />
+              <label>Importer une image</label>
+            </label>
+            <label>
+              <input type="radio" name="mode" value="table" />
+              <label>Importer un fichier Excel</label>
+            </label>
               <Textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
@@ -243,6 +245,20 @@ export default function ImportMagique({
                 className="min-h-[200px] max-h-[50vh] w-full resize-y"
                 placeholder="Copier-coller votre tableau ici..."
               />
+              <div className="mt-2 flex justify-between">
+                <Button
+                  variant="outline"
+                  onClick={handleTransformToTable}
+                  disabled={!text.trim() || isTransforming}
+                >
+                  {isTransforming
+                    ? 'Transformation...'
+                    : 'Transformer en tableau'}
+                </Button>
+                <Button onClick={handle} disabled={!text.trim() || loading}>
+                  {loading ? 'Traitement...' : 'Valider'}
+                </Button>
+              </div>
               <div className="mt-2 flex justify-end">
                 <Button onClick={handle} disabled={!text.trim() || loading}>
                   {loading ? 'Traitement...' : 'Valider'}
@@ -294,7 +310,21 @@ export default function ImportMagique({
           )}
         </div>
       </div>
-      <div className="px-6 py-4 border-t bg-muted/20">
+      <div className="mt-2 flex justify-between">
+                <Button
+                  variant="outline"
+                  onClick={handleTransformToTable}
+                  disabled={!text.trim() || isTransforming}
+                >
+                  {isTransforming
+                    ? 'Transformation...'
+                    : 'Transformer en tableau'}
+                </Button>
+                <Button onClick={handle} disabled={!text.trim() || loading}>
+                  {loading ? 'Traitement...' : 'Valider'}
+                </Button>
+              </div>
+      <div className="px-6 py-4 bg-muted/20">
         <div className="flex justify-end gap-3">
           <Button
             variant="outline"
