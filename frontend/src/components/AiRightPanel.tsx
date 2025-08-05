@@ -351,6 +351,29 @@ export default function AiRightPanel({
         <div className="p-4 overflow-y-auto flex-1">
           {mode === 'refine' ? (
             <div className="space-y-4">
+              {refinedText && (
+                <div className="space-y-2">
+                  <div className="p-2 border rounded bg-white whitespace-pre-wrap text-sm">
+                    {refinedText}
+                  </div>
+                  <div className="flex justify-end">
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        if (selection?.restore()) {
+                          onInsertText(refinedText);
+                          selection.clear();
+                        }
+                        setRefinedText('');
+                        setRegenPrompt('');
+                        setMode('idle');
+                      }}
+                    >
+                      Insérer
+                    </Button>
+                  </div>
+                </div>
+              )}
               <h3 className="text-sm font-medium text-left">
                 Si vous voulez ajuster le contenu sélectionné, précisez les
                 modifications souhaitées
@@ -387,29 +410,7 @@ export default function AiRightPanel({
                   {isGenerating ? 'Génération...' : 'Re-générer'}
                 </Button>
               </div>
-              {refinedText && (
-                <div className="space-y-2">
-                  <div className="p-2 border rounded bg-white whitespace-pre-wrap text-sm">
-                    {refinedText}
-                  </div>
-                  <div className="flex justify-end">
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        if (selection?.restore()) {
-                          onInsertText(refinedText);
-                          selection.clear();
-                        }
-                        setRefinedText('');
-                        setRegenPrompt('');
-                        setMode('idle');
-                      }}
-                    >
-                      Insérer
-                    </Button>
-                  </div>
-                </div>
-              )}
+             
             </div>
           ) : regenSection ? (
             <div className="space-y-4">
