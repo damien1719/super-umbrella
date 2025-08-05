@@ -21,6 +21,8 @@ interface SectionState {
   fetchOne: (id: string) => Promise<Section>;
   create: (data: SectionInput) => Promise<Section>;
   update: (id: string, data: Partial<SectionInput>) => Promise<Section>;
+  remove: (id: string) => Promise<void>;
+  duplicate: (id: string) => Promise<Section>;
 }
 
 const endpoint = '/api/v1/sections';
@@ -77,13 +79,24 @@ export const useSectionStore = create<SectionState>((set) => ({
     return section;
   },
 
-    async remove(id) {
-      const token = useAuth.getState().token;
-      if (!token) throw new Error('Non authentifié');
-      await apiFetch(`${endpoint}/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      set((state) => ({ items: state.items.filter((s) => s.id !== id) }));
+  async remove(id) {
+    const token = useAuth.getState().token;
+    if (!token) throw new Error('Non authentifié');
+    await apiFetch(`${endpoint}/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    set((state) => ({ items: state.items.filter((s) => s.id !== id) }));
+  },
+
+  async duplicate(id) {
+    const token = useAuth.getState().token;
+    if (!token) throw new Error('Non authentifié');
+    const section = await apiFetch<Section>(`${endpoint}/${id}/duplicate`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    set((state) => ({ items: [...state.items, section] }));
+    return section;
   },
 }));
