@@ -68,9 +68,7 @@ export default function CreerTrameModal({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button 
-          variant="primary"
-          >
+          <Button variant="primary">
             <Plus className="h-4 w-4 mr-2" />
             Créer sa trame
           </Button>

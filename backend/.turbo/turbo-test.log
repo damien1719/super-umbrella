@@ -5,36 +5,216 @@
 
 [1m[2mDetermining test suites to run...[22m[22m[999D[K
 
-[1mTest Suites: [22m0 of 20 total
+[1mTest Suites: [22m0 of 7 total
 [1mTests:       [22m0 total
 [1mSnapshots:   [22m0 total
 [1mTime:[22m        0 s[K[1A[K[1A[K[1A[K[1A[K[1A[999D[K
 
-[1mTest Suites: [22m0 of 20 total
+[1mTest Suites: [22m0 of 7 total
 [1mTests:       [22m0 total
 [1mSnapshots:   [22m0 total
 [1mTime:[22m        0 s[K[1A[K[1A[K[1A[K[1A[K[1A
-[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mamortissement.service.test.ts[22m
-[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mcerfa.service.test.ts[22m
-[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbien.service.test.ts[22m
-[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mreport.service.test.ts[22m
-[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mlocataire.routes.test.ts[22m
-[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mcerfa.routes.test.ts[22m
-[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mfiscal.service.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilan.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mimport.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msection.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilanSectionInstance.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msectionExample.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mprofile.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mpatient.routes.test.ts[22m
 
-[1mTest Suites: [22m0 of 20 total
+[1mTest Suites: [22m0 of 7 total
 [1mTests:       [22m0 total
 [1mSnapshots:   [22m0 total
 [1mTime:[22m        0 s[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A
-[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mamortissement.service.test.ts[22m
-[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mcerfa.service.test.ts[22m
-[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbien.service.test.ts[22m
-[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mreport.service.test.ts[22m
-[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mlocataire.routes.test.ts[22m
-[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mcerfa.routes.test.ts[22m
-[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mfiscal.service.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilan.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mimport.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msection.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilanSectionInstance.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msectionExample.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mprofile.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mpatient.routes.test.ts[22m
 
-[1mTest Suites: [22m0 of 20 total
+[1mTest Suites: [22m0 of 7 total
 [1mTests:       [22m0 total
 [1mSnapshots:   [22m0 total
-[1mTime:[22m        1 s
+[1mTime:[22m        1 s[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilan.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mimport.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msection.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilanSectionInstance.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msectionExample.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mprofile.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mpatient.routes.test.ts[22m
+
+[1mTest Suites: [22m0 of 7 total
+[1mTests:       [22m0 total
+[1mSnapshots:   [22m0 total
+[1mTime:[22m        2 s[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilan.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mimport.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msection.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilanSectionInstance.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msectionExample.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mprofile.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mpatient.routes.test.ts[22m
+
+[1mTest Suites: [22m0 of 7 total
+[1mTests:       [22m0 total
+[1mSnapshots:   [22m0 total
+[1mTime:[22m        3 s[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilan.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mimport.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msection.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilanSectionInstance.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msectionExample.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mprofile.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mpatient.routes.test.ts[22m
+
+[1mTest Suites: [22m0 of 7 total
+[1mTests:       [22m0 total
+[1mSnapshots:   [22m0 total
+[1mTime:[22m        4 s[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilan.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mimport.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msection.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilanSectionInstance.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msectionExample.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mprofile.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mpatient.routes.test.ts[22m
+
+[1mTest Suites: [22m0 of 7 total
+[1mTests:       [22m0 total
+[1mSnapshots:   [22m0 total
+[1mTime:[22m        5 s[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilan.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mimport.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msection.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilanSectionInstance.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msectionExample.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mprofile.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mpatient.routes.test.ts[22m
+
+[1mTest Suites: [22m0 of 7 total
+[1mTests:       [22m0 total
+[1mSnapshots:   [22m0 total
+[1mTime:[22m        6 s[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilan.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mimport.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msection.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilanSectionInstance.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msectionExample.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mprofile.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mpatient.routes.test.ts[22m
+
+[1mTest Suites: [22m0 of 7 total
+[1mTests:       [22m0 total
+[1mSnapshots:   [22m0 total
+[1mTime:[22m        7 s[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilan.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mimport.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msection.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilanSectionInstance.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msectionExample.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mprofile.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mpatient.routes.test.ts[22m
+
+[1mTest Suites: [22m0 of 7 total
+[1mTests:       [22m0 total
+[1mSnapshots:   [22m0 total
+[1mTime:[22m        8 s[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilan.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mimport.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msection.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilanSectionInstance.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msectionExample.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mprofile.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mpatient.routes.test.ts[22m
+
+[1mTest Suites: [22m0 of 7 total
+[1mTests:       [22m0 total
+[1mSnapshots:   [22m0 total
+[1mTime:[22m        9 s[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilan.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mimport.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msection.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilanSectionInstance.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msectionExample.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mprofile.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mpatient.routes.test.ts[22m
+
+[1mTest Suites: [22m0 of 7 total
+[1mTests:       [22m0 total
+[1mSnapshots:   [22m0 total
+[1mTime:[22m        10 s[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilan.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mimport.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msection.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilanSectionInstance.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msectionExample.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mprofile.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mpatient.routes.test.ts[22m
+
+[1mTest Suites: [22m0 of 7 total
+[1mTests:       [22m0 total
+[1mSnapshots:   [22m0 total
+[1mTime:[22m        11 s[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilan.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mimport.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msection.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilanSectionInstance.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msectionExample.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mprofile.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mpatient.routes.test.ts[22m
+
+[1mTest Suites: [22m0 of 7 total
+[1mTests:       [22m0 total
+[1mSnapshots:   [22m0 total
+[1mTime:[22m        12 s[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilan.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mimport.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msection.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilanSectionInstance.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msectionExample.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mprofile.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mpatient.routes.test.ts[22m
+
+[1mTest Suites: [22m0 of 7 total
+[1mTests:       [22m0 total
+[1mSnapshots:   [22m0 total
+[1mTime:[22m        13 s[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilan.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mimport.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msection.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilanSectionInstance.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msectionExample.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mprofile.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mpatient.routes.test.ts[22m
+
+[1mTest Suites: [22m0 of 7 total
+[1mTests:       [22m0 total
+[1mSnapshots:   [22m0 total
+[1mTime:[22m        14 s[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilan.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mimport.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msection.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilanSectionInstance.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msectionExample.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mprofile.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mpatient.routes.test.ts[22m
+
+[1mTest Suites: [22m0 of 7 total
+[1mTests:       [22m0 total
+[1mSnapshots:   [22m0 total
+[1mTime:[22m        15 s[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilan.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mimport.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msection.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mbilanSectionInstance.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1msectionExample.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mprofile.routes.test.ts[22m
+[0m[7m[33m[1m RUNS [22m[39m[27m[0m [2mtests/[22m[1mpatient.routes.test.ts[22m
+
+[1mTest Suites: [22m0 of 7 total
+[1mTests:       [22m0 total
+[1mSnapshots:   [22m0 total
+[1mTime:[22m        16 s

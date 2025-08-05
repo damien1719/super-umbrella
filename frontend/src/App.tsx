@@ -115,8 +115,7 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<SignUp />} />
-      <Route element={<WizardLayout />}>
-      </Route>
+      <Route element={<WizardLayout />}></Route>
       <Route element={<BilanLayout />}>
         <Route path="/bilan/:bilanId" element={<Bilan />} />
       </Route>

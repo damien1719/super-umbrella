@@ -225,44 +225,45 @@ export function TableEditor({ q, onPatch }: EditorProps) {
             </tr>
           </thead>
           <tbody>
-          {tableau.rowsGroups.map((group) => (
-            <React.Fragment key={group.id}>
-              {/* ligne de titre de groupe (fusionnant toutes les colonnes) */}
-              <tr>
-                <td colSpan={tableau.columns.length + 1} className="p-1 font-bold">
-                  {group.title || 'Groupe sans titre'}
-                </td>
-              </tr>
-              {group.rows.map((ligne: Row, ligneIdx: number) => (
-                <tr key={ligne.id}>
-                  <th className="p-1">
-                    <div className="flex items-center gap-2">
-                      <Input
-                        className="w-40 whitespace-normal break-words"
-                        value={ligne.label}
-                      onChange={(e) => updateLine(ligneIdx, e.target.value)}
-                    />
-                    <Button
-                      variant="icon"
-                      size="micro"
-                      onClick={() => removeLine(ligneIdx)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </th>
-                {tableau.columns.map((col) => (
-                  <td key={col.id} className="p-1">
-                    <Input
-                      className="pointer-events-none"
-                    />
+            {tableau.rowsGroups.map((group) => (
+              <React.Fragment key={group.id}>
+                {/* ligne de titre de groupe (fusionnant toutes les colonnes) */}
+                <tr>
+                  <td
+                    colSpan={tableau.columns.length + 1}
+                    className="p-1 font-bold"
+                  >
+                    {group.title || 'Groupe sans titre'}
                   </td>
+                </tr>
+                {group.rows.map((ligne: Row, ligneIdx: number) => (
+                  <tr key={ligne.id}>
+                    <th className="p-1">
+                      <div className="flex items-center gap-2">
+                        <Input
+                          className="w-40 whitespace-normal break-words"
+                          value={ligne.label}
+                          onChange={(e) => updateLine(ligneIdx, e.target.value)}
+                        />
+                        <Button
+                          variant="icon"
+                          size="micro"
+                          onClick={() => removeLine(ligneIdx)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </th>
+                    {tableau.columns.map((col) => (
+                      <td key={col.id} className="p-1">
+                        <Input className="pointer-events-none" />
+                      </td>
+                    ))}
+                    <td className="p-1"></td>
+                  </tr>
                 ))}
-                <td className="p-1"></td>
-              </tr>
+              </React.Fragment>
             ))}
-            </React.Fragment>
-          ))}
             <tr>
               <th className="p-1">
                 <Input

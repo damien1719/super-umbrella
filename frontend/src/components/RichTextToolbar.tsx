@@ -68,7 +68,7 @@ export function ToolbarPlugin({ onSave }: Props) {
         type="button"
         onClick={() => insertList(true)}
         variant="secondary"
-      > 
+      >
         1.
       </Button>
       <Button type="button" onClick={insertLink} variant="secondary">

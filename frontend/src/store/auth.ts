@@ -124,9 +124,9 @@ export const useAuth = create<AuthState>((set) => {
         try {
           await apiFetch('/api/v1/profile/', {
             method: 'GET',
-            headers: { 
-              'Authorization': `Bearer ${session.access_token}` 
-            }
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+            },
           });
         } catch (e) {
           console.error('Erreur lors de la création du profil:', e);

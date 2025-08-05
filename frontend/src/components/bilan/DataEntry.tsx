@@ -218,9 +218,7 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
                       {rowsGroup.title}
                     </div>
                   )}
-                  <table
-                    className="w-full table-fixed border-collapse"
-                  >
+                  <table className="w-full table-fixed border-collapse">
                     <thead>
                       <tr>
                         <th className="px-2 py-1"></th>

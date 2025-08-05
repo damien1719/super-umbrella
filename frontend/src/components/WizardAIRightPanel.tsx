@@ -68,7 +68,9 @@ export default function WizardAIRightPanel({
     if (!selectedTrame) return;
     (async () => {
       try {
-        const res = await apiFetch<Array<{ id: string; contentNotes: Answers }>>( 
+        const res = await apiFetch<
+          Array<{ id: string; contentNotes: Answers }>
+        >(
           `/api/v1/bilan-section-instances?bilanId=${bilanId}&sectionId=${selectedTrame.value}&latest=true`,
           { headers: { Authorization: `Bearer ${token}` } },
         );
