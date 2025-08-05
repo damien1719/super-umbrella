@@ -74,13 +74,9 @@ export default function QuestionList({
               draggable
               onDragStart={() => handleDragStart(index)}
               onDragEnd={handleDragEnd}
-              className={`absolute top left-1/2 cursor-move p-1 rounded transition-opacity opacity-0 ${
-                selectedId === question.id
-                  ? 'opacity-100'
-                  : 'group-hover:opacity-100'
-              }`}
+              className={`absolute top left-1/2 cursor-move p-1 rounded transition-opacity opacity-100`}
             >
-              <GripVertical className="h-4 w-4 text-gray-400 rotate-90" />
+              <GripVertical className="h-5 w-5 text-gray-400 rotate-90" />
             </button>
             <Card
               onClick={() => onSelect(question.id)}

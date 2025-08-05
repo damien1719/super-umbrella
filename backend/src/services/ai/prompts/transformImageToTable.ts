@@ -1,6 +1,7 @@
 import OpenAI from 'openai'
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions'
 
+
 export interface TransformImageToTableParams {
   imageBase64: string
   systemPrompt?: string
@@ -11,10 +12,48 @@ const DEFAULT_SCHEMA = {
   type: 'object',
   additionalProperties: false,
   properties: {
-    colonnes: { type: 'array', items: { type: 'string' } },
-    lignes: { type: 'array', items: { type: 'string' } },
+    columns: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          id:        { type: 'string' },
+          label:     { type: 'string' },
+          valueType: {
+            type: 'string',
+            enum: ['bool', 'number', 'text', 'choice', 'image'],
+          },
+        },
+        required: ['id', 'label', 'valueType'],
+      },
+    },
+    rowsGroups: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          id:    { type: 'string' },
+          title: { type: 'string' },
+          rows: {
+            type: 'array',
+            items: {
+              type: 'object',
+              additionalProperties: false,
+              properties: {
+                id:    { type: 'string' },
+                label: { type: 'string' },
+              },
+              required: ['id', 'label'],
+            },
+          },
+        },
+        required: ['id', 'title', 'rows'],
+      },
+    },
   },
-  required: ['colonnes', 'lignes'],
+  required: ['columns', 'rowsGroups'],
 } as const
 
 export function buildTransformImageToTablePrompt(
@@ -31,7 +70,7 @@ export function buildTransformImageToTablePrompt(
 
   const instructionText = `### Instructions\n${(
     params.instructions ??
-    "Identifie les intitulés des colonnes et des lignes du tableau contenu dans l'image. Retourne uniquement un JSON conforme au schéma fourni."
+    "Identifie les définitions de colonnes et de groupes de lignes, ainsi que leurs propriétés, et renvoie **uniquement** un JSON valide selon le schéma ci-dessus."
   ).trim()}`
 
   msgs.push({

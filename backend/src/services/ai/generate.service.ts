@@ -57,12 +57,12 @@ export async function transformText(params: TransformPromptParams) {
 //Dette ici -> Ancien format de tableau -> A CLEANER
 export async function transformImageToTable(
   params: TransformImageToTableParams,
-): Promise<{ colonnes: string[]; lignes: string[] }> {
+): Promise<{ columns: string[]; rowsGroups: string[] }> {
   const sanitized = guardrails.pre(JSON.stringify(params));
   const structured = await generateTableFromImage(
     JSON.parse(sanitized) as TransformImageToTableParams,
   );
-  return guardrails.post(structured) as { colonnes: string[]; lignes: string[] };
+  return guardrails.post(structured) as { columns: string[]; rowsGroups: string[] };
 }
 
 export async function transformTextToTable(
