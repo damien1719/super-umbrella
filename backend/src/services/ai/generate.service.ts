@@ -53,6 +53,8 @@ export async function transformText(params: TransformPromptParams) {
   return guardrails.post(structured);
 }
 
+
+//Dette ici -> Ancien format de tableau -> A CLEANER
 export async function transformImageToTable(
   params: TransformImageToTableParams,
 ): Promise<{ colonnes: string[]; lignes: string[] }> {
