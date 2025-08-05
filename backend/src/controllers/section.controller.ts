@@ -32,6 +32,18 @@ export const SectionController = {
     }
   },
 
+  async duplicate(req: Request, res: Response, next: NextFunction) {
+    try {
+      const section = await SectionService.duplicate(
+        req.user.id,
+        req.params.sectionId,
+      );
+      res.status(201).json(section);
+    } catch (e) {
+      next(e);
+    }
+  },
+
   async update(req: Request, res: Response, next: NextFunction) {
     try {
       const section = await SectionService.update(
