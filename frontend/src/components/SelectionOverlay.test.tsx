@@ -22,4 +22,17 @@ describe('SelectionOverlay', () => {
     fireEvent.click(btn);
     expect(useEditorUi.getState().mode).toBe('refine');
   });
+
+  it('hides button when already in refine mode', () => {
+    const snap: SelectionSnapshot = {
+      rects: [new DOMRect(10, 20, 30, 40)],
+      text: 'demo',
+      htmlFragment: '<p>demo</p>',
+      restore: vi.fn(),
+      clear: vi.fn(),
+    };
+    useEditorUi.setState({ mode: 'refine', selection: snap, aiBlockId: null });
+    render(<SelectionOverlay />);
+    expect(screen.queryByText('Refine')).toBeNull();
+  });
 });

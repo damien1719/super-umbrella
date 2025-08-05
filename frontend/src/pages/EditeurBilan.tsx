@@ -7,6 +7,7 @@ import { apiFetch } from '../utils/api';
 import { useAuth } from '../store/auth';
 import { useBilanDraft } from '../store/bilanDraft';
 import SelectionOverlay from '../components/SelectionOverlay';
+import { useEditorUi } from '../store/editorUi';
 
 const RichTextEditor = lazy(() => import('../components/RichTextEditor'));
 const AiRightPanel = lazy(() => import('../components/AiRightPanel'));
@@ -29,6 +30,8 @@ export default function Bilan() {
   const { descriptionHtml, setHtml, reset } = useBilanDraft();
   const editorRef = useRef<RichTextEditorHandle>(null);
   const [showConfirm, setShowConfirm] = useState(false);
+  const setMode = useEditorUi((s) => s.setMode);
+  const setSelection = useEditorUi((s) => s.setSelection);
 
   const hasChanges = bilan?.descriptionHtml !== descriptionHtml;
 
@@ -49,6 +52,13 @@ export default function Bilan() {
       setHtml(data.descriptionHtml ?? '');
     });
   }, [bilanId, token, setHtml]);
+
+  useEffect(() => {
+    return () => {
+      setMode('idle');
+      setSelection(null);
+    };
+  }, [setMode, setSelection]);
 
   const save = async () => {
     if (!bilanId) return;

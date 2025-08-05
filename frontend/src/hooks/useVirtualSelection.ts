@@ -7,10 +7,11 @@ export function useVirtualSelection(editorRef: React.RefObject<HTMLElement>) {
   useEffect(() => {
     const onChange = () => {
       const sel = window.getSelection();
+      const mode = useEditorUi.getState().mode;
 
       // Gérer le cas où il n'y a pas de sélection ou qu'elle est vide
       if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
-        setSelection(null);
+        if (mode !== 'refine') setSelection(null);
         return;
       }
 
@@ -18,7 +19,7 @@ export function useVirtualSelection(editorRef: React.RefObject<HTMLElement>) {
 
       // Gérer le clic en dehors de l'éditeur
       if (!editorRef.current?.contains(r.commonAncestorContainer)) {
-        setSelection(null);
+        if (mode !== 'refine') setSelection(null);
         return;
       }
 
