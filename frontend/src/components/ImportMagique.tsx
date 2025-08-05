@@ -25,6 +25,7 @@ export default function ImportMagique({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
+  const [isTransforming, setIsTransforming] = useState(false);
   const token = useAuth((s) => s.token);
 
   const transformTable = (rows: (string | number)[][]) => {
@@ -52,6 +53,36 @@ export default function ImportMagique({
     ];
   };
 
+  const handleTransformToTable = async () => {
+    if (!text.trim()) return;
+    
+    setIsTransforming(true);
+    try {
+      const res = await apiFetch<{ result: Question[] }>(
+        '/api/v1/import/transform-text-table',
+        {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}` 
+          },
+          body: JSON.stringify({ content: text }),
+        },
+      );
+
+      console.log("res", res);
+      
+      onDone(res.result);
+      onCancel();
+    } catch (error) {
+      console.error('Erreur lors de la transformation en tableau:', error);
+    } finally {
+      setIsTransforming(false);
+    }
+  };
+
+  /// DETTE ANCIEN FORMAT DE TABLEAU ///
+
   const handle = async () => {
     setLoading(true);
     try {
@@ -60,7 +91,10 @@ export default function ImportMagique({
           '/api/v1/import/transform',
           {
             method: 'POST',
-            headers: { Authorization: `Bearer ${token}` },
+            headers: { 
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}` 
+            },
             body: JSON.stringify({ content: text }),
           },
         );
@@ -163,9 +197,24 @@ export default function ImportMagique({
               <Textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                className="min-h-[200px] max-h-[50vh] w-full resize-y"
+                className="min-h-[200px] max-h-[50vh] w-full overflow-y-auto resize-none"
                 placeholder="Collez votre texte ici..."
               />
+              <div className="mt-2 flex justify-between">
+                <Button 
+                  variant="outline" 
+                  onClick={handleTransformToTable}
+                  disabled={!text.trim() || isTransforming}
+                >
+                  {isTransforming ? 'Transformation...' : 'Transformer en tableau'}
+                </Button>
+                <Button 
+                  onClick={handle} 
+                  disabled={!text.trim() || loading}
+                >
+                  {loading ? 'Traitement...' : 'Valider'}
+                </Button>
+              </div>
             </div>
           ) : (
             <>
@@ -195,6 +244,14 @@ export default function ImportMagique({
                 className="min-h-[200px] max-h-[50vh] w-full resize-y"
                 placeholder="Copier-coller votre tableau ici..."
               />
+              <div className="mt-2 flex justify-end">
+                <Button 
+                  onClick={handle} 
+                  disabled={!text.trim() || loading}
+                >
+                  {loading ? 'Traitement...' : 'Valider'}
+                </Button>
+              </div>
               <div className="flex flex-col gap-2 items-center justify-center min-h-[200px] max-h-[50vh] w-full border-2 border-dashed rounded-md">
                 <input
                   ref={fileInputRef}

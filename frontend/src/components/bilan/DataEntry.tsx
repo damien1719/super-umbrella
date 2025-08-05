@@ -212,38 +212,44 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
           return (
             <div className="space-y-2">
               {q.tableau?.rowsGroups?.map((rowsGroup) => (
-                <table
-                  key={rowsGroup.id}
-                  className="w-full table-fixed border-collapse mb-2"
-                >
-                  <thead>
-                    <tr>
-                      <th className="px-2 py-1"></th>
-                      {q.tableau?.columns?.map((col) => (
-                        <th
-                          key={col.id}
-                          className="px-2 py-1 text-xs font-medium text-left"
-                        >
-                          {col.label}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rowsGroup.rows.map((row) => (
-                      <tr key={row.id}>
-                        <td className="px-2 py-1 text-xs font-medium">
-                          {row.label}
-                        </td>
+                <div key={rowsGroup.id} className="mb-4">
+                  {rowsGroup.title && (
+                    <div className="px-2 py-1 font-bold text-sm">
+                      {rowsGroup.title}
+                    </div>
+                  )}
+                  <table
+                    className="w-full table-fixed border-collapse"
+                  >
+                    <thead>
+                      <tr>
+                        <th className="px-2 py-1"></th>
                         {q.tableau?.columns?.map((col) => (
-                          <td key={col.id} className="px-2 py-1">
-                            {renderCell(row.id, col)}
-                          </td>
+                          <th
+                            key={col.id}
+                            className="px-2 py-1 text-xs font-medium text-left"
+                          >
+                            {col.label}
+                          </th>
                         ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {rowsGroup.rows.map((row) => (
+                        <tr key={row.id}>
+                          <td className="px-2 py-1 text-xs font-medium">
+                            {row.label}
+                          </td>
+                          {q.tableau?.columns?.map((col) => (
+                            <td key={col.id} className="px-2 py-1">
+                              {renderCell(row.id, col)}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               ))}
               {q.tableau?.commentaire && (
                 <div>

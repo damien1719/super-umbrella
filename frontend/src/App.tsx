@@ -3,8 +3,6 @@ import { useAuth } from './store/auth';
 import { useRequireAuth } from './hooks/useRequireAuth';
 import { useEffect } from 'react';
 import BilanV2 from './pages/MesBilans';
-import PropertyDashboard from './pages/PropertyDashboard';
-import NewLocation from './pages/NewLocation';
 import Bilan from './pages/EditeurBilan';
 import Agenda from './pages/Agenda';
 import Abonnement from './pages/Abonnement';
@@ -118,7 +116,6 @@ export default function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<SignUp />} />
       <Route element={<WizardLayout />}>
-        <Route path="/biens/:id/locations/new" element={<NewLocation />} />
       </Route>
       <Route element={<BilanLayout />}>
         <Route path="/bilan/:bilanId" element={<Bilan />} />
@@ -126,7 +123,6 @@ export default function App() {
       <Route element={<ProtectedLayout />}>
         <Route path="/" element={<BilanV2 />} />
         <Route path="/patients" element={<Patients />} />
-        <Route path="/biens/:id/dashboard" element={<PropertyDashboard />} />
         <Route path="/agenda" element={<Agenda />} />
         <Route path="/bibliotheque" element={<Bibliotheque />} />
         <Route path="/creation-trame/:sectionId" element={<CreationTrame />} />

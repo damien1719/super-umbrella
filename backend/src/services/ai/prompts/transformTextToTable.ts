@@ -11,11 +11,50 @@ const DEFAULT_SCHEMA = {
   type: 'object',
   additionalProperties: false,
   properties: {
-    colonnes: { type: 'array', items: { type: 'string' } },
-    lignes: { type: 'array', items: { type: 'string' } },
+    columns: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          id:        { type: 'string' },
+          label:     { type: 'string' },
+          valueType: {
+            type: 'string',
+            enum: ['bool', 'number', 'text', 'choice', 'image'],
+          },
+        },
+        required: ['id', 'label', 'valueType'],
+      },
+    },
+    rowsGroups: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          id:    { type: 'string' },
+          title: { type: 'string' },
+          rows: {
+            type: 'array',
+            items: {
+              type: 'object',
+              additionalProperties: false,
+              properties: {
+                id:    { type: 'string' },
+                label: { type: 'string' },
+              },
+              required: ['id', 'label'],
+            },
+          },
+        },
+        required: ['id', 'title', 'rows'],
+      },
+    },
   },
-  required: ['colonnes', 'lignes'],
+  required: ['columns', 'rowsGroups'],
 } as const
+
 
 export function buildTransformTextToTablePrompt(
   params: TransformTextToTableParams,
@@ -31,12 +70,12 @@ export function buildTransformTextToTablePrompt(
 
   const instructionText = `### Instructions\n${(
     params.instructions ??
-    "Identifie les intitulés des colonnes et des lignes du tableau fourni. Retourne uniquement un JSON conforme au schéma fourni."
+    "Identifie les définitions de colonnes et de groupes de lignes, ainsi que leurs propriétés, et renvoie **uniquement** un JSON valide selon le schéma ci-dessus."
   ).trim()}`
 
   msgs.push({ role: 'user', content: params.content })
 
-  const schemaStr = JSON.stringify(DEFAULT_SCHEMA)
+  const schemaStr = JSON.stringify(DEFAULT_SCHEMA, null, 2)
   msgs.push({
     role: 'user',
     content: `### Schéma de sortie structuré (JSON)\n\`\`\`json\n${schemaStr}\n\`\`\``,
@@ -52,6 +91,8 @@ export async function generateTableFromText(
 ) {
   const openai = new OpenAI()
   const messages = buildTransformTextToTablePrompt(params)
+
+  console.log(messages, "messages");
 
   const response = await openai.chat.completions.create({
     model: 'gpt-4o-2024-08-06',
@@ -70,6 +111,8 @@ export async function generateTableFromText(
   if (!content) {
     throw new Error('No content in response from OpenAI API')
   }
+
+  console.log(content, "content");
 
   return JSON.parse(content)
 }
