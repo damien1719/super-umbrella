@@ -61,7 +61,7 @@ export const SectionService = {
     if (!section) throw new NotFoundError();
     return db.section.create({
       data: {
-        title: section.title,
+        title: section.title + ' - Copie',
         kind: section.kind,
         description: section.description,
         schema: section.schema,
