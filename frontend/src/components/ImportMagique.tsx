@@ -8,6 +8,7 @@ import { apiFetch } from '@/utils/api';
 import { useAuth } from '@/store/auth';
 import { cn } from '@/lib/utils';
 import type { Question, ColumnDef, Row } from '@/types/question';
+import { Loader2 } from 'lucide-react';
 
 interface ImportMagiqueProps {
   onDone: (questions: Question[]) => void;
@@ -334,7 +335,12 @@ export default function ImportMagique({
               type="button"
               className="min-w-[120px]"
             >
-              {loading ? 'Traitement...' : 'Importer'}
+              {loading ? 
+                <>
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" /> 
+                  Traitement...
+                </>
+                : 'Importer'}
             </Button>
           </div>
         </div>
