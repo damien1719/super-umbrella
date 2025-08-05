@@ -4,9 +4,11 @@ import { useEditorUi } from '@/store/editorUi';
 
 export default function SelectionOverlay() {
   const selection = useEditorUi((s) => s.selection);
+  const mode = useEditorUi((s) => s.mode);
   const setMode = useEditorUi((s) => s.setMode);
 
-  if (!selection || selection.rects.length === 0) return null;
+  if (!selection || selection.rects.length === 0 || mode === 'refine')
+    return null;
   const rect = selection.rects[0];
   const style: React.CSSProperties = {
     position: 'absolute',
@@ -16,7 +18,12 @@ export default function SelectionOverlay() {
   };
 
   return createPortal(
-    <Button size="sm" style={style} onClick={() => setMode('refine')}>
+    <Button
+      size="sm"
+      style={style}
+      onMouseDown={(e) => e.preventDefault()}
+      onClick={() => setMode('refine')}
+    >
       Refine
     </Button>,
     document.body,
