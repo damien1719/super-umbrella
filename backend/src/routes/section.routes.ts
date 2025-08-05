@@ -23,3 +23,4 @@ sectionRouter
     SectionController.update,
   )
   .delete(validateParams(sectionIdParam), SectionController.remove);
+
