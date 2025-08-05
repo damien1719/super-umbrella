@@ -24,21 +24,40 @@ const tableQuestion: Question = {
   id: '3',
   type: 'tableau',
   titre: 'Table',
-  tableau: { lignes: ['L1', 'L2'], colonnes: ['C1'] },
+  tableau: {
+    columns: [{ id: 'c1', label: 'C1', valueType: 'text' }],
+    sections: [
+      {
+        id: 's1',
+        title: '',
+        rows: [
+          { id: 'r1', label: 'L1' },
+          { id: 'r2', label: 'L2' },
+        ],
+      },
+    ],
+  },
 };
 
 const tableCommentQuestion: Question = {
   id: '5',
   type: 'tableau',
   titre: 'Table',
-  tableau: { lignes: ['L1'], colonnes: ['C1'], commentaire: true },
+  tableau: {
+    columns: [{ id: 'c1', label: 'C1', valueType: 'text' }],
+    sections: [{ id: 's1', title: '', rows: [{ id: 'r1', label: 'L1' }] }],
+    commentaire: true,
+  },
 };
 
 const tableScoreQuestion: Question = {
   id: '6',
   type: 'tableau',
   titre: 'Table',
-  tableau: { lignes: ['L1'], colonnes: ['C1'], valeurType: 'score' },
+  tableau: {
+    columns: [{ id: 'c1', label: 'C1', valueType: 'number' }],
+    sections: [{ id: 's1', title: '', rows: [{ id: 'r1', label: 'L1' }] }],
+  },
 };
 
 const tableSelectQuestion: Question = {
@@ -46,10 +65,15 @@ const tableSelectQuestion: Question = {
   type: 'tableau',
   titre: 'Table',
   tableau: {
-    lignes: ['L1'],
-    colonnes: ['C1'],
-    valeurType: 'choix-multiple',
-    options: ['A', 'B'],
+    columns: [
+      {
+        id: 'c1',
+        label: 'C1',
+        valueType: 'choice',
+        options: ['A', 'B'],
+      },
+    ],
+    sections: [{ id: 's1', title: '', rows: [{ id: 'r1', label: 'L1' }] }],
   },
 };
 
@@ -57,7 +81,10 @@ const tableCheckQuestion: Question = {
   id: '8',
   type: 'tableau',
   titre: 'Table',
-  tableau: { lignes: ['L1'], colonnes: ['C1'], valeurType: 'case-a-cocher' },
+  tableau: {
+    columns: [{ id: 'c1', label: 'C1', valueType: 'bool' }],
+    sections: [{ id: 's1', title: '', rows: [{ id: 'r1', label: 'L1' }] }],
+  },
 };
 
 const titleQuestion: Question = {

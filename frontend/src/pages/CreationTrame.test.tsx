@@ -42,7 +42,10 @@ it('shows table specific options', async () => {
           id: 't1',
           type: 'tableau',
           titre: 'Table',
-          tableau: { lignes: [], colonnes: [] },
+          tableau: {
+            columns: [],
+            sections: [{ id: 's1', title: '', rows: [] }],
+          },
         },
       ],
     }),
@@ -60,7 +63,9 @@ it('shows table specific options', async () => {
       name: /\+ Ajouter une zone de commentaire/i,
     }),
   ).toBeInTheDocument();
-  expect(screen.getByText(/Type de valeur/)).toBeInTheDocument();
+  expect(
+    screen.getByPlaceholderText(/Ajouter une colonne/),
+  ).toBeInTheDocument();
 });
 
 it('prompts to save when leaving and saves on confirm', async () => {

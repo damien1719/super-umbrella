@@ -46,6 +46,32 @@ export const SectionService = {
     });
   },
 
+  async duplicate(userId: string, id: string) {
+    const profile = await db.profile.findUnique({ where: { userId } });
+    if (!profile) throw new Error('Profile not found for user');
+    const section = await db.section.findFirst({
+      where: {
+        id,
+        OR: [
+          { isPublic: true },
+          { author: { userId } },
+        ],
+      },
+    });
+    if (!section) throw new NotFoundError();
+    return db.section.create({
+      data: {
+        title: section.title + ' - Copie',
+        kind: section.kind,
+        description: section.description,
+        schema: section.schema,
+        defaultContent: section.defaultContent,
+        isPublic: false,
+        authorId: profile.id,
+      },
+    });
+  },
+
   async update(userId: string, id: string, data: Partial<SectionData>) {
     const { count } = await db.section.updateMany({
       where: { id, author: { userId } },

@@ -14,6 +14,12 @@ sectionRouter
   .post(validateBody(createSectionSchema), SectionController.create)
   .get(SectionController.list);
 
+sectionRouter.post(
+  '/:sectionId/duplicate',
+  validateParams(sectionIdParam),
+  SectionController.duplicate,
+);
+
 sectionRouter
   .route('/:sectionId')
   .get(validateParams(sectionIdParam), SectionController.get)
@@ -23,3 +29,4 @@ sectionRouter
     SectionController.update,
   )
   .delete(validateParams(sectionIdParam), SectionController.remove);
+

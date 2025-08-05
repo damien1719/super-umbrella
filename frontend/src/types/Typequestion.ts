@@ -19,17 +19,51 @@ export type ScaleQuestion = {
   echelle: { min: number; max: number; labels?: { min: string; max: string } };
 };
 
+export type ValueType = 'bool' | 'number' | 'text' | 'choice' | 'image';
+
+export type ColumnDef = {
+  id: string;
+  label: string;
+  valueType: ValueType;
+  /** Facultatif: enum pour 'choice' */
+  options?: string[];
+};
+
+export type Row = {
+  id: string;
+  /** Libellé principal (Markdown ou texte simple) */
+  label: string;
+  /** S’il y a une image plutôt qu’un texte */
+  media?: { src: string; alt?: string };
+  /** Pour les étiquettes coupées : ["La balle", "la plus grosse"] */
+  labelParts?: string[];
+};
+
+export type Footer = {
+  /** ex. "countTrue" ou "sum" */
+  formula: string;
+  columnId?: string; // si formule liée à une colonne (Oui / Non)
+  label?: string; // "/5"
+};
+
+export type RowsGroup = {
+  id: string;
+  title: string; // 1. PROFIL HYPOREACTIF
+  rows: Row[];
+  footer?: Footer;
+  showIndex?: boolean; // numérotation automatique
+};
+
+export type SurveyTable = {
+  columns: ColumnDef[];
+  rowsGroups: RowsGroup[];
+};
+
 export type TableQuestion = {
   id: string;
   type: 'tableau';
   titre: string;
-  tableau: {
-    lignes: string[];
-    colonnes?: string[];
-    valeurType?: 'texte' | 'score' | 'choix-multiple' | 'case-a-cocher';
-    options?: string[];
-    commentaire?: boolean;
-  };
+  tableau: SurveyTable & { commentaire?: boolean };
 };
 
 export type TitleQuestion = {

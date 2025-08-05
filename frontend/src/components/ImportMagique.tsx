@@ -6,7 +6,7 @@ import { DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { apiFetch } from '@/utils/api';
 import { useAuth } from '@/store/auth';
 import { cn } from '@/lib/utils';
-import type { Question } from '@/types/question';
+import type { Question, ColumnDef, Row } from '@/types/question';
 
 interface ImportMagiqueProps {
   onDone: (questions: Question[]) => void;
@@ -19,33 +19,69 @@ export default function ImportMagique({
 }: ImportMagiqueProps) {
   const [mode, setMode] = useState<'liste' | 'tableau'>('liste');
   const [text, setText] = useState('');
+  const [html, setHtml] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [image, setImage] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
+  const [isTransforming, setIsTransforming] = useState(false);
   const token = useAuth((s) => s.token);
 
   const transformTable = (rows: (string | number)[][]) => {
     if (rows.length === 0) return [];
     const header = rows[0];
-    const colonnes = header
+    const columns: ColumnDef[] = header
       .slice(1)
-      .map((c) => String(c).trim())
-      .filter(Boolean);
-    const lignes = rows
+      .map((c, idx) => ({
+        id: `c${idx}`,
+        label: String(c).trim(),
+        valueType: 'text',
+      }))
+      .filter((c) => c.label);
+    const lignes: Row[] = rows
       .slice(1)
-      .map((r) => String(r[0]).trim())
-      .filter(Boolean);
+      .map((r, idx) => ({ id: `r${idx}`, label: String(r[0]).trim() }))
+      .filter((r) => r.label);
     return [
       {
         id: Date.now().toString(),
         type: 'tableau' as const,
         titre: 'Question sans titre',
-        tableau: { lignes, colonnes },
+        tableau: { columns, sections: [{ id: 's1', title: '', rows: lignes }] },
       },
     ];
   };
+
+  const handleTransformToTable = async () => {
+    if (!text.trim()) return;
+    
+    setIsTransforming(true);
+    try {
+      const res = await apiFetch<{ result: Question[] }>(
+        '/api/v1/import/transform-text-table',
+        {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}` 
+          },
+          body: JSON.stringify({ content: text }),
+        },
+      );
+
+      console.log("res", res);
+      
+      onDone(res.result);
+      onCancel();
+    } catch (error) {
+      console.error('Erreur lors de la transformation en tableau:', error);
+    } finally {
+      setIsTransforming(false);
+    }
+  };
+
+  /// DETTE ANCIEN FORMAT DE TABLEAU ///
 
   const handle = async () => {
     setLoading(true);
@@ -55,7 +91,10 @@ export default function ImportMagique({
           '/api/v1/import/transform',
           {
             method: 'POST',
-            headers: { Authorization: `Bearer ${token}` },
+            headers: { 
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}` 
+            },
             body: JSON.stringify({ content: text }),
           },
         );
@@ -93,7 +132,19 @@ export default function ImportMagique({
           },
         );
         onDone(res.result);
+      } else if (text.trim() || html.trim()) {
+        const res = await apiFetch<{ result: Question[] }>(
+          '/api/v1/import/transform-text-table',
+          {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ content: html || text }),
+          },
+        );
+        onDone(res.result);
       }
+    } catch {
+      alert("Nous n'avons pas pu transformé votre tableau");
     } finally {
       setLoading(false);
       onCancel();
@@ -132,6 +183,7 @@ export default function ImportMagique({
             onClick={() => {
               setMode('tableau');
               setText('');
+              setHtml('');
               setFile(null);
               setImage(null);
             }}
@@ -145,49 +197,104 @@ export default function ImportMagique({
               <Textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                className="min-h-[200px] max-h-[50vh] w-full resize-y"
+                className="min-h-[200px] max-h-[50vh] w-full overflow-y-auto resize-none"
                 placeholder="Collez votre texte ici..."
               />
-            </div>
-          ) : (
-            <div className="flex flex-col gap-2 items-center justify-center min-h-[200px] max-h-[50vh] w-full border-2 border-dashed rounded-md">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".xlsx,.xls"
-                onChange={(e) => {
-                  setFile(e.target.files?.[0] ?? null);
-                  setImage(null);
-                }}
-                className="hidden"
-                data-testid="file-input"
-              />
-              <input
-                ref={imageInputRef}
-                type="file"
-                accept="image/png,image/jpeg,image/jpg,image/heic,image/heif,image/webp"
-                onChange={(e) => {
-                  setImage(e.target.files?.[0] ?? null);
-                  setFile(null);
-                }}
-                className="hidden"
-                data-testid="image-input"
-              />
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
+              <div className="mt-2 flex justify-between">
+                <Button 
+                  variant="outline" 
+                  onClick={handleTransformToTable}
+                  disabled={!text.trim() || isTransforming}
                 >
-                  +Choisir un fichier
+                  {isTransforming ? 'Transformation...' : 'Transformer en tableau'}
                 </Button>
-                <Button
-                  type="button"
-                  onClick={() => imageInputRef.current?.click()}
+                <Button 
+                  onClick={handle} 
+                  disabled={!text.trim() || loading}
                 >
-                  +Choisir une image
+                  {loading ? 'Traitement...' : 'Valider'}
                 </Button>
               </div>
             </div>
+          ) : (
+            <>
+              <Textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                onPaste={(e) => {
+                  const items = Array.from(e.clipboardData.items);
+                  for (const item of items) {
+                    if (item.type.startsWith('image/')) {
+                      const f = item.getAsFile();
+                      if (f) {
+                        setImage(f);
+                        setFile(null);
+                        setText('');
+                        setHtml('');
+                        e.preventDefault();
+                        return;
+                      }
+                    }
+                  }
+                  const htmlData = e.clipboardData.getData('text/html');
+                  const plain = e.clipboardData.getData('text/plain');
+                  setHtml(htmlData);
+                  setText(plain);
+                }}
+                className="min-h-[200px] max-h-[50vh] w-full resize-y"
+                placeholder="Copier-coller votre tableau ici..."
+              />
+              <div className="mt-2 flex justify-end">
+                <Button 
+                  onClick={handle} 
+                  disabled={!text.trim() || loading}
+                >
+                  {loading ? 'Traitement...' : 'Valider'}
+                </Button>
+              </div>
+              <div className="flex flex-col gap-2 items-center justify-center min-h-[200px] max-h-[50vh] w-full border-2 border-dashed rounded-md">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={(e) => {
+                    setFile(e.target.files?.[0] ?? null);
+                    setImage(null);
+                    setHtml('');
+                    setText('');
+                  }}
+                  className="hidden"
+                  data-testid="file-input"
+                />
+                <input
+                  ref={imageInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/heic,image/heif,image/webp"
+                  onChange={(e) => {
+                    setImage(e.target.files?.[0] ?? null);
+                    setFile(null);
+                    setHtml('');
+                    setText('');
+                  }}
+                  className="hidden"
+                  data-testid="image-input"
+                />
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    +Choisir un fichier
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => imageInputRef.current?.click()}
+                  >
+                    +Choisir une image
+                  </Button>
+                </div>
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -204,7 +311,10 @@ export default function ImportMagique({
           <Button
             onClick={handle}
             disabled={
-              loading || (mode === 'liste' ? !text.trim() : !file && !image)
+              loading ||
+              (mode === 'liste'
+                ? !text.trim()
+                : !file && !image && !text.trim() && !html.trim())
             }
             type="button"
             className="min-w-[120px]"

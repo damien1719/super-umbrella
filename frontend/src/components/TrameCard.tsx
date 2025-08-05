@@ -1,7 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Pen, Trash2, Check } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Copy, MoreVertical, Check } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';import { cn } from '@/lib/utils';
 
 export interface TrameInfo {
   id: string;
@@ -14,7 +19,7 @@ interface TrameCardProps {
   trame: TrameInfo;
   selected?: boolean;
   onSelect?: () => void;
-  onEdit?: () => void;
+  onDuplicate?: () => void;
   onDelete?: () => void;
 }
 
@@ -22,43 +27,57 @@ export default function TrameCard({
   trame,
   selected,
   onSelect,
-  onEdit,
+  onDuplicate,
   onDelete,
 }: TrameCardProps) {
   return (
     <Card
       onClick={onSelect}
       className={cn(
-        'relative hover:shadow-md transition-shadow cursor-pointer',
+        'relative hover:shadow-md hover:bg-wood-100 transition-shadow cursor-pointer',
         selected && 'border-2 border-blue-500 bg-blue-50'
       )}
     >
-      {(onEdit || onDelete) && (
-        <div className="absolute top-2 right-2 flex gap-1 z-10">
-          {onEdit && (
+      {(onDuplicate || onDelete) && (
+        <div className="absolute bottom-2 right-2 flex gap-1 z-10">
+          {onDuplicate && (
             <Button
               size="icon"
               variant="ghost"
               onClick={(e) => {
                 e.stopPropagation();
-                onEdit();
+                onDuplicate();
               }}
             >
-              <Pen className="w-4 h-4" />
+              <Copy className="w-4 h-4" />
             </Button>
           )}
           {onDelete && (
-            <Button
-              size="icon"
-              variant="ghost"
-              className="text-red-600"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete();
-              }}
+            <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <MoreVertical className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              onClick={(e) => e.stopPropagation()}
             >
-              <Trash2 className="w-4 h-4" />
-            </Button>
+              <DropdownMenuItem
+                className="text-red-600"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete();
+                }}
+              >
+                Supprimer
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           )}
         </div>
       )}

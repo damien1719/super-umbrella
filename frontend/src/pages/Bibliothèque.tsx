@@ -18,7 +18,7 @@ import { useSectionStore, type Section } from '@/store/sections';
 
 export default function Bibliotheque() {
   const navigate = useNavigate();
-  const { items, fetchAll, remove } = useSectionStore();
+  const { items, fetchAll, remove, duplicate } = useSectionStore();
   const [toDelete, setToDelete] = useState<Section | null>(null);
 
   useEffect(() => {
@@ -80,10 +80,14 @@ export default function Bibliotheque() {
                         description: trame.description,
                         sharedBy:
                         trame.isPublic && trame.author?.prenom
-                          ? trame.author.prenom
-                          : undefined,
+                            ? trame.author.prenom
+                            : undefined,
                       }}
-                      onEdit={() => navigate(`/creation-trame/${trame.id}`)}
+                      onSelect={() => navigate(`/creation-trame/${trame.id}`)}
+                      onDuplicate={async () => {
+                        await duplicate(trame.id);
+                        await fetchAll().catch(() => {});
+                      }}
                       onDelete={() => setToDelete(trame)}
                     />
                   ))}
@@ -105,6 +109,7 @@ export default function Bibliotheque() {
               onClick={async () => {
                 if (toDelete) {
                   await remove(toDelete.id);
+                  await fetchAll().catch(() => {});
                   setToDelete(null);
                 }
               }}

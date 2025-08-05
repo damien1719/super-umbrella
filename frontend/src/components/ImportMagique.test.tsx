@@ -49,7 +49,20 @@ describe('ImportMagique', () => {
         id: expect.any(String),
         type: 'tableau',
         titre: 'Question sans titre',
-        tableau: { lignes: ['L1', 'L2'], colonnes: ['C1', 'C2'] },
+        tableau: expect.objectContaining({
+          columns: [
+            expect.objectContaining({ label: 'C1', valueType: 'text' }),
+            expect.objectContaining({ label: 'C2', valueType: 'text' }),
+          ],
+          sections: [
+            expect.objectContaining({
+              rows: [
+                expect.objectContaining({ label: 'L1' }),
+                expect.objectContaining({ label: 'L2' }),
+              ],
+            }),
+          ],
+        }),
       }),
     ]);
     expect(onCancel).toHaveBeenCalled();
@@ -65,7 +78,12 @@ describe('ImportMagique', () => {
           id: '1',
           type: 'tableau',
           titre: 'Question sans titre',
-          tableau: { lignes: ['L1'], colonnes: ['C1'] },
+          tableau: {
+            columns: [{ id: 'c1', label: 'C1', valueType: 'text' }],
+            sections: [
+              { id: 's1', title: '', rows: [{ id: 'r1', label: 'L1' }] },
+            ],
+          },
         },
       ],
     });
@@ -94,7 +112,77 @@ describe('ImportMagique', () => {
     expect(onDone).toHaveBeenCalledWith([
       expect.objectContaining({
         type: 'tableau',
-        tableau: { lignes: ['L1'], colonnes: ['C1'] },
+        tableau: expect.objectContaining({
+          columns: [expect.objectContaining({ label: 'C1' })],
+          sections: [
+            expect.objectContaining({
+              rows: [expect.objectContaining({ label: 'L1' })],
+            }),
+          ],
+        }),
+      }),
+    ]);
+    expect(onCancel).toHaveBeenCalled();
+  });
+
+  it('transforms pasted text into tableau via api', async () => {
+    const onDone = vi.fn();
+    const onCancel = vi.fn();
+    const mockedApi = apiFetch as unknown as vi.Mock;
+    mockedApi.mockResolvedValueOnce({
+      result: [
+        {
+          id: '1',
+          type: 'tableau',
+          titre: 'Question sans titre',
+          tableau: {
+            columns: [{ id: 'c1', label: 'C1', valueType: 'text' }],
+            sections: [
+              { id: 's1', title: '', rows: [{ id: 'r1', label: 'L1' }] },
+            ],
+          },
+        },
+      ],
+    });
+
+    render(
+      <Dialog open>
+        <DialogContent>
+          <ImportMagique onDone={onDone} onCancel={onCancel} />
+        </DialogContent>
+      </Dialog>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Tableau' }));
+    const textarea = screen.getByPlaceholderText(
+      'Copier-coller votre tableau ici...',
+    ) as HTMLTextAreaElement;
+    const pasteData = {
+      clipboardData: {
+        getData: (type: string) =>
+          type === 'text/plain' ? 'C1\tC2\nL1\tA\n' : '',
+        items: [],
+      },
+    } as unknown as ClipboardEvent;
+    fireEvent.paste(textarea, pasteData);
+    fireEvent.click(screen.getByRole('button', { name: 'Transformer' }));
+
+    await waitFor(() => expect(onDone).toHaveBeenCalled());
+    expect(mockedApi).toHaveBeenCalledWith(
+      '/api/v1/import/transform-text-table',
+      expect.any(Object),
+    );
+    expect(onDone).toHaveBeenCalledWith([
+      expect.objectContaining({
+        type: 'tableau',
+        tableau: expect.objectContaining({
+          columns: [expect.objectContaining({ label: 'C1' })],
+          sections: [
+            expect.objectContaining({
+              rows: [expect.objectContaining({ label: 'L1' })],
+            }),
+          ],
+        }),
       }),
     ]);
     expect(onCancel).toHaveBeenCalled();

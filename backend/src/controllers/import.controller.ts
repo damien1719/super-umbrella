@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 import {
   transformText,
   transformImageToTable,
+  transformTextToTable,
 } from '../services/ai/generate.service';
 import { promptConfigs } from '../services/ai/prompts/promptconfig';
 
@@ -27,7 +28,41 @@ export const ImportController = {
         id: Date.now().toString(),
         type: 'tableau' as const,
         titre: 'Question sans titre',
-        tableau: table,
+        tableau: {
+          columns: table.colonnes.map((c: string, idx: number) => ({
+            id: `c${idx}`,
+            label: String(c).trim(),
+            valueType: 'text',
+          })),
+          sections: [
+            {
+              id: 's1',
+              title: '',
+              rows: table.lignes.map((l: string, idx: number) => ({
+                id: `r${idx}`,
+                label: String(l).trim(),
+              })),
+            },
+          ],
+        },
+      };
+      res.json({ result: [question] });
+    } catch (e) {
+      next(e);
+    }
+  },
+  async transformTextToTable(req: Request, res: Response, next: NextFunction) {
+    try {
+      const content = String(req.body.content || '');
+      const table = await transformTextToTable({ content });
+      const question = {
+        id: Date.now().toString(),
+        type: 'tableau' as const,
+        titre: 'Question sans titre',
+        tableau: {
+          columns: table.columns,
+          rowsGroups: table.rowsGroups,
+        },
       };
       res.json({ result: [question] });
     } catch (e) {
