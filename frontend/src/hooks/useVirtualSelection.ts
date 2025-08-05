@@ -7,15 +7,15 @@ export function useVirtualSelection(editorRef: React.RefObject<HTMLElement>) {
   useEffect(() => {
     const onChange = () => {
       const sel = window.getSelection();
-      
+
       // Gérer le cas où il n'y a pas de sélection ou qu'elle est vide
       if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
         setSelection(null);
         return;
       }
-      
+
       const r = sel.getRangeAt(0);
-      
+
       // Gérer le clic en dehors de l'éditeur
       if (!editorRef.current?.contains(r.commonAncestorContainer)) {
         setSelection(null);
@@ -23,9 +23,10 @@ export function useVirtualSelection(editorRef: React.RefObject<HTMLElement>) {
       }
 
       const clone = r.cloneRange();
-      const rects = typeof clone.getClientRects === 'function'
-        ? Array.from(clone.getClientRects())
-        : [];
+      const rects =
+        typeof clone.getClientRects === 'function'
+          ? Array.from(clone.getClientRects())
+          : [];
       const text = sel.toString();
 
       const htmlFragment = (() => {

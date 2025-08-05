@@ -25,13 +25,15 @@ export function ExampleManager({
 
   const addExample = () => {
     if (!newExample.content) return;
-    
+
     // Créer un titre par défaut si non fourni
     const exampleToAdd = {
       ...newExample,
-      title: newExample.title || `Exemple ${examples.length + 1} - ${new Date().toLocaleDateString()}`
+      title:
+        newExample.title ||
+        `Exemple ${examples.length + 1} - ${new Date().toLocaleDateString()}`,
     };
-    
+
     onAddExample(exampleToAdd);
     setNewExample({ title: '', content: '', category: 'general' });
   };
@@ -58,7 +60,9 @@ export function ExampleManager({
                     <X className="h-3 w-3" />
                   </Button>
                 </div>
-                <p className="text-sm text-gray-700 whitespace-pre-wrap">{example.content}</p>
+                <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                  {example.content}
+                </p>
                 {example.category && example.category !== 'general' && (
                   <Badge variant="outline" className="text-xs mt-2">
                     {example.category}

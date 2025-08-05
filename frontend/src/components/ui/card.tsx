@@ -7,9 +7,10 @@ function Card({
   variant = 'default',
   ...props
 }: React.ComponentProps<'div'>) {
-  const base = 'bg-white text-card-foreground flex flex-col gap-6 rounded-xl border border-wood-200 py-6 shadow-sm'
-  const wizard = 'overflow-visible w-full max-w-xs sm:max-w-sm'
-  const variantClass = variant === 'wizard' ? wizard : ''
+  const base =
+    'bg-white text-card-foreground flex flex-col gap-6 rounded-xl border border-wood-200 py-6 shadow-sm';
+  const wizard = 'overflow-visible w-full max-w-xs sm:max-w-sm';
+  const variantClass = variant === 'wizard' ? wizard : '';
 
   return (
     <div
@@ -17,9 +18,8 @@ function Card({
       className={cn(base, variantClass, className)}
       {...props}
     />
-  )
+  );
 }
-
 
 function CardHeader({ className, ...props }: React.ComponentProps<'div'>) {
   return (

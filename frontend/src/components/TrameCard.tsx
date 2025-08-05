@@ -6,7 +6,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';import { cn } from '@/lib/utils';
+} from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
 
 export interface TrameInfo {
   id: string;
@@ -35,7 +36,7 @@ export default function TrameCard({
       onClick={onSelect}
       className={cn(
         'relative hover:shadow-md hover:bg-wood-100 transition-shadow cursor-pointer',
-        selected && 'border-2 border-blue-500 bg-blue-50'
+        selected && 'border-2 border-blue-500 bg-blue-50',
       )}
     >
       {(onDuplicate || onDelete) && (
@@ -54,30 +55,30 @@ export default function TrameCard({
           )}
           {onDelete && (
             <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                size="icon"
-                variant="ghost"
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <MoreVertical className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
                 onClick={(e) => e.stopPropagation()}
               >
-                <MoreVertical className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <DropdownMenuItem
-                className="text-red-600"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete();
-                }}
-              >
-                Supprimer
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <DropdownMenuItem
+                  className="text-red-600"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete();
+                  }}
+                >
+                  Supprimer
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
       )}

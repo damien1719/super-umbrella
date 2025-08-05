@@ -58,5 +58,4 @@ describe('useSectionStore', () => {
     expect(section.id).toBe('2');
     expect(useSectionStore.getState().items).toHaveLength(2);
   });
-
 });

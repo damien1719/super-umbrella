@@ -40,11 +40,7 @@ export default function SaisieExempleTrame({
         placeholder="Coller votre exemple ici"
         className="min-h-32"
       />
-      <Button
-        onClick={add}
-        disabled={!text.trim()}
-        variant="primary"
-      >
+      <Button onClick={add} disabled={!text.trim()} variant="primary">
         Ajouter un exemple
       </Button>
     </div>

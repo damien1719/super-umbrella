@@ -79,7 +79,7 @@ export default function Bibliotheque() {
                         title: trame.title,
                         description: trame.description,
                         sharedBy:
-                        trame.isPublic && trame.author?.prenom
+                          trame.isPublic && trame.author?.prenom
                             ? trame.author.prenom
                             : undefined,
                       }}

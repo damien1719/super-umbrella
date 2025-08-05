@@ -55,23 +55,23 @@ export default function ImportMagique({
 
   const handleTransformToTable = async () => {
     if (!text.trim()) return;
-    
+
     setIsTransforming(true);
     try {
       const res = await apiFetch<{ result: Question[] }>(
         '/api/v1/import/transform-text-table',
         {
           method: 'POST',
-          headers: { 
+          headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}` 
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ content: text }),
         },
       );
 
-      console.log("res", res);
-      
+      console.log('res', res);
+
       onDone(res.result);
       onCancel();
     } catch (error) {
@@ -91,9 +91,9 @@ export default function ImportMagique({
           '/api/v1/import/transform',
           {
             method: 'POST',
-            headers: { 
+            headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}` 
+              Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({ content: text }),
           },
@@ -201,17 +201,16 @@ export default function ImportMagique({
                 placeholder="Collez votre texte ici..."
               />
               <div className="mt-2 flex justify-between">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={handleTransformToTable}
                   disabled={!text.trim() || isTransforming}
                 >
-                  {isTransforming ? 'Transformation...' : 'Transformer en tableau'}
+                  {isTransforming
+                    ? 'Transformation...'
+                    : 'Transformer en tableau'}
                 </Button>
-                <Button 
-                  onClick={handle} 
-                  disabled={!text.trim() || loading}
-                >
+                <Button onClick={handle} disabled={!text.trim() || loading}>
                   {loading ? 'Traitement...' : 'Valider'}
                 </Button>
               </div>
@@ -245,10 +244,7 @@ export default function ImportMagique({
                 placeholder="Copier-coller votre tableau ici..."
               />
               <div className="mt-2 flex justify-end">
-                <Button 
-                  onClick={handle} 
-                  disabled={!text.trim() || loading}
-                >
+                <Button onClick={handle} disabled={!text.trim() || loading}>
                   {loading ? 'Traitement...' : 'Valider'}
                 </Button>
               </div>

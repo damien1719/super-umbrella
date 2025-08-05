@@ -20,10 +20,7 @@ export function EmptyState({ onCreate }: EmptyStateProps) {
               Il semble que vous n&rsquo;ayez pas encore rédigé de bilan.
               Commencez par en créer un nouveau.
             </p>
-            <Button
-              variant="primary"
-              onClick={onCreate}
-            >
+            <Button variant="primary" onClick={onCreate}>
               <Plus className="w-4 h-4 mr-2" />
               Rédiger un nouveau bilan
             </Button>

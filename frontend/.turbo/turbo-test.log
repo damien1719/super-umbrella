@@ -6,453 +6,1633 @@
 [?25l
 [1m[46m RUN [49m[22m [36mv3.2.3 [39m[90m/Users/mossuz/Documents/Documents personnels/super-umbrella/frontend[39m
 
-[?2026h(node:16191) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/mossuz/Documents/Documents%20personnels/super-umbrella/frontend/postcss.config.js?t=1750321293551 is not specified and it doesn't parse as CommonJS.
-Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
-To eliminate this warning, add "type": "module" to /Users/mossuz/Documents/Documents personnels/super-umbrella/frontend/package.json.
-(Use `node --trace-warnings ...` to show where the warning was created)
-
-[2m Test Files [22m[1m[32m0 passed[39m[22m[90m (10)[39m
+[?2026h
+[2m Test Files [22m[1m[32m0 passed[39m[22m[90m (27)[39m
 [2m      Tests [22m[1m[32m0 passed[39m[22m[90m (0)[39m
-[2m   Start at [22m10:21:33
-[2m   Duration [22m1.95s
+[2m   Start at [22m09:38:35
+[2m   Duration [22m896ms
 [?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K
-[2m Test Files [22m[1m[32m0 passed[39m[22m[90m (10)[39m
-[2m      Tests [22m[1m[32m0 passed[39m[22m[90m (0)[39m
-[2m   Start at [22m10:21:33
-[2m   Duration [22m2.87s
-[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K
-[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
 
-[2m Test Files [22m[1m[32m0 passed[39m[22m[90m (10)[39m
+[2m Test Files [22m[1m[32m0 passed[39m[22m[90m (27)[39m
 [2m      Tests [22m[1m[32m0 passed[39m[22m[90m (0)[39m
-[2m   Start at [22m10:21:33
-[2m   Duration [22m3.07s
-[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[90mstdout[2m | src/store/userProfile.test.ts
+[2m   Start at [22m09:38:35
+[2m   Duration [22m1.60s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+[1m[33m ❯ [39m[22msrc/components/bilan/DataEntry.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[32m0 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[32m0 passed[39m[22m[90m (0)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m1.70s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/bilan/DataEntry.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[32m0 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[32m0 passed[39m[22m[90m (0)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m1.93s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[90mstdout[2m | src/store/sections.test.ts
 [22m[39mAUTH PROVIDER = supabase
 
-[90mstdout[2m | src/store/biens.test.ts
+
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/bilan/DataEntry.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[32m0 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[32m0 passed[39m[22m[90m (0)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m2.25s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[90mstdout[2m | src/App.test.tsx
 [22m[39mAUTH PROVIDER = supabase
 
 
 [1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
-[1m[33m ❯ [39m[22msrc/components/ui/input-field.test.tsx[2m [queued][22m
-[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
-[1m[33m ❯ [39m[22msrc/pages/Resultats.test.tsx[2m [queued][22m
-[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/bilan/DataEntry.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[32m0 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[32m0 passed[39m[22m[90m (0)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m2.47s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[90mstdout[2m | src/pages/CreationTrame.test.tsx
+[22m[39mAUTH PROVIDER = supabase
+
+[90mstdout[2m | src/pages/EditeurBilan.test.tsx
+[22m[39mAUTH PROVIDER = supabase
+
+[90mstdout[2m | src/pages/MesBilans.test.tsx
+[22m[39mAUTH PROVIDER = supabase
+
+
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/bilan/DataEntry.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[32m0 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[32m0 passed[39m[22m[90m (0)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m2.67s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/bilan/DataEntry.test.tsx[2m 0/10[22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[32m0 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[32m0 passed[39m[22m[90m (10)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m2.88s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[90mstdout[2m | src/components/ImportMagique.test.tsx
+[22m[39mAUTH PROVIDER = supabase
+
+
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/bilan/DataEntry.test.tsx[2m 0/10[22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[32m0 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[32m0 passed[39m[22m[90m (10)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m2.98s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[90mstderr[2m | src/components/bilan/DataEntry.test.tsx[2m > [22m[2mDataEntry[2m > [22m[2mrenders multiple choice options as buttons
+[22m[39mWarning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+
+[90mstderr[2m | src/components/bilan/DataEntry.test.tsx[2m > [22m[2mDataEntry[2m > [22m[2mvalidates scale input
+[22m[39mWarning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+
+
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/bilan/DataEntry.test.tsx[2m 1/10[22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[32m0 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[32m1 passed[39m[22m[90m (10)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m3.28s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[90mstderr[2m | src/components/bilan/DataEntry.test.tsx[2m > [22m[2mDataEntry[2m > [22m[2mallows saving through ref
+[22m[39mAn update to ForwardRef(DataEntry2) inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/bilan/DataEntry.test.tsx[2m 3/10[22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
 [1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
-[1m[33m ❯ [39m[22msrc/store/userProfile.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
 
-[2m Test Files [22m[1m[32m0 passed[39m[22m[90m (10)[39m
-[2m      Tests [22m[1m[32m0 passed[39m[22m[90m (0)[39m
-[2m   Start at [22m10:21:33
-[2m   Duration [22m3.38s
-[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[90mstdout[2m | src/pages/MonCompte.test.tsx
-[22m[39mAUTH PROVIDER = supabase
-
-
-[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
-[1m[33m ❯ [39m[22msrc/components/ui/input-field.test.tsx[2m [queued][22m
-[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
-[1m[33m ❯ [39m[22msrc/pages/Resultats.test.tsx[2m [queued][22m
-[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
-[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
-[1m[33m ❯ [39m[22msrc/store/userProfile.test.ts[2m [queued][22m
-
-[2m Test Files [22m[1m[32m0 passed[39m[22m[90m (10)[39m
-[2m      Tests [22m[1m[32m0 passed[39m[22m[90m (0)[39m
-[2m   Start at [22m10:21:33
+[2m Test Files [22m[1m[32m0 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[32m3 passed[39m[22m[90m (10)[39m
+[2m   Start at [22m09:38:35
 [2m   Duration [22m3.48s
-[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
-[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
-[1m[33m ❯ [39m[22msrc/components/ui/input-field.test.tsx[2m 0/3[22m
-[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
-[1m[33m ❯ [39m[22msrc/pages/Resultats.test.tsx[2m 0/6[22m
-[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
-[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
-[1m[33m ❯ [39m[22msrc/store/userProfile.test.ts[2m [queued][22m
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K [31m❯[39m src/components/bilan/DataEntry.test.tsx [2m([22m[2m10 tests[22m[2m | [22m[31m4 failed[39m[2m)[22m[33m 666[2mms[22m[39m
+   [33m[2m✓[22m[39m DataEntry[2m > [22mrenders multiple choice options as buttons [33m 307[2mms[22m[39m
+   [32m✓[39m DataEntry[2m > [22mvalidates scale input[32m 127[2mms[22m[39m
+   [32m✓[39m DataEntry[2m > [22mshows fields inline when inline prop is true[32m 56[2mms[22m[39m
+   [32m✓[39m DataEntry[2m > [22mallows saving through ref[32m 35[2mms[22m[39m
+[31m   [31m×[31m DataEntry[2m > [22mrenders table rows[39m[32m 32[2mms[22m[39m
+[31m     → Unable to find an accessible element with the role "textbox"
 
-[2m Test Files [22m[1m[32m0 passed[39m[22m[90m (10)[39m
-[2m      Tests [22m[1m[32m0 passed[39m[22m[90m (9)[39m
-[2m   Start at [22m10:21:33
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body[31m
+  [33mstyle[31m=[32m""[31m
+[36m>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m"mb-4"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"space-y-4"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"space-y-2 p-2 rounded-md "[31m
+        [36m>[31m
+          [36m<label[31m
+            [33mclass[31m=[32m"text-sm font-medium"[31m
+          [36m>[31m
+            [0mTable[0m
+          [36m</label>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"space-y-2"[31m
+          [36m/>[31m
+        [36m</div>[31m
+      [36m</div>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+   [32m✓[39m DataEntry[2m > [22mrenders comment field when enabled[32m 12[2mms[22m[39m
+[31m   [31m×[31m DataEntry[2m > [22muses number input for score type[39m[32m 10[2mms[22m[39m
+[31m     → Unable to find an accessible element with the role "spinbutton"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body[31m
+  [33mstyle[31m=[32m""[31m
+[36m>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m"mb-4"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"space-y-4"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"space-y-2 p-2 rounded-md "[31m
+        [36m>[31m
+          [36m<label[31m
+            [33mclass[31m=[32m"text-sm font-medium"[31m
+          [36m>[31m
+            [0mTable[0m
+          [36m</label>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"space-y-2"[31m
+          [36m/>[31m
+        [36m</div>[31m
+      [36m</div>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+[31m   [31m×[31m DataEntry[2m > [22mrenders select for choix multiple type[39m[32m 12[2mms[22m[39m
+[31m     → Unable to find an accessible element with the role "combobox"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body[31m
+  [33mstyle[31m=[32m""[31m
+[36m>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m"mb-4"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"space-y-4"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"space-y-2 p-2 rounded-md "[31m
+        [36m>[31m
+          [36m<label[31m
+            [33mclass[31m=[32m"text-sm font-medium"[31m
+          [36m>[31m
+            [0mTable[0m
+          [36m</label>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"space-y-2"[31m
+          [36m/>[31m
+        [36m</div>[31m
+      [36m</div>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+[31m   [31m×[31m DataEntry[2m > [22mrenders checkbox for case a cocher type[39m[32m 19[2mms[22m[39m
+[31m     → Unable to find an accessible element with the role "checkbox"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body[31m
+  [33mstyle[31m=[32m""[31m
+[36m>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m"mb-4"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"space-y-4"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"space-y-2 p-2 rounded-md "[31m
+        [36m>[31m
+          [36m<label[31m
+            [33mclass[31m=[32m"text-sm font-medium"[31m
+          [36m>[31m
+            [0mTable[0m
+          [36m</label>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"space-y-2"[31m
+          [36m/>[31m
+        [36m</div>[31m
+      [36m</div>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+   [32m✓[39m DataEntry[2m > [22mrenders heading for title question[32m 53[2mms[22m[39m
+
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m0 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (10)[39m
+[2m   Start at [22m09:38:35
 [2m   Duration [22m3.69s
-[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[90mstdout[2m | src/pages/SignUp.test.tsx
-[22m[39mAUTH PROVIDER = supabase
-
-[90mstdout[2m | src/pages/Resultats.test.tsx[2m > [22m[2mResultats page[2m > [22m[2maffiche les résultats
-[22m[39mhere
-
-[90mstdout[2m | src/App.test.tsx
-[22m[39mAUTH PROVIDER = supabase
-
-
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
 [1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
-[1m[33m ❯ [39m[22msrc/components/ui/input-field.test.tsx[2m 1/3[22m
-[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
-[1m[33m ❯ [39m[22msrc/pages/Resultats.test.tsx[2m 0/6[22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m0 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (10)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m3.91s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
 [1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
 [1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
-[1m[33m ❯ [39m[22msrc/store/userProfile.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
 
-[2m Test Files [22m[1m[32m0 passed[39m[22m[90m (10)[39m
-[2m      Tests [22m[1m[32m1 passed[39m[22m[90m (9)[39m
-[2m   Start at [22m10:21:33
-[2m   Duration [22m3.89s
-[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K [32m✓[39m src/components/ui/input-field.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[32m 210[2mms[22m[39m
-[90mstdout[2m | src/pages/Resultats.test.tsx[2m > [22m[2mResultats page[2m > [22m[2mtelecharge le cerfa au clic
-[22m[39mhere
-here
-here
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m0 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (10)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m4.12s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[90mstdout[2m | src/store/biens.test.ts
+[22m[39mAUTH PROVIDER = supabase
 
-[90mstdout[2m | src/pages/Resultats.test.tsx[2m > [22m[2mResultats page[2m > [22m[2mtelecharge le cerfa 2033 au clic
-[22m[39mhere
-here
-here
-
-[90mstdout[2m | src/pages/Resultats.test.tsx[2m > [22m[2mResultats page[2m > [22m[2mtelecharge le cerfa 2042 au clic
-[22m[39mhere
-here
-here
+[90mstdout[2m | src/store/sectionExamples.test.ts
+[22m[39mAUTH PROVIDER = supabase
 
 
 [1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m0 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (10)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m4.33s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m0 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (10)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m4.64s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m0 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (10)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m4.94s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[90mstdout[2m | src/pages/SignUp.test.tsx
+[22m[39mAUTH PROVIDER = supabase
+
+[90mstdout[2m | src/hooks/useRequireAuth.test.tsx
+[22m[39mAUTH PROVIDER = supabase
+
+
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m0 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (10)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m5.24s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[90mstdout[2m | src/pages/MonCompte.test.tsx
+[22m[39mAUTH PROVIDER = supabase
+
+[90mstdout[2m | src/pages/Bibliotheque.test.tsx
+[22m[39mAUTH PROVIDER = supabase
+
+
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m0 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (10)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m5.86s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m0 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (10)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m5.96s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m0 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (10)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m6.46s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/PropertyTabList.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m0 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (10)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m6.87s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/input-field.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/PropertyTabList.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m0 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (10)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m7.19s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/input-field.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/PropertyTabList.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m0 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (10)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m7.94s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/AppSidebar.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/input-field.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/PropertyTabList.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m0 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (10)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m8.24s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/AppSidebar.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/input-field.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/PropertyTabList.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/inventaires.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m0 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (10)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m8.76s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/AppSidebar.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/input-field.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/PropertyTabList.test.tsx[2m 0/2[22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Patients.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/inventaires.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m0 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (12)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m8.86s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/AppSidebar.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/input-field.test.tsx[2m 0/3[22m
+[1m[33m ❯ [39m[22msrc/components/ui/PropertyTabList.test.tsx[2m 0/2[22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Patients.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/inventaires.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m0 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (15)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m8.97s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[90mstdout[2m | src/components/ui/existing-patient-modal.test.tsx
+[22m[39mAUTH PROVIDER = supabase
+
+
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/AppSidebar.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/input-field.test.tsx[2m 0/3[22m
+[1m[33m ❯ [39m[22msrc/components/ui/PropertyTabList.test.tsx[2m 0/2[22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Patients.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/inventaires.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m0 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (15)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m9.37s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/AppSidebar.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/input-field.test.tsx[2m 0/3[22m
+[1m[33m ❯ [39m[22msrc/components/ui/PropertyTabList.test.tsx[2m 0/2[22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Patients.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/inventaires.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/userProfile.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m0 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (15)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m9.61s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/AppSidebar.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/input-field.test.tsx[2m 2/3[22m
+[1m[33m ❯ [39m[22msrc/components/ui/PropertyTabList.test.tsx[2m 0/2[22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Patients.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/inventaires.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/userProfile.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m0 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m8 passed[39m[22m[90m (15)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m9.71s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K [32m✓[39m src/components/ui/input-field.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[33m 740[2mms[22m[39m
+   [33m[2m✓[22m[39m InputField[2m > [22mrenders label and value [33m 313[2mms[22m[39m
+   [33m[2m✓[22m[39m InputField[2m > [22mcalls onChange when typing [33m 383[2mms[22m[39m
+[90mstdout[2m | src/store/inventaires.test.ts
+[22m[39mAUTH PROVIDER = supabase
+
+
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/AppSidebar.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
 [1m[33m ❯ [39m[22msrc/components/ui/input-field.test.tsx[2m 3/3[22m
+[1m[33m ❯ [39m[22msrc/components/ui/PropertyTabList.test.tsx[2m 1/2[22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
 [1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
-[1m[33m ❯ [39m[22msrc/pages/Resultats.test.tsx[2m 2/6[22m
+[1m[33m ❯ [39m[22msrc/pages/Patients.test.tsx[2m [queued][22m
 [1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
 [1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/inventaires.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
 [1m[33m ❯ [39m[22msrc/store/userProfile.test.ts[2m [queued][22m
 
-[2m Test Files [22m[1m[32m1 passed[39m[22m[90m (10)[39m
-[2m      Tests [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m4 passed[39m[22m[90m (9)[39m
-[2m   Start at [22m10:21:33
-[2m   Duration [22m3.99s
-[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[90mstdout[2m | src/pages/Resultats.test.tsx[2m > [22m[2mResultats page[2m > [22m[2mexporte le FEC au clic
-[22m[39mhere
-here
-here
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m10 passed[39m[22m[90m (15)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m9.92s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K [32m✓[39m src/components/ui/PropertyTabList.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[33m 1002[2mms[22m[39m
+   [33m[2m✓[22m[39m PropertyTabList[2m > [22mhighlights active tab [33m 890[2mms[22m[39m
+[90mstdout[2m | src/pages/Patients.test.tsx
+[22m[39mAUTH PROVIDER = supabase
 
-[90mstdout[2m | src/pages/Resultats.test.tsx[2m > [22m[2mResultats page[2m > [22m[2mexporte le PDF complet au clic
-[22m[39mhere
-here
-here
-
- [31m❯[39m src/pages/Resultats.test.tsx [2m([22m[2m6 tests[22m[2m | [22m[31m5 failed[39m[2m)[22m[33m 424[2mms[22m[39m
-   [32m✓[39m Resultats page[2m > [22maffiche les résultats[32m 46[2mms[22m[39m
-[31m   [31m×[31m Resultats page[2m > [22mtelecharge le cerfa au clic[39m[32m 182[2mms[22m[39m
-[31m     → expected "spy" to be called with arguments: [ …(2) ][90m
-
-Received: 
-
-[1m  1st spy call:
-
-[22m[2m  [[22m
-[32m-   "/api/v1/cerfa/2031-sd?anneeId=1&activityId=2",[90m
-[31m+   "http://localhost:3000/api/v1/cerfa/2031-sd?anneeId=1&activityId=2",[90m
-[2m    {[22m
-[2m      "credentials": "include",[22m
-[2m    },[22m
-[2m  ][22m
-[31m[90m
-
-Number of calls: [1m1[22m
-[31m[39m
-[31m   [31m×[31m Resultats page[2m > [22mtelecharge le cerfa 2033 au clic[39m[32m 37[2mms[22m[39m
-[31m     → expected "spy" to be called with arguments: [ …(2) ][90m
-
-Received: 
-
-[1m  1st spy call:
-
-[22m[2m  [[22m
-[32m-   "/api/v1/cerfa/2033?anneeId=1&activityId=2",[90m
-[31m+   "http://localhost:3000/api/v1/cerfa/2033?anneeId=1&activityId=2",[90m
-[2m    {[22m
-[2m      "credentials": "include",[22m
-[2m    },[22m
-[2m  ][22m
-[31m[90m
-
-Number of calls: [1m1[22m
-[31m[39m
-[31m   [31m×[31m Resultats page[2m > [22mtelecharge le cerfa 2042 au clic[39m[32m 96[2mms[22m[39m
-[31m     → expected "spy" to be called with arguments: [ …(2) ][90m
-
-Received: 
-
-[1m  1st spy call:
-
-[22m[2m  [[22m
-[32m-   "/api/v1/cerfa/2042?anneeId=1&activityId=2",[90m
-[31m+   "http://localhost:3000/api/v1/cerfa/2042?anneeId=1&activityId=2",[90m
-[2m    {[22m
-[2m      "credentials": "include",[22m
-[2m    },[22m
-[2m  ][22m
-[31m[90m
-
-Number of calls: [1m1[22m
-[31m[39m
-[31m   [31m×[31m Resultats page[2m > [22mexporte le FEC au clic[39m[32m 43[2mms[22m[39m
-[31m     → expected "spy" to be called with arguments: [ …(2) ][90m
-
-Received: 
-
-[1m  1st spy call:
-
-[22m[2m  [[22m
-[32m-   "/api/v1/fec?anneeId=1&activityId=2",[90m
-[31m+   "http://localhost:3000/api/v1/fec?anneeId=1&activityId=2",[90m
-[2m    {[22m
-[2m      "credentials": "include",[22m
-[2m    },[22m
-[2m  ][22m
-[31m[90m
-
-Number of calls: [1m1[22m
-[31m[39m
-[31m   [31m×[31m Resultats page[2m > [22mexporte le PDF complet au clic[39m[32m 19[2mms[22m[39m
-[31m     → expected "spy" to be called with arguments: [ …(2) ][90m
-
-Received: 
-
-[1m  1st spy call:
-
-[22m[2m  [[22m
-[32m-   "/api/v1/reports/pdf?anneeId=1&activityId=2",[90m
-[31m+   "http://localhost:3000/api/v1/reports/pdf?anneeId=1&activityId=2",[90m
-[2m    {[22m
-[2m      "credentials": "include",[22m
-[2m    },[22m
-[2m  ][22m
-[31m[90m
-
-Number of calls: [1m1[22m
-[31m[39m
 
 [1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
-[1m[33m ❯ [39m[22msrc/pages/MesBiens.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/AppSidebar.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/input-field.test.tsx[2m 3/3[22m
+[1m[33m ❯ [39m[22msrc/components/ui/PropertyTabList.test.tsx[2m 2/2[22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
 [1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
-[1m[33m ❯ [39m[22msrc/pages/Resultats.test.tsx[2m 6/6[22m
+[1m[33m ❯ [39m[22msrc/pages/Patients.test.tsx[2m [queued][22m
 [1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
 [1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/inventaires.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
 [1m[33m ❯ [39m[22msrc/store/userProfile.test.ts[2m [queued][22m
 
-[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (10)[39m
-[2m      Tests [22m[1m[31m5 failed[39m[22m[2m | [22m[1m[32m4 passed[39m[22m[90m (9)[39m
-[2m   Start at [22m10:21:33
-[2m   Duration [22m4.40s
-[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m11 passed[39m[22m[90m (15)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m10.34s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[90mstdout[2m | src/store/userProfile.test.ts
+[22m[39mAUTH PROVIDER = supabase
+
+
 [1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/AppSidebar.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/input-field.test.tsx[2m 3/3[22m
+[1m[33m ❯ [39m[22msrc/components/ui/PropertyTabList.test.tsx[2m 2/2[22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Patients.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/inventaires.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/userProfile.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m11 passed[39m[22m[90m (15)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m10.54s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[90mstdout[2m | src/components/AppSidebar.test.tsx
+[22m[39mAUTH PROVIDER = supabase
+
+
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/AppSidebar.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/input-field.test.tsx[2m 3/3[22m
+[1m[33m ❯ [39m[22msrc/components/ui/PropertyTabList.test.tsx[2m 2/2[22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Patients.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/inventaires.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/userProfile.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m11 passed[39m[22m[90m (15)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m10.74s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+
+
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/AppSidebar.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Patients.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/inventaires.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/userProfile.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m11 passed[39m[22m[90m (15)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m10.94s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+
+
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/AppSidebar.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Patients.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/inventaires.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/userProfile.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m11 passed[39m[22m[90m (15)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m11.98s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/AppSidebar.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/SelectionOverlay.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Patients.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/inventaires.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/userProfile.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m11 passed[39m[22m[90m (15)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m12.80s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/AppSidebar.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/SelectionOverlay.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Patients.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/inventaires.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/userProfile.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m11 passed[39m[22m[90m (15)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m13.00s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/AppSidebar.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/RichTextEditor.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/SelectionOverlay.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Patients.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/editorUi.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/inventaires.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/userProfile.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m11 passed[39m[22m[90m (15)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m13.31s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/AppSidebar.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/RichTextEditor.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/SelectionOverlay.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/creation-bilan-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Patients.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/editorUi.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/inventaires.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/userProfile.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m11 passed[39m[22m[90m (15)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m13.82s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/AppSidebar.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/RichTextEditor.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/SaisieExempleTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/SelectionOverlay.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/creation-bilan-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Patients.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/editorUi.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/inventaires.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/userProfile.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m11 passed[39m[22m[90m (15)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m14.07s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/AppSidebar.test.tsx[2m [queued][22m
 [1m[33m ❯ [39m[22msrc/components/BienForm.test.tsx[2m [queued][22m
-[1m[33m ❯ [39m[22msrc/pages/MesBiens.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/RichTextEditor.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/SaisieExempleTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/SelectionOverlay.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/creation-bilan-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
 [1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
-[1m[33m ❯ [39m[22msrc/pages/NewLocation.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Patients.test.tsx[2m [queued][22m
 [1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
 [1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/editorUi.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/inventaires.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
 [1m[33m ❯ [39m[22msrc/store/userProfile.test.ts[2m [queued][22m
 
-[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (10)[39m
-[2m      Tests [22m[1m[31m5 failed[39m[22m[2m | [22m[1m[32m4 passed[39m[22m[90m (9)[39m
-[2m   Start at [22m10:21:33
-[2m   Duration [22m4.91s
-[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[90mstdout[2m | src/pages/MesBiens.test.tsx
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m11 passed[39m[22m[90m (15)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m14.30s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/AppSidebar.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/BienForm.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/RichTextEditor.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/SaisieExempleTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/SelectionOverlay.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/creation-bilan-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Patients.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/editorUi.test.ts[2m 0/1[22m
+[1m[33m ❯ [39m[22msrc/store/inventaires.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/userProfile.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m11 passed[39m[22m[90m (16)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m14.51s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K [32m✓[39m src/store/editorUi.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 16[2mms[22m[39m
+
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/AppSidebar.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/BienForm.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/PatientForm.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/RichTextEditor.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/SaisieExempleTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/SelectionOverlay.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/creation-bilan-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Patients.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/inventaires.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/userProfile.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m3 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m12 passed[39m[22m[90m (16)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m14.87s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/AppSidebar.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/BienForm.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/PatientForm.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/RichTextEditor.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/SaisieExempleTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/SelectionOverlay.test.tsx[2m 0/1[22m
+[1m[33m ❯ [39m[22msrc/components/ui/creation-bilan-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Patients.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/inventaires.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/userProfile.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m3 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m12 passed[39m[22m[90m (17)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m15.56s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/AppSidebar.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/BienForm.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/PatientForm.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/RichTextEditor.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/SaisieExempleTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/SelectionOverlay.test.tsx[2m 0/1[22m
+[1m[33m ❯ [39m[22msrc/components/ui/creation-bilan-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Patients.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/inventaires.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/userProfile.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m3 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m12 passed[39m[22m[90m (17)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m16.08s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/AppSidebar.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/BienForm.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/PatientForm.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/RichTextEditor.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/SaisieExempleTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/SelectionOverlay.test.tsx[2m 1/1[22m
+[1m[33m ❯ [39m[22msrc/components/ui/creation-bilan-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Patients.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/inventaires.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/userProfile.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m3 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m13 passed[39m[22m[90m (17)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m16.18s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K [32m✓[39m src/components/SelectionOverlay.test.tsx [2m([22m[2m1 test[22m[2m)[22m[33m 538[2mms[22m[39m
+   [33m[2m✓[22m[39m SelectionOverlay[2m > [22mdisplays button and switches to refine mode [33m 534[2mms[22m[39m
+[90mstdout[2m | src/components/BienForm.test.tsx
 [22m[39mAUTH PROVIDER = supabase
 
 
 [1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/AppSidebar.test.tsx[2m [queued][22m
 [1m[33m ❯ [39m[22msrc/components/BienForm.test.tsx[2m [queued][22m
-[1m[33m ❯ [39m[22msrc/pages/MesBiens.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/PatientForm.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/RichTextEditor.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/SaisieExempleTrame.test.tsx[2m 0/1[22m
+[1m[33m ❯ [39m[22msrc/components/ui/creation-bilan-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
 [1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
-[1m[33m ❯ [39m[22msrc/pages/NewLocation.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Patients.test.tsx[2m [queued][22m
 [1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
 [1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/inventaires.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
 [1m[33m ❯ [39m[22msrc/store/userProfile.test.ts[2m [queued][22m
 
-[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (10)[39m
-[2m      Tests [22m[1m[31m5 failed[39m[22m[2m | [22m[1m[32m4 passed[39m[22m[90m (9)[39m
-[2m   Start at [22m10:21:33
-[2m   Duration [22m5.22s
-[?2026l[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[90mstdout[2m | src/components/BienForm.test.tsx
-[22m[39mAUTH PROVIDER = supabase
-
-[90mstdout[2m | src/pages/NewLocation.test.tsx
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m4 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m13 passed[39m[22m[90m (18)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m16.86s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[90mstdout[2m | src/components/PatientForm.test.tsx
 [22m[39mAUTH PROVIDER = supabase
 
 
-[31m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Suites 8 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39m
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/AppSidebar.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/BienForm.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/PatientForm.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/RichTextEditor.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/SaisieExempleTrame.test.tsx[2m 0/1[22m
+[1m[33m ❯ [39m[22msrc/components/ui/creation-bilan-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Patients.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/inventaires.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/userProfile.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m4 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m13 passed[39m[22m[90m (18)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m17.85s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K [32m✓[39m src/components/SaisieExempleTrame.test.tsx [2m([22m[2m1 test[22m[2m)[22m[33m 917[2mms[22m[39m
+   [33m[2m✓[22m[39m adds example on button click [33m 911[2mms[22m[39m
+
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/AppSidebar.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/BienForm.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/PatientForm.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/RichTextEditor.test.tsx[2m 0/1[22m
+[1m[33m ❯ [39m[22msrc/components/ui/creation-bilan-modal.test.tsx[2m 0/1[22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Patients.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/inventaires.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/userProfile.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m5 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m14 passed[39m[22m[90m (20)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m17.95s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/AppSidebar.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/BienForm.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/PatientForm.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/RichTextEditor.test.tsx[2m 0/1[22m
+[1m[33m ❯ [39m[22msrc/components/ui/creation-bilan-modal.test.tsx[2m 0/1[22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Patients.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/inventaires.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/userProfile.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m5 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m14 passed[39m[22m[90m (20)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m18.06s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/AppSidebar.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/BienForm.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/PatientForm.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/RichTextEditor.test.tsx[2m 1/1[22m
+[1m[33m ❯ [39m[22msrc/components/ui/creation-bilan-modal.test.tsx[2m 0/1[22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Patients.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/inventaires.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/userProfile.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m5 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m15 passed[39m[22m[90m (20)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m18.89s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K [32m✓[39m src/components/RichTextEditor.test.tsx [2m([22m[2m1 test[22m[2m)[22m[33m 913[2mms[22m[39m
+   [33m[2m✓[22m[39m RichTextEditor[2m > [22mconverts markdown to HTML when inserting [33m 911[2mms[22m[39m
+
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/AppSidebar.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/BienForm.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/PatientForm.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/creation-bilan-modal.test.tsx[2m 1/1[22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Patients.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/inventaires.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/userProfile.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m16 passed[39m[22m[90m (20)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m19.00s
+[?2026l[?2026h[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[90mstderr[2m | src/components/ui/creation-bilan-modal.test.tsx[2m > [22m[2mCreationBilan[2m > [22m[2mcalls callbacks when selecting patient type
+[22m[39mWarning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+
+
+[1m[33m ❯ [39m[22msrc/App.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/AppSidebar.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/BienForm.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ImportMagique.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/PatientForm.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/components/ui/creation-bilan-modal.test.tsx[2m 1/1[22m
+[1m[33m ❯ [39m[22msrc/components/ui/existing-patient-modal.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/hooks/useRequireAuth.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Bibliotheque.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/CreationTrame.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/EditeurBilan.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MesBilans.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/MonCompte.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/Patients.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/pages/SignUp.test.tsx[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/biens.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/inventaires.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sectionExamples.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/sections.test.ts[2m [queued][22m
+[1m[33m ❯ [39m[22msrc/store/userProfile.test.ts[2m [queued][22m
+
+[2m Test Files [22m[1m[31m1 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m[1m[31m4 failed[39m[22m[2m | [22m[1m[32m16 passed[39m[22m[90m (20)[39m
+[2m   Start at [22m09:38:35
+[2m   Duration [22m19.00s
+[?2026l[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K[1A[K [32m✓[39m src/components/ui/creation-bilan-modal.test.tsx [2m([22m[2m1 test[22m[2m)[22m[33m 1035[2mms[22m[39m
+   [33m[2m✓[22m[39m CreationBilan[2m > [22mcalls callbacks when selecting patient type [33m 1033[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Suites 19 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39m
 
 [41m[1m FAIL [22m[49m src/App.test.tsx[2m [ src/App.test.tsx ][22m
+[41m[1m FAIL [22m[49m src/components/AppSidebar.test.tsx[2m [ src/components/AppSidebar.test.tsx ][22m
 [41m[1m FAIL [22m[49m src/components/BienForm.test.tsx[2m [ src/components/BienForm.test.tsx ][22m
-[41m[1m FAIL [22m[49m src/store/biens.test.ts[2m [ src/store/biens.test.ts ][22m
-[41m[1m FAIL [22m[49m src/store/userProfile.test.ts[2m [ src/store/userProfile.test.ts ][22m
-[41m[1m FAIL [22m[49m src/pages/MesBiens.test.tsx[2m [ src/pages/MesBiens.test.tsx ][22m
+[41m[1m FAIL [22m[49m src/components/ImportMagique.test.tsx[2m [ src/components/ImportMagique.test.tsx ][22m
+[41m[1m FAIL [22m[49m src/components/PatientForm.test.tsx[2m [ src/components/PatientForm.test.tsx ][22m
+[41m[1m FAIL [22m[49m src/hooks/useRequireAuth.test.tsx[2m [ src/hooks/useRequireAuth.test.tsx ][22m
+[41m[1m FAIL [22m[49m src/pages/Bibliotheque.test.tsx[2m [ src/pages/Bibliotheque.test.tsx ][22m
+[41m[1m FAIL [22m[49m src/pages/CreationTrame.test.tsx[2m [ src/pages/CreationTrame.test.tsx ][22m
+[41m[1m FAIL [22m[49m src/pages/EditeurBilan.test.tsx[2m [ src/pages/EditeurBilan.test.tsx ][22m
+[41m[1m FAIL [22m[49m src/pages/MesBilans.test.tsx[2m [ src/pages/MesBilans.test.tsx ][22m
 [41m[1m FAIL [22m[49m src/pages/MonCompte.test.tsx[2m [ src/pages/MonCompte.test.tsx ][22m
-[41m[1m FAIL [22m[49m src/pages/NewLocation.test.tsx[2m [ src/pages/NewLocation.test.tsx ][22m
+[41m[1m FAIL [22m[49m src/pages/Patients.test.tsx[2m [ src/pages/Patients.test.tsx ][22m
 [41m[1m FAIL [22m[49m src/pages/SignUp.test.tsx[2m [ src/pages/SignUp.test.tsx ][22m
+[41m[1m FAIL [22m[49m src/store/biens.test.ts[2m [ src/store/biens.test.ts ][22m
+[41m[1m FAIL [22m[49m src/store/inventaires.test.ts[2m [ src/store/inventaires.test.ts ][22m
+[41m[1m FAIL [22m[49m src/store/sectionExamples.test.ts[2m [ src/store/sectionExamples.test.ts ][22m
+[41m[1m FAIL [22m[49m src/store/sections.test.ts[2m [ src/store/sections.test.ts ][22m
+[41m[1m FAIL [22m[49m src/store/userProfile.test.ts[2m [ src/store/userProfile.test.ts ][22m
+[41m[1m FAIL [22m[49m src/components/ui/existing-patient-modal.test.tsx[2m [ src/components/ui/existing-patient-modal.test.tsx ][22m
 [31m[1mTypeError[22m: supabase.auth.getSession is not a function[39m
-[36m [2m❯[22m Object.getSession src/lib/auth.supabase.ts:[2m17:37[22m[39m
-    [90m 15| [39m      [35mreturn[39m user[33m;[39m
-    [90m 16| [39m    }[33m,[39m
-    [90m 17| [39m    getSession[33m:[39m () [33m=>[39m supabase[33m.[39mauth[33m.[39m[34mgetSession[39m()[33m,[39m
+[36m [2m❯[22m Object.getSession src/lib/auth.supabase.ts:[2m12:37[22m[39m
+    [90m 10| [39m      [35mreturn[39m user[33m;[39m
+    [90m 11| [39m    }[33m,[39m
+    [90m 12| [39m    getSession[33m:[39m () [33m=>[39m supabase[33m.[39mauth[33m.[39m[34mgetSession[39m()[33m,[39m
     [90m   | [39m                                    [31m^[39m
-    [90m 18| [39m    onAuthStateChange[33m:[39m (
-    [90m 19| [39m      callback[33m:[39m (event[33m:[39m string[33m,[39m session[33m:[39m [33mSession[39m [33m|[39m [35mnull[39m) [33m=>[39m [35mvoid[39m[33m,[39m
-[90m [2m❯[22m src/store/auth.ts:[2m23:8[22m[39m
-[90m [2m❯[22m createStoreImpl ../../../Documents%20personnels/super-umbrella/node_modules/zustand/esm/vanilla.mjs:[2m19:32[22m[39m
-[90m [2m❯[22m createStore ../../../Documents%20personnels/super-umbrella/node_modules/zustand/esm/vanilla.mjs:[2m22:52[22m[39m
-[90m [2m❯[22m createImpl ../../../Documents%20personnels/super-umbrella/node_modules/zustand/esm/react.mjs:[2m15:15[22m[39m
-[90m [2m❯[22m create ../../../Documents%20personnels/super-umbrella/node_modules/zustand/esm/react.mjs:[2m20:47[22m[39m
-[90m [2m❯[22m src/store/auth.ts:[2m21:24[22m[39m
+    [90m 13| [39m    onAuthStateChange[33m:[39m (
+    [90m 14| [39m      callback[33m:[39m (event[33m:[39m string[33m,[39m session[33m:[39m [33mSession[39m [33m|[39m [35mnull[39m) [33m=>[39m [35mvoid[39m[33m,[39m
+[90m [2m❯[22m src/store/auth.ts:[2m27:8[22m[39m
+[90m [2m❯[22m createStoreImpl ../../../Documents%20personnels/super-umbrella/node_modules/.pnpm/zustand@5.0.5_@types+react@19.1.7_react@19.1.0_use-sync-external-store@1.5.0_react@19.1.0_/node_modules/zustand/esm/vanilla.mjs:[2m19:32[22m[39m
+[90m [2m❯[22m createStore ../../../Documents%20personnels/super-umbrella/node_modules/.pnpm/zustand@5.0.5_@types+react@19.1.7_react@19.1.0_use-sync-external-store@1.5.0_react@19.1.0_/node_modules/zustand/esm/vanilla.mjs:[2m22:52[22m[39m
+[90m [2m❯[22m createImpl ../../../Documents%20personnels/super-umbrella/node_modules/.pnpm/zustand@5.0.5_@types+react@19.1.7_react@19.1.0_use-sync-external-store@1.5.0_react@19.1.0_/node_modules/zustand/esm/react.mjs:[2m15:15[22m[39m
+[90m [2m❯[22m create ../../../Documents%20personnels/super-umbrella/node_modules/.pnpm/zustand@5.0.5_@types+react@19.1.7_react@19.1.0_use-sync-external-store@1.5.0_react@19.1.0_/node_modules/zustand/esm/react.mjs:[2m20:47[22m[39m
+[90m [2m❯[22m src/store/auth.ts:[2m25:24[22m[39m
 
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/13]⎯[22m[39m
-
-
-[31m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 5 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39m
-
-[41m[1m FAIL [22m[49m src/pages/Resultats.test.tsx[2m > [22mResultats page[2m > [22mtelecharge le cerfa au clic
-[31m[1mAssertionError[22m: expected "spy" to be called with arguments: [ …(2) ][90m
-
-Received: 
-
-[1m  1st spy call:
-
-[22m[2m  [[22m
-[32m-   "/api/v1/cerfa/2031-sd?anneeId=1&activityId=2",[90m
-[31m+   "http://localhost:3000/api/v1/cerfa/2031-sd?anneeId=1&activityId=2",[90m
-[2m    {[22m
-[2m      "credentials": "include",[22m
-[2m    },[22m
-[2m  ][22m
-[31m[90m
-
-Number of calls: [1m1[22m
-[31m[39m
-[36m [2m❯[22m src/pages/Resultats.test.tsx:[2m32:23[22m[39m
-    [90m 30| [39m    [35mawait[39m [34mwaitFor[39m(() [33m=>[39m [34mexpect[39m(fetchMock)[33m.[39m[34mtoHaveBeenCalled[39m())[33m;[39m
-    [90m 31| [39m
-    [90m 32| [39m    [34mexpect[39m(fetchMock)[33m.[39m[34mtoHaveBeenCalledWith[39m(
-    [90m   | [39m                      [31m^[39m
-    [90m 33| [39m      [32m'/api/v1/cerfa/2031-sd?anneeId=1&activityId=2'[39m[33m,[39m
-    [90m 34| [39m      { credentials[33m:[39m [32m'include'[39m }[33m,[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/13]⎯[22m[39m
-
-[41m[1m FAIL [22m[49m src/pages/Resultats.test.tsx[2m > [22mResultats page[2m > [22mtelecharge le cerfa 2033 au clic
-[31m[1mAssertionError[22m: expected "spy" to be called with arguments: [ …(2) ][90m
-
-Received: 
-
-[1m  1st spy call:
-
-[22m[2m  [[22m
-[32m-   "/api/v1/cerfa/2033?anneeId=1&activityId=2",[90m
-[31m+   "http://localhost:3000/api/v1/cerfa/2033?anneeId=1&activityId=2",[90m
-[2m    {[22m
-[2m      "credentials": "include",[22m
-[2m    },[22m
-[2m  ][22m
-[31m[90m
-
-Number of calls: [1m1[22m
-[31m[39m
-[36m [2m❯[22m src/pages/Resultats.test.tsx:[2m61:23[22m[39m
-    [90m 59| [39m    [35mawait[39m [34mwaitFor[39m(() [33m=>[39m [34mexpect[39m(fetchMock)[33m.[39m[34mtoHaveBeenCalled[39m())[33m;[39m
-    [90m 60| [39m
-    [90m 61| [39m    [34mexpect[39m(fetchMock)[33m.[39m[34mtoHaveBeenCalledWith[39m(
-    [90m   | [39m                      [31m^[39m
-    [90m 62| [39m      [32m'/api/v1/cerfa/2033?anneeId=1&activityId=2'[39m[33m,[39m
-    [90m 63| [39m      { credentials[33m:[39m [32m'include'[39m }[33m,[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/13]⎯[22m[39m
-
-[41m[1m FAIL [22m[49m src/pages/Resultats.test.tsx[2m > [22mResultats page[2m > [22mtelecharge le cerfa 2042 au clic
-[31m[1mAssertionError[22m: expected "spy" to be called with arguments: [ …(2) ][90m
-
-Received: 
-
-[1m  1st spy call:
-
-[22m[2m  [[22m
-[32m-   "/api/v1/cerfa/2042?anneeId=1&activityId=2",[90m
-[31m+   "http://localhost:3000/api/v1/cerfa/2042?anneeId=1&activityId=2",[90m
-[2m    {[22m
-[2m      "credentials": "include",[22m
-[2m    },[22m
-[2m  ][22m
-[31m[90m
-
-Number of calls: [1m1[22m
-[31m[39m
-[36m [2m❯[22m src/pages/Resultats.test.tsx:[2m90:23[22m[39m
-    [90m 88| [39m    [35mawait[39m [34mwaitFor[39m(() [33m=>[39m [34mexpect[39m(fetchMock)[33m.[39m[34mtoHaveBeenCalled[39m())[33m;[39m
-    [90m 89| [39m
-    [90m 90| [39m    [34mexpect[39m(fetchMock)[33m.[39m[34mtoHaveBeenCalledWith[39m(
-    [90m   | [39m                      [31m^[39m
-    [90m 91| [39m      [32m'/api/v1/cerfa/2042?anneeId=1&activityId=2'[39m[33m,[39m
-    [90m 92| [39m      { credentials[33m:[39m [32m'include'[39m }[33m,[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/13]⎯[22m[39m
-
-[41m[1m FAIL [22m[49m src/pages/Resultats.test.tsx[2m > [22mResultats page[2m > [22mexporte le FEC au clic
-[31m[1mAssertionError[22m: expected "spy" to be called with arguments: [ …(2) ][90m
-
-Received: 
-
-[1m  1st spy call:
-
-[22m[2m  [[22m
-[32m-   "/api/v1/fec?anneeId=1&activityId=2",[90m
-[31m+   "http://localhost:3000/api/v1/fec?anneeId=1&activityId=2",[90m
-[2m    {[22m
-[2m      "credentials": "include",[22m
-[2m    },[22m
-[2m  ][22m
-[31m[90m
-
-Number of calls: [1m1[22m
-[31m[39m
-[36m [2m❯[22m src/pages/Resultats.test.tsx:[2m121:23[22m[39m
-    [90m119| [39m    [35mawait[39m [34mwaitFor[39m(() [33m=>[39m [34mexpect[39m(fetchMock)[33m.[39m[34mtoHaveBeenCalled[39m())[33m;[39m
-    [90m120| [39m
-    [90m121| [39m    [34mexpect[39m(fetchMock)[33m.[39m[34mtoHaveBeenCalledWith[39m(
-    [90m   | [39m                      [31m^[39m
-    [90m122| [39m      [32m'/api/v1/fec?anneeId=1&activityId=2'[39m[33m,[39m
-    [90m123| [39m      { credentials[33m:[39m [32m'include'[39m }[33m,[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/13]⎯[22m[39m
-
-[41m[1m FAIL [22m[49m src/pages/Resultats.test.tsx[2m > [22mResultats page[2m > [22mexporte le PDF complet au clic
-[31m[1mAssertionError[22m: expected "spy" to be called with arguments: [ …(2) ][90m
-
-Received: 
-
-[1m  1st spy call:
-
-[22m[2m  [[22m
-[32m-   "/api/v1/reports/pdf?anneeId=1&activityId=2",[90m
-[31m+   "http://localhost:3000/api/v1/reports/pdf?anneeId=1&activityId=2",[90m
-[2m    {[22m
-[2m      "credentials": "include",[22m
-[2m    },[22m
-[2m  ][22m
-[31m[90m
-
-Number of calls: [1m1[22m
-[31m[39m
-[36m [2m❯[22m src/pages/Resultats.test.tsx:[2m150:23[22m[39m
-    [90m148| [39m    [35mawait[39m [34mwaitFor[39m(() [33m=>[39m [34mexpect[39m(fetchMock)[33m.[39m[34mtoHaveBeenCalled[39m())[33m;[39m
-    [90m149| [39m
-    [90m150| [39m    [34mexpect[39m(fetchMock)[33m.[39m[34mtoHaveBeenCalledWith[39m(
-    [90m   | [39m                      [31m^[39m
-    [90m151| [39m      [32m'/api/v1/reports/pdf?anneeId=1&activityId=2'[39m[33m,[39m
-    [90m152| [39m      { credentials[33m:[39m [32m'include'[39m }[33m,[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/13]⎯[22m[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/23]⎯[22m[39m
 
 
-[2m Test Files [22m [1m[31m9 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (10)[39m
-[2m      Tests [22m [1m[31m5 failed[39m[22m[2m | [22m[1m[32m4 passed[39m[22m[90m (9)[39m
-[2m   Start at [22m 10:21:33
-[2m   Duration [22m 5.42s[2m (transform 705ms, setup 1.76s, collect 764ms, tests 634ms, environment 9.22s, prepare 10.16s)[22m
+[31m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 4 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/components/bilan/DataEntry.test.tsx[2m > [22mDataEntry[2m > [22mrenders table rows
+[31m[1mTestingLibraryElementError[22m: Unable to find an accessible element with the role "textbox"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body[31m
+  [33mstyle[31m=[32m""[31m
+[36m>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m"mb-4"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"space-y-4"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"space-y-2 p-2 rounded-md "[31m
+        [36m>[31m
+          [36m<label[31m
+            [33mclass[31m=[32m"text-sm font-medium"[31m
+          [36m>[31m
+            [0mTable[0m
+          [36m</label>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"space-y-2"[31m
+          [36m/>[31m
+        [36m</div>[31m
+      [36m</div>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+[90m [2m❯[22m Object.getElementError ../node_modules/.pnpm/@testing-library+dom@10.4.0/node_modules/@testing-library/dom/dist/config.js:[2m37:19[22m[39m
+[90m [2m❯[22m ../node_modules/.pnpm/@testing-library+dom@10.4.0/node_modules/@testing-library/dom/dist/query-helpers.js:[2m76:38[22m[39m
+[90m [2m❯[22m ../node_modules/.pnpm/@testing-library+dom@10.4.0/node_modules/@testing-library/dom/dist/query-helpers.js:[2m109:15[22m[39m
+[36m [2m❯[22m src/components/bilan/DataEntry.test.tsx:[2m154:19[22m[39m
+    [90m152| [39m      [33m/[39m[33m>[39m[33m,[39m
+    [90m153| [39m    )[33m;[39m
+    [90m154| [39m    [34mexpect[39m(screen[33m.[39m[34mgetAllByRole[39m([32m'textbox'[39m)[33m.[39mlength)[33m.[39m[34mtoBe[39m([34m2[39m)[33m;[39m
+    [90m   | [39m                  [31m^[39m
+    [90m155| [39m  })[33m;[39m
+    [90m156| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/23]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/components/bilan/DataEntry.test.tsx[2m > [22mDataEntry[2m > [22muses number input for score type
+[31m[1mTestingLibraryElementError[22m: Unable to find an accessible element with the role "spinbutton"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body[31m
+  [33mstyle[31m=[32m""[31m
+[36m>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m"mb-4"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"space-y-4"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"space-y-2 p-2 rounded-md "[31m
+        [36m>[31m
+          [36m<label[31m
+            [33mclass[31m=[32m"text-sm font-medium"[31m
+          [36m>[31m
+            [0mTable[0m
+          [36m</label>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"space-y-2"[31m
+          [36m/>[31m
+        [36m</div>[31m
+      [36m</div>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+[90m [2m❯[22m Object.getElementError ../node_modules/.pnpm/@testing-library+dom@10.4.0/node_modules/@testing-library/dom/dist/config.js:[2m37:19[22m[39m
+[90m [2m❯[22m ../node_modules/.pnpm/@testing-library+dom@10.4.0/node_modules/@testing-library/dom/dist/query-helpers.js:[2m76:38[22m[39m
+[90m [2m❯[22m ../node_modules/.pnpm/@testing-library+dom@10.4.0/node_modules/@testing-library/dom/dist/query-helpers.js:[2m52:17[22m[39m
+[90m [2m❯[22m ../node_modules/.pnpm/@testing-library+dom@10.4.0/node_modules/@testing-library/dom/dist/query-helpers.js:[2m95:19[22m[39m
+[36m [2m❯[22m src/components/bilan/DataEntry.test.tsx:[2m178:19[22m[39m
+    [90m176| [39m      [33m/[39m[33m>[39m[33m,[39m
+    [90m177| [39m    )[33m;[39m
+    [90m178| [39m    [34mexpect[39m(screen[33m.[39m[34mgetByRole[39m([32m'spinbutton'[39m))[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m   | [39m                  [31m^[39m
+    [90m179| [39m  })[33m;[39m
+    [90m180| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/23]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/components/bilan/DataEntry.test.tsx[2m > [22mDataEntry[2m > [22mrenders select for choix multiple type
+[31m[1mTestingLibraryElementError[22m: Unable to find an accessible element with the role "combobox"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body[31m
+  [33mstyle[31m=[32m""[31m
+[36m>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m"mb-4"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"space-y-4"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"space-y-2 p-2 rounded-md "[31m
+        [36m>[31m
+          [36m<label[31m
+            [33mclass[31m=[32m"text-sm font-medium"[31m
+          [36m>[31m
+            [0mTable[0m
+          [36m</label>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"space-y-2"[31m
+          [36m/>[31m
+        [36m</div>[31m
+      [36m</div>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+[90m [2m❯[22m Object.getElementError ../node_modules/.pnpm/@testing-library+dom@10.4.0/node_modules/@testing-library/dom/dist/config.js:[2m37:19[22m[39m
+[90m [2m❯[22m ../node_modules/.pnpm/@testing-library+dom@10.4.0/node_modules/@testing-library/dom/dist/query-helpers.js:[2m76:38[22m[39m
+[90m [2m❯[22m ../node_modules/.pnpm/@testing-library+dom@10.4.0/node_modules/@testing-library/dom/dist/query-helpers.js:[2m52:17[22m[39m
+[90m [2m❯[22m ../node_modules/.pnpm/@testing-library+dom@10.4.0/node_modules/@testing-library/dom/dist/query-helpers.js:[2m95:19[22m[39m
+[36m [2m❯[22m src/components/bilan/DataEntry.test.tsx:[2m190:19[22m[39m
+    [90m188| [39m      [33m/[39m[33m>[39m[33m,[39m
+    [90m189| [39m    )[33m;[39m
+    [90m190| [39m    [34mexpect[39m(screen[33m.[39m[34mgetByRole[39m([32m'combobox'[39m))[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m   | [39m                  [31m^[39m
+    [90m191| [39m  })[33m;[39m
+    [90m192| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/23]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/components/bilan/DataEntry.test.tsx[2m > [22mDataEntry[2m > [22mrenders checkbox for case a cocher type
+[31m[1mTestingLibraryElementError[22m: Unable to find an accessible element with the role "checkbox"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body[31m
+  [33mstyle[31m=[32m""[31m
+[36m>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m"mb-4"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"space-y-4"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"space-y-2 p-2 rounded-md "[31m
+        [36m>[31m
+          [36m<label[31m
+            [33mclass[31m=[32m"text-sm font-medium"[31m
+          [36m>[31m
+            [0mTable[0m
+          [36m</label>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"space-y-2"[31m
+          [36m/>[31m
+        [36m</div>[31m
+      [36m</div>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+[90m [2m❯[22m Object.getElementError ../node_modules/.pnpm/@testing-library+dom@10.4.0/node_modules/@testing-library/dom/dist/config.js:[2m37:19[22m[39m
+[90m [2m❯[22m ../node_modules/.pnpm/@testing-library+dom@10.4.0/node_modules/@testing-library/dom/dist/query-helpers.js:[2m76:38[22m[39m
+[90m [2m❯[22m ../node_modules/.pnpm/@testing-library+dom@10.4.0/node_modules/@testing-library/dom/dist/query-helpers.js:[2m52:17[22m[39m
+[90m [2m❯[22m ../node_modules/.pnpm/@testing-library+dom@10.4.0/node_modules/@testing-library/dom/dist/query-helpers.js:[2m95:19[22m[39m
+[36m [2m❯[22m src/components/bilan/DataEntry.test.tsx:[2m202:19[22m[39m
+    [90m200| [39m      [33m/[39m[33m>[39m[33m,[39m
+    [90m201| [39m    )[33m;[39m
+    [90m202| [39m    [34mexpect[39m(screen[33m.[39m[34mgetByRole[39m([32m'checkbox'[39m))[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m   | [39m                  [31m^[39m
+    [90m203| [39m  })[33m;[39m
+    [90m204| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/23]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m20 failed[39m[22m[2m | [22m[1m[32m7 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m [1m[31m4 failed[39m[22m[2m | [22m[1m[32m16 passed[39m[22m[90m (20)[39m
+[2m   Start at [22m 09:38:35
+[2m   Duration [22m 19.23s[2m (transform 4.00s, setup 14.56s, collect 14.71s, tests 5.83s, environment 46.90s, prepare 10.73s)[22m
 
 [?25h[41m[30m ELIFECYCLE [39m[49m [31mTest failed. See above for more details.[39m
