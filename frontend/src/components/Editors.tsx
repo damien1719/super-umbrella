@@ -239,6 +239,11 @@ export function TableEditor({ q, onPatch }: EditorProps) {
     setEditingColIdx(null);
   };
 
+  const addGroup = () => {
+    const newGroup: RowsGroup = { id: genId(), title: '', rows: [] };
+    setTable({ ...tableau, rowsGroups: [...tableau.rowsGroups, newGroup] });
+  };
+
   return (
     <div className="space-y-4">
       <div className="overflow-x-auto">
@@ -407,24 +412,43 @@ export function TableEditor({ q, onPatch }: EditorProps) {
             ))}
           </tbody>
         </table>
+        {/* **** NOUVEAU GROUPE DE LIGNES **** */}
+        <div className="p-1">
+           <Input
+            className="w-50 placeholder:text-accent-500"
+            placeholder="+ Nouveau groupe de ligne"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                addGroup(e.currentTarget.value);
+                e.currentTarget.value = '';
+              }
+            }}
+            onBlur={(e) => {
+              if (e.currentTarget.value.trim()) {
+                addGroup(e.currentTarget.value);
+                e.currentTarget.value = '';
+              }
+            }}
+          />
+        </div>
       </div>
       <div className="space-y-2">
         {tableau.commentaire ? (
-          <div className="space-y-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={toggleComment}
-              className="text-red-500 hover:text-red-700"
-            >
-              Retirer le commentaire
-            </Button>
-            <div className="p-2 border rounded">
+          <div className="flex flex-row items-center gap-2">
+
+            <div className="p-2 border border-wood-200 rounded">
               <p className="text-sm text-gray-500 mb-1">
                 La zone de commentaire sera disponible lors de la saisie des
                 données
               </p>
             </div>
+            <Button
+              variant="icon"
+              size="sm"
+              onClick={toggleComment}
+            >
+              <X className="h-4 w-4"  />
+            </Button>
           </div>
         ) : (
           <Button variant="outline" size="sm" onClick={toggleComment}>
