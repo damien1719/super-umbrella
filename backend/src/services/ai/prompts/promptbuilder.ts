@@ -38,7 +38,7 @@ export function buildPrompt(params: PromptParams): readonly SingleMessage[] {
   // 2. Format de sortie pour limiter les hallucinations
   msgs.push({ role: 'system', content: 
     `FORMAT DE SORTIE
-      1. Pour chaque titre de section repéré dans les données Markdown (lignes commençant par ###), tu dois reproduire exactement ce même titre de niveau 3 dans ta réponse.   
+      1. Pour chaque titre de section markdown repéré dans les données du patient, tu dois reproduire exactement ce même titre markdown dans ta réponse.   
       2. Pour chaque tableau ou bloc de données, rédige des phrases descriptives et factuelles.`  
     .trim()
   });
