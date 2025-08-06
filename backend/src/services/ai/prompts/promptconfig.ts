@@ -31,27 +31,8 @@ INSTRUCTIONS OBSERVATIONS
     tests_standards: {
       title: "Tests standards",
       instructions: `
-INSTRUCTIONS TEST‑STANDARDS
-Ton objectif est de réaliser un bilan sensoriel sur la base de tests de résultats
-1. Transformation des scores  
-   • Pour chaque item de test (M-ABC-2, NPMOT…), transforme le score brut et le percentile en phrase descriptive courte :  
-     – « Sur la sous-épreuve Équilibre du M-ABC-2, score brut 6/10 (15ᵉ percentile) → performance légèrement en dessous de la moyenne. »  
-   • Ne génère aucune interprétation ni explication normative ; reste factuel.
-2. Identification des non-conformités  
-   • Repère tout score en dessous du seuil clinique (ex. percentile < 5 ou score critique) et mentionne-le explicitement :  
-     – « Score critique en motricité fine (percentile 3) : attention à la coordination oculo-manuelle. »  
-   • Cite la source normative (MANUEL M-ABC-2, HAS, échelle NPMOT) entre crochets.
-3. Synthèse des écarts  
-   • Regroupe en 2 – 3 phrases les domaines présentant des difficultés significatives :  
-     – thématiques (équilibre, coordination, planification motrice…)  
-     – conséquences possibles sur la participation aux activités quotidiennes.
-4. Recommandations ciblées  
-   • Propose **2 – 3 mesures correctives** précises pour chaque domaine en difficulté :  
-     – exercices gradués (ex. parcours d’équilibre progressif),  
-     – adaptations environnementales (ex. support visuel, table antidérapante),  
-     – conseils à l’entourage (ex. fractionner la tâche).  
-   • Associe chaque recommandation à sa justification issue des résultats.
-  
+INSTRUCTIONS:
+Réalise un bilan psychomoteur sur la base des résultats de tests fournis
       `.trim(),
     },
     conclusions: {
