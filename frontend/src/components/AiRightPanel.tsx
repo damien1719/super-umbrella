@@ -191,9 +191,9 @@ export default function AiRightPanel({
       `| ${['---', ...q.tableau.columns.map(() => '---')].join(' | ')} |\n`;
 
     const body =
-      q.tableau.sections
-        ?.flatMap((section) =>
-          section.rows.map((row) => {
+      q.tableau.rowsGroups
+        ?.flatMap((rowGroup) =>
+          rowGroup.rows.map((row) => {
             const rowData = ansTable[row.id] as
               | Record<string, unknown>
               | undefined;
@@ -214,6 +214,10 @@ export default function AiRightPanel({
       typeof commentVal === 'string'
         ? `\n\n> **Commentaire** : ${commentVal}`
         : '';
+      
+    console.log("header", header)
+    console.log("body", body)
+    console.log("comment", comment)
 
     return header + body + comment;
   }
