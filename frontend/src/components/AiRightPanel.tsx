@@ -191,9 +191,9 @@ export default function AiRightPanel({
       `| ${['---', ...q.tableau.columns.map(() => '---')].join(' | ')} |\n`;
 
     const body =
-      q.tableau.sections
-        ?.flatMap((section) =>
-          section.rows.map((row) => {
+      q.tableau.rowsGroups
+        ?.flatMap((rowGroup) =>
+          rowGroup.rows.map((row) => {
             const rowData = ansTable[row.id] as
               | Record<string, unknown>
               | undefined;
@@ -214,6 +214,10 @@ export default function AiRightPanel({
       typeof commentVal === 'string'
         ? `\n\n> **Commentaire** : ${commentVal}`
         : '';
+      
+    console.log("header", header)
+    console.log("body", body)
+    console.log("comment", comment)
 
     return header + body + comment;
   }
@@ -227,6 +231,7 @@ export default function AiRightPanel({
       case 'echelle':
         return `${q.titre}\n\n${value}`;
       case 'titre':
+        console.log("here");
         return `## ${q.titre}\n\n${value}`;
       default:
         return `${q.titre} : ${value}`;
@@ -249,13 +254,18 @@ export default function AiRightPanel({
       // mdBlocks.push(`# ${section.title}\n`);
 
       for (const q of questions) {
+        console.log("type", q.type);
         if (q.type === 'tableau') {
           const ansTable = (ans[q.id] as TableAnswers) || {};
           mdBlocks.push(markdownifyTable(q, ansTable));
+        } else if (q.type === 'titre') {
+          mdBlocks.push(markdownifyField(q, ''));
         } else {
+          console.log("questions", q)
           const raw = String(ans[q.id] ?? '').trim();
           if (raw) {
             mdBlocks.push(markdownifyField(q, raw));
+            console.log(mdBlocks)
           }
         }
       }

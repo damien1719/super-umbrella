@@ -9,7 +9,7 @@ import {
 import TrameCard from './TrameCard';
 import CreerTrameModal from './ui/creer-trame-modale';
 import ExitConfirmation from './ExitConfirmation';
-import { Plus, X } from 'lucide-react';
+import { Loader2, Plus, Wand2, X } from 'lucide-react';
 import { apiFetch } from '@/utils/api';
 import { useAuth } from '@/store/auth';
 
@@ -249,7 +249,17 @@ export default function WizardAIRightPanel({
             disabled={isGenerating}
             type="button"
           >
-            {isGenerating ? 'Génération...' : 'Générer'}
+            {isGenerating ? (
+              <>
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                Génération...
+              </>
+            ) : (
+              <>
+                <Wand2 className="h-5 w-5 mr-2" />
+                Générer
+              </>
+            )}
           </Button>
         )}
       </div>

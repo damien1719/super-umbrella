@@ -35,10 +35,12 @@ export default function Bilan() {
 
   const hasChanges = bilan?.descriptionHtml !== descriptionHtml;
 
-  const handleBack = () => {
+  const handleBack = async () => {
     if (hasChanges) {
       setShowConfirm(true);
     } else {
+      await save();
+      reset();
       navigate('/');
     }
   };
@@ -72,7 +74,6 @@ export default function Bilan() {
       body: JSON.stringify({ descriptionHtml: clean }),
     });
     setBilan(res);
-    reset();
   };
 
   if (!bilan) return <div>Chargement...</div>;

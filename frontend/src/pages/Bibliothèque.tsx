@@ -15,14 +15,18 @@ import {
 import { FileText, ClipboardList, Eye, Brain } from 'lucide-react';
 import CreerTrameModal from '@/components/ui/creer-trame-modale';
 import { useSectionStore, type Section } from '@/store/sections';
+import { Loader2 } from 'lucide-react';
+
 
 export default function Bibliotheque() {
   const navigate = useNavigate();
   const { items, fetchAll, remove, duplicate } = useSectionStore();
   const [toDelete, setToDelete] = useState<Section | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
 
   useEffect(() => {
-    fetchAll().catch(() => {});
+    fetchAll().then(() => setIsLoading(false)).catch(() => {});
   }, [fetchAll]);
 
   const categories = [
@@ -50,6 +54,11 @@ export default function Bibliotheque() {
           </div>
         </div>
 
+        {isLoading ? (
+          <div className="flex items-center justify-center h-64">
+              <Loader2 className="w-8 h-8 animate-spin" />
+          </div>
+        ) : (
         <div className="space-y-8">
           {categories.map((category) => {
             const IconComponent = category.icon;
@@ -96,6 +105,7 @@ export default function Bibliotheque() {
             );
           })}
         </div>
+        )}
       </div>
       <AlertDialog open={!!toDelete} onOpenChange={() => setToDelete(null)}>
         <AlertDialogContent>
