@@ -29,21 +29,8 @@ export const ImportController = {
         type: 'tableau' as const,
         titre: 'Question sans titre',
         tableau: {
-          columns: table.colonnes.map((c: string, idx: number) => ({
-            id: `c${idx}`,
-            label: String(c).trim(),
-            valueType: 'text',
-          })),
-          sections: [
-            {
-              id: 's1',
-              title: '',
-              rows: table.lignes.map((l: string, idx: number) => ({
-                id: `r${idx}`,
-                label: String(l).trim(),
-              })),
-            },
-          ],
+          columns: table.columns,
+          rowsGroups: table.rowsGroups,
         },
       };
       res.json({ result: [question] });

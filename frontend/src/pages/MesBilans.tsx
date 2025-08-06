@@ -1,6 +1,6 @@
 'use client';
 
-import { Plus } from 'lucide-react';
+import { Loader2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { NewPatientModal } from '@/components/ui/new-patient-modal';
@@ -17,6 +17,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 export default function Component() {
   const [bilans, setBilans] = useState<BilanItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [isNewPatientModalOpen, setIsNewPatientModalOpen] = useState(false);
   const [isExistingPatientModalOpen, setIsExistingPatientModalOpen] =
@@ -33,6 +34,7 @@ export default function Component() {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(setBilans)
+      .then(() => setIsLoading(false))
       .catch(() => {
         /* ignore */
       });
@@ -101,7 +103,11 @@ export default function Component() {
           </div>
         </div>
 
-        {hasBilans ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center h-full">
+            <Loader2 className="w-8 h-8 animate-spin" />
+          </div>
+        ) : ( hasBilans ? (
           <div className="space-y-6">
             <Card className="bg-primary-50 border-primary-200">
               <CardContent className="flex items-center justify-between p-6">
@@ -148,36 +154,36 @@ export default function Component() {
           </div>
         ) : (
           <EmptyState onCreate={() => setIsCreationModalOpen(true)} />
-        )}
+        )
+      )}
       </div>
-
-      <CreationBilan
-        isOpen={isCreationModalOpen}
-        onClose={() => setIsCreationModalOpen(false)}
-        onNewPatient={() => setIsNewPatientModalOpen(true)}
-        onExistingPatient={() => setIsExistingPatientModalOpen(true)}
-      />
-      <NewPatientModal
-        isOpen={isNewPatientModalOpen}
-        onClose={() => setIsNewPatientModalOpen(false)}
-        onPatientCreated={createBilan}
-      />
-      <ExistingPatientModal
-        isOpen={isExistingPatientModalOpen}
-        onClose={() => setIsExistingPatientModalOpen(false)}
-        onPatientSelected={createBilan}
-      />
-      <ConfirmDialog
-        open={!!toDelete}
-        title="Supprimer ce bilan ?"
-        onOpenChange={(open) => !open && setToDelete(null)}
-        onConfirm={async () => {
-          if (toDelete) {
-            await removeBilan(toDelete.id);
-            setToDelete(null);
-          }
-        }}
-      />
+        <CreationBilan
+          isOpen={isCreationModalOpen}
+          onClose={() => setIsCreationModalOpen(false)}
+          onNewPatient={() => setIsNewPatientModalOpen(true)}
+          onExistingPatient={() => setIsExistingPatientModalOpen(true)}
+        />
+        <NewPatientModal
+          isOpen={isNewPatientModalOpen}
+          onClose={() => setIsNewPatientModalOpen(false)}
+          onPatientCreated={createBilan}
+        />
+        <ExistingPatientModal
+          isOpen={isExistingPatientModalOpen}
+          onClose={() => setIsExistingPatientModalOpen(false)}
+          onPatientSelected={createBilan}
+        />
+        <ConfirmDialog
+          open={!!toDelete}
+          title="Supprimer ce bilan ?"
+          onOpenChange={(open) => !open && setToDelete(null)}
+          onConfirm={async () => {
+            if (toDelete) {
+              await removeBilan(toDelete.id);
+              setToDelete(null);
+            }
+          }}
+        />
     </div>
   );
 }

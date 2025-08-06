@@ -191,9 +191,9 @@ export default function AiRightPanel({
       `| ${['---', ...q.tableau.columns.map(() => '---')].join(' | ')} |\n`;
 
     const body =
-      q.tableau.sections
-        ?.flatMap((section) =>
-          section.rows.map((row) => {
+      q.tableau.rowsGroups
+        ?.flatMap((rowGroup) =>
+          rowGroup.rows.map((row) => {
             const rowData = ansTable[row.id] as
               | Record<string, unknown>
               | undefined;
@@ -214,6 +214,10 @@ export default function AiRightPanel({
       typeof commentVal === 'string'
         ? `\n\n> **Commentaire** : ${commentVal}`
         : '';
+      
+    console.log("header", header)
+    console.log("body", body)
+    console.log("comment", comment)
 
     return header + body + comment;
   }
@@ -227,6 +231,7 @@ export default function AiRightPanel({
       case 'echelle':
         return `${q.titre}\n\n${value}`;
       case 'titre':
+        console.log("here");
         return `## ${q.titre}\n\n${value}`;
       default:
         return `${q.titre} : ${value}`;
@@ -249,13 +254,18 @@ export default function AiRightPanel({
       // mdBlocks.push(`# ${section.title}\n`);
 
       for (const q of questions) {
+        console.log("type", q.type);
         if (q.type === 'tableau') {
           const ansTable = (ans[q.id] as TableAnswers) || {};
           mdBlocks.push(markdownifyTable(q, ansTable));
+        } else if (q.type === 'titre') {
+          mdBlocks.push(markdownifyField(q, ''));
         } else {
+          console.log("questions", q)
           const raw = String(ans[q.id] ?? '').trim();
           if (raw) {
             mdBlocks.push(markdownifyField(q, raw));
+            console.log(mdBlocks)
           }
         }
       }
@@ -351,6 +361,29 @@ export default function AiRightPanel({
         <div className="p-4 overflow-y-auto flex-1">
           {mode === 'refine' ? (
             <div className="space-y-4">
+              {refinedText && (
+                <div className="space-y-2">
+                  <div className="p-2 border rounded bg-white whitespace-pre-wrap text-sm">
+                    {refinedText}
+                  </div>
+                  <div className="flex justify-end">
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        if (selection?.restore()) {
+                          onInsertText(refinedText);
+                          selection.clear();
+                        }
+                        setRefinedText('');
+                        setRegenPrompt('');
+                        setMode('idle');
+                      }}
+                    >
+                      Insérer
+                    </Button>
+                  </div>
+                </div>
+              )}
               <h3 className="text-sm font-medium text-left">
                 Si vous voulez ajuster le contenu sélectionné, précisez les
                 modifications souhaitées
@@ -387,29 +420,7 @@ export default function AiRightPanel({
                   {isGenerating ? 'Génération...' : 'Re-générer'}
                 </Button>
               </div>
-              {refinedText && (
-                <div className="space-y-2">
-                  <div className="p-2 border rounded bg-white whitespace-pre-wrap text-sm">
-                    {refinedText}
-                  </div>
-                  <div className="flex justify-end">
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        if (selection?.restore()) {
-                          onInsertText(refinedText);
-                          selection.clear();
-                        }
-                        setRefinedText('');
-                        setRegenPrompt('');
-                        setMode('idle');
-                      }}
-                    >
-                      Insérer
-                    </Button>
-                  </div>
-                </div>
-              )}
+             
             </div>
           ) : regenSection ? (
             <div className="space-y-4">

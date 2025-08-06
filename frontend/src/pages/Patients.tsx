@@ -3,14 +3,18 @@ import { Button } from '../components/ui/button';
 import PatientForm from '../components/PatientForm';
 import { usePatientStore, Patient } from '../store/patients';
 import GenericTable from '../components/bilans/GenericTable';
+import { Loader2 } from 'lucide-react';
+
 
 export default function Patients() {
   const { items, fetchAll, remove } = usePatientStore();
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Patient | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
 
   useEffect(() => {
-    fetchAll().catch(() => {
+    fetchAll().then(() => setIsLoading(false)).catch(() => {
       /* ignore */
     });
   }, [fetchAll]);
@@ -46,6 +50,11 @@ export default function Patients() {
             }}
           />
         )}
+        {isLoading ? (
+          <div className="flex items-center justify-center h-64">
+              <Loader2 className="w-8 h-8 animate-spin" />
+          </div>
+        ) : (
         <div className="space-y-4">
           <GenericTable
             variant="patient"
@@ -58,6 +67,7 @@ export default function Patients() {
             onDelete={(item) => remove(item.id)}
           />
         </div>
+        )}
       </div>
     </div>
   );
