@@ -277,39 +277,42 @@ export default function ImportMagique({
                       className="hidden"
                       data-testid="image-input"
                     />
-                    {image ? (
-                      <input
-                        type="text"
-                        value={image.name}
-                        readOnly
-                        className="border rounded px-3 py-2 bg-gray-50 text-gray-700 w-full max-w-xs"
-                        style={{ cursor: 'default' }}
-                      />
-                    ) : (
-                      <Button
-                        type="button"
-                        onClick={() => imageInputRef.current?.click()}
+                    <div className="w-full flex items-center justify-center flex-col gap-2">
+                      <div
+                        tabIndex={0}
+                        onPaste={(e) => {
+                          const pasted = e.clipboardData.files?.[0];
+                          if (pasted) {
+                            setImage(pasted);
+                            setFile(null);
+                            setHtml('');
+                            setText('');
+                          }
+                        }}
+                        className="border rounded px-3 py-2 text-sm text-muted-foreground w-full max-w-xs text-center flex items-center justify-center w-full max-w-md  h-[200px]"
+                        data-testid="image-paste-zone"
                       >
-                        +Choisir une image
-                      </Button>
-                    )}
+                        Cliquez ici pour copier coller une image
+                      </div>
+                      {image ? (
+                        <input
+                          type="text"
+                          value={image.name}
+                          readOnly
+                          className="border rounded px-3 py-2 bg-gray-50 text-gray-700 w-full max-w-xs"
+                          style={{ cursor: 'default' }}
+                        />
+                      ) : (
+                        <Button
+                          type="button"
+                          onClick={() => imageInputRef.current?.click()}
+                        >
+                          +Choisir une image
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                  <div
-                    tabIndex={0}
-                    onPaste={(e) => {
-                      const pasted = e.clipboardData.files?.[0];
-                      if (pasted) {
-                        setImage(pasted);
-                        setFile(null);
-                        setHtml('');
-                        setText('');
-                      }
-                    }}
-                    className="border rounded px-3 py-2 text-sm text-muted-foreground w-full max-w-xs text-center"
-                    data-testid="image-paste-zone"
-                  >
-                    Copier coller votre image
-                  </div>
+
                 </div>
               )}
             </>
