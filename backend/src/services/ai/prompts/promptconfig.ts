@@ -2,7 +2,7 @@ export const promptConfigs = {
     anamnese: {
       title: "Anamnèse",
       instructions: `
-  ### BLOC INSTRUCTIONS – ANAMNÈSE
+INSTRUCTIONS ANAMNÈSE
   1. Rédige la section « Anamnèse » d’un bilan psychomoteur.
   2. Adopte des phrases factuelles et descriptives.
   3. Très important : ne formuler aucun commentaire ni interprétation ; l’objectif est de rester strictement factuel et descriptif des informations rapportées par les parents.
@@ -13,17 +13,15 @@ export const promptConfigs = {
     profil_sensoriel: {
       title: "Profil sensoriel",
       instructions: `
-  ### BLOC INSTRUCTIONS – PROFIL SENSORIEL
-  1. Décris le profil sensoriel du patient (hypo/hypersensibilités, seuils, modulabilité).
-  2. Appuie-toi sur les observations cliniques et retours familiaux.
-  3. Relie les réactions sensorielles à la régulation tonico-émotionnelle.
-  4. Évite les termes techniques sans explication.
+INSTRUCTIONS PROFIL SENSORIEL
+Réalise un profil sensoriel sur la base des données fournies par la famille
+
       `.trim(),
     },
     observations: {
       title: "Observations",
       instructions: `
-  ### BLOC INSTRUCTIONS – OBSERVATIONS
+INSTRUCTIONS OBSERVATIONS
   1. Présente les observations motrices et posturales (schéma corporel, praxies).
   2. Décris le contexte de l’observation (activité, environnement).
   3. Note les points forts et les difficultés.
@@ -33,17 +31,33 @@ export const promptConfigs = {
     tests_standards: {
       title: "Tests standards",
       instructions: `
-  ### BLOC INSTRUCTIONS – TEST‑STANDARDS
-  1. Vérifie la conformité de chaque critère par rapport aux standards HAS et référentiels français.
-  2. Présente un tableau synthétique des points validés et non-validés.
-  3. Fournis pour chaque non-conformité une recommandation corrective précise.
-  4. Cite la source réglementaire ou bibliographique pour chaque point (HAS, textes officiels, articles).
+INSTRUCTIONS TEST‑STANDARDS
+Ton objectif est de réaliser un bilan sensoriel sur la base de tests de résultats
+1. Transformation des scores  
+   • Pour chaque item de test (M-ABC-2, NPMOT…), transforme le score brut et le percentile en phrase descriptive courte :  
+     – « Sur la sous-épreuve Équilibre du M-ABC-2, score brut 6/10 (15ᵉ percentile) → performance légèrement en dessous de la moyenne. »  
+   • Ne génère aucune interprétation ni explication normative ; reste factuel.
+2. Identification des non-conformités  
+   • Repère tout score en dessous du seuil clinique (ex. percentile < 5 ou score critique) et mentionne-le explicitement :  
+     – « Score critique en motricité fine (percentile 3) : attention à la coordination oculo-manuelle. »  
+   • Cite la source normative (MANUEL M-ABC-2, HAS, échelle NPMOT) entre crochets.
+3. Synthèse des écarts  
+   • Regroupe en 2 – 3 phrases les domaines présentant des difficultés significatives :  
+     – thématiques (équilibre, coordination, planification motrice…)  
+     – conséquences possibles sur la participation aux activités quotidiennes.
+4. Recommandations ciblées  
+   • Propose **2 – 3 mesures correctives** précises pour chaque domaine en difficulté :  
+     – exercices gradués (ex. parcours d’équilibre progressif),  
+     – adaptations environnementales (ex. support visuel, table antidérapante),  
+     – conseils à l’entourage (ex. fractionner la tâche).  
+   • Associe chaque recommandation à sa justification issue des résultats.
+  
       `.trim(),
     },
     conclusions: {
       title: "Conclusions",
       instructions: `
-  ### BLOC INSTRUCTIONS – CONCLUSIONS
+INSTRUCTIONS CONCLUSIONS
   1. Présente les conclusions du bilan psychomoteur.
   2. Utilise un ton descriptif, nuancé et factuel.
       `.trim(),
