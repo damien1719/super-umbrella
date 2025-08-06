@@ -24,6 +24,7 @@ describe('ImportMagique', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Tableau' }));
+    fireEvent.click(screen.getByLabelText('Importer un Excel'));
 
     const data = [
       ['', 'C1', 'C2'],
@@ -41,7 +42,7 @@ describe('ImportMagique', () => {
     const input = screen.getByTestId('file-input') as HTMLInputElement;
     fireEvent.change(input, { target: { files: [file] } });
     await waitFor(() => expect(input.files?.length).toBe(1));
-    fireEvent.click(screen.getByRole('button', { name: 'Transformer' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Importer' }));
 
     await waitFor(() => expect(onDone).toHaveBeenCalled());
     expect(onDone).toHaveBeenCalledWith([
@@ -97,12 +98,13 @@ describe('ImportMagique', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Tableau' }));
+    fireEvent.click(screen.getByLabelText('Importer une image'));
 
     const img = new File(['img'], 'table.png', { type: 'image/png' });
     const input = screen.getByTestId('image-input') as HTMLInputElement;
     fireEvent.change(input, { target: { files: [img] } });
     await waitFor(() => expect(input.files?.length).toBe(1));
-    fireEvent.click(screen.getByRole('button', { name: 'Transformer' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Importer' }));
 
     await waitFor(() => expect(onDone).toHaveBeenCalled());
     expect(mockedApi).toHaveBeenCalledWith(
@@ -155,17 +157,12 @@ describe('ImportMagique', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Tableau' }));
     const textarea = screen.getByPlaceholderText(
-      'Copier-coller votre tableau ici...',
+      'Collez votre tableau ici...',
     ) as HTMLTextAreaElement;
-    const pasteData = {
-      clipboardData: {
-        getData: (type: string) =>
-          type === 'text/plain' ? 'C1\tC2\nL1\tA\n' : '',
-        items: [],
-      },
-    } as unknown as ClipboardEvent;
-    fireEvent.paste(textarea, pasteData);
-    fireEvent.click(screen.getByRole('button', { name: 'Transformer' }));
+    fireEvent.change(textarea, {
+      target: { value: 'C1\tC2\nL1\tA\n' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Importer' }));
 
     await waitFor(() => expect(onDone).toHaveBeenCalled());
     expect(mockedApi).toHaveBeenCalledWith(
@@ -185,6 +182,58 @@ describe('ImportMagique', () => {
         }),
       }),
     ]);
+    expect(onCancel).toHaveBeenCalled();
+  });
+
+  it('transforms pasted image into tableau question via api', async () => {
+    const onDone = vi.fn();
+    const onCancel = vi.fn();
+    const mockedApi = apiFetch as unknown as vi.Mock;
+    mockedApi.mockResolvedValueOnce({
+      result: [
+        {
+          id: '1',
+          type: 'tableau',
+          titre: 'Question sans titre',
+          tableau: {
+            columns: [{ id: 'c1', label: 'C1', valueType: 'text' }],
+            sections: [
+              { id: 's1', title: '', rows: [{ id: 'r1', label: 'L1' }] },
+            ],
+          },
+        },
+      ],
+    });
+
+    render(
+      <Dialog open>
+        <DialogContent>
+          <ImportMagique onDone={onDone} onCancel={onCancel} />
+        </DialogContent>
+      </Dialog>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Tableau' }));
+    fireEvent.click(screen.getByLabelText('Importer une image'));
+
+    const pasteZone = screen.getByTestId('image-paste-zone');
+    const img = new File(['img'], 'pasted.png', { type: 'image/png' });
+    const pasteEvent = {
+      clipboardData: { files: [img] },
+      preventDefault: () => {},
+    } as unknown as ClipboardEvent;
+    fireEvent.paste(pasteZone, pasteEvent);
+    await waitFor(() =>
+      expect(screen.getByDisplayValue('pasted.png')).toBeInTheDocument(),
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Importer' }));
+
+    await waitFor(() => expect(onDone).toHaveBeenCalled());
+    expect(mockedApi).toHaveBeenCalledWith(
+      '/api/v1/import/transform-image',
+      expect.any(Object),
+    );
     expect(onCancel).toHaveBeenCalled();
   });
 });
