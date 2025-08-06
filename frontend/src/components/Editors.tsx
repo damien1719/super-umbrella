@@ -10,7 +10,7 @@ import type {
   Row,
   RowsGroup,
 } from '@/types/Typequestion';
-import { X, MoreVertical, GripVertical } from 'lucide-react';
+import { X, Settings, GripVertical } from 'lucide-react';
 import ChoixTypeDeValeurTableau from './ChoixTypeDeValeurTableau';
 
 export type EditorProps = {
@@ -269,7 +269,7 @@ export function TableEditor({ q, onPatch }: EditorProps) {
                         size="micro"
                         onClick={() => setEditingColIdx(colIdx)}
                       >
-                        <MoreVertical className="h-4 w-4" />
+                        <Settings className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="icon"
@@ -383,28 +383,28 @@ export function TableEditor({ q, onPatch }: EditorProps) {
                     <td className="p-1"></td>
                   </tr>
                 ))}
+              <tr>
+                <th className="p-1">
+                  <Input
+                    className="w-40 placeholder:text-accent-500"
+                    placeholder="+ Nouvelle ligne"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                        addLine(group.id, e.currentTarget.value);
+                        e.currentTarget.value = '';
+                      }
+                    }}
+                    onBlur={(e) => {
+                      if (e.currentTarget.value.trim()) {
+                        addLine(group.id, e.currentTarget.value);
+                        e.currentTarget.value = '';
+                      }
+                    }}
+                  />
+                </th>
+            </tr>
               </React.Fragment>
             ))}
-            <tr>
-              <th className="p-1">
-                <Input
-                  className="w-40 placeholder:text-accent-500"
-                  placeholder="+ Nouvelle ligne"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && e.currentTarget.value.trim()) {
-                      addLine(rowsGroup.id, e.currentTarget.value);
-                      e.currentTarget.value = '';
-                    }
-                  }}
-                  onBlur={(e) => {
-                    if (e.currentTarget.value.trim()) {
-                      addLine(rowsGroup.id, e.currentTarget.value);
-                      e.currentTarget.value = '';
-                    }
-                  }}
-                />
-              </th>
-            </tr>
           </tbody>
         </table>
       </div>
