@@ -32,6 +32,22 @@ export default function ImportMagique({
   const [loading, setLoading] = useState(false);
   const token = useAuth((s) => s.token);
 
+  const addDefaultValueType = (questions: Question[]): Question[] =>
+    questions.map((q) =>
+      q.type === 'tableau' && q.tableau
+        ? {
+            ...q,
+            tableau: {
+              ...q.tableau,
+              columns: q.tableau.columns.map((c) => ({
+                ...c,
+                valueType: c.valueType ?? 'text',
+              })),
+            },
+          }
+        : q,
+    );
+
   const transformTable = (rows: (string | number)[][]) => {
     if (rows.length === 0) return [];
     const header = rows[0];
@@ -74,7 +90,7 @@ export default function ImportMagique({
             body: JSON.stringify({ content: text }),
           },
         );
-        onDone(res.result);
+        onDone(addDefaultValueType(res.result));
       } else if (tableImportType === 'excel' && file) {
         const data = await new Promise<ArrayBuffer>((resolve, reject) => {
           const reader = new FileReader();
@@ -87,7 +103,7 @@ export default function ImportMagique({
         const rows = utils.sheet_to_json<(string | number)[]>(sheet, {
           header: 1,
         }) as (string | number)[][];
-        onDone(transformTable(rows));
+        onDone(addDefaultValueType(transformTable(rows)));
       } else if (tableImportType === 'image' && image) {
         const base64 = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
@@ -107,7 +123,7 @@ export default function ImportMagique({
             body: JSON.stringify({ image: base64 }),
           },
         );
-        onDone(res.result);
+        onDone(addDefaultValueType(res.result));
       } else if (tableImportType === 'text' && (text.trim() || html.trim())) {
         const res = await apiFetch<{ result: Question[] }>(
           '/api/v1/import/transform-text-table',
@@ -120,7 +136,7 @@ export default function ImportMagique({
             body: JSON.stringify({ content: text }),
           },
         );
-        onDone(res.result);
+        onDone(addDefaultValueType(res.result));
       }
     } catch {
       alert("Nous n'avons pas pu transformé votre tableau");
@@ -312,7 +328,6 @@ export default function ImportMagique({
                       )}
                     </div>
                   </div>
-
                 </div>
               )}
             </>

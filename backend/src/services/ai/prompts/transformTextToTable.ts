@@ -17,14 +17,10 @@ const DEFAULT_SCHEMA = {
         type: 'object',
         additionalProperties: false,
         properties: {
-          id:        { type: 'string' },
-          label:     { type: 'string' },
-          valueType: {
-            type: 'string',
-            enum: ['bool', 'number', 'text', 'choice', 'image'],
-          },
+          id:    { type: 'string' },
+          label: { type: 'string' },
         },
-        required: ['id', 'label', 'valueType'],
+        required: ['id', 'label'],
       },
     },
     rowsGroups: {

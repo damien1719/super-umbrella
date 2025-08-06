@@ -28,8 +28,10 @@ describe('POST /api/v1/import/transform', () => {
 describe('POST /api/v1/import/transform-image', () => {
   it('calls ai service with image data', async () => {
     mockedTransformImage.mockResolvedValueOnce({
-      colonnes: ['C1'],
-      lignes: ['L1'],
+      columns: [{ id: 'c1', label: 'C1' }],
+      rowsGroups: [
+        { id: 's1', title: '', rows: [{ id: 'r1', label: 'L1' }] },
+      ],
     })
 
     const res = await request(app)
@@ -42,7 +44,7 @@ describe('POST /api/v1/import/transform-image', () => {
       titre: 'Question sans titre',
       tableau: {
         columns: [expect.objectContaining({ label: 'C1' })],
-        sections: [
+        rowsGroups: [
           expect.objectContaining({
             rows: [expect.objectContaining({ label: 'L1' })],
           }),
@@ -56,8 +58,10 @@ describe('POST /api/v1/import/transform-image', () => {
 describe('POST /api/v1/import/transform-text-table', () => {
   it('calls ai service with text data', async () => {
     mockedTransformTextToTable.mockResolvedValueOnce({
-      colonnes: ['C1'],
-      lignes: ['L1'],
+      columns: [{ id: 'c1', label: 'C1' }],
+      rowsGroups: [
+        { id: 's1', title: '', rows: [{ id: 'r1', label: 'L1' }] },
+      ],
     })
 
     const res = await request(app)
@@ -70,7 +74,7 @@ describe('POST /api/v1/import/transform-text-table', () => {
       titre: 'Question sans titre',
       tableau: {
         columns: [expect.objectContaining({ label: 'C1' })],
-        sections: [
+        rowsGroups: [
           expect.objectContaining({
             rows: [expect.objectContaining({ label: 'L1' })],
           }),
