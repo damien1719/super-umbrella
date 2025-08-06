@@ -29,7 +29,7 @@ interface Props {
   onReorder: (from: number, to: number) => void;
   onDuplicate: (id: string) => void;
   onDelete: (id: string) => void;
-  onAddAfter: () => void;
+  onAddAfter: (id: string) => void;
 }
 
 export default function QuestionList({
@@ -127,8 +127,21 @@ export default function QuestionList({
               </CardHeader>
               <CardContent className="space-y-4">
                 <Editor q={question} onPatch={(p) => onPatch(question.id, p)} />
-                {selectedId === question.id && (
-                  <div className="flex justify-end gap-2 pt-4">
+                  <div
+                    className={
+                      `flex justify-end gap-2 pt-4 transition-opacity duration-200 ` +
+                      (selectedId === question.id
+                        ? 'opacity-100'
+                        : 'opacity-0 group-hover:opacity-100')
+                    }
+                    onClick={(e) => e.stopPropagation()} // pour que le clic sur les boutons ne déclenche pas onSelect
+                  >
+                    <Button variant="outline" size="sm" onClick={(e) => {
+                      e.stopPropagation();
+                      onAddAfter(question.id);
+                    }}>
+                      <Plus className="h-5 w-5" />
+                    </Button>
                     <Button
                       variant="outline"
                       size="sm"
@@ -150,13 +163,35 @@ export default function QuestionList({
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
-                )}
               </CardContent>
             </Card>
             {selectedId === question.id && (
-              <div className="absolute top-1/2 -translate-y-1/2 -right-4">
-                <Button variant="primary" size="icon" onClick={onAddAfter}>
+              <div className="flex flex-col absolute top-1/2 -translate-y-1/2 space-y-2">
+                <Button variant="primary" size="icon" onClick={(e) => {
+                  e.stopPropagation();
+                  onAddAfter(question.id);
+                }}>
                   <Plus className="h-6 w-6 text-white" />
+                </Button>
+                <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDuplicate(question.id);
+                      }}
+                    >
+                    <Copy className="h-4 w-4" />
+                </Button>
+                <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(question.id);
+                      }}
+                    >
+                    <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
             )}

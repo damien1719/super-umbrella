@@ -13,6 +13,7 @@ import type {
 import { X, MoreVertical } from 'lucide-react';
 import ChoixTypeDeValeurTableau from './ChoixTypeDeValeurTableau';
 
+
 export type EditorProps = {
   q: Question;
   onPatch: (p: Partial<Question>) => void;
@@ -27,6 +28,7 @@ export function NotesEditor({}: EditorProps) {
     </div>
   );
 }
+
 
 export function MultiChoiceEditor({ q, onPatch }: EditorProps) {
   const options = ('options' in q && q.options) || [];
@@ -90,16 +92,16 @@ export function ScaleEditor({}: EditorProps) {
 }
 
 export function TableEditor({ q, onPatch }: EditorProps) {
+
+
   const genId = () => Math.random().toString(36).slice(2);
   const tableau: SurveyTable & { commentaire?: boolean } = q.tableau || {
     columns: [],
     rowsGroups: [{ id: genId(), title: '', rows: [] }],
   };
-  const rowsGroup: RowsGroup = tableau.rowsGroups[0] || {
-    id: genId(),
-    title: '',
-    rows: [],
-  };
+  const lastIndex = tableau.rowsGroups.length - 1;
+  const rowsGroup: RowsGroup =
+    tableau.rowsGroups[lastIndex] || { id: genId(), title: '', rows: [] };
 
   const setTable = (tb: SurveyTable & { commentaire?: boolean }) => {
     onPatch({ tableau: tb } as Partial<Question>);
@@ -127,33 +129,44 @@ export function TableEditor({ q, onPatch }: EditorProps) {
     setTable({ ...tableau, columns: cols });
   };
 
-  const addLine = (value: string) => {
+  const addLine = (groupId: string, value: string) => {
     const trimmed = value.trim();
     if (!trimmed) return;
     const newRow: Row = { id: genId(), label: trimmed };
-    const newRowsGroup = { ...rowsGroup, rows: [...rowsGroup.rows, newRow] };
     setTable({
       ...tableau,
-      rowsGroups: [newRowsGroup, ...tableau.rowsGroups.slice(1)],
+      rowsGroups: tableau.rowsGroups.map(g =>
+        g.id === groupId
+          ? { ...g, rows: [...g.rows, newRow] }
+          : g
+      ),
     });
   };
 
-  const updateLine = (idx: number, value: string) => {
-    const rows = [...rowsGroup.rows];
-    rows[idx] = { ...rows[idx], label: value };
-    const newRowsGroup = { ...rowsGroup, rows };
+  const updateLine = (groupId: string, idx: number, value: string) => {
     setTable({
       ...tableau,
-      rowsGroups: [newRowsGroup, ...tableau.rowsGroups.slice(1)],
+      rowsGroups: tableau.rowsGroups.map(g =>
+        g.id === groupId
+          ? {
+              ...g,
+              rows: g.rows.map((r,i) =>
+                i === idx ? { ...r, label: value } : r
+              ),
+            }
+          : g
+      ),
     });
   };
 
-  const removeLine = (idx: number) => {
-    const rows = rowsGroup.rows.filter((_, i) => i !== idx);
-    const newRowsGroup = { ...rowsGroup, rows };
+  const removeLine = (groupId: string, idx: number) => {
     setTable({
       ...tableau,
-      rowsGroups: [newRowsGroup, ...tableau.rowsGroups.slice(1)],
+      rowsGroups: tableau.rowsGroups.map(g =>
+        g.id === groupId
+          ? { ...g, rows: g.rows.filter((_, i) => i !== idx) }
+          : g
+      ),
     });
   };
 
@@ -206,8 +219,8 @@ export function TableEditor({ q, onPatch }: EditorProps) {
               ))}
               <th className="p-1">
                 <Input
-                  className="w-40 whitespace-normal break-words"
-                  placeholder="Ajouter une colonne"
+                  className="w-40 placeholder:text-accent-500"
+                  placeholder="+ Nouvelle colonne"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && e.currentTarget.value.trim()) {
                       addColumn(e.currentTarget.value);
@@ -243,12 +256,20 @@ export function TableEditor({ q, onPatch }: EditorProps) {
                         <Input
                           className="w-40 whitespace-normal break-words"
                           value={ligne.label}
-                          onChange={(e) => updateLine(ligneIdx, e.target.value)}
+                          onChange={(e) => updateLine(group.id, ligneIdx, e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              updateLine(group.id, ligneIdx, e.currentTarget.value);
+                              e.currentTarget.blur();
+                            }
+                          }}
+                          onBlur={e => updateLine(group.id, ligneIdx, e.currentTarget.value)}  
                         />
                         <Button
                           variant="icon"
                           size="micro"
-                          onClick={() => removeLine(ligneIdx)}
+                          onClick={() => removeLine(group.id, ligneIdx)}
                         >
                           <X className="h-4 w-4" />
                         </Button>
@@ -267,16 +288,17 @@ export function TableEditor({ q, onPatch }: EditorProps) {
             <tr>
               <th className="p-1">
                 <Input
-                  placeholder="Ajouter une ligne"
+                  className="w-40 placeholder:text-accent-500"
+                  placeholder="+ Nouvelle ligne"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && e.currentTarget.value.trim()) {
-                      addLine(e.currentTarget.value);
+                      addLine(rowsGroup.id, e.currentTarget.value);
                       e.currentTarget.value = '';
                     }
                   }}
                   onBlur={(e) => {
                     if (e.currentTarget.value.trim()) {
-                      addLine(e.currentTarget.value);
+                      addLine(rowsGroup.id, e.currentTarget.value);
                       e.currentTarget.value = '';
                     }
                   }}
