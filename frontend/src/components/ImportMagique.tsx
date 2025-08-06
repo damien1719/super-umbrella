@@ -21,14 +21,15 @@ export default function ImportMagique({
 }: ImportMagiqueProps) {
   const [mode, setMode] = useState<'liste' | 'tableau'>('liste');
   const [text, setText] = useState('');
-  const [tableImportType, setTableImportType] = useState<'text' | 'image' | 'excel'>('text')
+  const [tableImportType, setTableImportType] = useState<
+    'text' | 'image' | 'excel'
+  >('text');
   const [html, setHtml] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [image, setImage] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
-  const [isTransforming, setIsTransforming] = useState(false);
   const token = useAuth((s) => s.token);
 
   const transformTable = (rows: (string | number)[][]) => {
@@ -54,34 +55,6 @@ export default function ImportMagique({
         tableau: { columns, sections: [{ id: 's1', title: '', rows: lignes }] },
       },
     ];
-  };
-
-  const handleTransformToTable = async () => {
-    if (!text.trim()) return;
-
-    setIsTransforming(true);
-    try {
-      const res = await apiFetch<{ result: Question[] }>(
-        '/api/v1/import/transform-text-table',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ content: text }),
-        },
-      );
-
-      console.log('res', res);
-
-      onDone(res.result);
-      onCancel();
-    } catch (error) {
-      console.error('Erreur lors de la transformation en tableau:', error);
-    } finally {
-      setIsTransforming(false);
-    }
   };
 
   /// DETTE ANCIEN FORMAT DE TABLEAU ///
@@ -200,49 +173,59 @@ export default function ImportMagique({
 
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
-             ✨ Collez simplement un document Word à partir de votre trame habituelle : il sera automatiquement importé et prêt à être utilisé dans l’application.
+            ✨ Collez simplement un document Word à partir de votre trame
+            habituelle : il sera automatiquement importé et prêt à être utilisé
+            dans l’application.
           </p>
           {mode === 'liste' ? (
-              <div className="relative">
-                <Textarea
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  className="min-h-[200px] max-h-[50vh] w-full overflow-y-auto resize-none"
-                  placeholder="Collez votre texte ici..."
-                />
-              </div>
-            ) : (
-              <>
+            <div className="relative">
+              <Textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                className="min-h-[200px] max-h-[50vh] w-full overflow-y-auto resize-none"
+                placeholder="Collez votre texte ici..."
+              />
+            </div>
+          ) : (
+            <>
               <RadioGroup
                 value={tableImportType}
-                onValueChange={(value) => setTableImportType(value as 'text' | 'image' | 'excel')}
+                onValueChange={(value) =>
+                  setTableImportType(value as 'text' | 'image' | 'excel')
+                }
                 className="flex gap-4 mb-4"
                 name="mode"
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="text" id="radio-text" />
-                  <label htmlFor="radio-text" className="text-sm">Copier–coller un texte issu de Word ou Excel</label>
+                  <label htmlFor="radio-text" className="text-sm">
+                    Copier–coller un texte issu de Word ou Excel
+                  </label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="image" id="radio-image" />
-                  <label htmlFor="radio-image" className="text-sm">Importer une image</label>
+                  <label htmlFor="radio-image" className="text-sm">
+                    Importer une image
+                  </label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="excel" id="radio-excel" />
-                  <label htmlFor="radio-excel" className="text-sm">Importer un Excel</label>
+                  <label htmlFor="radio-excel" className="text-sm">
+                    Importer un Excel
+                  </label>
                 </div>
               </RadioGroup>
               {tableImportType === 'text' && (
                 <Textarea
-                value={text}
-                onChange={(e) => {
-                  setText(e.target.value)
-                  setHtml('')
-                  setFile(null)
-                  setImage(null)
-                }}
-                className="min-h-[200px] max-h-[50vh] w-full overflow-y-auto resize-none"
-                placeholder="Collez votre tableau ici..."
+                  value={text}
+                  onChange={(e) => {
+                    setText(e.target.value);
+                    setHtml('');
+                    setFile(null);
+                    setImage(null);
+                  }}
+                  className="min-h-[200px] max-h-[50vh] w-full overflow-y-auto resize-none"
+                  placeholder="Collez votre tableau ici..."
                 />
               )}
               {tableImportType === 'excel' && (
@@ -311,8 +294,8 @@ export default function ImportMagique({
                   )}
                 </div>
               )}
-              </>
-            )}
+            </>
+          )}
         </div>
         <div className="px-6 py-4 bg-muted/20">
           <div className="flex justify-end gap-3">
@@ -335,16 +318,18 @@ export default function ImportMagique({
               type="button"
               className="min-w-[120px]"
             >
-              {loading ? 
+              {loading ? (
                 <>
-                  <Loader2 className="h-5 w-5 mr-2 animate-spin" /> 
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
                   Traitement...
                 </>
-                : 'Importer'}
+              ) : (
+                'Importer'
+              )}
             </Button>
           </div>
         </div>
       </div>
-      </div>
-    );
-  }
+    </div>
+  );
+}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,9 +10,8 @@ import type {
   Row,
   RowsGroup,
 } from '@/types/Typequestion';
-import { X, MoreVertical } from 'lucide-react';
+import { X, MoreVertical, GripVertical } from 'lucide-react';
 import ChoixTypeDeValeurTableau from './ChoixTypeDeValeurTableau';
-
 
 export type EditorProps = {
   q: Question;
@@ -28,7 +27,6 @@ export function NotesEditor({}: EditorProps) {
     </div>
   );
 }
-
 
 export function MultiChoiceEditor({ q, onPatch }: EditorProps) {
   const options = ('options' in q && q.options) || [];
@@ -92,16 +90,24 @@ export function ScaleEditor({}: EditorProps) {
 }
 
 export function TableEditor({ q, onPatch }: EditorProps) {
-
-
   const genId = () => Math.random().toString(36).slice(2);
-  const tableau: SurveyTable & { commentaire?: boolean } = q.tableau || {
-    columns: [],
-    rowsGroups: [{ id: genId(), title: '', rows: [] }],
-  };
+  const tableau: SurveyTable & { commentaire?: boolean } = q.tableau
+    ? 'rowsGroups' in q.tableau
+      ? q.tableau
+      : {
+          ...(q.tableau as SurveyTable),
+          rowsGroups: (q.tableau as { sections?: RowsGroup[] }).sections || [],
+        }
+    : {
+        columns: [],
+        rowsGroups: [{ id: genId(), title: '', rows: [] }],
+      };
   const lastIndex = tableau.rowsGroups.length - 1;
-  const rowsGroup: RowsGroup =
-    tableau.rowsGroups[lastIndex] || { id: genId(), title: '', rows: [] };
+  const rowsGroup: RowsGroup = tableau.rowsGroups[lastIndex] || {
+    id: genId(),
+    title: '',
+    rows: [],
+  };
 
   const setTable = (tb: SurveyTable & { commentaire?: boolean }) => {
     onPatch({ tableau: tb } as Partial<Question>);
@@ -135,10 +141,8 @@ export function TableEditor({ q, onPatch }: EditorProps) {
     const newRow: Row = { id: genId(), label: trimmed };
     setTable({
       ...tableau,
-      rowsGroups: tableau.rowsGroups.map(g =>
-        g.id === groupId
-          ? { ...g, rows: [...g.rows, newRow] }
-          : g
+      rowsGroups: tableau.rowsGroups.map((g) =>
+        g.id === groupId ? { ...g, rows: [...g.rows, newRow] } : g,
       ),
     });
   };
@@ -146,15 +150,15 @@ export function TableEditor({ q, onPatch }: EditorProps) {
   const updateLine = (groupId: string, idx: number, value: string) => {
     setTable({
       ...tableau,
-      rowsGroups: tableau.rowsGroups.map(g =>
+      rowsGroups: tableau.rowsGroups.map((g) =>
         g.id === groupId
           ? {
               ...g,
-              rows: g.rows.map((r,i) =>
-                i === idx ? { ...r, label: value } : r
+              rows: g.rows.map((r, i) =>
+                i === idx ? { ...r, label: value } : r,
               ),
             }
-          : g
+          : g,
       ),
     });
   };
@@ -162,10 +166,10 @@ export function TableEditor({ q, onPatch }: EditorProps) {
   const removeLine = (groupId: string, idx: number) => {
     setTable({
       ...tableau,
-      rowsGroups: tableau.rowsGroups.map(g =>
+      rowsGroups: tableau.rowsGroups.map((g) =>
         g.id === groupId
           ? { ...g, rows: g.rows.filter((_, i) => i !== idx) }
-          : g
+          : g,
       ),
     });
   };
@@ -175,6 +179,58 @@ export function TableEditor({ q, onPatch }: EditorProps) {
   };
 
   const [editingColIdx, setEditingColIdx] = useState<number | null>(null);
+
+  const colDragIdx = useRef<number | null>(null);
+  const handleColDragStart = (idx: number) => {
+    colDragIdx.current = idx;
+  };
+  const handleColDragEnd = () => {
+    colDragIdx.current = null;
+  };
+  const handleColDrop = (idx: number) => {
+    if (colDragIdx.current === null || colDragIdx.current === idx) {
+      colDragIdx.current = null;
+      return;
+    }
+    const cols = [...tableau.columns];
+    const [col] = cols.splice(colDragIdx.current, 1);
+    cols.splice(idx, 0, col);
+    setTable({ ...tableau, columns: cols });
+    colDragIdx.current = null;
+  };
+
+  const rowDrag = useRef<{ groupId: string; index: number } | null>(null);
+  const handleRowDragStart = (groupId: string, idx: number) => {
+    rowDrag.current = { groupId, index: idx };
+  };
+  const handleRowDragEnd = () => {
+    rowDrag.current = null;
+  };
+  const handleRowDrop = (groupId: string, idx: number) => {
+    if (!rowDrag.current) return;
+    const { groupId: fromGroupId, index: fromIdx } = rowDrag.current;
+    if (fromGroupId === groupId && fromIdx === idx) {
+      rowDrag.current = null;
+      return;
+    }
+    const groups = tableau.rowsGroups.map((g) => ({
+      ...g,
+      rows: [...g.rows],
+    }));
+    const fromGroup = groups.find((g) => g.id === fromGroupId);
+    const toGroup = groups.find((g) => g.id === groupId);
+    if (!fromGroup || !toGroup) {
+      rowDrag.current = null;
+      return;
+    }
+    const [row] = fromGroup.rows.splice(fromIdx, 1);
+    let insertIdx = idx;
+    if (fromGroupId === groupId && fromIdx < idx) insertIdx -= 1;
+    toGroup.rows.splice(insertIdx, 0, row);
+    setTable({ ...tableau, rowsGroups: groups });
+    rowDrag.current = null;
+  };
+
   const handleColumnTypeChange = (col: ColumnDef) => {
     if (editingColIdx === null) return;
     const cols = [...tableau.columns];
@@ -191,9 +247,23 @@ export function TableEditor({ q, onPatch }: EditorProps) {
             <tr>
               <th className="p-1"></th>
               {tableau.columns.map((col, colIdx) => (
-                <th key={col.id} className="p-1">
+                <th
+                  key={col.id}
+                  className="p-1"
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => handleColDrop(colIdx)}
+                >
                   <div className="flex flex-col items-center gap-2">
                     <div className="flex gap-1">
+                      <button
+                        aria-label="Déplacer la colonne"
+                        draggable
+                        onDragStart={() => handleColDragStart(colIdx)}
+                        onDragEnd={handleColDragEnd}
+                        className="cursor-move p-1"
+                      >
+                        <GripVertical className="h-4 w-4" />
+                      </button>
                       <Button
                         variant="icon"
                         size="micro"
@@ -241,7 +311,10 @@ export function TableEditor({ q, onPatch }: EditorProps) {
             {tableau.rowsGroups.map((group) => (
               <React.Fragment key={group.id}>
                 {/* ligne de titre de groupe (fusionnant toutes les colonnes) */}
-                <tr>
+                <tr
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => handleRowDrop(group.id, 0)}
+                >
                   <td
                     colSpan={tableau.columns.length + 1}
                     className="p-1 font-bold"
@@ -250,21 +323,48 @@ export function TableEditor({ q, onPatch }: EditorProps) {
                   </td>
                 </tr>
                 {group.rows.map((ligne: Row, ligneIdx: number) => (
-                  <tr key={ligne.id}>
+                  <tr
+                    key={ligne.id}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={() => handleRowDrop(group.id, ligneIdx)}
+                  >
                     <th className="p-1">
                       <div className="flex items-center gap-2">
+                        <button
+                          aria-label="Déplacer la ligne"
+                          draggable
+                          onDragStart={() =>
+                            handleRowDragStart(group.id, ligneIdx)
+                          }
+                          onDragEnd={handleRowDragEnd}
+                          className="cursor-move p-1"
+                        >
+                          <GripVertical className="h-4 w-4" />
+                        </button>
                         <Input
                           className="w-40 whitespace-normal break-words"
                           value={ligne.label}
-                          onChange={(e) => updateLine(group.id, ligneIdx, e.target.value)}
-                          onKeyDown={e => {
+                          onChange={(e) =>
+                            updateLine(group.id, ligneIdx, e.target.value)
+                          }
+                          onKeyDown={(e) => {
                             if (e.key === 'Enter') {
                               e.preventDefault();
-                              updateLine(group.id, ligneIdx, e.currentTarget.value);
+                              updateLine(
+                                group.id,
+                                ligneIdx,
+                                e.currentTarget.value,
+                              );
                               e.currentTarget.blur();
                             }
                           }}
-                          onBlur={e => updateLine(group.id, ligneIdx, e.currentTarget.value)}  
+                          onBlur={(e) =>
+                            updateLine(
+                              group.id,
+                              ligneIdx,
+                              e.currentTarget.value,
+                            )
+                          }
                         />
                         <Button
                           variant="icon"
