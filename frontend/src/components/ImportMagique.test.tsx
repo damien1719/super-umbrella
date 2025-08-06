@@ -80,7 +80,7 @@ describe('ImportMagique', () => {
           type: 'tableau',
           titre: 'Question sans titre',
           tableau: {
-            columns: [{ id: 'c1', label: 'C1', valueType: 'text' }],
+            columns: [{ id: 'c1', label: 'C1' }],
             sections: [
               { id: 's1', title: '', rows: [{ id: 'r1', label: 'L1' }] },
             ],
@@ -115,7 +115,9 @@ describe('ImportMagique', () => {
       expect.objectContaining({
         type: 'tableau',
         tableau: expect.objectContaining({
-          columns: [expect.objectContaining({ label: 'C1' })],
+          columns: [
+            expect.objectContaining({ label: 'C1', valueType: 'text' }),
+          ],
           sections: [
             expect.objectContaining({
               rows: [expect.objectContaining({ label: 'L1' })],
@@ -138,7 +140,7 @@ describe('ImportMagique', () => {
           type: 'tableau',
           titre: 'Question sans titre',
           tableau: {
-            columns: [{ id: 'c1', label: 'C1', valueType: 'text' }],
+            columns: [{ id: 'c1', label: 'C1' }],
             sections: [
               { id: 's1', title: '', rows: [{ id: 'r1', label: 'L1' }] },
             ],
@@ -173,7 +175,9 @@ describe('ImportMagique', () => {
       expect.objectContaining({
         type: 'tableau',
         tableau: expect.objectContaining({
-          columns: [expect.objectContaining({ label: 'C1' })],
+          columns: [
+            expect.objectContaining({ label: 'C1', valueType: 'text' }),
+          ],
           sections: [
             expect.objectContaining({
               rows: [expect.objectContaining({ label: 'L1' })],
@@ -196,7 +200,7 @@ describe('ImportMagique', () => {
           type: 'tableau',
           titre: 'Question sans titre',
           tableau: {
-            columns: [{ id: 'c1', label: 'C1', valueType: 'text' }],
+            columns: [{ id: 'c1', label: 'C1' }],
             sections: [
               { id: 's1', title: '', rows: [{ id: 'r1', label: 'L1' }] },
             ],
@@ -234,6 +238,16 @@ describe('ImportMagique', () => {
       '/api/v1/import/transform-image',
       expect.any(Object),
     );
+    expect(onDone).toHaveBeenCalledWith([
+      expect.objectContaining({
+        type: 'tableau',
+        tableau: expect.objectContaining({
+          columns: [
+            expect.objectContaining({ label: 'C1', valueType: 'text' }),
+          ],
+        }),
+      }),
+    ]);
     expect(onCancel).toHaveBeenCalled();
   });
 });
