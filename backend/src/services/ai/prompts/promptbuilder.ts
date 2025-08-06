@@ -36,25 +36,25 @@ export function buildPrompt(params: PromptParams): readonly SingleMessage[] {
   msgs.push({ role: 'system', content: (params.systemPrompt ?? DEFAULT_SYSTEM).trim() });
 
   // 2. Format de sortie pour limiter les hallucinations
-  msgs.push({ role: 'user', content: 
-    `### Format de sortie
-      1. Pour chaque section "Titre de partie" du JSON, utiliser un titre de niveau "###" avec le nom exact de la clé hormis Titre de la partie.  
-      2. Rédiger des phrases descriptives et factuelles pour les champs.`  
+  msgs.push({ role: 'system', content: 
+    `FORMAT DE SORTIE
+      1. Pour chaque titre de section repéré dans les données Markdown (lignes commençant par ###), tu dois reproduire exactement ce même titre de niveau 3 dans ta réponse.   
+      2. Pour chaque tableau ou bloc de données, rédige des phrases descriptives et factuelles.`  
     .trim()
   });
 
   // 3. Contexte métier (optionnel)
   if (params.contextData) {
-    msgs.push({ role: 'user', content: `### Contexte\n${params.contextData.trim()}` });
+    msgs.push({ role: 'user', content: `Contexte (Markdown)\n${params.contextData.trim()}` });
   }
 
   // 4. Instructions spécifiques
-  msgs.push({ role: 'user', content: `### Instructions\n${params.instructions.trim()}` });
+  msgs.push({ role: 'system', content: `INSTRUCTIONS\n${params.instructions.trim()}` });
 
   
    // 5. démonstration de style (exemples de réponses)
    if (params.examples && params.examples.length > 0) {
-    msgs.push({ role: 'user', content: `### Exemples de bilan précédemment rédigés pour d'autres patients` });
+    msgs.push({ role: 'system', content: `EXEMPLES (few-shot) pour d'autres patients` });
     // on ne précise pas d'"userContent" : c'est juste une réponse à prendre comme modèle
     params.examples.slice(0, 3).forEach(example => {
       msgs.push({ role: 'assistant', content: example.trim() });
@@ -62,7 +62,7 @@ export function buildPrompt(params: PromptParams): readonly SingleMessage[] {
   }
 
   // 6. Données utilisateur
-  msgs.push({ role: 'user', content: `### Données du patient actuel\n${params.userContent.trim()}` });
+  msgs.push({ role: 'user', content: `Données du patient actuel (Markdown):\n${params.userContent.trim()}` });
 
 
   return msgs ;

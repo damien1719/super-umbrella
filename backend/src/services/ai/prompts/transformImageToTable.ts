@@ -102,7 +102,7 @@ export async function generateTableFromImage(
   const messages = buildTransformImageToTablePrompt(params)
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4o-2024-08-06',
+    model: 'gpt-4.1-2025-04-14',
     messages,
     response_format: {
       type: 'json_schema',
