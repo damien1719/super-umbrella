@@ -28,6 +28,7 @@ export const useUserProfileStore = create<UserProfileState>((set, get) => ({
     try {
       const profiles = await apiFetch<UserProfiles | null>(`/api/v1/profile/`, {
         headers: { Authorization: `Bearer ${token}` },
+        cache: 'no-store',
       });
       const firstProfile = profiles?.[0] ?? null;
       console.log('firstProfile', firstProfile);
