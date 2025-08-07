@@ -15,8 +15,8 @@ importers:
   backend:
     dependencies:
       '@prisma/client':
-        specifier: ^6.9.0
-        version: 6.9.0(prisma@6.13.0(typescript@5.8.3))(typescript@5.8.3)
+        specifier: ^6.13.0
+        version: 6.13.0(prisma@6.13.0(typescript@5.8.3))(typescript@5.8.3)
       '@supabase/supabase-js':
         specifier: ^2.50.0
         version: 2.50.0
@@ -1374,6 +1374,18 @@ packages:
   '@pkgr/core@0.2.7':
     resolution: {integrity: sha512-YLT9Zo3oNPJoBjBc4q8G2mjU4tqIbf5CEOORbUUr48dCD9q3umJ3IPlVqOqDakPfd2HuwccBaqlGhN4Gmr5OWg==}
     engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
+
+  '@prisma/client@6.13.0':
+    resolution: {integrity: sha512-8m2+I3dQovkV8CkDMluiwEV1TxV9EXdT6xaCz39O6jYw7mkf5gwfmi+cL4LJsEPwz5tG7sreBwkRpEMJedGYUQ==}
+    engines: {node: '>=18.18'}
+    peerDependencies:
+      prisma: '*'
+      typescript: '>=5.1.0'
+    peerDependenciesMeta:
+      prisma:
+        optional: true
+      typescript:
+        optional: true
 
   '@prisma/client@6.9.0':
     resolution: {integrity: sha512-Gg7j1hwy3SgF1KHrh0PZsYvAaykeR0PaxusnLXydehS96voYCGt1U5zVR31NIouYc63hWzidcrir1a7AIyCsNQ==}
@@ -6792,6 +6804,11 @@ snapshots:
       pako: 1.0.11
 
   '@pkgr/core@0.2.7': {}
+
+  '@prisma/client@6.13.0(prisma@6.13.0(typescript@5.8.3))(typescript@5.8.3)':
+    optionalDependencies:
+      prisma: 6.13.0(typescript@5.8.3)
+      typescript: 5.8.3
 
   '@prisma/client@6.9.0(prisma@6.13.0(typescript@5.8.3))(typescript@5.8.3)':
     optionalDependencies:
