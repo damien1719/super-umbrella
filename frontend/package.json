@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0 --port $PORT",
-    "start": "npm run preview",
+    "start": "serve -s dist -l $PORT",
     "tw:init": "tailwindcss init -p"
   },
   "keywords": [],
@@ -39,10 +39,10 @@
     "tailwindcss": "^4.1.10",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3",
+    "vite": "^6.3.5",
     "vitest": "^3.2.3"
   },
   "dependencies": {
-    "vite": "^6.3.5",
     "@lexical/html": "^0.33.1",
     "@lexical/link": "^0.33.1",
     "@lexical/list": "^0.33.1",
@@ -73,6 +73,7 @@
     "react-day-picker": "^9.7.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "7.6.2",
+    "serve": "^14.2.4",
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.2/xlsx-0.20.2.tgz",
