@@ -12,6 +12,8 @@ import type {
 } from '@/types/Typequestion';
 import { X, Settings, GripVertical } from 'lucide-react';
 import ChoixTypeDeValeurTableau from './ChoixTypeDeValeurTableau';
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from '@radix-ui/react-alert-dialog';
+import { AlertDialogFooter, AlertDialogCancel, AlertDialogPortal, AlertDialogOverlay } from './ui/alert-dialog';
 
 export type EditorProps = {
   q: Question;
@@ -91,6 +93,8 @@ export function ScaleEditor({}: EditorProps) {
 
 export function TableEditor({ q, onPatch }: EditorProps) {
   const genId = () => Math.random().toString(36).slice(2);
+  const [groupToDelete, setGroupToDelete] = useState<string | null>(null);
+  const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
   const tableau: SurveyTable & { commentaire?: boolean } = q.tableau
     ? 'rowsGroups' in q.tableau
       ? q.tableau
@@ -244,7 +248,24 @@ export function TableEditor({ q, onPatch }: EditorProps) {
     setTable({ ...tableau, rowsGroups: [...tableau.rowsGroups, newGroup] });
   };
 
+  const removeGroup = (groupId: string) => {
+    setTable({
+      ...tableau,
+      rowsGroups: tableau.rowsGroups.filter((g) => g.id !== groupId),
+    });
+  };
+
+  const updateGroup = (groupId: string, title: string) => {
+    setTable({
+      ...tableau,
+      rowsGroups: tableau.rowsGroups.map((g) =>
+        g.id === groupId ? { ...g, title } : g
+      ),
+    });
+  };
+
   return (
+    <>
     <div className="space-y-4">
       <div className="overflow-x-auto">
         <table className="table-auto border-collapse">
@@ -321,10 +342,40 @@ export function TableEditor({ q, onPatch }: EditorProps) {
                   onDrop={() => handleRowDrop(group.id, 0)}
                 >
                   <td
-                    colSpan={tableau.columns.length + 1}
-                    className="p-1 font-bold"
-                  >
-                    {group.title || 'Groupe sans titre'}
+                     colSpan={tableau.columns.length + 1}
+                     className="p-1 font-bold flex justify-between items-center"
+                   >
+                     {editingGroupId === group.id ? (
+                      <Input
+                        autoFocus
+                        className="w-40"
+                        defaultValue={group.title}
+                        onBlur={(e) => {
+                          updateGroup(group.id, e.currentTarget.value.trim());
+                          setEditingGroupId(null);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            updateGroup(group.id, e.currentTarget.value.trim());
+                            setEditingGroupId(null);
+                          }
+                        }}
+                      />
+                    ) : (
+                      <span
+                        onClick={() => setEditingGroupId(group.id)}
+                        className="cursor-text"
+                      >
+                        {group.title || 'Groupe sans titre'}
+                      </span>
+                    )}
+                     <Button
+                       variant="icon"
+                       size="micro"
+                       onClick={() => setGroupToDelete(group.id)}
+                     >
+                       <X className="h-4 w-4" />
+                     </Button>
                   </td>
                 </tr>
                 {group.rows.map((ligne: Row, ligneIdx: number) => (
@@ -462,6 +513,47 @@ export function TableEditor({ q, onPatch }: EditorProps) {
         onChange={handleColumnTypeChange}
       />
     </div>
+          <AlertDialog open={!!groupToDelete} onOpenChange={setGroupToDelete}>
+          {/* on peut utiliser un trigger si on veut un bouton générique */}
+          <AlertDialogPortal>
+            {/* 1. overlay plein écran */}
+            <AlertDialogOverlay className="fixed inset-0 bg-black/40 z-40" />
+  
+            {/* 2. contenu modale centré */}
+            <AlertDialogContent
+              className="
+                fixed 
+                top-1/2 left-1/2 
+                transform -translate-x-1/2 -translate-y-1/2
+                bg-white rounded-lg p-6
+                shadow-lg z-50
+              "
+            >
+              <AlertDialogTitle className="text-lg font-bold">
+                Confirmer la suppression
+              </AlertDialogTitle>
+              <AlertDialogDescription className="mt-2 mb-4 text-sm text-gray-600">
+                Ce groupe contient peut-être des lignes. Voulez-vous vraiment le supprimer ?
+              </AlertDialogDescription>
+  
+              <div className="flex justify-end gap-2">
+                <AlertDialogCancel asChild>
+                  <Button variant="outline">Annuler</Button>
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  asChild
+                  onClick={() => {
+                    if (groupToDelete) removeGroup(groupToDelete);
+                    setGroupToDelete(null);
+                  }}
+                >
+                  <Button variant="destructive">Supprimer</Button>
+                </AlertDialogAction>
+              </div>
+            </AlertDialogContent>
+          </AlertDialogPortal>
+        </AlertDialog>
+    </>
   );
 }
 

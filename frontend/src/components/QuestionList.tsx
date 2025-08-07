@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -58,6 +58,17 @@ export default function QuestionList({
     dragIndex.current = null;
   };
 
+  const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  useEffect(() => {
+    if (selectedId) {
+      const el = itemRefs.current[selectedId];
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, [selectedId]);
+
   return (
     <div className="space-y-6">
       {questions.map((question, index) => {
@@ -65,6 +76,7 @@ export default function QuestionList({
         return (
           <div
             key={question.id}
+            ref={el => { itemRefs.current[question.id] = el; }}
             className="relative w-full"
             onDragOver={(e) => e.preventDefault()}
             onDrop={() => handleDrop(index)}
@@ -125,16 +137,16 @@ export default function QuestionList({
                   )}
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-2">
                 <Editor q={question} onPatch={(p) => onPatch(question.id, p)} />
                   <div
                     className={
-                      `flex justify-end gap-2 pt-4 transition-opacity duration-200 ` +
+                      `flex justify-end gap-2 pt-2 transition-opacity duration-200 ` +
                       (selectedId === question.id
                         ? 'opacity-100'
                         : 'opacity-0 group-hover:opacity-100')
                     }
-                    onClick={(e) => e.stopPropagation()} // pour que le clic sur les boutons ne déclenche pas onSelect
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <Button variant="outline" size="sm" onClick={(e) => {
                       e.stopPropagation();

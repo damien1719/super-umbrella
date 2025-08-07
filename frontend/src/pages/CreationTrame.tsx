@@ -116,11 +116,11 @@ export default function CreationTrame() {
     setQuestions((qs) => qs.filter((q) => q.id !== id));
   };
 
-  const onAddAfter = () => {
+  const onAddAfter = (targetId: string) => {
     const newQ = createDefaultNote();
     setQuestions((qs) => {
-      if (!selectedId) return [...qs, newQ];
-      const idx = qs.findIndex((q) => q.id === selectedId);
+      if (!targetId) return [...qs, newQ];
+      const idx = qs.findIndex((q) => q.id === targetId);
       if (idx === -1) return [...qs, newQ];
       return [...qs.slice(0, idx + 1), newQ, ...qs.slice(idx + 1)];
     });
@@ -237,6 +237,8 @@ export default function CreationTrame() {
               }
               if (newQuestions.length > 0) {
                 setQuestions((prev) => [...prev, ...newQuestions]);
+                setSelectedId(newQuestions[0].id);
+                setShowImport(false);
               }
             }}
             onCancel={() => setShowImport(false)}

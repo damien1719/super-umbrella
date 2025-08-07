@@ -90,7 +90,7 @@ export default function ImportMagique({
             body: JSON.stringify({ content: text }),
           },
         );
-        onDone(addDefaultValueType(res.result));
+        onDone(res.result);
       } else if (tableImportType === 'excel' && file) {
         const data = await new Promise<ArrayBuffer>((resolve, reject) => {
           const reader = new FileReader();
