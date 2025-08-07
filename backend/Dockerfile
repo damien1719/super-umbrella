@@ -49,7 +49,7 @@ COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/prisma ./prisma
 
 # 3) expose le port
-EXPOSE 3000
+EXPOSE 8080
 
 # 4) log clair si souhaité
 ENV DEBUG_STARTUP=true
