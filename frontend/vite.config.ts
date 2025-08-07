@@ -13,9 +13,10 @@ export default defineConfig({
   },
   preview: {
     host: '0.0.0.0',
-    port: 4173,
+    port: Number(process.env.PORT) || 8080,
     allowedHosts: [
-      'app-e73c7944-f0fd-4540-9d40-ad56efda1d71.cleverapps.io'
+      'app-e73c7944-f0fd-4540-9d40-ad56efda1d71.cleverapps.io',
+      'app-aa63a3b2-9947-478d-ab6f-611a591cea4c.cleverapps.io'
     ]
   },
   test: {
