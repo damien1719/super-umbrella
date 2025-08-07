@@ -20,12 +20,13 @@ dotenv.config();
 
 const app = express();
 
-app.disable('etag');
+app.set('etag', false); 
 
-// 🔹 Forcer le no-store et éviter le cache sur toutes les routes API privées
 app.use('/api/v1', (req, res, next) => {
-  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+  res.setHeader('Pragma', 'no-cache');
   res.setHeader('Vary', 'Authorization');
+  res.removeHeader('ETag');
   next();
 });
 
