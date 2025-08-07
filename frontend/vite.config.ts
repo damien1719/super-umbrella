@@ -11,6 +11,13 @@ export default defineConfig({
       '@monorepo/shared': resolve(__dirname, '../shared/src'),
     },
   },
+  preview: {
+    host: '0.0.0.0',
+    port: 4173,
+    allowedHosts: [
+      'app-e73c7944-f0fd-4540-9d40-ad56efda1d71.cleverapps.io'
+    ]
+  },
   test: {
     environment: 'jsdom',
     globals: true,
