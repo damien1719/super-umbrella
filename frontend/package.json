@@ -39,10 +39,10 @@
     "tailwindcss": "^4.1.10",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3",
-    "vite": "^6.3.5",
     "vitest": "^3.2.3"
   },
   "dependencies": {
+    "vite": "^6.3.5",
     "@lexical/html": "^0.33.1",
     "@lexical/link": "^0.33.1",
     "@lexical/list": "^0.33.1",
