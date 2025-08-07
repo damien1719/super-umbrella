@@ -8,8 +8,5 @@
       "name": "mon-frontend-cc",
       "alias": "mon-frontend-cc"
     }
-  ],
-  "hooks": {
-    "pre_build": "cd frontend && npm install && npm run build"
-  }
+  ]
 }
