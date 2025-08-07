@@ -20,6 +20,15 @@ dotenv.config();
 
 const app = express();
 
+app.disable('etag');
+
+// 🔹 Forcer le no-store et éviter le cache sur toutes les routes API privées
+app.use('/api/v1', (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('Vary', 'Authorization');
+  next();
+});
+
 const FRONTEND_PREFIX = process.env.FRONTEND_PREFIX ?? '';
 
 type CorsOptions = Parameters<typeof cors>[0];
