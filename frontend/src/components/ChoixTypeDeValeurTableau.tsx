@@ -79,8 +79,8 @@ export default function ChoixTypeDeValeurTableau({
               <SelectContent>
                 <SelectItem value="text">Texte</SelectItem>
                 <SelectItem value="number">Nombre</SelectItem>
-                <SelectItem value="bool">Booléen</SelectItem>
-                <SelectItem value="choice">Choix</SelectItem>
+                <SelectItem value="bool">Case à cocher</SelectItem>
+                <SelectItem value="choice">Choix multiples</SelectItem>
                 <SelectItem value="image">Image</SelectItem>
               </SelectContent>
             </Select>

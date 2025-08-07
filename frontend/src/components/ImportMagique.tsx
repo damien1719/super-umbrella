@@ -21,15 +21,32 @@ export default function ImportMagique({
 }: ImportMagiqueProps) {
   const [mode, setMode] = useState<'liste' | 'tableau'>('liste');
   const [text, setText] = useState('');
-  const [tableImportType, setTableImportType] = useState<'text' | 'image' | 'excel'>('text')
+  const [tableImportType, setTableImportType] = useState<
+    'text' | 'image' | 'excel'
+  >('text');
   const [html, setHtml] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [image, setImage] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
-  const [isTransforming, setIsTransforming] = useState(false);
   const token = useAuth((s) => s.token);
+
+  const addDefaultValueType = (questions: Question[]): Question[] =>
+    questions.map((q) =>
+      q.type === 'tableau' && q.tableau
+        ? {
+            ...q,
+            tableau: {
+              ...q.tableau,
+              columns: q.tableau.columns.map((c) => ({
+                ...c,
+                valueType: c.valueType ?? 'text',
+              })),
+            },
+          }
+        : q,
+    );
 
   const transformTable = (rows: (string | number)[][]) => {
     if (rows.length === 0) return [];
@@ -54,34 +71,6 @@ export default function ImportMagique({
         tableau: { columns, sections: [{ id: 's1', title: '', rows: lignes }] },
       },
     ];
-  };
-
-  const handleTransformToTable = async () => {
-    if (!text.trim()) return;
-
-    setIsTransforming(true);
-    try {
-      const res = await apiFetch<{ result: Question[] }>(
-        '/api/v1/import/transform-text-table',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ content: text }),
-        },
-      );
-
-      console.log('res', res);
-
-      onDone(res.result);
-      onCancel();
-    } catch (error) {
-      console.error('Erreur lors de la transformation en tableau:', error);
-    } finally {
-      setIsTransforming(false);
-    }
   };
 
   /// DETTE ANCIEN FORMAT DE TABLEAU ///
@@ -114,7 +103,7 @@ export default function ImportMagique({
         const rows = utils.sheet_to_json<(string | number)[]>(sheet, {
           header: 1,
         }) as (string | number)[][];
-        onDone(transformTable(rows));
+        onDone(addDefaultValueType(transformTable(rows)));
       } else if (tableImportType === 'image' && image) {
         const base64 = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
@@ -134,7 +123,7 @@ export default function ImportMagique({
             body: JSON.stringify({ image: base64 }),
           },
         );
-        onDone(res.result);
+        onDone(addDefaultValueType(res.result));
       } else if (tableImportType === 'text' && (text.trim() || html.trim())) {
         const res = await apiFetch<{ result: Question[] }>(
           '/api/v1/import/transform-text-table',
@@ -147,7 +136,7 @@ export default function ImportMagique({
             body: JSON.stringify({ content: text }),
           },
         );
-        onDone(res.result);
+        onDone(addDefaultValueType(res.result));
       }
     } catch {
       alert("Nous n'avons pas pu transformé votre tableau");
@@ -200,49 +189,59 @@ export default function ImportMagique({
 
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
-             ✨ Collez simplement un document Word à partir de votre trame habituelle : il sera automatiquement importé et prêt à être utilisé dans l’application.
+            ✨ Collez simplement un document Word à partir de votre trame
+            habituelle : il sera automatiquement importé et prêt à être utilisé
+            dans l’application.
           </p>
           {mode === 'liste' ? (
-              <div className="relative">
-                <Textarea
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  className="min-h-[200px] max-h-[50vh] w-full overflow-y-auto resize-none"
-                  placeholder="Collez votre texte ici..."
-                />
-              </div>
-            ) : (
-              <>
+            <div className="relative">
+              <Textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                className="min-h-[200px] max-h-[50vh] w-full overflow-y-auto resize-none"
+                placeholder="Collez votre texte ici..."
+              />
+            </div>
+          ) : (
+            <>
               <RadioGroup
                 value={tableImportType}
-                onValueChange={(value) => setTableImportType(value as 'text' | 'image' | 'excel')}
+                onValueChange={(value) =>
+                  setTableImportType(value as 'text' | 'image' | 'excel')
+                }
                 className="flex gap-4 mb-4"
                 name="mode"
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="text" id="radio-text" />
-                  <label htmlFor="radio-text" className="text-sm">Copier–coller un texte issu de Word ou Excel</label>
+                  <label htmlFor="radio-text" className="text-sm">
+                    Copier–coller un texte issu de Word ou Excel
+                  </label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="image" id="radio-image" />
-                  <label htmlFor="radio-image" className="text-sm">Importer une image</label>
+                  <label htmlFor="radio-image" className="text-sm">
+                    Importer une image
+                  </label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="excel" id="radio-excel" />
-                  <label htmlFor="radio-excel" className="text-sm">Importer un Excel</label>
+                  <label htmlFor="radio-excel" className="text-sm">
+                    Importer un Excel
+                  </label>
                 </div>
               </RadioGroup>
               {tableImportType === 'text' && (
                 <Textarea
-                value={text}
-                onChange={(e) => {
-                  setText(e.target.value)
-                  setHtml('')
-                  setFile(null)
-                  setImage(null)
-                }}
-                className="min-h-[200px] max-h-[50vh] w-full overflow-y-auto resize-none"
-                placeholder="Collez votre tableau ici..."
+                  value={text}
+                  onChange={(e) => {
+                    setText(e.target.value);
+                    setHtml('');
+                    setFile(null);
+                    setImage(null);
+                  }}
+                  className="min-h-[200px] max-h-[50vh] w-full overflow-y-auto resize-none"
+                  placeholder="Collez votre tableau ici..."
                 />
               )}
               {tableImportType === 'excel' && (
@@ -279,40 +278,60 @@ export default function ImportMagique({
                 </div>
               )}
               {tableImportType === 'image' && (
-                <div className="flex gap-2">
-                  <input
-                    ref={imageInputRef}
-                    type="file"
-                    accept="image/png,image/jpeg,image/jpg,image/heic,image/heif,image/webp"
-                    onChange={(e) => {
-                      setImage(e.target.files?.[0] ?? null);
-                      setFile(null);
-                      setHtml('');
-                      setText('');
-                    }}
-                    className="hidden"
-                    data-testid="image-input"
-                  />
-                  {image ? (
+                <div className="flex flex-col gap-4">
+                  <div className="flex gap-2">
                     <input
-                      type="text"
-                      value={image.name}
-                      readOnly
-                      className="border rounded px-3 py-2 bg-gray-50 text-gray-700 w-full max-w-xs"
-                      style={{ cursor: 'default' }}
+                      ref={imageInputRef}
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg,image/heic,image/heif,image/webp"
+                      onChange={(e) => {
+                        setImage(e.target.files?.[0] ?? null);
+                        setFile(null);
+                        setHtml('');
+                        setText('');
+                      }}
+                      className="hidden"
+                      data-testid="image-input"
                     />
-                  ) : (
-                    <Button
-                      type="button"
-                      onClick={() => imageInputRef.current?.click()}
-                    >
-                      +Choisir une image
-                    </Button>
-                  )}
+                    <div className="w-full flex items-center justify-center flex-col gap-2">
+                      <div
+                        tabIndex={0}
+                        onPaste={(e) => {
+                          const pasted = e.clipboardData.files?.[0];
+                          if (pasted) {
+                            setImage(pasted);
+                            setFile(null);
+                            setHtml('');
+                            setText('');
+                          }
+                        }}
+                        className="border rounded px-3 py-2 text-sm text-muted-foreground w-full max-w-xs text-center flex items-center justify-center w-full max-w-md  h-[200px]"
+                        data-testid="image-paste-zone"
+                      >
+                        Cliquez ici pour copier coller une image
+                      </div>
+                      {image ? (
+                        <input
+                          type="text"
+                          value={image.name}
+                          readOnly
+                          className="border rounded px-3 py-2 bg-gray-50 text-gray-700 w-full max-w-xs"
+                          style={{ cursor: 'default' }}
+                        />
+                      ) : (
+                        <Button
+                          type="button"
+                          onClick={() => imageInputRef.current?.click()}
+                        >
+                          +Choisir une image
+                        </Button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
-              </>
-            )}
+            </>
+          )}
         </div>
         <div className="px-6 py-4 bg-muted/20">
           <div className="flex justify-end gap-3">
@@ -335,16 +354,18 @@ export default function ImportMagique({
               type="button"
               className="min-w-[120px]"
             >
-              {loading ? 
+              {loading ? (
                 <>
-                  <Loader2 className="h-5 w-5 mr-2 animate-spin" /> 
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
                   Traitement...
                 </>
-                : 'Importer'}
+              ) : (
+                'Importer'
+              )}
             </Button>
           </div>
         </div>
       </div>
-      </div>
-    );
-  }
+    </div>
+  );
+}

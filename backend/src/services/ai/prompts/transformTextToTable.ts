@@ -17,14 +17,10 @@ const DEFAULT_SCHEMA = {
         type: 'object',
         additionalProperties: false,
         properties: {
-          id:        { type: 'string' },
-          label:     { type: 'string' },
-          valueType: {
-            type: 'string',
-            enum: ['bool', 'number', 'text', 'choice', 'image'],
-          },
+          id:    { type: 'string' },
+          label: { type: 'string' },
         },
-        required: ['id', 'label', 'valueType'],
+        required: ['id', 'label'],
       },
     },
     rowsGroups: {
@@ -95,7 +91,7 @@ export async function generateTableFromText(
   console.log(messages, "messages");
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4o-2024-08-06',
+    model: 'gpt-4.1-2025-04-14',
     messages,
     response_format: {
       type: 'json_schema',

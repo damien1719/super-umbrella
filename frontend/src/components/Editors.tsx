@@ -1,5 +1,5 @@
 import React from 'react';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,8 +10,10 @@ import type {
   Row,
   RowsGroup,
 } from '@/types/Typequestion';
-import { X, MoreVertical } from 'lucide-react';
+import { X, Settings, GripVertical } from 'lucide-react';
 import ChoixTypeDeValeurTableau from './ChoixTypeDeValeurTableau';
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from '@radix-ui/react-alert-dialog';
+import { AlertDialogFooter, AlertDialogCancel, AlertDialogPortal, AlertDialogOverlay } from './ui/alert-dialog';
 
 export type EditorProps = {
   q: Question;
@@ -91,11 +93,21 @@ export function ScaleEditor({}: EditorProps) {
 
 export function TableEditor({ q, onPatch }: EditorProps) {
   const genId = () => Math.random().toString(36).slice(2);
-  const tableau: SurveyTable & { commentaire?: boolean } = q.tableau || {
-    columns: [],
-    rowsGroups: [{ id: genId(), title: '', rows: [] }],
-  };
-  const rowsGroup: RowsGroup = tableau.rowsGroups[0] || {
+  const [groupToDelete, setGroupToDelete] = useState<string | null>(null);
+  const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
+  const tableau: SurveyTable & { commentaire?: boolean } = q.tableau
+    ? 'rowsGroups' in q.tableau
+      ? q.tableau
+      : {
+          ...(q.tableau as SurveyTable),
+          rowsGroups: (q.tableau as { sections?: RowsGroup[] }).sections || [],
+        }
+    : {
+        columns: [],
+        rowsGroups: [{ id: genId(), title: '', rows: [] }],
+      };
+  const lastIndex = tableau.rowsGroups.length - 1;
+  const rowsGroup: RowsGroup = tableau.rowsGroups[lastIndex] || {
     id: genId(),
     title: '',
     rows: [],
@@ -127,33 +139,42 @@ export function TableEditor({ q, onPatch }: EditorProps) {
     setTable({ ...tableau, columns: cols });
   };
 
-  const addLine = (value: string) => {
+  const addLine = (groupId: string, value: string) => {
     const trimmed = value.trim();
     if (!trimmed) return;
     const newRow: Row = { id: genId(), label: trimmed };
-    const newRowsGroup = { ...rowsGroup, rows: [...rowsGroup.rows, newRow] };
     setTable({
       ...tableau,
-      rowsGroups: [newRowsGroup, ...tableau.rowsGroups.slice(1)],
+      rowsGroups: tableau.rowsGroups.map((g) =>
+        g.id === groupId ? { ...g, rows: [...g.rows, newRow] } : g,
+      ),
     });
   };
 
-  const updateLine = (idx: number, value: string) => {
-    const rows = [...rowsGroup.rows];
-    rows[idx] = { ...rows[idx], label: value };
-    const newRowsGroup = { ...rowsGroup, rows };
+  const updateLine = (groupId: string, idx: number, value: string) => {
     setTable({
       ...tableau,
-      rowsGroups: [newRowsGroup, ...tableau.rowsGroups.slice(1)],
+      rowsGroups: tableau.rowsGroups.map((g) =>
+        g.id === groupId
+          ? {
+              ...g,
+              rows: g.rows.map((r, i) =>
+                i === idx ? { ...r, label: value } : r,
+              ),
+            }
+          : g,
+      ),
     });
   };
 
-  const removeLine = (idx: number) => {
-    const rows = rowsGroup.rows.filter((_, i) => i !== idx);
-    const newRowsGroup = { ...rowsGroup, rows };
+  const removeLine = (groupId: string, idx: number) => {
     setTable({
       ...tableau,
-      rowsGroups: [newRowsGroup, ...tableau.rowsGroups.slice(1)],
+      rowsGroups: tableau.rowsGroups.map((g) =>
+        g.id === groupId
+          ? { ...g, rows: g.rows.filter((_, i) => i !== idx) }
+          : g,
+      ),
     });
   };
 
@@ -162,6 +183,58 @@ export function TableEditor({ q, onPatch }: EditorProps) {
   };
 
   const [editingColIdx, setEditingColIdx] = useState<number | null>(null);
+
+  const colDragIdx = useRef<number | null>(null);
+  const handleColDragStart = (idx: number) => {
+    colDragIdx.current = idx;
+  };
+  const handleColDragEnd = () => {
+    colDragIdx.current = null;
+  };
+  const handleColDrop = (idx: number) => {
+    if (colDragIdx.current === null || colDragIdx.current === idx) {
+      colDragIdx.current = null;
+      return;
+    }
+    const cols = [...tableau.columns];
+    const [col] = cols.splice(colDragIdx.current, 1);
+    cols.splice(idx, 0, col);
+    setTable({ ...tableau, columns: cols });
+    colDragIdx.current = null;
+  };
+
+  const rowDrag = useRef<{ groupId: string; index: number } | null>(null);
+  const handleRowDragStart = (groupId: string, idx: number) => {
+    rowDrag.current = { groupId, index: idx };
+  };
+  const handleRowDragEnd = () => {
+    rowDrag.current = null;
+  };
+  const handleRowDrop = (groupId: string, idx: number) => {
+    if (!rowDrag.current) return;
+    const { groupId: fromGroupId, index: fromIdx } = rowDrag.current;
+    if (fromGroupId === groupId && fromIdx === idx) {
+      rowDrag.current = null;
+      return;
+    }
+    const groups = tableau.rowsGroups.map((g) => ({
+      ...g,
+      rows: [...g.rows],
+    }));
+    const fromGroup = groups.find((g) => g.id === fromGroupId);
+    const toGroup = groups.find((g) => g.id === groupId);
+    if (!fromGroup || !toGroup) {
+      rowDrag.current = null;
+      return;
+    }
+    const [row] = fromGroup.rows.splice(fromIdx, 1);
+    let insertIdx = idx;
+    if (fromGroupId === groupId && fromIdx < idx) insertIdx -= 1;
+    toGroup.rows.splice(insertIdx, 0, row);
+    setTable({ ...tableau, rowsGroups: groups });
+    rowDrag.current = null;
+  };
+
   const handleColumnTypeChange = (col: ColumnDef) => {
     if (editingColIdx === null) return;
     const cols = [...tableau.columns];
@@ -170,7 +243,29 @@ export function TableEditor({ q, onPatch }: EditorProps) {
     setEditingColIdx(null);
   };
 
+  const addGroup = () => {
+    const newGroup: RowsGroup = { id: genId(), title: '', rows: [] };
+    setTable({ ...tableau, rowsGroups: [...tableau.rowsGroups, newGroup] });
+  };
+
+  const removeGroup = (groupId: string) => {
+    setTable({
+      ...tableau,
+      rowsGroups: tableau.rowsGroups.filter((g) => g.id !== groupId),
+    });
+  };
+
+  const updateGroup = (groupId: string, title: string) => {
+    setTable({
+      ...tableau,
+      rowsGroups: tableau.rowsGroups.map((g) =>
+        g.id === groupId ? { ...g, title } : g
+      ),
+    });
+  };
+
   return (
+    <>
     <div className="space-y-4">
       <div className="overflow-x-auto">
         <table className="table-auto border-collapse">
@@ -178,15 +273,29 @@ export function TableEditor({ q, onPatch }: EditorProps) {
             <tr>
               <th className="p-1"></th>
               {tableau.columns.map((col, colIdx) => (
-                <th key={col.id} className="p-1">
+                <th
+                  key={col.id}
+                  className="p-1"
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => handleColDrop(colIdx)}
+                >
                   <div className="flex flex-col items-center gap-2">
                     <div className="flex gap-1">
+                      <button
+                        aria-label="Déplacer la colonne"
+                        draggable
+                        onDragStart={() => handleColDragStart(colIdx)}
+                        onDragEnd={handleColDragEnd}
+                        className="cursor-move p-1"
+                      >
+                        <GripVertical className="h-4 w-4" />
+                      </button>
                       <Button
                         variant="icon"
                         size="micro"
                         onClick={() => setEditingColIdx(colIdx)}
                       >
-                        <MoreVertical className="h-4 w-4" />
+                        <Settings className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="icon"
@@ -206,8 +315,8 @@ export function TableEditor({ q, onPatch }: EditorProps) {
               ))}
               <th className="p-1">
                 <Input
-                  className="w-40 whitespace-normal break-words"
-                  placeholder="Ajouter une colonne"
+                  className="w-40 placeholder:text-accent-500"
+                  placeholder="+ Nouvelle colonne"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && e.currentTarget.value.trim()) {
                       addColumn(e.currentTarget.value);
@@ -228,27 +337,95 @@ export function TableEditor({ q, onPatch }: EditorProps) {
             {tableau.rowsGroups.map((group) => (
               <React.Fragment key={group.id}>
                 {/* ligne de titre de groupe (fusionnant toutes les colonnes) */}
-                <tr>
+                <tr
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => handleRowDrop(group.id, 0)}
+                >
                   <td
-                    colSpan={tableau.columns.length + 1}
-                    className="p-1 font-bold"
-                  >
-                    {group.title || 'Groupe sans titre'}
+                     colSpan={tableau.columns.length + 1}
+                     className="p-1 font-bold flex justify-between items-center"
+                   >
+                     {editingGroupId === group.id ? (
+                      <Input
+                        autoFocus
+                        className="w-40"
+                        defaultValue={group.title}
+                        onBlur={(e) => {
+                          updateGroup(group.id, e.currentTarget.value.trim());
+                          setEditingGroupId(null);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            updateGroup(group.id, e.currentTarget.value.trim());
+                            setEditingGroupId(null);
+                          }
+                        }}
+                      />
+                    ) : (
+                      <span
+                        onClick={() => setEditingGroupId(group.id)}
+                        className="cursor-text"
+                      >
+                        {group.title || 'Groupe sans titre'}
+                      </span>
+                    )}
+                     <Button
+                       variant="icon"
+                       size="micro"
+                       onClick={() => setGroupToDelete(group.id)}
+                     >
+                       <X className="h-4 w-4" />
+                     </Button>
                   </td>
                 </tr>
                 {group.rows.map((ligne: Row, ligneIdx: number) => (
-                  <tr key={ligne.id}>
+                  <tr
+                    key={ligne.id}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={() => handleRowDrop(group.id, ligneIdx)}
+                  >
                     <th className="p-1">
                       <div className="flex items-center gap-2">
+                        <button
+                          aria-label="Déplacer la ligne"
+                          draggable
+                          onDragStart={() =>
+                            handleRowDragStart(group.id, ligneIdx)
+                          }
+                          onDragEnd={handleRowDragEnd}
+                          className="cursor-move p-1"
+                        >
+                          <GripVertical className="h-4 w-4" />
+                        </button>
                         <Input
                           className="w-40 whitespace-normal break-words"
                           value={ligne.label}
-                          onChange={(e) => updateLine(ligneIdx, e.target.value)}
+                          onChange={(e) =>
+                            updateLine(group.id, ligneIdx, e.target.value)
+                          }
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              updateLine(
+                                group.id,
+                                ligneIdx,
+                                e.currentTarget.value,
+                              );
+                              e.currentTarget.blur();
+                            }
+                          }}
+                          onBlur={(e) =>
+                            updateLine(
+                              group.id,
+                              ligneIdx,
+                              e.currentTarget.value,
+                            )
+                          }
                         />
                         <Button
                           variant="icon"
                           size="micro"
-                          onClick={() => removeLine(ligneIdx)}
+                          onClick={() => removeLine(group.id, ligneIdx)}
                         >
                           <X className="h-4 w-4" />
                         </Button>
@@ -262,47 +439,67 @@ export function TableEditor({ q, onPatch }: EditorProps) {
                     <td className="p-1"></td>
                   </tr>
                 ))}
+              <tr>
+                <th className="p-1">
+                  <Input
+                    className="w-40 placeholder:text-accent-500"
+                    placeholder="+ Nouvelle ligne"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                        addLine(group.id, e.currentTarget.value);
+                        e.currentTarget.value = '';
+                      }
+                    }}
+                    onBlur={(e) => {
+                      if (e.currentTarget.value.trim()) {
+                        addLine(group.id, e.currentTarget.value);
+                        e.currentTarget.value = '';
+                      }
+                    }}
+                  />
+                </th>
+            </tr>
               </React.Fragment>
             ))}
-            <tr>
-              <th className="p-1">
-                <Input
-                  placeholder="Ajouter une ligne"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && e.currentTarget.value.trim()) {
-                      addLine(e.currentTarget.value);
-                      e.currentTarget.value = '';
-                    }
-                  }}
-                  onBlur={(e) => {
-                    if (e.currentTarget.value.trim()) {
-                      addLine(e.currentTarget.value);
-                      e.currentTarget.value = '';
-                    }
-                  }}
-                />
-              </th>
-            </tr>
           </tbody>
         </table>
+        {/* **** NOUVEAU GROUPE DE LIGNES **** */}
+        <div className="p-1">
+           <Input
+            className="w-50 placeholder:text-accent-500"
+            placeholder="+ Nouveau groupe de ligne"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                addGroup(e.currentTarget.value);
+                e.currentTarget.value = '';
+              }
+            }}
+            onBlur={(e) => {
+              if (e.currentTarget.value.trim()) {
+                addGroup(e.currentTarget.value);
+                e.currentTarget.value = '';
+              }
+            }}
+          />
+        </div>
       </div>
       <div className="space-y-2">
         {tableau.commentaire ? (
-          <div className="space-y-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={toggleComment}
-              className="text-red-500 hover:text-red-700"
-            >
-              Retirer le commentaire
-            </Button>
-            <div className="p-2 border rounded">
+          <div className="flex flex-row items-center gap-2">
+
+            <div className="p-2 border border-wood-200 rounded">
               <p className="text-sm text-gray-500 mb-1">
                 La zone de commentaire sera disponible lors de la saisie des
                 données
               </p>
             </div>
+            <Button
+              variant="icon"
+              size="sm"
+              onClick={toggleComment}
+            >
+              <X className="h-4 w-4"  />
+            </Button>
           </div>
         ) : (
           <Button variant="outline" size="sm" onClick={toggleComment}>
@@ -316,6 +513,47 @@ export function TableEditor({ q, onPatch }: EditorProps) {
         onChange={handleColumnTypeChange}
       />
     </div>
+          <AlertDialog open={!!groupToDelete} onOpenChange={setGroupToDelete}>
+          {/* on peut utiliser un trigger si on veut un bouton générique */}
+          <AlertDialogPortal>
+            {/* 1. overlay plein écran */}
+            <AlertDialogOverlay className="fixed inset-0 bg-black/40 z-40" />
+  
+            {/* 2. contenu modale centré */}
+            <AlertDialogContent
+              className="
+                fixed 
+                top-1/2 left-1/2 
+                transform -translate-x-1/2 -translate-y-1/2
+                bg-white rounded-lg p-6
+                shadow-lg z-50
+              "
+            >
+              <AlertDialogTitle className="text-lg font-bold">
+                Confirmer la suppression
+              </AlertDialogTitle>
+              <AlertDialogDescription className="mt-2 mb-4 text-sm text-gray-600">
+                Ce groupe contient peut-être des lignes. Voulez-vous vraiment le supprimer ?
+              </AlertDialogDescription>
+  
+              <div className="flex justify-end gap-2">
+                <AlertDialogCancel asChild>
+                  <Button variant="outline">Annuler</Button>
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  asChild
+                  onClick={() => {
+                    if (groupToDelete) removeGroup(groupToDelete);
+                    setGroupToDelete(null);
+                  }}
+                >
+                  <Button variant="destructive">Supprimer</Button>
+                </AlertDialogAction>
+              </div>
+            </AlertDialogContent>
+          </AlertDialogPortal>
+        </AlertDialog>
+    </>
   );
 }
 

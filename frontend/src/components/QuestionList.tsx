@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -29,7 +29,7 @@ interface Props {
   onReorder: (from: number, to: number) => void;
   onDuplicate: (id: string) => void;
   onDelete: (id: string) => void;
-  onAddAfter: () => void;
+  onAddAfter: (id: string) => void;
 }
 
 export default function QuestionList({
@@ -58,6 +58,17 @@ export default function QuestionList({
     dragIndex.current = null;
   };
 
+  const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  useEffect(() => {
+    if (selectedId) {
+      const el = itemRefs.current[selectedId];
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, [selectedId]);
+
   return (
     <div className="space-y-6">
       {questions.map((question, index) => {
@@ -65,6 +76,7 @@ export default function QuestionList({
         return (
           <div
             key={question.id}
+            ref={el => { itemRefs.current[question.id] = el; }}
             className="relative w-full"
             onDragOver={(e) => e.preventDefault()}
             onDrop={() => handleDrop(index)}
@@ -125,10 +137,23 @@ export default function QuestionList({
                   )}
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-2">
                 <Editor q={question} onPatch={(p) => onPatch(question.id, p)} />
-                {selectedId === question.id && (
-                  <div className="flex justify-end gap-2 pt-4">
+                  <div
+                    className={
+                      `flex justify-end gap-2 pt-2 transition-opacity duration-200 ` +
+                      (selectedId === question.id
+                        ? 'opacity-100'
+                        : 'opacity-0 group-hover:opacity-100')
+                    }
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Button variant="outline" size="sm" onClick={(e) => {
+                      e.stopPropagation();
+                      onAddAfter(question.id);
+                    }}>
+                      <Plus className="h-5 w-5" />
+                    </Button>
                     <Button
                       variant="outline"
                       size="sm"
@@ -150,13 +175,35 @@ export default function QuestionList({
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
-                )}
               </CardContent>
             </Card>
             {selectedId === question.id && (
-              <div className="absolute top-1/2 -translate-y-1/2 -right-4">
-                <Button variant="primary" size="icon" onClick={onAddAfter}>
+              <div className="flex flex-col absolute top-1/2 -translate-y-1/2 space-y-2">
+                <Button variant="primary" size="icon" onClick={(e) => {
+                  e.stopPropagation();
+                  onAddAfter(question.id);
+                }}>
                   <Plus className="h-6 w-6 text-white" />
+                </Button>
+                <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDuplicate(question.id);
+                      }}
+                    >
+                    <Copy className="h-4 w-4" />
+                </Button>
+                <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(question.id);
+                      }}
+                    >
+                    <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
             )}
