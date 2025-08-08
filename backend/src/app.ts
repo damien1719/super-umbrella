@@ -20,6 +20,16 @@ dotenv.config();
 
 const app = express();
 
+app.set('etag', false); 
+
+app.use('/api/v1', (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Vary', 'Authorization');
+  res.removeHeader('ETag');
+  next();
+});
+
 const FRONTEND_PREFIX = process.env.FRONTEND_PREFIX ?? '';
 
 type CorsOptions = Parameters<typeof cors>[0];
