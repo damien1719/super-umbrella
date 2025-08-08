@@ -15,12 +15,42 @@ import SignUp from './pages/SignUp';
 import { usePageStore } from './store/pageContext';
 import { useUserProfileStore } from './store/userProfile';
 import { AppSidebar } from './components/AppSidebar';
+import { initKeycloak } from './lib/keycloak';
+import kc from './lib/keycloak';
+import { setAuthTokenGetter } from './utils/authToken';
+
+/* function useInitAuth() {
+  const { loading, initialize } = useAuth();
+
+  useEffect(() => {
+    const provider = (import.meta.env.VITE_AUTH_PROVIDER || 'fake').toLowerCase();
+
+    if (provider === 'keycloak') {
+      initKeycloak({ onLoad: 'check-sso', pkceMethod: 'S256', checkLoginIframe: false })
+        .then(() => {
+          if (kc.authenticated) {
+            setAuthTokenGetter(() => kc.token || undefined);
+          }
+          initialize();
+        })
+        .catch(console.error);
+    } else {
+      initialize();
+    }
+  }, [initialize]);
+
+  return loading;
+} */
+
 
 function useInitAuth() {
   const { loading, initialize } = useAuth();
+
   useEffect(() => {
-    initialize();
+    // plus d'initKeycloak ici
+    initialize(); // hydrate depuis le provider courant (supabase ou keycloak)
   }, [initialize]);
+
   return loading;
 }
 
