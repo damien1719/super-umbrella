@@ -1,5 +1,6 @@
 // src/utils/api.ts
-//  - on retire le slash éventuel à la fin pour éviter "//" quand on concatène
+import { getAuthToken } from './authToken';
+
 const BASE_URL = import.meta.env.VITE_API_URL?.replace(/\/+$/, '') ?? '';
 
 export function buildUrl(path: string) {
@@ -12,11 +13,13 @@ export async function apiFetch<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
+  const token = getAuthToken();
   const res = await fetch(buildUrl(path), {
     credentials: 'include',
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers,
     },
   });

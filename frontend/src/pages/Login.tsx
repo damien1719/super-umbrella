@@ -1,20 +1,26 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { useAuth } from '../store/auth';
 import { useNavigate } from 'react-router-dom';
+
+const provider = (import.meta.env.VITE_AUTH_PROVIDER || 'supabase').toLowerCase();
 
 export default function Login() {
   const navigate = useNavigate();
   const signIn = useAuth((s) => s.signIn);
+  const signUp = useAuth((s) => s.signUp); // pour le bouton "Créer un compte" en KC
   const [email, setEmail] = useState('demo@local');
   const [pwd, setPwd] = useState('demo');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const { user, initialized } = useAuth(); 
 
-  const handleSignIn = async (email: string, password: string) => {
-    setLoading(true);
-    setError(null);
+
+  // --- SUPABASE: formulaire classique ---
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setLoading(true); setError(null);
     try {
-      await signIn(email, password);
+      await signIn(email, pwd);     // en provider supabase, c'est bien email/pwd
       navigate('/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur de connexion');
@@ -23,17 +29,72 @@ export default function Login() {
     }
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    await handleSignIn(email, pwd);
+  // --- KEYCLOAK: redirection SSO ---
+  const handleSSOLogin = async () => {
+    setLoading(true); setError(null);
+    try {
+      await signIn();               // en provider keycloak, signIn() doit faire kc.login()
+      // pas de navigate ici: redirection vers Keycloak puis retour
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur de connexion SSO');
+      setLoading(false);
+    }
   };
 
+  const handleSSOSignUp = async () => {
+    setLoading(true); setError(null);
+    try {
+      await signUp();               // en provider keycloak, signUp() doit faire kc.register()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Impossible d’ouvrir la page d’inscription');
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (initialized && user) {
+      navigate('/'); // ou '/patients' si tu préfères
+    }
+  }, [initialized, user, navigate]);
+
+
+  // ----------------- RENDU -----------------
+  if (provider === 'keycloak') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col gap-4 max-w-xs w-full p-4">
+          <h1 className="text-2xl font-bold mb-4">Connexion</h1>
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+              {error}
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={handleSSOLogin}
+            className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:opacity-50"
+            disabled={loading}
+          >
+            {loading ? 'Redirection…' : 'Se connecter avec SSO'}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleSSOSignUp}
+            className="border p-2 rounded hover:bg-gray-100 disabled:opacity-50"
+            disabled={loading}
+          >
+            Créer un compte
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // --- SUPABASE (formulaire existant) ---
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <form
-        onSubmit={handleSubmit}
-        className="flex flex-col gap-4 max-w-xs w-full p-4"
-      >
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-xs w-full p-4">
         <h1 className="text-2xl font-bold mb-4">Connexion</h1>
 
         {error && (
@@ -57,6 +118,7 @@ export default function Login() {
           className="border p-2 rounded"
           disabled={loading}
         />
+
         <button
           type="submit"
           className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:opacity-50"
@@ -68,13 +130,14 @@ export default function Login() {
         {import.meta.env.VITE_AUTH_PROVIDER === 'fake' && (
           <button
             type="button"
-            onClick={() => handleSignIn('demo@local', 'demo')}
+            onClick={async () => { setLoading(true); setError(null); try { await signIn('demo@local', 'demo'); navigate('/'); } finally { setLoading(false); } }}
             className="border p-2 rounded hover:bg-gray-100 disabled:opacity-50"
             disabled={loading}
           >
             ➡︎ Accès démo direct
           </button>
         )}
+
         <button
           type="button"
           onClick={() => navigate('/signup')}

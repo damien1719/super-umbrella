@@ -1,9 +1,17 @@
-import { createAuthProvider as fake } from './auth.fake';
-import { createAuthProvider as supabase } from './auth.supabase';
+// src/lib/auth.ts
+const provider = (import.meta.env.VITE_AUTH_PROVIDER || 'fake').toLowerCase();
+console.log('AUTH PROVIDER =', provider);
 
-console.log('AUTH PROVIDER =', import.meta.env.VITE_AUTH_PROVIDER);
+let authImpl: any;
+if (provider === 'keycloak') {
+  const m = await import('./auth.keycloak');
+  authImpl = m.createAuthProvider();
+} else if (provider === 'supabase') {
+  const m = await import('./auth.supabase');
+  authImpl = m.createAuthProvider();
+} else {
+  const m = await import('./auth.fake');
+  authImpl = m.createAuthProvider();
+}
 
-export const auth =
-  (import.meta.env.VITE_AUTH_PROVIDER || 'fake') === 'supabase'
-    ? supabase()
-    : fake();
+export const auth = authImpl;

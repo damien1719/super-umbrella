@@ -64,6 +64,7 @@
     "clsx": "^2.1.1",
     "dompurify": "^3.2.6",
     "dotenv": "^16.5.0",
+    "keycloak-js": "^26.2.0",
     "lexical": "^0.33.1",
     "lucide-react": "^0.515.0",
     "marked": "^16.1.1",

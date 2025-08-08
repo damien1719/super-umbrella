@@ -1,28 +1,40 @@
+// src/middleware/requireAuth.ts
 import { RequestHandler } from 'express'
-import jwt from 'jsonwebtoken'
 import { prisma } from '../prisma'
+import jwt from 'jsonwebtoken'
+import { verifyKeycloakToken, verifySupabaseToken } from '../auth/verify'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = prisma as any
 
-interface SupabasePayload extends jwt.JwtPayload {
-  sub: string
-  email?: string
+type Provider = 'supabase' | 'keycloak'
+
+function getProfileFieldsFromPayload(payload: any, provider: Provider) {
+  if (provider === 'supabase') {
+    return {
+      email: payload?.email ?? null,
+      prenom: payload?.user_metadata?.firstName ?? null,
+      nom: payload?.user_metadata?.lastName ?? null,
+    }
+  }
+  // keycloak (OIDC standard claims)
+  return {
+    email: payload?.email ?? payload?.preferred_username ?? null,
+    prenom: payload?.given_name ?? null,
+    nom: payload?.family_name ?? null,
+  }
 }
 
-export const requireAuth: RequestHandler = async (
-  req,
-  res,
-  next
-) => {
-  if (req.method === 'OPTIONS') {
-    return next();
-  }
-  
-  if (process.env.AUTH_PROVIDER === 'fake') {
+export const requireAuth: RequestHandler = async (req, res, next) => {
+  if (req.method === 'OPTIONS') return next()
+
+  const authProvider = process.env.AUTH_PROVIDER
+  if (authProvider === 'fake') {
     req.user = { id: 'demo-user' }
-    next()
-    return
+    return next()
   }
+
+  const provider: Provider =
+    authProvider === 'keycloak' ? 'keycloak' : 'supabase'
 
   const token = req.headers.authorization?.split(' ')[1]
   if (!token) {
@@ -31,18 +43,23 @@ export const requireAuth: RequestHandler = async (
   }
 
   try {
-    const decoded = jwt.decode(token, { complete: true });
-    console.log(' decoded header:', (decoded as jwt.Jwt | null)?.header);
-    console.log('key', process.env.SUPABASE_JWT_SECRET);
-  
-    const payload = jwt.verify(token, process.env.SUPABASE_JWT_SECRET as string, {
-      algorithms: ["HS256"],
-      audience: 'authenticated',
-    }) as SupabasePayload
-    const provider = 'supabase'
-    const providerAccountId = payload.sub
+    let payload: any
 
-    // Cherche un AuthAccount existant
+    if (provider === 'supabase') {
+      const verified = verifySupabaseToken(token) // HS256 + aud=authenticated
+      payload = verified.payload
+    } else {
+      const verified = await verifyKeycloakToken(token) // RS256 + iss/aud check
+      payload = verified.payload
+    }
+
+    const providerAccountId = payload?.sub as string | undefined
+    if (!providerAccountId) {
+      res.status(401).send('Invalid token (no sub)')
+      return
+    }
+
+    // 1) Cherche un AuthAccount existant
     let authAccount = await db.authAccount.findUnique({
       where: {
         provider_providerAccountId: {
@@ -57,36 +74,36 @@ export const requireAuth: RequestHandler = async (
     if (authAccount) {
       user = authAccount.user
     } else {
-      // Crée un User interne et un AuthAccount lié
+      // 2) Crée l'utilisateur + le compte d’auth
+      const profileFields = getProfileFieldsFromPayload(payload, provider)
+
       user = await db.user.create({
         data: {
           authAccounts: {
             create: {
               provider,
               providerAccountId,
-              email: payload.email ?? null,
+              email: profileFields.email,
             },
           },
         },
-      });
-        // ===> Ajoute ce bloc pour créer le profil automatiquement
+      })
+
+      // 3) Crée le profil automatiquement
       await db.profile.create({
         data: {
           userId: user.id,
-          prenom: payload.user_metadata?.firstName ?? null, // si tu as ces infos dans le JWT
-          nom: payload.user_metadata?.lastName ?? null,
-          email: payload.email ?? null,
-          // ... autres champs par défaut si besoin
+          prenom: profileFields.prenom,
+          nom: profileFields.nom,
+          email: profileFields.email,
         },
-      });
+      })
     }
 
     req.user = { id: user.id }
     next()
-    return
   } catch (e) {
-    console.error('JWT error:', e)
+    console.error('JWT verify error:', e)
     res.status(401).send('Invalid token')
-    return
   }
 }
