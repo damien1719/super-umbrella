@@ -1,92 +1,108 @@
 import { RequestHandler } from 'express'
 import jwt from 'jsonwebtoken'
 import { prisma } from '../prisma'
+import { verifyKeycloakToken, verifySupabaseToken, detectProviderFromDecoded } from '../auth/verify'
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = prisma as any
 
-interface SupabasePayload extends jwt.JwtPayload {
-  sub: string
-  email?: string
+type Provider = 'supabase' | 'keycloak'
+
+function isAllowed(p: Provider) {
+  const mode = (process.env.AUTH_ACCEPT || 'supabase').toLowerCase()
+  return mode === 'both' || mode === p
 }
 
-export const requireAuth: RequestHandler = async (
-  req,
-  res,
-  next
-) => {
-  if (req.method === 'OPTIONS') {
-    return next();
-  }
-  
+export const requireAuth: RequestHandler = async (req, res, next) => {
+  if (req.method === 'OPTIONS') return next()
+
   if (process.env.AUTH_PROVIDER === 'fake') {
     req.user = { id: 'demo-user' }
-    next()
-    return
+    return next()
   }
 
-  const token = req.headers.authorization?.split(' ')[1]
-  if (!token) {
-    res.status(401).send('No token')
-    return
-  }
+  const auth = req.headers.authorization
+  const token = auth?.startsWith('Bearer ') ? auth.slice('Bearer '.length) : undefined
+  if (!token) return res.status(401).send('No token')
 
   try {
-    const decoded = jwt.decode(token, { complete: true });
-    console.log(' decoded header:', (decoded as jwt.Jwt | null)?.header);
-    console.log('key', process.env.SUPABASE_JWT_SECRET);
-  
-    const payload = jwt.verify(token, process.env.SUPABASE_JWT_SECRET as string, {
-      algorithms: ["HS256"],
-      audience: 'authenticated',
-    }) as SupabasePayload
-    const provider = 'supabase'
-    const providerAccountId = payload.sub
+    const decoded = jwt.decode(token, { complete: true }) as jwt.Jwt | null
+    const hinted = detectProviderFromDecoded(decoded)
 
-    // Cherche un AuthAccount existant
+    let provider: Provider | undefined
+    let payload: Record<string, unknown> = {}
+
+    const tryKeycloak = async () => {
+      const v = await verifyKeycloakToken(token)
+      provider = 'keycloak'
+      payload = v.payload as Record<string, unknown>
+    }
+    const trySupabase = () => {
+      const v = verifySupabaseToken(token)
+      provider = 'supabase'
+      payload = v.payload as Record<string, unknown>
+    }
+
+    if (hinted === 'keycloak' && isAllowed('keycloak')) {
+      await tryKeycloak()
+    } else if (hinted === 'supabase' && isAllowed('supabase')) {
+      trySupabase()
+    } else {
+      let lastErr: unknown
+      if (isAllowed('keycloak')) {
+        try { await tryKeycloak() } catch (e) { lastErr = e }
+      }
+      if (!provider && isAllowed('supabase')) {
+        try { trySupabase() } catch (e) { lastErr = e }
+      }
+      if (!provider) throw lastErr || new Error('No provider matched')
+    }
+
+    const providerAccountId = payload['sub'] as string | undefined
+    if (!providerAccountId) throw new Error('Missing sub')
+
+    const email =
+      (payload['email'] as string | undefined) ??
+      ((payload['user_metadata'] as Record<string, unknown> | undefined)?.['email'] as string | undefined) ??
+      null
+
+    const firstName =
+      (payload['given_name'] as string | undefined) ??
+      ((payload['user_metadata'] as Record<string, unknown> | undefined)?.['firstName'] as string | undefined) ??
+      null
+
+    const lastName =
+      (payload['family_name'] as string | undefined) ??
+      ((payload['user_metadata'] as Record<string, unknown> | undefined)?.['lastName'] as string | undefined) ??
+      null
+
     let authAccount = await db.authAccount.findUnique({
-      where: {
-        provider_providerAccountId: {
-          provider,
-          providerAccountId,
-        },
-      },
-      include: { user: true },
+      where: { provider_providerAccountId: { provider, providerAccountId } },
+      include: { user: true }
     })
 
     let user
     if (authAccount) {
       user = authAccount.user
     } else {
-      // Crée un User interne et un AuthAccount lié
-      user = await db.user.create({
-        data: {
-          authAccounts: {
-            create: {
-              provider,
-              providerAccountId,
-              email: payload.email ?? null,
-            },
-          },
-        },
-      });
-        // ===> Ajoute ce bloc pour créer le profil automatiquement
-      await db.profile.create({
-        data: {
-          userId: user.id,
-          prenom: payload.user_metadata?.firstName ?? null, // si tu as ces infos dans le JWT
-          nom: payload.user_metadata?.lastName ?? null,
-          email: payload.email ?? null,
-          // ... autres champs par défaut si besoin
-        },
-      });
+      if (email) {
+        user = await db.user.findFirst({ where: { profile: { email } } })
+      }
+      if (!user) {
+        user = await db.user.create({ data: {} })
+        await db.profile.create({
+          data: { userId: user.id, prenom: firstName, nom: lastName, email }
+        })
+      }
+      await db.authAccount.create({
+        data: { provider, providerAccountId, email, userId: user.id }
+      })
     }
 
     req.user = { id: user.id }
-    next()
-    return
+    return next()
   } catch (e) {
     console.error('JWT error:', e)
-    res.status(401).send('Invalid token')
-    return
+    return res.status(401).send('Invalid token')
   }
 }
