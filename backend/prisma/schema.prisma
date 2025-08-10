@@ -107,6 +107,8 @@ enum Job {
   PSYCHOMOTRICIEN
   ERGOTHERAPEUTE
   NEUROPSYCHOLOGUE
+
+  @@schema("psychomot")
 }
 
 model BilanTypeSection {
