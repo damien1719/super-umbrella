@@ -98,8 +98,15 @@ model Section {
   bilanTypeSections BilanTypeSection[]
   author            Profile?               @relation("AuthorSections", fields: [authorId], references: [id])
   examples          SectionExample[]
+  job               Job?
 
   @@schema("psychomot")
+}
+
+enum Job {
+  PSYCHOMOTRICIEN
+  ERGOTHERAPEUTE
+  NEUROPSYCHOLOGUE
 }
 
 model BilanTypeSection {
