@@ -16,18 +16,44 @@ import { FileText, ClipboardList, Eye, Brain } from 'lucide-react';
 import CreerTrameModal from '@/components/ui/creer-trame-modale';
 import { useSectionStore, type Section } from '@/store/sections';
 import { Loader2 } from 'lucide-react';
+import { Tabs } from '@/components/ui/tabs';
+import { useAuth } from '@/store/auth';
+
 
 export default function Bibliotheque() {
   const navigate = useNavigate();
   const { items, fetchAll, remove, duplicate } = useSectionStore();
   const [toDelete, setToDelete] = useState<Section | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
+  const userId = user?.id ?? null;
+  const OFFICIAL_AUTHOR_ID = (import.meta as any).env
+    .VITE_OFFICIAL_AUTHOR_ID as string | undefined;
+
 
   useEffect(() => {
     fetchAll()
       .then(() => setIsLoading(false))
       .catch(() => {});
   }, [fetchAll]);
+
+
+  const myTrames = items.filter((s) => !!userId && s.author?.id === userId);
+  const officialTrames = items.filter(
+    (s) => !!OFFICIAL_AUTHOR_ID && s.isPublic && s.author?.id === OFFICIAL_AUTHOR_ID,
+  );
+  const communityTrames = items.filter(
+    (s) => s.isPublic && (!OFFICIAL_AUTHOR_ID || s.author?.id !== OFFICIAL_AUTHOR_ID),
+  );
+
+  const [activeTab, setActiveTab] = useState<'mine' | 'official' | 'community'>('community');
+
+  const matchesActiveFilter = (s: Section) => {
+    if (activeTab === 'mine') return !!userId && s.author?.id === userId;
+    if (activeTab === 'official')
+      return !!OFFICIAL_AUTHOR_ID && s.isPublic && s.author?.id === OFFICIAL_AUTHOR_ID;
+    return s.isPublic && (!OFFICIAL_AUTHOR_ID || s.author?.id !== OFFICIAL_AUTHOR_ID);
+  };
 
   const categories = [
     { id: 'anamnese', title: 'Anamnèse', icon: FileText },
@@ -53,6 +79,17 @@ export default function Bibliotheque() {
             <CreerTrameModal />
           </div>
         </div>
+        <div className="mt-4">
+            <Tabs
+              active={activeTab}
+              onChange={(k) => setActiveTab(k as 'mine' | 'official' | 'community')}
+              tabs={[
+                { key: 'mine', label: 'Mes trames', count: myTrames.length, hidden: myTrames.length === 0 },
+                { key: 'official', label: 'Trames Bilan Plume', count: officialTrames.length },
+                { key: 'community', label: 'Trames de la communauté', count: communityTrames.length },
+              ]}
+            />
+          </div>
 
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
@@ -62,7 +99,9 @@ export default function Bibliotheque() {
           <div className="space-y-8">
             {categories.map((category) => {
               const IconComponent = category.icon;
-              const sections = items.filter((s) => s.kind === category.id);
+              const sections = items
+                .filter((s) => s.kind === category.id)
+                .filter(matchesActiveFilter);
               return (
                 <div
                   key={category.id}
