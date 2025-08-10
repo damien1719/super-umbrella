@@ -3,7 +3,10 @@ import type { Session } from '@supabase/supabase-js';
 import kc, { initKeycloak } from './keycloak';
 import { setAuthTokenGetter } from '../utils/authToken';
 
-type KcSession = { user: any | null; access_token: string | null };
+type KcSession = {
+  user: Record<string, unknown> | null;
+  access_token: string | null;
+};
 
 setAuthTokenGetter(() => kc.token || undefined);
 
@@ -42,7 +45,7 @@ export function createAuthProvider() {
         }
       }
 
-      // @ts-expect-error cast vers Session
+      // @ts-expect-error - cast vers Session
       return { data: { session: currentSession() as unknown as Session } };
     },
 
@@ -55,11 +58,11 @@ export function createAuthProvider() {
           const refreshed = await kc.updateToken(60);
           if (refreshed) {
             setAuthTokenGetter(() => kc.token || undefined);
-            // @ts-expect-error
+            // @ts-expect-error - token refresh emits loosely typed session
             callback('TOKEN_REFRESHED', currentSession() as unknown as Session);
           }
         } catch {
-          // @ts-expect-error
+          // @ts-expect-error - callback expects session type
           callback('SIGNED_OUT', null);
         }
       }, 20_000);
