@@ -2,7 +2,7 @@
 const provider = (import.meta.env.VITE_AUTH_PROVIDER || 'fake').toLowerCase();
 console.log('AUTH PROVIDER =', provider);
 
-let authImpl: any;
+let authImpl: unknown;
 if (provider === 'keycloak') {
   const m = await import('./auth.keycloak');
   authImpl = m.createAuthProvider();

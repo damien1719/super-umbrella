@@ -115,8 +115,6 @@ export function TableEditor({ q, onPatch }: EditorProps) {
         columns: [],
         rowsGroups: [{ id: genId(), title: '', rows: [] }],
       };
-  const lastIndex = tableau.rowsGroups.length - 1;
-
   const setTable = (tb: SurveyTable & { commentaire?: boolean }) => {
     onPatch({ tableau: tb } as Partial<Question>);
   };
