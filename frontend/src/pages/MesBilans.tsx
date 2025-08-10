@@ -107,7 +107,7 @@ export default function Component() {
           <div className="flex items-center justify-center h-full">
             <Loader2 className="w-8 h-8 animate-spin" />
           </div>
-        ) : ( hasBilans ? (
+        ) : hasBilans ? (
           <div className="space-y-6">
             <Card className="bg-primary-50 border-primary-200">
               <CardContent className="flex items-center justify-between p-6">
@@ -154,36 +154,35 @@ export default function Component() {
           </div>
         ) : (
           <EmptyState onCreate={() => setIsCreationModalOpen(true)} />
-        )
-      )}
+        )}
       </div>
-        <CreationBilan
-          isOpen={isCreationModalOpen}
-          onClose={() => setIsCreationModalOpen(false)}
-          onNewPatient={() => setIsNewPatientModalOpen(true)}
-          onExistingPatient={() => setIsExistingPatientModalOpen(true)}
-        />
-        <NewPatientModal
-          isOpen={isNewPatientModalOpen}
-          onClose={() => setIsNewPatientModalOpen(false)}
-          onPatientCreated={createBilan}
-        />
-        <ExistingPatientModal
-          isOpen={isExistingPatientModalOpen}
-          onClose={() => setIsExistingPatientModalOpen(false)}
-          onPatientSelected={createBilan}
-        />
-        <ConfirmDialog
-          open={!!toDelete}
-          title="Supprimer ce bilan ?"
-          onOpenChange={(open) => !open && setToDelete(null)}
-          onConfirm={async () => {
-            if (toDelete) {
-              await removeBilan(toDelete.id);
-              setToDelete(null);
-            }
-          }}
-        />
+      <CreationBilan
+        isOpen={isCreationModalOpen}
+        onClose={() => setIsCreationModalOpen(false)}
+        onNewPatient={() => setIsNewPatientModalOpen(true)}
+        onExistingPatient={() => setIsExistingPatientModalOpen(true)}
+      />
+      <NewPatientModal
+        isOpen={isNewPatientModalOpen}
+        onClose={() => setIsNewPatientModalOpen(false)}
+        onPatientCreated={createBilan}
+      />
+      <ExistingPatientModal
+        isOpen={isExistingPatientModalOpen}
+        onClose={() => setIsExistingPatientModalOpen(false)}
+        onPatientSelected={createBilan}
+      />
+      <ConfirmDialog
+        open={!!toDelete}
+        title="Supprimer ce bilan ?"
+        onOpenChange={(open) => !open && setToDelete(null)}
+        onConfirm={async () => {
+          if (toDelete) {
+            await removeBilan(toDelete.id);
+            setToDelete(null);
+          }
+        }}
+      />
     </div>
   );
 }

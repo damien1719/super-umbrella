@@ -5,18 +5,18 @@ import { usePatientStore, Patient } from '../store/patients';
 import GenericTable from '../components/bilans/GenericTable';
 import { Loader2 } from 'lucide-react';
 
-
 export default function Patients() {
   const { items, fetchAll, remove } = usePatientStore();
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Patient | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-
   useEffect(() => {
-    fetchAll().then(() => setIsLoading(false)).catch(() => {
-      /* ignore */
-    });
+    fetchAll()
+      .then(() => setIsLoading(false))
+      .catch(() => {
+        /* ignore */
+      });
   }, [fetchAll]);
 
   return (
@@ -52,21 +52,21 @@ export default function Patients() {
         )}
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
-              <Loader2 className="w-8 h-8 animate-spin" />
+            <Loader2 className="w-8 h-8 animate-spin" />
           </div>
         ) : (
-        <div className="space-y-4">
-          <GenericTable
-            variant="patient"
-            items={items}
-            onSelect={(id) => {
-              const patient = items.find((p) => p.id === id) || null;
-              setEditing(patient);
-              setShowForm(true);
-            }}
-            onDelete={(item) => remove(item.id)}
-          />
-        </div>
+          <div className="space-y-4">
+            <GenericTable
+              variant="patient"
+              items={items}
+              onSelect={(id) => {
+                const patient = items.find((p) => p.id === id) || null;
+                setEditing(patient);
+                setShowForm(true);
+              }}
+              onDelete={(item) => remove(item.id)}
+            />
+          </div>
         )}
       </div>
     </div>

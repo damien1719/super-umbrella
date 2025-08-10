@@ -2,7 +2,9 @@ import { FormEvent, useEffect, useState } from 'react';
 import { useAuth } from '../store/auth';
 import { useNavigate } from 'react-router-dom';
 
-const provider = (import.meta.env.VITE_AUTH_PROVIDER || 'supabase').toLowerCase();
+const provider = (
+  import.meta.env.VITE_AUTH_PROVIDER || 'supabase'
+).toLowerCase();
 
 export default function Login() {
   const navigate = useNavigate();
@@ -12,15 +14,15 @@ export default function Login() {
   const [pwd, setPwd] = useState('demo');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const { user, initialized } = useAuth(); 
-
+  const { user, initialized } = useAuth();
 
   // --- SUPABASE: formulaire classique ---
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setLoading(true); setError(null);
+    setLoading(true);
+    setError(null);
     try {
-      await signIn(email, pwd);     // en provider supabase, c'est bien email/pwd
+      await signIn(email, pwd); // en provider supabase, c'est bien email/pwd
       navigate('/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur de connexion');
@@ -31,9 +33,10 @@ export default function Login() {
 
   // --- KEYCLOAK: redirection SSO ---
   const handleSSOLogin = async () => {
-    setLoading(true); setError(null);
+    setLoading(true);
+    setError(null);
     try {
-      await signIn();               // en provider keycloak, signIn() doit faire kc.login()
+      await signIn(); // en provider keycloak, signIn() doit faire kc.login()
       // pas de navigate ici: redirection vers Keycloak puis retour
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur de connexion SSO');
@@ -42,11 +45,16 @@ export default function Login() {
   };
 
   const handleSSOSignUp = async () => {
-    setLoading(true); setError(null);
+    setLoading(true);
+    setError(null);
     try {
-      await signUp();               // en provider keycloak, signUp() doit faire kc.register()
+      await signUp(); // en provider keycloak, signUp() doit faire kc.register()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Impossible d’ouvrir la page d’inscription');
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Impossible d’ouvrir la page d’inscription',
+      );
       setLoading(false);
     }
   };
@@ -56,7 +64,6 @@ export default function Login() {
       navigate('/'); // ou '/patients' si tu préfères
     }
   }, [initialized, user, navigate]);
-
 
   // ----------------- RENDU -----------------
   if (provider === 'keycloak') {
@@ -94,7 +101,10 @@ export default function Login() {
   // --- SUPABASE (formulaire existant) ---
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-xs w-full p-4">
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-4 max-w-xs w-full p-4"
+      >
         <h1 className="text-2xl font-bold mb-4">Connexion</h1>
 
         {error && (
@@ -130,7 +140,16 @@ export default function Login() {
         {import.meta.env.VITE_AUTH_PROVIDER === 'fake' && (
           <button
             type="button"
-            onClick={async () => { setLoading(true); setError(null); try { await signIn('demo@local', 'demo'); navigate('/'); } finally { setLoading(false); } }}
+            onClick={async () => {
+              setLoading(true);
+              setError(null);
+              try {
+                await signIn('demo@local', 'demo');
+                navigate('/');
+              } finally {
+                setLoading(false);
+              }
+            }}
             className="border p-2 rounded hover:bg-gray-100 disabled:opacity-50"
             disabled={loading}
           >

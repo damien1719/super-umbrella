@@ -85,17 +85,15 @@ export default function TrameCard({
       <CardHeader className="pb-3">
         <CardTitle className="text-base font-medium text-gray-900 flex items-center gap-1">
           {selected && <Check className="h-4 w-4 text-blue-600" />}
-          {trame.title}  
+          {trame.title}
         </CardTitle>
         {trame.sharedBy && (
           <p className="text-xs text-gray-500">Partagée par {trame.sharedBy}</p>
         )}
       </CardHeader>
       <CardContent className="space-y-1">
-
         <p className="text-sm text-gray-600">{trame.description}</p>
       </CardContent>
-      
     </Card>
   );
 }

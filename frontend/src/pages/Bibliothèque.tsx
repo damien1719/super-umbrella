@@ -17,16 +17,16 @@ import CreerTrameModal from '@/components/ui/creer-trame-modale';
 import { useSectionStore, type Section } from '@/store/sections';
 import { Loader2 } from 'lucide-react';
 
-
 export default function Bibliotheque() {
   const navigate = useNavigate();
   const { items, fetchAll, remove, duplicate } = useSectionStore();
   const [toDelete, setToDelete] = useState<Section | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-
   useEffect(() => {
-    fetchAll().then(() => setIsLoading(false)).catch(() => {});
+    fetchAll()
+      .then(() => setIsLoading(false))
+      .catch(() => {});
   }, [fetchAll]);
 
   const categories = [
@@ -56,55 +56,55 @@ export default function Bibliotheque() {
 
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
-              <Loader2 className="w-8 h-8 animate-spin" />
+            <Loader2 className="w-8 h-8 animate-spin" />
           </div>
         ) : (
-        <div className="space-y-8">
-          {categories.map((category) => {
-            const IconComponent = category.icon;
-            const sections = items.filter((s) => s.kind === category.id);
-            return (
-              <div
-                key={category.id}
-                className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
-              >
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-primary-100 rounded-lg">
-                    <IconComponent className="h-6 w-6 text-primary-600" />
+          <div className="space-y-8">
+            {categories.map((category) => {
+              const IconComponent = category.icon;
+              const sections = items.filter((s) => s.kind === category.id);
+              return (
+                <div
+                  key={category.id}
+                  className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+                >
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="p-2 bg-primary-100 rounded-lg">
+                      <IconComponent className="h-6 w-6 text-primary-600" />
+                    </div>
+                    <h2 className="text-xl font-semibold text-gray-900">
+                      {category.title}
+                    </h2>
+                    <span className="text-sm text-gray-500">
+                      ({sections.length} sections)
+                    </span>
                   </div>
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    {category.title}
-                  </h2>
-                  <span className="text-sm text-gray-500">
-                    ({sections.length} sections)
-                  </span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {sections.map((trame) => (
+                      <TrameCard
+                        key={trame.id}
+                        trame={{
+                          id: trame.id,
+                          title: trame.title,
+                          description: trame.description,
+                          sharedBy:
+                            trame.isPublic && trame.author?.prenom
+                              ? trame.author.prenom
+                              : undefined,
+                        }}
+                        onSelect={() => navigate(`/creation-trame/${trame.id}`)}
+                        onDuplicate={async () => {
+                          await duplicate(trame.id);
+                          await fetchAll().catch(() => {});
+                        }}
+                        onDelete={() => setToDelete(trame)}
+                      />
+                    ))}
+                  </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {sections.map((trame) => (
-                    <TrameCard
-                      key={trame.id}
-                      trame={{
-                        id: trame.id,
-                        title: trame.title,
-                        description: trame.description,
-                        sharedBy:
-                          trame.isPublic && trame.author?.prenom
-                            ? trame.author.prenom
-                            : undefined,
-                      }}
-                      onSelect={() => navigate(`/creation-trame/${trame.id}`)}
-                      onDuplicate={async () => {
-                        await duplicate(trame.id);
-                        await fetchAll().catch(() => {});
-                      }}
-                      onDelete={() => setToDelete(trame)}
-                    />
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
         )}
       </div>
       <AlertDialog open={!!toDelete} onOpenChange={() => setToDelete(null)}>

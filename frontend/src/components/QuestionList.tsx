@@ -76,7 +76,9 @@ export default function QuestionList({
         return (
           <div
             key={question.id}
-            ref={el => { itemRefs.current[question.id] = el; }}
+            ref={(el) => {
+              itemRefs.current[question.id] = el;
+            }}
             className="relative w-full"
             onDragOver={(e) => e.preventDefault()}
             onDrop={() => handleDrop(index)}
@@ -139,71 +141,79 @@ export default function QuestionList({
               </CardHeader>
               <CardContent className="space-y-2">
                 <Editor q={question} onPatch={(p) => onPatch(question.id, p)} />
-                  <div
-                    className={
-                      `flex justify-end gap-2 pt-2 transition-opacity duration-200 ` +
-                      (selectedId === question.id
-                        ? 'opacity-100'
-                        : 'opacity-0 group-hover:opacity-100')
-                    }
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Button variant="outline" size="sm" onClick={(e) => {
+                <div
+                  className={
+                    `flex justify-end gap-2 pt-2 transition-opacity duration-200 ` +
+                    (selectedId === question.id
+                      ? 'opacity-100'
+                      : 'opacity-0 group-hover:opacity-100')
+                  }
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
                       e.stopPropagation();
                       onAddAfter(question.id);
-                    }}>
-                      <Plus className="h-5 w-5" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDuplicate(question.id);
-                      }}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete(question.id);
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                    }}
+                  >
+                    <Plus className="h-5 w-5" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDuplicate(question.id);
+                    }}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(question.id);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </CardContent>
             </Card>
             {selectedId === question.id && (
               <div className="flex flex-col absolute top-1/2 -translate-y-1/2 space-y-2">
-                <Button variant="primary" size="icon" onClick={(e) => {
-                  e.stopPropagation();
-                  onAddAfter(question.id);
-                }}>
+                <Button
+                  variant="primary"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onAddAfter(question.id);
+                  }}
+                >
                   <Plus className="h-6 w-6 text-white" />
                 </Button>
                 <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDuplicate(question.id);
-                      }}
-                    >
-                    <Copy className="h-4 w-4" />
+                  variant="primary"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDuplicate(question.id);
+                  }}
+                >
+                  <Copy className="h-4 w-4" />
                 </Button>
                 <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete(question.id);
-                      }}
-                    >
-                    <Trash2 className="h-4 w-4" />
+                  variant="primary"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(question.id);
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
             )}

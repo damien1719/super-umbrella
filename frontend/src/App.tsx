@@ -15,9 +15,6 @@ import SignUp from './pages/SignUp';
 import { usePageStore } from './store/pageContext';
 import { useUserProfileStore } from './store/userProfile';
 import { AppSidebar } from './components/AppSidebar';
-import { initKeycloak } from './lib/keycloak';
-import kc from './lib/keycloak';
-import { setAuthTokenGetter } from './utils/authToken';
 
 /* function useInitAuth() {
   const { loading, initialize } = useAuth();
@@ -41,7 +38,6 @@ import { setAuthTokenGetter } from './utils/authToken';
 
   return loading;
 } */
-
 
 function useInitAuth() {
   const { loading, initialize } = useAuth();
