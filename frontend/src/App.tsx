@@ -52,6 +52,13 @@ function useInitAuth() {
   return loading;
 }
 
+function SilentCheckSso() {
+  useEffect(() => {
+    window.parent?.postMessage(window.location.href, window.location.origin);
+  }, []);
+  return null;
+}
+
 function ProtectedLayout() {
   const setCurrentPage = usePageStore((s) => s.setCurrentPage);
   const { user } = useAuth();
@@ -182,6 +189,7 @@ const provider = (import.meta.env.VITE_AUTH_PROVIDER || 'supabase').toLowerCase(
 export default function App() {
   return (
     <Routes>
+      <Route path="/silent-check-sso" element={<SilentCheckSso />} />
       <Route path="/login" element={<Login />} />
       {provider !== 'keycloak' && <Route path="/signup" element={<SignUp />} />}
       <Route element={<WizardLayout />}></Route>
