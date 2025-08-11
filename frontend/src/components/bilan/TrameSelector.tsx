@@ -25,6 +25,9 @@ export interface TrameOption {
   label: string;
   description?: string | null;
   schema?: unknown;
+  isPublic?: boolean;
+  authorId?: string | null;
+  author?: { prenom?: string | null } | null;
 }
 
 export interface TrameExample {
