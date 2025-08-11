@@ -393,7 +393,9 @@ export default function AiRightPanel({
           </div>
         )} */}
         <div className="sticky top-0 z-10 flex items-center justify-between bg-wood-50 border-b border-wood-200 px-4 py-2 h-14">
-          <span className="font-medium text-sm">Assistant IA</span>
+          <span className="font-medium text-sm">
+            {mode === 'refine' ? 'Raffiner le texte' : regenSection ? 'Modifier la section' : 'Assistant IA'}
+          </span>
           {(regenSection || mode === 'refine') && (
             <Button
               variant="ghost"
@@ -493,14 +495,7 @@ export default function AiRightPanel({
                 />
               </div>
               <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setRegenSection(null)}
-                  disabled={isGenerating}
-                >
-                  Annuler
-                </Button>
+                
                 <Button
                   size="sm"
                   onClick={() => {
@@ -511,7 +506,15 @@ export default function AiRightPanel({
                   }}
                   disabled={isGenerating}
                 >
-                  {isGenerating ? 'Génération...' : 'Re-générer'}
+                  {isGenerating ? 'Génération...' : 'Reformuler ce texte'}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setRegenSection(null)}
+                  disabled={isGenerating}
+                >
+                  Passer à la suite
                 </Button>
               </div>
             </div>
