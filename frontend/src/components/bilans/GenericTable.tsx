@@ -16,7 +16,6 @@ export interface BilanItem {
   title: string;
   date: string;
   patient?: { firstName: string; lastName: string };
-  bilanType?: { name: string };
 }
 
 export type GenericItem = BilanItem | Patient;
@@ -86,9 +85,7 @@ export function GenericTable({
                         ? `${(item as BilanItem).patient!.firstName} ${(item as BilanItem).patient!.lastName}`
                         : ''}
                     </TableCell>
-                    <TableCell>
-                      {(item as BilanItem).bilanType?.name ?? ''}
-                    </TableCell>
+                    <TableCell>{(item as BilanItem).title}</TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <Button
                         size="icon"
