@@ -135,6 +135,7 @@ model SectionExample {
 
 model Bilan {
   id              String                 @id @default(uuid())
+  title           String?
   patientId       String?
   bilanTypeId     String?
   descriptionHtml String?

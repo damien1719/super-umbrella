@@ -40,11 +40,11 @@ export default function Component() {
       });
   }, [token]);
 
-  const createBilan = async (patientId: string) => {
+  const createBilan = async (patientId: string, title?: string) => {
     const res = await apiFetch<{ id: string }>('/api/v1/bilans', {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ patientId }),
+      body: JSON.stringify({ patientId, title }),
     });
     navigate(`/bilan/${res.id}`);
   };

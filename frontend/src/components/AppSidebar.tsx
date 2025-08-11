@@ -83,7 +83,7 @@ export function AppSidebar({ onNavigate }: SidebarProps) {
             className="h-10 w-10 object-contain"
           />
           <span className="font-semibold text-lg group-data-[collapsible=icon]:hidden">
-            BilanPlume
+            Bilan Plume
           </span>
         </div>
       </SidebarHeader>
