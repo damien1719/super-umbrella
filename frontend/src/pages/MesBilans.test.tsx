@@ -17,7 +17,7 @@ describe('BilanV2 page', () => {
             id: '1',
             date: '2024-01-01',
             patient: { firstName: 'John', lastName: 'Doe' },
-            bilanType: { name: 'Initial' },
+            title: 'Bilan initial',
           },
         ]),
     });
@@ -32,6 +32,7 @@ describe('BilanV2 page', () => {
 
     await waitFor(() => expect(fetch).toHaveBeenCalled());
     expect(await screen.findByText(/John Doe/)).toBeInTheDocument();
+    expect(await screen.findByText(/Bilan initial/)).toBeInTheDocument();
   });
 
   it('deletes bilan after confirmation', async () => {
@@ -46,7 +47,7 @@ describe('BilanV2 page', () => {
               id: '1',
               date: '2024-01-01',
               patient: { firstName: 'John', lastName: 'Doe' },
-              bilanType: { name: 'Initial' },
+              title: 'Bilan initial',
             },
           ]),
       })
@@ -79,6 +80,9 @@ describe('BilanV2 page', () => {
     );
     await waitFor(() =>
       expect(screen.queryByText(/John Doe/)).not.toBeInTheDocument(),
+    );
+    await waitFor(() =>
+      expect(screen.queryByText(/Bilan initial/)).not.toBeInTheDocument(),
     );
   });
 });

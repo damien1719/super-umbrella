@@ -27,6 +27,7 @@ export default function Component() {
   const token = useAuth((s) => s.token);
   const navigate = useNavigate();
   const [isCreationModalOpen, setIsCreationModalOpen] = useState(false);
+  const [bilanTitle, setBilanTitle] = useState('');
 
   useEffect(() => {
     if (!token) return;
@@ -159,18 +160,24 @@ export default function Component() {
       <CreationBilan
         isOpen={isCreationModalOpen}
         onClose={() => setIsCreationModalOpen(false)}
-        onNewPatient={() => setIsNewPatientModalOpen(true)}
-        onExistingPatient={() => setIsExistingPatientModalOpen(true)}
+        onNewPatient={(title) => {
+          setBilanTitle(title);
+          setIsNewPatientModalOpen(true);
+        }}
+        onExistingPatient={(title) => {
+          setBilanTitle(title);
+          setIsExistingPatientModalOpen(true);
+        }}
       />
       <NewPatientModal
         isOpen={isNewPatientModalOpen}
         onClose={() => setIsNewPatientModalOpen(false)}
-        onPatientCreated={createBilan}
+        onPatientCreated={(id) => createBilan(id, bilanTitle)}
       />
       <ExistingPatientModal
         isOpen={isExistingPatientModalOpen}
         onClose={() => setIsExistingPatientModalOpen(false)}
-        onPatientSelected={createBilan}
+        onPatientSelected={(id) => createBilan(id, bilanTitle)}
       />
       <ConfirmDialog
         open={!!toDelete}
