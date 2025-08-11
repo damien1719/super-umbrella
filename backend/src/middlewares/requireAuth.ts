@@ -1,26 +1,47 @@
 // src/middleware/requireAuth.ts
 import { RequestHandler } from 'express'
 import { prisma } from '../prisma'
-import jwt from 'jsonwebtoken'
 import { verifyKeycloakToken, verifySupabaseToken } from '../auth/verify'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = prisma as any
 
 type Provider = 'supabase' | 'keycloak'
 
-function getProfileFieldsFromPayload(payload: any, provider: Provider) {
+interface BasePayload {
+  email?: string
+  sub?: string
+  [key: string]: unknown
+}
+
+interface SupabasePayload extends BasePayload {
+  user_metadata?: {
+    firstName?: string
+    lastName?: string
+  }
+}
+
+interface KeycloakPayload extends BasePayload {
+  preferred_username?: string
+  given_name?: string
+  family_name?: string
+}
+
+type TokenPayload = SupabasePayload | KeycloakPayload
+
+function getProfileFieldsFromPayload(payload: TokenPayload, provider: Provider) {
   if (provider === 'supabase') {
+    const p = payload as SupabasePayload
     return {
-      email: payload?.email ?? null,
-      prenom: payload?.user_metadata?.firstName ?? null,
-      nom: payload?.user_metadata?.lastName ?? null,
+      email: p.email ?? null,
+      prenom: p.user_metadata?.firstName ?? null,
+      nom: p.user_metadata?.lastName ?? null,
     }
   }
-  // keycloak (OIDC standard claims)
+  const p = payload as KeycloakPayload
   return {
-    email: payload?.email ?? payload?.preferred_username ?? null,
-    prenom: payload?.given_name ?? null,
-    nom: payload?.family_name ?? null,
+    email: p.email ?? p.preferred_username ?? null,
+    prenom: p.given_name ?? null,
+    nom: p.family_name ?? null,
   }
 }
 
@@ -43,17 +64,17 @@ export const requireAuth: RequestHandler = async (req, res, next) => {
   }
 
   try {
-    let payload: any
+    let payload: TokenPayload
 
     if (provider === 'supabase') {
       const verified = verifySupabaseToken(token) // HS256 + aud=authenticated
-      payload = verified.payload
+      payload = verified.payload as TokenPayload
     } else {
       const verified = await verifyKeycloakToken(token) // RS256 + iss/aud check
-      payload = verified.payload
+      payload = verified.payload as TokenPayload
     }
 
-    const providerAccountId = payload?.sub as string | undefined
+    const providerAccountId = payload.sub as string | undefined
     if (!providerAccountId) {
       res.status(401).send('Invalid token (no sub)')
       return

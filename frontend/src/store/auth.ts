@@ -3,6 +3,9 @@ import { auth } from '../lib/auth';
 import { apiFetch } from '../utils/api';
 import type { User, Session } from '@supabase/supabase-js';
 
+const provider = (import.meta.env.VITE_AUTH_PROVIDER || 'supabase').toLowerCase();
+
+
 export interface AuthState {
   user: User | null;
   token: string | null;
@@ -12,12 +15,12 @@ export interface AuthState {
   initialized: boolean;
   error: string | null;
   initialize: () => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email?: string, password?: string) => Promise<void>;
   signUp: (
-    email: string,
-    password: string,
-    firstName: string,
-    lastName: string,
+    email?: string,
+    password?: string,
+    firstName?: string,
+    lastName?: string,
   ) => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -66,8 +69,19 @@ export const useAuth = create<AuthState>((set) => {
       });
     },
 
-    signIn: async (email, password) => {
+    signIn: async (email?: string, password?: string) => {
       set({ loading: true, error: null });
+
+
+      if (provider === 'keycloak') {
+        // 🔁 Redirige vers Keycloak (via ton provider KC)
+        // NB: après redirection, ce code ne continue pas.
+        await (auth as any).signIn();
+        set({ loading: false }); // si jamais pas de redirection (erreur)
+        return;
+      }
+
+      //SUPABASE
       const { data, error } = await auth.signInWithPassword({
         email,
         password,
@@ -87,8 +101,19 @@ export const useAuth = create<AuthState>((set) => {
       });
     },
 
-    signUp: async (email, password, firstName, lastName) => {
+    signUp: async (email?: string, password?: string, firstName?: string, lastName?: string) => {
       set({ loading: true, error: null });
+
+      if (provider === 'keycloak') {
+        // 👉 ouvre directement la page d’inscription KC
+        await (auth as any).signUp();
+        set({ loading: false });
+        return;
+      }
+
+      // --- SUPABASE (comme avant) ---
+
+
       const { data, error } = await (
         auth as {
           signUp: (params: {

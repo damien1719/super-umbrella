@@ -189,7 +189,10 @@ export default function ImportMagique({
 
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            ✨ Collez simplement un document Word à partir de votre trame
+            <span role="img" aria-label="sparkles">
+              ✨
+            </span>{' '}
+            Collez simplement un document Word à partir de votre trame
             habituelle : il sera automatiquement importé et prêt à être utilisé
             dans l’application.
           </p>

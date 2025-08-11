@@ -10,6 +10,7 @@ export interface Section {
   schema?: unknown;
   defaultContent?: unknown;
   isPublic?: boolean;
+  authorId?: string | null;
   author?: { prenom?: string | null } | null;
 }
 

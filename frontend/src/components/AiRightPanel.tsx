@@ -214,10 +214,10 @@ export default function AiRightPanel({
       typeof commentVal === 'string'
         ? `\n\n> **Commentaire** : ${commentVal}`
         : '';
-      
-    console.log("header", header)
-    console.log("body", body)
-    console.log("comment", comment)
+
+    console.log('header', header);
+    console.log('body', body);
+    console.log('comment', comment);
 
     return header + body + comment;
   }
@@ -231,7 +231,7 @@ export default function AiRightPanel({
       case 'echelle':
         return `${q.titre}\n\n${value}`;
       case 'titre':
-        console.log("here");
+        console.log('here');
         return `## ${q.titre}\n\n${value}`;
       default:
         return `${q.titre} : ${value}`;
@@ -254,18 +254,18 @@ export default function AiRightPanel({
       // mdBlocks.push(`# ${section.title}\n`);
 
       for (const q of questions) {
-        console.log("type", q.type);
+        console.log('type', q.type);
         if (q.type === 'tableau') {
           const ansTable = (ans[q.id] as TableAnswers) || {};
           mdBlocks.push(markdownifyTable(q, ansTable));
         } else if (q.type === 'titre') {
           mdBlocks.push(markdownifyField(q, ''));
         } else {
-          console.log("questions", q)
+          console.log('questions', q);
           const raw = String(ans[q.id] ?? '').trim();
           if (raw) {
             mdBlocks.push(markdownifyField(q, raw));
-            console.log(mdBlocks)
+            console.log(mdBlocks);
           }
         }
       }
@@ -420,7 +420,6 @@ export default function AiRightPanel({
                   {isGenerating ? 'Génération...' : 'Re-générer'}
                 </Button>
               </div>
-             
             </div>
           ) : regenSection ? (
             <div className="space-y-4">
