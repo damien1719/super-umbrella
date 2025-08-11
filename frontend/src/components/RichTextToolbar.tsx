@@ -4,10 +4,10 @@ import {
   INSERT_UNORDERED_LIST_COMMAND,
   INSERT_ORDERED_LIST_COMMAND,
 } from '@lexical/list';
-import { TOGGLE_LINK_COMMAND } from '@lexical/link';
 import { useCallback } from 'react';
 import { Save } from 'lucide-react';
 import { Button } from './ui/button';
+
 
 interface Props {
   onSave?: () => void;
@@ -23,11 +23,6 @@ export function ToolbarPlugin({ onSave }: Props) {
     [editor],
   );
 
-  const insertLink = useCallback(() => {
-    const url = prompt('URL');
-    if (url) editor.dispatchCommand(TOGGLE_LINK_COMMAND, url);
-  }, [editor]);
-
   const insertList = useCallback(
     (ordered: boolean) => {
       editor.dispatchCommand(
@@ -39,46 +34,57 @@ export function ToolbarPlugin({ onSave }: Props) {
   );
 
   return (
-    <div className="sticky top-0 z-10 flex space-x-2 bg-wood-50 border-b border-wood-200 p-2">
-      <Button type="button" onClick={() => format('bold')} variant="secondary">
+    <div className="sticky top-0 z-10 flex space-x-2 bg-wood-50 border-b border-wood-200 p-2 items-center">
+      {/* Heading selector */}
+   {/*    <Select onValueChange={(v: 'paragraph'|'h1'|'h2'|'h3') => setBlock(v)} defaultValue="paragraph">
+        <SelectTrigger className="w-36 border-none">
+          <SelectValue placeholder="Paragraphe" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="paragraph">Paragraphe</SelectItem>
+          <SelectItem value="h1">Titre H1</SelectItem>
+          <SelectItem value="h2">Titre H2</SelectItem>
+          <SelectItem value="h3">Titre H3</SelectItem>
+        </SelectContent>
+      </Select> */}
+    
+      <Button type="button" onClick={() => format('bold')} variant="editor">
         B
       </Button>
       <Button
         type="button"
         onClick={() => format('italic')}
-        variant="secondary"
+        variant="editor"
       >
         I
       </Button>
       <Button
         type="button"
         onClick={() => format('underline')}
-        variant="secondary"
+        variant="editor"
       >
         U
       </Button>
       <Button
         type="button"
         onClick={() => insertList(false)}
-        variant="secondary"
+        variant="editor"
       >
         •
       </Button>
       <Button
         type="button"
         onClick={() => insertList(true)}
-        variant="secondary"
+        variant="editor"
       >
         1.
       </Button>
-      <Button type="button" onClick={insertLink} variant="secondary">
-        Link
-      </Button>
+
       {onSave && (
         <Button
           type="button"
           onClick={onSave}
-          variant="secondary"
+          variant="editor"
           aria-label="Save"
         >
           <Save className="w-4 h-4" />

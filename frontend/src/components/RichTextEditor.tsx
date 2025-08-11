@@ -171,7 +171,7 @@ function EditorCore(
         h3: 'text-lg font-medium mb-2',
       },
     },
-    nodes: [ListNode, ListItemNode, LinkNode, HeadingNode, QuoteNode],
+    nodes: [TextNode, ListNode, ListItemNode, LinkNode, HeadingNode, QuoteNode],
   };
   return (
     <LexicalComposer initialConfig={initialConfig}>
@@ -182,7 +182,7 @@ function EditorCore(
             <div className="bg-paper-50 border border-gray-300 rounded shadow p-16 w-full max-w-3xl min-h-[100vh] flex flex-col">
               <RichTextPlugin
                 contentEditable={
-                  <ContentEditable className="outline-none flex-1" />
+                  <ContentEditable className="editor-content outline-none flex-1" />
                 }
                 placeholder={<div className="text-gray-400">…</div>}
                 ErrorBoundary={LexicalErrorBoundary}
