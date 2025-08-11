@@ -1,8 +1,22 @@
 // src/lib/auth.ts
+import type { Session } from '@supabase/supabase-js';
+
+type AuthProvider = {
+  getCurrentUser?: () => Promise<unknown>;
+  getSession: () => Promise<{ data: { session: Session | null } }>;
+  onAuthStateChange: (
+    callback: (event: string, session: Session | null) => void,
+  ) => { data: { subscription: { unsubscribe: () => void } } };
+  signIn: (...args: any[]) => Promise<any>;
+  signOut: () => Promise<any>;
+  signInWithPassword?: (args: any) => Promise<any>;
+  signUp?: (...args: any[]) => Promise<any>;
+};
+
 const provider = (import.meta.env.VITE_AUTH_PROVIDER || 'fake').toLowerCase();
 console.log('AUTH PROVIDER =', provider);
 
-let authImpl: unknown;
+let authImpl: AuthProvider;
 if (provider === 'keycloak') {
   const m = await import('./auth.keycloak');
   authImpl = m.createAuthProvider();
@@ -14,4 +28,4 @@ if (provider === 'keycloak') {
   authImpl = m.createAuthProvider();
 }
 
-export const auth = authImpl;
+export const auth: AuthProvider = authImpl;

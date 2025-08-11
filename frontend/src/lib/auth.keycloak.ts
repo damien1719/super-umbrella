@@ -14,6 +14,18 @@ function setPostLogin(path: string) {
   sessionStorage.setItem('postLogin', path);
 }
 
+async function ensureInit() {
+    // check-sso va parser le callback après login et peupler kc.token/kc.tokenParsed
+    await initKeycloak({
+      onLoad: 'check-sso',
+      pkceMethod: 'S256',
+      checkLoginIframe: false,
+    });
+    setAuthTokenGetter(() => kc.token || undefined);
+  }
+
+
+
 export function consumePostLogin(): string | null {
   const v = sessionStorage.getItem('postLogin');
   if (v) sessionStorage.removeItem('postLogin');
@@ -30,23 +42,18 @@ let unsub: number | null = null;
 export function createAuthProvider() {
   return {
     async getCurrentUser() {
-      if (!kc.token) {
-        await initKeycloak({ onLoad: 'check-sso' });
-      }
+      await ensureInit();
       return kc.tokenParsed || null;
     },
 
     async getSession(): Promise<{ data: { session: Session | null } }> {
+      await ensureInit();                  // 👈 essentiel après le redirect
       if (kc.authenticated) {
-        try {
-          await kc.updateToken(30); // refresh si moins de 30s avant expiration
-        } catch (err) {
-          console.warn('Token refresh failed', err);
-        }
+        try { await kc.updateToken(30); } catch {}
       }
-
-      // @ts-expect-error - cast vers Session
-      return { data: { session: currentSession() as unknown as Session } };
+      // @ts-expect-error adapter au type Session attendu par ton store
+      return { data: { session: currentSession() as Session } };
+    
     },
 
     onAuthStateChange(
@@ -58,11 +65,9 @@ export function createAuthProvider() {
           const refreshed = await kc.updateToken(60);
           if (refreshed) {
             setAuthTokenGetter(() => kc.token || undefined);
-            // @ts-expect-error - token refresh emits loosely typed session
             callback('TOKEN_REFRESHED', currentSession() as unknown as Session);
           }
         } catch {
-          // @ts-expect-error - callback expects session type
           callback('SIGNED_OUT', null);
         }
       }, 20_000);
@@ -86,9 +91,9 @@ export function createAuthProvider() {
 
       // Si après init on est toujours pas logué → lancer login
       if (!kc.authenticated) {
-        setPostLogin('/patients');
+        setPostLogin('/bilans');
         await kc.login({
-          redirectUri: `${window.location.origin}/login`,
+          redirectUri: `${window.location.origin}/`,
         });
         return null; // redirection → pas de code qui continue
       }
@@ -100,7 +105,12 @@ export function createAuthProvider() {
 
     async signOut() {
       await kc.logout();
-      setAuthTokenGetter(() => undefined);
+      const redirectUri = `${window.location.origin}/login`; // ← ta page Login
+      try {
+        await kc.logout({ redirectUri });
+      } finally {
+        setAuthTokenGetter(() => undefined);
+      }
     },
 
     async signInWithPassword() {
@@ -122,12 +132,11 @@ export function createAuthProvider() {
       }
 
       // 2. Mémorise la route cible (où aller après inscription)
-      setPostLogin('/patients'); // à adapter si tu veux rediriger ailleurs
+      setPostLogin('/bilans'); // à adapter si tu veux rediriger ailleurs
 
       // 3. Lance l’inscription
       await kc.register({
-        redirectUri: `${window.location.origin}/login`,
-        // revenir sur /login permet à ta page de rediriger ensuite
+        redirectUri: `${window.location.origin}/`,
       });
 
       // 4. En théorie, on ne passe jamais ici (car redirection)

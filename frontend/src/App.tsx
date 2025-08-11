@@ -1,7 +1,7 @@
-import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './store/auth';
 import { useRequireAuth } from './hooks/useRequireAuth';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import BilanV2 from './pages/MesBilans';
 import Bilan from './pages/EditeurBilan';
 import Agenda from './pages/Agenda';
@@ -15,6 +15,7 @@ import SignUp from './pages/SignUp';
 import { usePageStore } from './store/pageContext';
 import { useUserProfileStore } from './store/userProfile';
 import { AppSidebar } from './components/AppSidebar';
+
 
 /* function useInitAuth() {
   const { loading, initialize } = useAuth();
@@ -43,8 +44,9 @@ function useInitAuth() {
   const { loading, initialize } = useAuth();
 
   useEffect(() => {
-    // plus d'initKeycloak ici
-    initialize(); // hydrate depuis le provider courant (supabase ou keycloak)
+    initialize()
+      .then(() => console.log('[auth] initialize done'))
+      .catch((e) => console.error('[auth] initialize err', e));
   }, [initialize]);
 
   return loading;
@@ -55,6 +57,8 @@ function ProtectedLayout() {
   const { user } = useAuth();
   const { profileId, fetchProfile } = useUserProfileStore();
   const loading = useInitAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   useRequireAuth();
 
   useEffect(() => {
@@ -65,11 +69,21 @@ function ProtectedLayout() {
     }
   }, [user, profileId, fetchProfile]);
 
+/*   useEffect(() => {
+    if (user) {
+      const atRoot = location.pathname === '/' || location.pathname === '';
+      if (!atRoot) navigate('/', { replace: true });
+    }
+  }, [user, location.pathname, navigate]); */
+
   if (loading) {
     return <div>Chargement...</div>;
   }
 
   if (!user) {
+    if (provider === 'keycloak') {
+      return <SSOLoginRedirect />;
+    }
     return <Navigate to="/login" replace />;
   }
 
@@ -103,6 +117,9 @@ function WizardLayout() {
   }
 
   if (!user) {
+    if (provider === 'keycloak') {
+      return <SSOLoginRedirect />; // 👉 redirige direct vers Keycloak
+    }
     return <Navigate to="/login" replace />;
   }
 
@@ -126,6 +143,9 @@ function BilanLayout() {
   }
 
   if (!user) {
+    if (provider === 'keycloak') {
+      return <SSOLoginRedirect />;
+    }
     return <Navigate to="/login" replace />;
   }
 
@@ -136,11 +156,34 @@ function BilanLayout() {
   );
 }
 
+
+function SSOLoginRedirect() {
+  const signIn = useAuth((s) => s.signIn);
+  const calledRef = useRef(false);
+
+  useEffect(() => {
+    if (calledRef.current) return;
+    calledRef.current = true;
+    console.log('[SSO] redirecting to KC login');
+    signIn().catch((e) => {
+      console.error('[SSO] login error', e);
+      calledRef.current = false;
+    });
+  }, [signIn]);
+
+  return <div>Redirection vers l’espace sécurisé…</div>;
+}
+
+const provider = (import.meta.env.VITE_AUTH_PROVIDER || 'supabase').toLowerCase();
+
+
+
+
 export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<SignUp />} />
+      {provider !== 'keycloak' && <Route path="/signup" element={<SignUp />} />}
       <Route element={<WizardLayout />}></Route>
       <Route element={<BilanLayout />}>
         <Route path="/bilan/:bilanId" element={<Bilan />} />

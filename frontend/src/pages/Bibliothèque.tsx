@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TrameCard from '@/components/TrameCard';
 import {
@@ -17,7 +17,7 @@ import CreerTrameModal from '@/components/ui/creer-trame-modale';
 import { useSectionStore, type Section } from '@/store/sections';
 import { Loader2 } from 'lucide-react';
 import { Tabs } from '@/components/ui/tabs';
-import { useAuth } from '@/store/auth';
+import { useUserProfileStore } from '@/store/userProfile';
 
 
 export default function Bibliotheque() {
@@ -25,34 +25,40 @@ export default function Bibliotheque() {
   const { items, fetchAll, remove, duplicate } = useSectionStore();
   const [toDelete, setToDelete] = useState<Section | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { user } = useAuth();
-  const userId = user?.id ?? null;
-  const OFFICIAL_AUTHOR_ID = (import.meta as any).env
-    .VITE_OFFICIAL_AUTHOR_ID as string | undefined;
+  const { profile, fetchProfile, loading: profileLoading } = useUserProfileStore();
+
+  const profileId = useMemo(
+    () => profile?.id ?? (profile as any)?.id ?? null,
+    [profile]
+  );
+
+  const OFFICIAL_AUTHOR_ID = import.meta.env.VITE_OFFICIAL_AUTHOR_ID;
+
+  console.log("")
 
 
   useEffect(() => {
-    fetchAll()
-      .then(() => setIsLoading(false))
-      .catch(() => {});
-  }, [fetchAll]);
+    // Charge en parallèle les sections + le profil
+    Promise.allSettled([fetchAll(), fetchProfile()])
+      .finally(() => setIsLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-
-  const myTrames = items.filter((s) => !!userId && s.author?.id === userId);
+  const myTrames = items.filter((s) => !!profileId && s.authorId === profileId);
   const officialTrames = items.filter(
-    (s) => !!OFFICIAL_AUTHOR_ID && s.isPublic && s.author?.id === OFFICIAL_AUTHOR_ID,
+    (s) => !!OFFICIAL_AUTHOR_ID && s.isPublic && s.authorId === OFFICIAL_AUTHOR_ID,
   );
   const communityTrames = items.filter(
-    (s) => s.isPublic && (!OFFICIAL_AUTHOR_ID || s.author?.id !== OFFICIAL_AUTHOR_ID),
+    (s) => s.isPublic && (!OFFICIAL_AUTHOR_ID || s.authorId !== OFFICIAL_AUTHOR_ID),
   );
 
   const [activeTab, setActiveTab] = useState<'mine' | 'official' | 'community'>('community');
 
   const matchesActiveFilter = (s: Section) => {
-    if (activeTab === 'mine') return !!userId && s.author?.id === userId;
+    if (activeTab === 'mine') return !!profileId && s.authorId === profileId;
     if (activeTab === 'official')
-      return !!OFFICIAL_AUTHOR_ID && s.isPublic && s.author?.id === OFFICIAL_AUTHOR_ID;
-    return s.isPublic && (!OFFICIAL_AUTHOR_ID || s.author?.id !== OFFICIAL_AUTHOR_ID);
+      return !!OFFICIAL_AUTHOR_ID && s.isPublic && s.authorId === OFFICIAL_AUTHOR_ID;
+    return s.isPublic && (!OFFICIAL_AUTHOR_ID || s.authorId !== OFFICIAL_AUTHOR_ID);
   };
 
   const categories = [

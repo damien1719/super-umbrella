@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useState, useRef } from 'react';
 import { useAuth } from '../store/auth';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,6 +15,12 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { user, initialized } = useAuth();
+  const autoRef = useRef(false);
+
+
+  useEffect(() => {
+    if (initialized && user) navigate('/');
+  }, [initialized, user, navigate]);
 
   // --- SUPABASE: formulaire classique ---
   const handleSubmit = async (e: FormEvent) => {
@@ -60,14 +66,22 @@ export default function Login() {
   };
 
   useEffect(() => {
-    if (initialized && user) {
-      navigate('/'); // ou '/patients' si tu préfères
-    }
-  }, [initialized, user, navigate]);
+    if (provider !== 'keycloak') return;
+    if (!initialized) return;           // attendre l'init du store
+    if (user) return;                   // déjà connecté
+    if (autoRef.current) return;        // éviter doubles appels/HMR
+    autoRef.current = true;
+    void handleSSOLogin();
+  }, [initialized, user]);
 
   // ----------------- RENDU -----------------
   if (provider === 'keycloak') {
     return (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-gray-900"></div>
+      </div>
+    );
+    /* return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col gap-4 max-w-xs w-full p-4">
           <h1 className="text-2xl font-bold mb-4">Connexion</h1>
@@ -95,7 +109,7 @@ export default function Login() {
           </button>
         </div>
       </div>
-    );
+    ); */
   }
 
   // --- SUPABASE (formulaire existant) ---

@@ -10,7 +10,8 @@ export interface Section {
   schema?: unknown;
   defaultContent?: unknown;
   isPublic?: boolean;
-  author?: { id?: string | null; prenom?: string | null } | null;
+  authorId?: string | null;
+  author?: { prenom?: string | null } | null;
 }
 
 export type SectionInput = Omit<Section, 'id' | 'author'>;
