@@ -5,10 +5,18 @@ import { generateText } from "../src/services/ai/generate.service";
 import { promptConfigs } from "../src/services/ai/prompts/promptconfig";
 import { sanitizeHtml } from "../src/utils/sanitize";
 import { refineSelection } from "../src/services/ai/refineSelection.service";
+import { commentTestResults } from "../src/services/ai/commentTestResults.service";
 
 jest.mock("../src/services/bilan.service");
 jest.mock("../src/services/ai/generate.service");
 jest.mock("../src/services/ai/refineSelection.service");
+jest.mock("../src/services/ai/commentTestResults.service");
+jest.mock("../src/middlewares/requireAuth", () => ({
+  requireAuth: (req: any, _res: any, next: () => void) => {
+    req.user = { id: "demo-user" };
+    next();
+  },
+}));
 
 interface BilanStub {
   id: string;
@@ -18,6 +26,7 @@ interface BilanStub {
 const mockedService = BilanService as jest.Mocked<typeof BilanService>;
 const mockedGenerate = generateText as jest.MockedFunction<typeof generateText>;
 const mockedRefine = refineSelection as jest.MockedFunction<typeof refineSelection>;
+const mockedComment = commentTestResults as jest.MockedFunction<typeof commentTestResults>;
 
 describe("GET /api/v1/bilans", () => {
   it("returns bilans from service", async () => {
@@ -93,5 +102,19 @@ describe("POST /api/v1/bilans/:id/refine", () => {
       selectedText: "old",
       refineInstruction: "inst",
     });
+  });
+});
+
+describe("POST /api/v1/bilans/:id/comment-test-results", () => {
+  it("calls comment service with file content", async () => {
+    mockedComment.mockResolvedValueOnce("comment");
+    const id = "11111111-1111-1111-1111-111111111111";
+    const body = { file: Buffer.from("data").toString("base64") };
+    const res = await request(app)
+      .post(`/api/v1/bilans/${id}/comment-test-results`)
+      .send(body);
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ text: "comment" });
+    expect(mockedComment).toHaveBeenCalledWith("data");
   });
 });

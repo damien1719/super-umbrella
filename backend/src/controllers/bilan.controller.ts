@@ -5,6 +5,7 @@ import { generateText } from "../services/ai/generate.service";
 import { promptConfigs } from "../services/ai/prompts/promptconfig";
 import { refineSelection } from "../services/ai/refineSelection.service";
 import { concludeBilan } from "../services/ai/conclude.service";
+import { commentTestResults as commentTestResultsService } from "../services/ai/commentTestResults.service";
 
 export const BilanController = {
   async create(req: Request, res: Response, next: NextFunction) {
@@ -104,6 +105,22 @@ export const BilanController = {
         return;
       }
       const text = await concludeBilan(bilan.descriptionHtml);
+      res.json({ text });
+    } catch (e) {
+      next(e);
+    }
+  },
+
+  async commentTestResults(req: Request, res: Response, next: NextFunction) {
+    try {
+      const file = req.body.file;
+      if (typeof file !== 'string') {
+        res.status(400).json({ error: 'file required' });
+        return;
+      }
+      const buffer = Buffer.from(file, 'base64');
+      const textContent = buffer.toString('utf-8');
+      const text = await commentTestResultsService(textContent);
       res.json({ text });
     } catch (e) {
       next(e);

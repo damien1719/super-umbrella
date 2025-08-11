@@ -135,6 +135,8 @@ export default function AiRightPanel({
   const [refinedText, setRefinedText] = useState('');
   useEditorUi((s) => s.selection);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [commentModalOpen, setCommentModalOpen] = useState(false);
+  const [commentFile, setCommentFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (regenSection && textareaRef.current) {
@@ -347,6 +349,40 @@ export default function AiRightPanel({
     }
   };
 
+  const handleCommentTestResults = async () => {
+    if (!commentFile) return;
+    setIsGenerating(true);
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const res = reader.result as string;
+          const b64 = res.split(',')[1] || '';
+          resolve(b64);
+        };
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(commentFile);
+      });
+      const body = {
+        prompt: 'promptCommentTestResults',
+        file: base64,
+      };
+      const res = await apiFetch<{ text: string }>(
+        `/api/v1/bilans/${bilanId}/comment-test-results`,
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: JSON.stringify(body),
+        },
+      );
+      onInsertText(res.text);
+      setCommentModalOpen(false);
+      setCommentFile(null);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
     <div className="w-full max-w-md bg-wood-50 rounded-lg shadow-lg">
       <div className="flex flex-col h-full">
@@ -506,6 +542,33 @@ export default function AiRightPanel({
                     </div>
                   </CardContent>
                 </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 rounded-lg bg-gray-100">
+                        <Activity className="h-4 w-4 text-gray-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-medium text-sm mb-1">
+                          Commenter des résultats de tests
+                        </h3>
+                        <p className="text-xs text-gray-500 mb-4">
+                          Téléversez un fichier Word ou Excel pour obtenir un
+                          commentaire automatique
+                        </p>
+                        <Button
+                          size="sm"
+                          variant="default"
+                          className="w-full text-xs"
+                          onClick={() => setCommentModalOpen(true)}
+                          disabled={isGenerating}
+                        >
+                          Commenter
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
                 {sections.map((section) => {
                   const trameOpts = trames[section.id];
                   const selected = trameOpts.find(
@@ -639,6 +702,46 @@ export default function AiRightPanel({
               </div>
             </ScrollArea>
           )}
+          <Dialog
+            open={commentModalOpen}
+            onOpenChange={(open) => {
+              if (!open) {
+                setCommentModalOpen(false);
+                setCommentFile(null);
+              }
+            }}
+          >
+            <DialogContent showCloseButton={false}>
+              <div className="space-y-4">
+                <input
+                  type="file"
+                  accept=".xls,.xlsx,.doc,.docx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  onChange={(e) => setCommentFile(e.target.files?.[0] || null)}
+                  data-testid="comment-file-input"
+                />
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setCommentModalOpen(false);
+                      setCommentFile(null);
+                    }}
+                    disabled={isGenerating}
+                  >
+                    Annuler
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleCommentTestResults}
+                    disabled={!commentFile || isGenerating}
+                  >
+                    {isGenerating ? 'Génération...' : 'Valider'}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>
