@@ -80,6 +80,9 @@ const useTrames = () => {
           label: s.title,
           description: s.description,
           schema: (s.schema || []) as Question[],
+          isPublic: s.isPublic,
+          authorId: s.authorId,
+          author: s.author,
         }));
     });
     return res;
