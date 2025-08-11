@@ -150,33 +150,21 @@ export default function WizardAIRightPanel({
     const displayedTrames = trameOptions.filter(matchesActiveFilter);
     content = (
       <div className="space-y-4">
-        <p className="text-md">
-{/*           Choisissez une trame parmi notre bibliothèque:
- */}        </p>
-        <Tabs
-          active={activeTab}
-          onChange={(k) =>
-            setActiveTab(k as 'mine' | 'official' | 'community')
-          }
-          tabs={[
-            {
-              key: 'mine',
-              label: 'Mes trames',
-              count: myTrames.length,
-              hidden: myTrames.length === 0,
-            },
-            {
-              key: 'official',
-              label: 'Trames Bilan Plume',
-              count: officialTrames.length,
-            },
-            {
-              key: 'community',
-              label: 'Trames de la communauté',
-              count: communityTrames.length,
-            },
-          ]}
-        />
+      {/* Toolbar sticky */}
+      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-wood-50/60
+                      border-b border-wood-200 pt-2 pb-3">
+        <div className="flex items-center justify-between gap-3">
+          <Tabs
+            active={activeTab}
+            onChange={(k) => setActiveTab(k as 'mine'|'official'|'community')}
+            tabs={[
+              { key: 'mine', label: 'Mes trames', count: myTrames.length, hidden: myTrames.length===0 },
+              { key: 'official', label: 'Trames Bilan Plume', count: officialTrames.length },
+              { key: 'community', label: 'Trames de la communauté', count: communityTrames.length },
+            ]}
+          />
+        </div>
+      </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 overflow-auto-y">
           {displayedTrames.map((trame) => (
             <TrameCard
@@ -192,28 +180,47 @@ export default function WizardAIRightPanel({
               }}
               selected={selectedTrame?.value === trame.value}
               onSelect={() => onTrameChange(trame.value)}
+              showLink={true}
             />
           ))}
+          <CreerTrameModal
+            trigger={
+              <button
+                type="button"
+                aria-label="Créer une nouvelle trame"
+                className="
+                  group relative w-full min-h-[160px]
+                  rounded-xl border-2 border-dashed
+                  border-primary-300 bg-primary-50/60
+                  hover:bg-primary-100/70 hover:border-primary-400
+                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400
+                  transition-all duration-150
+                  p-5 flex flex-col items-center justify-center text-center
+                "
+              >
+                <span
+                  className="
+                    inline-flex h-10 w-10 items-center justify-center rounded-full
+                    bg-primary-600 text-white mb-3 transition-transform
+                    group-hover:scale-105
+                  "
+                >
+                  <Plus className="h-5 w-5" />
+                </span>
+                <span className="font-semibold text-primary-700">Créer une trame</span>
+                <span className="mt-1 text-sm text-primary-700/80">
+                  Trame personnalisée à votre pratique
+                </span>
+              </button>
+            }
+            initialCategory={kindMap[sectionInfo.id]}
+            onCreated={(id) =>
+              navigate(`/creation-trame/${id}`, {
+                state: { returnTo: `/bilan/${bilanId}`, wizardSection: sectionInfo.id },
+              })
+            }
+          />
         </div>
-
-        <p className="text-md">Créez votre propre trame personnalisée:</p>
-        <CreerTrameModal
-          trigger={
-            <div className="border border-dashed rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer text-gray-600 hover:bg-gray-50">
-              <Plus className="h-6 w-6 mb-2" />
-              Créer sa trame
-            </div>
-          }
-          initialCategory={kindMap[sectionInfo.id]}
-          onCreated={(id) =>
-            navigate(`/creation-trame/${id}`, {
-              state: {
-                returnTo: `/bilan/${bilanId}`,
-                wizardSection: sectionInfo.id,
-              },
-            })
-          }
-        />
       </div>
     );
   } else {
@@ -307,8 +314,8 @@ export default function WizardAIRightPanel({
           <span />
         )}
         {step < total ? (
-          <Button onClick={next} type="button">
-            Suivant
+          <Button onClick={next} type="button" size="lg">
+            Étape suivante
           </Button>
         ) : (
           <Button

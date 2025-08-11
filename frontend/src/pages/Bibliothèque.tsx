@@ -135,6 +135,8 @@ export default function Bibliotheque() {
                           await fetchAll().catch(() => {});
                         }}
                         onDelete={() => setToDelete(trame)}
+                        showDelete={true}
+                        showDuplicate={true}
                       />
                     ))}
                   </div>
