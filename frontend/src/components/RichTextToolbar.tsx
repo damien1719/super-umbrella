@@ -40,45 +40,37 @@ export function ToolbarPlugin({ onSave }: Props) {
 
   return (
     <div className="sticky top-0 z-10 flex space-x-2 bg-wood-50 border-b border-wood-200 p-2">
-      <Button type="button" onClick={() => format('bold')} variant="secondary">
+      <Button type="button" onClick={() => format('bold')} variant="editor">
         B
       </Button>
       <Button
         type="button"
         onClick={() => format('italic')}
-        variant="secondary"
+        variant="editor"
       >
         I
       </Button>
-      <Button
-        type="button"
-        onClick={() => format('underline')}
-        variant="secondary"
-      >
-        U
-      </Button>
+      <div className="w-px self-stretch bg-wood-200 mx-1" />
       <Button
         type="button"
         onClick={() => insertList(false)}
-        variant="secondary"
+        variant="editor"
       >
         •
       </Button>
       <Button
         type="button"
         onClick={() => insertList(true)}
-        variant="secondary"
+        variant="editor"
       >
         1.
       </Button>
-      <Button type="button" onClick={insertLink} variant="secondary">
-        Link
-      </Button>
+      <div className="w-px self-stretch bg-wood-200 mx-1" />
       {onSave && (
         <Button
           type="button"
           onClick={onSave}
-          variant="secondary"
+          variant="editor"
           aria-label="Save"
         >
           <Save className="w-4 h-4" />

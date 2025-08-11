@@ -182,7 +182,7 @@ function EditorCore(
             <div className="bg-paper-50 border border-gray-300 rounded shadow p-16 w-full max-w-3xl min-h-[100vh] flex flex-col">
               <RichTextPlugin
                 contentEditable={
-                  <ContentEditable className="outline-none flex-1" />
+                  <ContentEditable className="outline-none flex-1 editor-content" />
                 }
                 placeholder={<div className="text-gray-400">…</div>}
                 ErrorBoundary={LexicalErrorBoundary}
