@@ -481,7 +481,7 @@ export default function AiRightPanel({
                       >
                         <DialogContent
                           showCloseButton={false}
-                          className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[100vw] max-w-[100vw] sm:max-w-5xl h-[90vh] max-w-none max-h-none overflow-auto bg-wood-50 rounded-lg shadow-lg"
+                          fullscreen
                         >
                           <WizardAIRightPanel
                             sectionInfo={section}

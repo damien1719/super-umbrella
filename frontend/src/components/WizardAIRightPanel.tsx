@@ -165,7 +165,7 @@ export default function WizardAIRightPanel({
           />
         </div>
       </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 overflow-auto-y">
+        <div className="flex flex-wrap gap-4">
           {displayedTrames.map((trame) => (
             <TrameCard
               key={trame.value}
@@ -189,7 +189,7 @@ export default function WizardAIRightPanel({
                 type="button"
                 aria-label="Créer une nouvelle trame"
                 className="
-                  group relative w-full min-h-[160px]
+                  group relative w-full min-h-[160px] max-w-60 w-full
                   rounded-xl border-2 border-dashed
                   border-primary-300 bg-primary-50/60
                   hover:bg-primary-100/70 hover:border-primary-400
@@ -207,7 +207,7 @@ export default function WizardAIRightPanel({
                 >
                   <Plus className="h-5 w-5" />
                 </span>
-                <span className="font-semibold text-primary-700">Créer une trame</span>
+                <span className="font-semibold text-primary-700">Créez votre trame</span>
                 <span className="mt-1 text-sm text-primary-700/80">
                   Trame personnalisée à votre pratique
                 </span>
@@ -231,6 +231,7 @@ export default function WizardAIRightPanel({
           observations: c&apos;est la matière brute utilisée par l&apos;IA pour
           rédiger
         </p>
+      <div className="space-y-4">
         <DataEntry
           ref={dataEntryRef}
           questions={questions}
@@ -238,6 +239,7 @@ export default function WizardAIRightPanel({
           onChange={onAnswersChange}
           inline
         />
+      </div>
       </div>
     );
   }
@@ -272,75 +274,79 @@ export default function WizardAIRightPanel({
   };
 
   return (
-    <div className="p-4 space-y-4 flex flex-col h-full relative">
+    <div className="h-full flex flex-col overflow-hidden relative">
+      {/* Close button stays absolute over everything */}
       <button
         type="button"
-        className="absolute top-2 right-2 p-1 rounded hover:bg-gray-100"
+        className="absolute top-2 right-2 z-30 p-1 rounded hover:bg-gray-100"
         onClick={handleClose}
       >
         <X className="h-4 w-4" />
       </button>
-      <ExitConfirmation
-        open={showConfirm}
-        onOpenChange={setShowConfirm}
-        onConfirm={async () => {
-          const data = dataEntryRef.current?.save() as Answers | undefined;
-          await saveNotes(data);
-          onCancel();
-        }}
-        onCancel={() => {
-          setShowConfirm(false);
-          onCancel();
-        }}
-      />
-      <div className="flex-1 space-y-4">
+  
+      <ExitConfirmation /* … */ />
+  
+      {/* Row 1 — Header */}
+      <div className="px-4 pt-4 pb-12">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl font-bold">
             {headerTitle}
           </DialogTitle>
-          <DialogDescription className="text-lg text-gray-600 mb-8">
+          <DialogDescription className="text-lg text-gray-600">
             {headerDescription}
           </DialogDescription>
         </DialogHeader>
-
+      </div>
+  
+      {/* Row 2 — Scrollable content */}
+      <div className="flex-1 overflow-y-auto px-4 pb-24 space-y-4 min-h-0">
         {content}
       </div>
-      <div className="flex justify-between pt-4">
-        {step > 1 ? (
-          <Button variant="secondary" onClick={prev} type="button">
-            Précédent
-          </Button>
-        ) : (
-          <span />
-        )}
-        {step < total ? (
-          <Button onClick={next} type="button" size="lg">
-            Étape suivante
-          </Button>
-        ) : (
-          <Button
-            onClick={async () => {
-              const data = dataEntryRef.current?.save() as Answers | undefined;
-              await saveNotes(data);
-              onGenerate(data);
-            }}
-            disabled={isGenerating}
-            type="button"
-          >
-            {isGenerating ? (
-              <>
-                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                Génération...
-              </>
+  
+      {/* Row 3 — Footer glued to bottom (not sticky anymore) */}
+      <div className="px-4">
+        <div className="bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/70
+                        border-t border-gray-200 shadow-[0_-1px_0_0_rgba(0,0,0,0.04)]
+                        py-3">
+          <div className="flex items-center justify-between">
+            {step > 1 ? (
+              <Button variant="secondary" onClick={prev} type="button">
+                Précédent
+              </Button>
             ) : (
-              <>
-                <Wand2 className="h-5 w-5 mr-2" />
-                Générer
-              </>
+              <span />
             )}
-          </Button>
-        )}
+  
+            {step < total ? (
+              <Button onClick={next} type="button" size="lg">
+                Étape suivante
+              </Button>
+            ) : (
+              <Button
+                onClick={async () => {
+                  const data = dataEntryRef.current?.save() as Answers | undefined;
+                  await saveNotes(data);
+                  onGenerate(data);
+                }}
+                disabled={isGenerating}
+                type="button"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                    Génération...
+                  </>
+                ) : (
+                  <>
+                    <Wand2 className="h-5 w-5 mr-2" />
+                    Générer
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+        </div>
       </div>
     </div>
-  );
+  );  
 }

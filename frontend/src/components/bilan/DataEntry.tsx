@@ -133,7 +133,7 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
     }));
 
     const inlineForm = (
-      <div id="dataentry-scroll-root" ref={containerRef} className="space-y-8">
+      <div id="dataentry-scroll-root" ref={containerRef} className="h-[72vh] overflow-y-auto px-4 pb-24">
         {groups.map((group, i) => (
           <div
             key={group.id}
@@ -141,9 +141,12 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
             ref={(el) => (groupEls.current[i] = el)}
             className="space-y-4"
           >
-            <h3 className="text-xl font-bold mt-8 border-t border-gray-200 pt-4">
-              {group.title}
-            </h3>
+            <div className="relative z-10 mt-8 border-t border-gray-200 pt-4 flex items-center gap-2">
+              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary-100">
+                <span className="block h-1.5 w-1.5 rounded-full bg-primary-500" />
+              </span>
+              <h3 className="text-xl font-bold">{group.title}</h3>
+            </div>  
             {group.items.map((q) => (
               <div key={q.id} className="space-y-2 p-2 rounded-md">
                 <Label className="block text-sm font-medium text-gray-800 mb-1">
@@ -165,7 +168,8 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
 
     if (inline) {
       return (
-        <div className="flex gap-4">
+        <div className="flex h-full">
+          {/* Nav gauche */}
           <GroupedQuestionsNav
             groups={groups}
             active={activeSec}
@@ -173,6 +177,8 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
             onPrev={goPrev}
             onNext={goNext}
           />
+    
+          {/* Form droit */}
           {inlineForm}
         </div>
       );
@@ -183,7 +189,6 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
         <div className="flex items-center justify-between mb-2">
           <Label className="text-xs font-medium text-gray-700">Réponses</Label>
         </div>
-        {answeredCount === 0 ? (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button
@@ -209,10 +214,15 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
                     }`}
                   >
                     {q.type === 'titre' ? (
-                      <h3 className="text-lg font-semibold">{q.titre}</h3>
+                      <div className="relative z-10 mt-8 border-t border-gray-200 pt-4 flex items-center gap-2">
+                        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-100">
+                          <span className="block h-1.5 w-1.5 rounded-full bg-blue-700" />
+                        </span>
+                        <h3 className="text-xl font-bold">{q.titre}</h3>
+                      </div>
                     ) : (
                       <>
-                        <Label className="text-sm font-medium">{q.titre}</Label>
+                        <Label className="block text-sm font-medium text-gray-800 mb-1">{q.titre}</Label>
                         <QuestionRenderer
                           question={q}
                           value={local[q.id]}
@@ -232,7 +242,7 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
               </div>
             </DialogContent>
           </Dialog>
-        ) : (
+{/*         ) : (
           <div className="space-y-2">
             <div className="p-3 bg-gray-50 rounded-lg border">
               <div className="text-xs text-gray-600 mb-2">
@@ -296,7 +306,7 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
               </DialogContent>
             </Dialog>
           </div>
-        )}
+        )} */}
       </div>
     );
   },
