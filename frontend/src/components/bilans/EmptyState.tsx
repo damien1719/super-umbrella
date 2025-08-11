@@ -14,12 +14,8 @@ export function EmptyState({ onCreate }: EmptyStateProps) {
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <FileText className="w-16 h-16 text-gray-400 mb-6" />
             <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-              Aucun bilan disponible
+              Commencez par en créer un nouveau bilan
             </h2>
-            <p className="text-gray-600 mb-6 max-w-md">
-              Il semble que vous n&rsquo;ayez pas encore rédigé de bilan.
-              Commencez par en créer un nouveau.
-            </p>
             <Button variant="primary" onClick={onCreate}>
               <Plus className="w-4 h-4 mr-2" />
               Rédiger un nouveau bilan

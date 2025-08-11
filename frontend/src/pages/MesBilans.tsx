@@ -127,9 +127,6 @@ export default function Component() {
             <Card className="bg-primary-50 border-primary-200">
               <CardContent className="flex items-center justify-between p-6">
                 <div className="flex items-center space-x-4">
-                  <div className="bg-primary-100 p-3 rounded-full">
-                    <Plus className="w-6 h-6 text-primary-600" />
-                  </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
                       Créer un nouveau bilan
@@ -141,7 +138,7 @@ export default function Component() {
                 </div>
                 <Button
                   className=""
-                  variant="primary"
+                  variant="outline"
                   onClick={() => setIsCreationModalOpen(true)}
                 >
                   <Plus className="w-4 h-4 mr-2" />
