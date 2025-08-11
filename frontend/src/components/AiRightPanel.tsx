@@ -137,6 +137,7 @@ export default function AiRightPanel({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [commentModalOpen, setCommentModalOpen] = useState(false);
   const [commentFile, setCommentFile] = useState<File | null>(null);
+  const commentFileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (regenSection && textareaRef.current) {
@@ -393,9 +394,17 @@ export default function AiRightPanel({
           </div>
         )} */}
         <div className="sticky top-0 z-10 flex items-center justify-between bg-wood-50 border-b border-wood-200 px-4 py-2 h-14">
-          <span className="font-medium text-sm">
-            {mode === 'refine' ? 'Raffiner le texte' : regenSection ? 'Modifier la section' : 'Assistant IA'}
-          </span>
+        <span className="font-medium text-sm">
+          {mode === 'refine'
+            ? 'Raffiner le texte'
+            : wizardSection
+            ? 'Génération de section'
+            : regenSection
+            ? 'Modifier la section'
+            : commentModalOpen
+            ? 'Commenter des résultats'
+            : 'Assistant IA'}
+        </span>
           {(regenSection || mode === 'refine') && (
             <Button
               variant="ghost"
@@ -715,13 +724,37 @@ export default function AiRightPanel({
             }}
           >
             <DialogContent showCloseButton={false}>
-              <div className="space-y-4">
-                <input
-                  type="file"
-                  accept=".xls,.xlsx,.doc,.docx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                  onChange={(e) => setCommentFile(e.target.files?.[0] || null)}
-                  data-testid="comment-file-input"
-                />
+            <div className="space-y-4">
+                <div className="flex flex-col items-center justify-center gap-3 min-h-[200px]">
+                  <input
+                    ref={commentFileInputRef}
+                    type="file"
+                    accept=".xls,.xlsx,.doc,.docx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    onChange={(e) => setCommentFile(e.target.files?.[0] || null)}
+                    className="hidden"
+                    data-testid="comment-file-input"
+                  />
+                  {commentFile ? (
+                    <input
+                      type="text"
+                      value={commentFile.name}
+                      readOnly
+                      className="border rounded px-3 py-2 bg-gray-50 text-gray-700 w-full max-w-xs"
+                      style={{ cursor: 'default' }}
+                    />
+                  ) : (
+                    <Button
+                      type="button"
+                      onClick={() => commentFileInputRef.current?.click()}
+                      disabled={isGenerating}
+                    >
+                      +Choisir un fichier
+                    </Button>
+                  )}
+                  <p className="text-xs text-muted-foreground text-center">
+                    Formats acceptés : .doc, .docx, .xls, .xlsx
+                  </p>
+                </div>
                 <div className="flex justify-end gap-2">
                   <Button
                     variant="outline"
