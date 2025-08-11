@@ -135,7 +135,7 @@ export default function WizardAIRightPanel({
   const next = () => setStep((s) => Math.min(total, s + 1));
   const prev = () => setStep((s) => Math.max(1, s - 1));
 
-  const stepTitles = ['Trame', 'Données'];
+  const stepTitles = ['Trame', "Ecrivez vos notes brutes ou saisissez les résultats de vos observations: c'est la matière brute utilisée par l'IA pour rédiger"];
 
   const headerTitle =
     step === 1
@@ -225,12 +225,6 @@ export default function WizardAIRightPanel({
     );
   } else {
     content = (
-      <div className="space-y-4 flex flex-col h-full overflow-y-hidden">
-        <p className="text-md">
-          Ecrivez vos notes brutes ou saisissez les résultats de vos
-          observations: c&apos;est la matière brute utilisée par l&apos;IA pour
-          rédiger
-        </p>
       <div className="flex flex-1 h-full overflow-y-hidden">
         <DataEntry
           ref={dataEntryRef}
@@ -239,7 +233,6 @@ export default function WizardAIRightPanel({
           onChange={onAnswersChange}
           inline
         />
-      </div>
       </div>
     );
   }
@@ -265,13 +258,15 @@ export default function WizardAIRightPanel({
     });
     if (!instanceId) setInstanceId(res.id);
   };
-  const handleClose = () => {
-    if (step === 2) {
-      setShowConfirm(true);
-    } else {
-      onCancel();
+  
+  const handleClose = async () => {
+    if (step === 2 && selectedTrame) {
+      const data = dataEntryRef.current?.save() as Answers | undefined;
+      try { await saveNotes(data); } catch { /* ignore/option: toast */ }
     }
+    onCancel();
   };
+  
 
   return (
     <div className="h-full flex flex-col overflow-hidden relative">
@@ -284,10 +279,15 @@ export default function WizardAIRightPanel({
         <X className="h-4 w-4" />
       </button>
   
-      <ExitConfirmation /* … */ />
+      <ExitConfirmation
+        open={showConfirm}
+        onOpenChange={setShowConfirm}
+        onConfirm={onCancel}
+        onCancel={handleClose}
+      />
   
       {/* Row 1 — Header */}
-      <div className="px-4 pt-4 pb-12">
+      <div className="px-4 pt-4 pb-6">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl font-bold">
             {headerTitle}
@@ -299,7 +299,7 @@ export default function WizardAIRightPanel({
       </div>
   
       {/* Row 2 — Scrollable content */}
-      <div className="flex-1 overflow-y-auto px-4 space-y-4 min-h-0">
+      <div className="flex-1 overflow-y-auto px-4 min-h-0">
         {content}
       </div>
   
