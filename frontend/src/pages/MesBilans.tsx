@@ -14,6 +14,8 @@ import EmptyState from '@/components/bilans/EmptyState';
 import GenericTable, { BilanItem } from '@/components/bilans/GenericTable';
 import PaginationControls from '@/components/bilans/PaginationControls';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { usePatientStore } from '../store/patients'; 
+
 
 export default function Component() {
   const [bilans, setBilans] = useState<BilanItem[]>([]);
@@ -28,6 +30,18 @@ export default function Component() {
   const navigate = useNavigate();
   const [isCreationModalOpen, setIsCreationModalOpen] = useState(false);
   const [bilanTitle, setBilanTitle] = useState('');
+
+  // --- Récupération patients ---
+  const patients = usePatientStore((s) => s.items);
+  const fetchPatients = usePatientStore((s) => s.fetchAll);
+
+  useEffect(() => {
+    if (token) {
+      fetchPatients().catch(() => {});
+    }
+  }, [token, fetchPatients]);
+
+  const hasPatients = patients.length > 0; 
 
   useEffect(() => {
     if (!token) return;
@@ -99,7 +113,7 @@ export default function Component() {
               onClick={() => setIsCreationModalOpen(true)}
             >
               <Plus className="w-4 h-4 mr-2" />
-              Nouveau bilan
+              Rédiger un nouveau bilan
             </Button>
           </div>
         </div>
@@ -168,6 +182,7 @@ export default function Component() {
           setBilanTitle(title);
           setIsExistingPatientModalOpen(true);
         }}
+        hasPatients={hasPatients}
       />
       <NewPatientModal
         isOpen={isNewPatientModalOpen}
