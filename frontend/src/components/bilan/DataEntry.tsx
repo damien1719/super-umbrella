@@ -165,7 +165,7 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
 
     if (inline) {
       return (
-        <div className="mb-4">
+        <div className="flex gap-4">
           <GroupedQuestionsNav
             groups={groups}
             active={activeSec}

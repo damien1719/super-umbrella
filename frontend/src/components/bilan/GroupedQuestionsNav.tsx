@@ -1,5 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface QuestionGroup {
   id: string;
@@ -23,24 +25,29 @@ export function GroupedQuestionsNav({
   onNext,
 }: GroupedQuestionsNavProps) {
   return (
-    <div className="sticky top-0 z-10 bg-white flex items-center gap-2 py-2 shadow mb-4">
-      <Button size="sm" variant="outline" onClick={onPrev}>
-        Prev
-      </Button>
-      <div className="flex-1 flex justify-center gap-2 overflow-x-auto">
+    <aside className="hidden md:flex flex-col w-56 shrink-0 border-r bg-white sticky top-0 h-screen p-3">
+      <div className="flex-1 overflow-y-auto space-y-1">
         {groups.map((g, i) => (
           <button
             key={g.id}
             onClick={() => onNavigate(i)}
-            className={`px-2 py-1 text-sm ${i === active ? 'font-bold underline' : ''}`}
+            className={cn(
+              'w-full text-left px-3 py-2 rounded-md text-sm hover:bg-muted transition-colors',
+              i === active && 'bg-muted font-medium'
+            )}
           >
             {g.title}
           </button>
         ))}
       </div>
-      <Button size="sm" variant="outline" onClick={onNext}>
-        Suiv
-      </Button>
-    </div>
+      <div className="flex gap-2 pt-2 border-t">
+        <Button variant="outline" size="sm" onClick={onPrev} className="w-1/2">
+          <ChevronLeft className="h-4 w-4 mr-1" /> Préc.
+        </Button>
+        <Button size="sm" onClick={onNext} className="w-1/2">
+          Suiv. <ChevronRight className="h-4 w-4 ml-1" />
+        </Button>
+      </div>
+    </aside>
   );
 }
