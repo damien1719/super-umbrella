@@ -133,7 +133,7 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
     }));
 
     const inlineForm = (
-      <div id="dataentry-scroll-root" ref={containerRef} className="h-[72vh] overflow-y-auto px-4 pb-24">
+      <div id="dataentry-scroll-root" ref={containerRef} className="h-[72vh] flex-1 overflow-y-auto overscroll-contain px-4 pb-24">
         {groups.map((group, i) => (
           <div
             key={group.id}
@@ -168,7 +168,7 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
 
     if (inline) {
       return (
-        <div className="flex h-full">
+        <div className="flex h-screen overflow-hidden">
           {/* Nav gauche */}
           <GroupedQuestionsNav
             groups={groups}
