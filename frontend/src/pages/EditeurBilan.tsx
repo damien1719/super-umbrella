@@ -14,6 +14,7 @@ const AiRightPanel = lazy(() => import('../components/AiRightPanel'));
 
 interface BilanData {
   id: string;
+  title: string;
   descriptionHtml: string | null;
 }
 
@@ -71,7 +72,7 @@ export default function Bilan() {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ descriptionHtml: clean }),
+      body: JSON.stringify({ title: bilan.title, descriptionHtml: clean }),
     });
     setBilan(res);
   };
@@ -84,7 +85,7 @@ export default function Bilan() {
         <Button variant="ghost" onClick={handleBack} className="px-2 py-1">
           Retour
         </Button>
-        <h1 className="flex-1 text-center text-lg font-semibold">Mon Bilan</h1>
+        <h1 className="flex-1 text-center text-lg font-semibold">{bilan.title}</h1>
       </div>
 
       <div className="flex-1 overflow-hidden">
