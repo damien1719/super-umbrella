@@ -15,22 +15,22 @@ interface Props {
 
 export function GroupedQuestionsNav({ groups, active, onNavigate, onPrev, onNext }: Props) {
   return (
-    <aside className="hidden md:flex w-60 shrink-0 border-r border-wood-200 bg-white sticky top-0 h-[calc(100vh-0px)]">
+    <aside className="hidden md:flex w-60 shrink-0 border-r border-wood-200 bg-white sticky top-0 h-[calc(100vh-120px)]">
       <div className="flex flex-col w-full">
         {/* Header (optional) */}
-        <div className="px-3 py-2 border-b border-wood-200 text-xs text-muted-foreground">
+        <div className="px-3 py-2 border-b border-wood-200 text-sm text-muted-foreground">
           Sections ({active + 1}/{groups.length})
         </div>
 
         {/* List */}
-        <nav className="flex-1 overflow-y-hidden py-2">
+        <nav className="flex-1 overflow-y-auto py-2">
           {groups.map((g, i) => (
             <button
               key={g.id}
               onClick={() => onNavigate(i)}
               className={cn(
                 "group relative w-full flex items-center gap-3 px-3 py-2 text-left text-sm",
-                i === active ? "bg-muted/40 font-medium" : "hover:bg-muted/30"
+                i === active ? "bg-muted/40 font-medium bg-primary-50" : "hover:bg-muted/30"
               )}
             >
               {/* Active rail */}

@@ -225,13 +225,13 @@ export default function WizardAIRightPanel({
     );
   } else {
     content = (
-      <div className="space-y-4">
+      <div className="space-y-4 flex flex-col h-full overflow-y-hidden">
         <p className="text-md">
           Ecrivez vos notes brutes ou saisissez les résultats de vos
           observations: c&apos;est la matière brute utilisée par l&apos;IA pour
           rédiger
         </p>
-      <div className="space-y-4">
+      <div className="flex flex-1 h-full overflow-y-hidden">
         <DataEntry
           ref={dataEntryRef}
           questions={questions}
@@ -299,7 +299,7 @@ export default function WizardAIRightPanel({
       </div>
   
       {/* Row 2 — Scrollable content */}
-      <div className="flex-1 overflow-y-auto px-4 pb-24 space-y-4 min-h-0">
+      <div className="flex-1 overflow-y-auto px-4 space-y-4 min-h-0">
         {content}
       </div>
   
