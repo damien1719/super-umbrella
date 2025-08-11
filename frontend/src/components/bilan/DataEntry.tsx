@@ -1,4 +1,4 @@
-import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { useState, useEffect, forwardRef, useImperativeHandle, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -68,10 +68,6 @@ function Chip({
   );
 }
 
-
-
-
-
 export interface DataEntryHandle {
   save: () => Answers | void;
   getAnswers: () => Answers;
@@ -88,14 +84,14 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
     const [local, setLocal] = useState<Answers>({});
     const [errors, setErrors] = useState<Record<string, string>>({});
 
-    type Titles = { id: string; title: string; index: number; items: Question[] };
+    type questionGroup = { id: string; title: string; index: number; items: Question[] };
 
-    const titles: Titles[] = (() => {
-      const res: Titles[] = [];
-      let current: Titles | null = null;
+    const groups: questionGroup[] = (() => {
+      const res: questionGroup[] = [];
+      let current: questionGroup | null = null;
       questions.forEach((q, i) => {
         if (q.type === "titre") {
-          current = { id: `sec-${res.length}`, title: q.titre ?? "Section", index: res.length, items: [] };
+          current = { id: `sec-${res.length}`, title: q.titre ?? "Groupe de question", index: res.length, items: [] };
           res.push(current);
         } else {
           if (!current) {
@@ -109,13 +105,13 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
     })();
 
     const [activeSec, setActiveSec] = useState(0);
-    const secRefs = sections.map(() => useState<HTMLDivElement | null>(null)[0]); // placeholder
+    const secRefs = groups.map(() => useState<HTMLDivElement | null>(null)[0]); // placeholder
     const containerRef = useState<HTMLDivElement | null>(null)[0]; // pour le scroll area
 
     // Crée un tableau de refs persistants
-    const sectionEls = useRef<(HTMLDivElement | null)[]>([]);
-    if (sectionEls.current.length !== sections.length) {
-      sectionEls.current = Array(sections.length).fill(null);
+    const groupEls = useRef<(HTMLDivElement | null)[]>([]);
+    if (groupEls.current.length !== groups.length) {
+      groupEls.current = Array(groups.length).fill(null);
     }
 
     useEffect(() => {
@@ -131,16 +127,16 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
         },
         { root: document.querySelector("#dataentry-scroll-root"), rootMargin: "-20% 0px -70% 0px", threshold: 0.01 }
       );
-      sectionEls.current.forEach((el) => el && obs.observe(el));
+      groupEls.current.forEach((el) => el && obs.observe(el));
       return () => obs.disconnect();
-    }, [sections.length]);
+    }, [groups.length]);
 
     const goTo = (i: number) => {
-      const el = sectionEls.current[i];
+      const el = groupEls.current[i];
       if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
     };
     
-    const goNext = () => goTo(Math.min(activeSec + 1, sections.length - 1));
+    const goNext = () => goTo(Math.min(activeSec + 1, groups.length - 1));
     const goPrev = () => goTo(Math.max(activeSec - 1, 0));
     
     useEffect(() => {
@@ -420,78 +416,35 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
                 <Plus className="h-3 w-3 mr-2" /> Ajouter
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl p-0">
-  {/* Header sticky avec titre + progression + actions */}
-  <div className="sticky top-0 z-10 bg-white/90 backdrop-blur border-b px-4 py-3 flex items-center justify-between">
-    <div className="flex items-center gap-3">
-      <DialogTitle className="text-base font-semibold">Répondre</DialogTitle>
-      {/* Progression simple */}
-      <div className="text-xs text-gray-500">
-        Section {activeSec + 1} / {sections.length}
-      </div>
-    </div>
-    <div className="flex items-center gap-2">
-      <Button variant="outline" size="sm" onClick={goPrev} disabled={activeSec === 0}>Précédent</Button>
-      <Button size="sm" onClick={goNext} disabled={activeSec === sections.length - 1}>Suivant</Button>
-      <Button size="sm" className="ml-2" onClick={save}>Sauvegarder</Button>
-    </div>
-  </div>
-
-  {/* Corps en 2 colonnes : nav sticky + contenu scrollable */}
-  <div className="grid grid-cols-[220px_1fr] h-[70vh]">
-    {/* NAV STICKY */}
-    <aside className="border-r bg-gray-50/60 p-3 overflow-auto">
-      <nav className="space-y-1 sticky top-3">
-        {sections.map((s, i) => (
-          <button
-            key={s.id}
-            onClick={() => goTo(i)}
-            className={[
-              "w-full text-left px-3 py-2 rounded-md text-sm transition",
-              i === activeSec
-                ? "bg-primary-50 text-primary-700 border border-primary-200"
-                : "hover:bg-gray-100 text-gray-700"
-            ].join(" ")}
-          >
-            <span className="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px] border">
-              {i + 1}
-            </span>
-            {s.title}
-          </button>
-        ))}
-      </nav>
-    </aside>
-
-    {/* CONTENU (scroll area) */}
-    <div id="dataentry-scroll-root" className="overflow-y-auto px-5 py-4 space-y-8">
-      {sections.map((s, i) => (
-        <section
-          key={s.id}
-          ref={(el) => (sectionEls.current[i] = el)}
-          data-idx={i}
-          className="scroll-mt-4"
-        >
-          <header className="mb-3 flex items-center gap-2">
-            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary-100 text-primary-700 text-xs font-bold">
-              {i + 1}
-            </span>
-            <h3 className="text-lg font-semibold">{s.title}</h3>
-          </header>
-
-          <div className="space-y-4">
-            {s.items.map((q) => (
-              <div key={q.id} className="space-y-2">
-                <Label className="block text-sm font-medium text-gray-800">{q.titre}</Label>
-                {renderQuestion(q)}
+            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  Répondre
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                {questions.map((q) => (
+                  <div
+                    key={q.id}
+                    className={`space-y-2 p-2 rounded-md border ${
+                      q.type === 'notes' ? 'focus-within:bg-wood-200/50' : ''
+                    }`}
+                  >
+                    {q.type === 'titre' ? (
+                      <h3 className="text-lg font-semibold">{q.titre}</h3>
+                    ) : (
+                      <>
+                        <Label className="text-sm font-medium">{q.titre}</Label>
+                        {renderQuestion(q)}
+                      </>
+                    )}
+                  </div>
+                ))}
+                <Button onClick={save} className="w-full mt-4">
+                  Sauvegarder
+                </Button>
               </div>
-            ))}
-          </div>
-        </section>
-      ))}
-    </div>
-  </div>
-</DialogContent>
-
+            </DialogContent>
           </Dialog>
         ) : (
           <div className="space-y-2">
