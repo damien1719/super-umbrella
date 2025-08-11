@@ -89,9 +89,11 @@ export default function WizardAIRightPanel({
       s.isPublic &&
       (!OFFICIAL_AUTHOR_ID || s.authorId !== OFFICIAL_AUTHOR_ID),
   );
+  
   const [activeTab, setActiveTab] = useState<'mine' | 'official' | 'community'>(
-    'community',
+    myTrames.length ? 'mine' : officialTrames.length ? 'official' : 'community'
   );
+
   const matchesActiveFilter = (s: TrameOption) => {
     if (activeTab === 'mine') return !!profileId && s.authorId === profileId;
     if (activeTab === 'official')
@@ -137,7 +139,7 @@ export default function WizardAIRightPanel({
 
   const headerTitle =
     step === 1
-      ? 'Choisissez une trame pour votre rédaction'
+      ? 'Choisissez ou créez une trame pour votre rédaction'
       : 'Ajoutez les données anonymisées du patient';
 
   const headerDescription = `Étape ${step}/${total} – ${stepTitles[step - 1]}`;
@@ -149,8 +151,8 @@ export default function WizardAIRightPanel({
     content = (
       <div className="space-y-4">
         <p className="text-md">
-          Choisissez une trame parmi notre bibliothèque:
-        </p>
+{/*           Choisissez une trame parmi notre bibliothèque:
+ */}        </p>
         <Tabs
           active={activeTab}
           onChange={(k) =>

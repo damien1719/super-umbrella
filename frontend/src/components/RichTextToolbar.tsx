@@ -50,6 +50,13 @@ export function ToolbarPlugin({ onSave }: Props) {
       >
         I
       </Button>
+{/*       <Button
+        type="button"
+        onClick={() => format('underline')}
+        variant="editor"
+      >
+        U
+      </Button> */}
       <div className="w-px self-stretch bg-wood-200 mx-1" />
       <Button
         type="button"

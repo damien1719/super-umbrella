@@ -50,7 +50,9 @@ export default function Bibliotheque() {
     (s) => s.isPublic && (!OFFICIAL_AUTHOR_ID || s.authorId !== OFFICIAL_AUTHOR_ID),
   );
 
-  const [activeTab, setActiveTab] = useState<'mine' | 'official' | 'community'>('community');
+  const [activeTab, setActiveTab] = useState<'mine' | 'official' | 'community'>(
+    myTrames.length ? 'mine' : officialTrames.length ? 'official' : 'community'
+  );
 
   const matchesActiveFilter = (s: Section) => {
     if (activeTab === 'mine') return !!profileId && s.authorId === profileId;
