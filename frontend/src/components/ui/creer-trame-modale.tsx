@@ -18,17 +18,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, FileText, ClipboardList, Eye, Brain } from 'lucide-react';
+import { Plus} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSectionStore } from '@/store/sections';
-
-const categories = [
-  { id: 'anamnese', title: 'Anamnèse', icon: FileText },
-  { id: 'tests_standards', title: 'Tests standards', icon: ClipboardList },
-  { id: 'observations', title: 'Observations', icon: Eye },
-  { id: 'profil_sensoriel', title: 'Profil sensoriel', icon: Brain },
-  { id: 'conclusion', title: 'Conclusion', icon: Brain },
-];
+import { categories } from '@/types/trame';
 
 interface CreerTrameModalProps {
   trigger?: React.ReactNode;

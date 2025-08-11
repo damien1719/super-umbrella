@@ -1,11 +1,12 @@
 import { create } from 'zustand';
 import { apiFetch } from '../utils/api';
 import { useAuth } from './auth';
+import type { SectionKind } from '../types/trame';
 
 export interface Section {
   id: string;
   title: string;
-  kind: string;
+  kind: SectionKind;
   description?: string | null;
   schema?: unknown;
   defaultContent?: unknown;

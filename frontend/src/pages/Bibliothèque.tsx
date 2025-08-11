@@ -18,6 +18,7 @@ import { useSectionStore, type Section } from '@/store/sections';
 import { Loader2 } from 'lucide-react';
 import { Tabs } from '@/components/ui/tabs';
 import { useUserProfileStore } from '@/store/userProfile';
+import { categories } from '@/types/trame';
 
 
 export default function Bibliotheque() {
@@ -33,9 +34,6 @@ export default function Bibliotheque() {
   );
 
   const OFFICIAL_AUTHOR_ID = import.meta.env.VITE_OFFICIAL_AUTHOR_ID;
-
-  console.log("")
-
 
   useEffect(() => {
     // Charge en parallèle les sections + le profil
@@ -60,14 +58,6 @@ export default function Bibliotheque() {
       return !!OFFICIAL_AUTHOR_ID && s.isPublic && s.authorId === OFFICIAL_AUTHOR_ID;
     return s.isPublic && (!OFFICIAL_AUTHOR_ID || s.authorId !== OFFICIAL_AUTHOR_ID);
   };
-
-  const categories = [
-    { id: 'anamnese', title: 'Anamnèse', icon: FileText },
-    { id: 'tests_standards', title: 'Tests standards', icon: ClipboardList },
-    { id: 'observations', title: 'Observations', icon: Eye },
-    { id: 'profil_sensoriel', title: 'Profil sensoriel', icon: Brain },
-    { id: 'conclusion', title: 'Conclusion', icon: Brain },
-  ];
 
   return (
     <div className="min-h-screen bg-wood-50 p-6">

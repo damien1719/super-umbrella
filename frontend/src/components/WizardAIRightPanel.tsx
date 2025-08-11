@@ -110,7 +110,7 @@ export default function WizardAIRightPanel({
         <p className="text-md">
           Choisissez une trame parmi notre bibliothèque:
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-60 overflow-y-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 overflow-auto-y">
           {trameOptions.map((trame) => (
             <TrameCard
               key={trame.value}

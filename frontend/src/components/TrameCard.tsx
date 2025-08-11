@@ -35,7 +35,7 @@ export default function TrameCard({
     <Card
       onClick={onSelect}
       className={cn(
-        'relative hover:shadow-md hover:bg-wood-100 transition-shadow cursor-pointer',
+        'relative hover:shadow-md hover:bg-wood-100 transition-shadow cursor-pointer max-w-60',
         selected && 'border-2 border-blue-500 bg-blue-50',
       )}
     >
