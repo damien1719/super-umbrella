@@ -35,3 +35,9 @@ bilanRouter.post(
   validateParams(bilanIdParam),
   BilanController.refine,
 );
+
+bilanRouter.post(
+  '/:bilanId/conclude',
+  validateParams(bilanIdParam),
+  BilanController.conclude,
+);

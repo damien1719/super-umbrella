@@ -12,7 +12,7 @@ import { Textarea } from './ui/textarea';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import type { TrameOption, TrameExample } from './bilan/TrameSelector';
 import type { Answers, Question } from '@/types/question';
-import { FileText, Eye, Brain, Activity } from 'lucide-react';
+import { FileText, Eye, Brain, Activity, Flag } from 'lucide-react';
 import { apiFetch } from '@/utils/api';
 import { useAuth } from '@/store/auth';
 
@@ -331,6 +331,22 @@ export default function AiRightPanel({
     }
   };
 
+  const handleConclude = async () => {
+    setIsGenerating(true);
+    try {
+      const res = await apiFetch<{ text: string }>(
+        `/api/v1/bilans/${bilanId}/conclude`,
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      onInsertText(res.text);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
     <div className="w-full max-w-md bg-wood-50 rounded-lg shadow-lg">
       <div className="flex flex-col h-full">
@@ -466,6 +482,30 @@ export default function AiRightPanel({
           ) : (
             <ScrollArea className="h-[calc(100vh-120px)]">
               <div className="space-y-4">
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 rounded-lg bg-gray-100">
+                        <Flag className="h-4 w-4 text-gray-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-medium text-sm mb-1">Conclure</h3>
+                        <p className="text-xs text-gray-500 mb-4">
+                          Génère une synthèse et une conclusion du bilan complet
+                        </p>
+                        <Button
+                          size="sm"
+                          variant="default"
+                          className="w-full text-xs"
+                          onClick={handleConclude}
+                          disabled={isGenerating}
+                        >
+                          {isGenerating ? 'Génération...' : 'Conclure'}
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
                 {sections.map((section) => {
                   const trameOpts = trames[section.id];
                   const selected = trameOpts.find(
@@ -479,10 +519,7 @@ export default function AiRightPanel({
                         open={true}
                         onOpenChange={(open) => !open && setWizardSection(null)}
                       >
-                        <DialogContent
-                          showCloseButton={false}
-                          fullscreen
-                        >
+                        <DialogContent showCloseButton={false} fullscreen>
                           <WizardAIRightPanel
                             sectionInfo={section}
                             trameOptions={trameOpts}
