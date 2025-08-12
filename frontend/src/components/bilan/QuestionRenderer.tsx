@@ -1,6 +1,7 @@
 import React from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Chip } from './Chip';
 import { TableQuestion } from './TableQuestion';
 import type { Question } from '@/types/question';
@@ -35,17 +36,41 @@ export function QuestionRenderer({
         />
       );
     case 'choix-multiple':
+      const selected =
+        typeof value === 'object' && value !== null
+          ? (value as any).option
+          : value;
+      const comment =
+        typeof value === 'object' && value !== null
+          ? (value as any).commentaire || ''
+          : '';
       return (
-        <div className="flex flex-wrap gap-2">
-          {question.options?.map((opt) => (
-            <Chip
-              key={opt}
-              selected={value === opt}
-              onClick={() => onChange(opt)}
-            >
-              {opt}
-            </Chip>
-          ))}
+        <div className="space-y-2">
+          <div className="flex flex-wrap gap-2">
+            {question.options?.map((opt) => (
+              <Chip
+                key={opt}
+                selected={selected === opt}
+                onClick={() => onChange({ option: opt, commentaire: comment })}
+              >
+                {opt}
+              </Chip>
+            ))}
+          </div>
+          {question.commentaire !== false && (
+            <div className="space-y-1 w-full">
+              <Label className="text-sm font-medium">Commentaire</Label>
+              <Textarea
+                value={comment}
+                onChange={(e) =>
+                  onChange({
+                    option: selected || '',
+                    commentaire: e.target.value,
+                  })
+                }
+              />
+            </div>
+          )}
         </div>
       );
     case 'echelle':

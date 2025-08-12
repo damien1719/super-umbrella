@@ -10,6 +10,7 @@ export type MultiChoiceQuestion = {
   type: 'choix-multiple';
   titre: string;
   options: string[];
+  commentaire?: boolean;
 };
 
 export type ScaleQuestion = {
