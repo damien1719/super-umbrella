@@ -113,14 +113,12 @@ export const BilanController = {
 
   async commentTestResults(req: Request, res: Response, next: NextFunction) {
     try {
-      const file = req.body.file;
-      if (typeof file !== 'string') {
-        res.status(400).json({ error: 'file required' });
+      const html = req.body.html;
+      if (typeof html !== 'string') {
+        res.status(400).json({ error: 'html required' });
         return;
       }
-      const buffer = Buffer.from(file, 'base64');
-      const textContent = buffer.toString('utf-8');
-      const text = await commentTestResultsService(textContent);
+      const text = await commentTestResultsService(html);
       res.json({ text });
     } catch (e) {
       next(e);

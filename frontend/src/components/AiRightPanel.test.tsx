@@ -54,14 +54,16 @@ describe('AiRightPanel', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Valider' }));
 
     await waitFor(() => expect(mockedApi).toHaveBeenCalled());
-    expect(mockedApi).toHaveBeenCalledWith(
-      '/api/v1/bilans/123/comment-test-results',
+    const [url, options] = mockedApi.mock.calls[0];
+    expect(url).toBe('/api/v1/bilans/123/comment-test-results');
+    expect(options).toEqual(
       expect.objectContaining({
         method: 'POST',
-        body: expect.stringContaining('promptCommentTestResults'),
         headers: expect.objectContaining({ Authorization: 'Bearer tok' }),
       }),
     );
+    expect(options.body).toContain('promptCommentTestResults');
+    expect(options.body).toContain('"html":"test"');
     expect(onInsertText).toHaveBeenCalledWith('Un commentaire');
   });
 });
