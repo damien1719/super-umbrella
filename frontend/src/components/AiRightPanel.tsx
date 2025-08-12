@@ -12,7 +12,7 @@ import { Textarea } from './ui/textarea';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import type { TrameOption, TrameExample } from './bilan/TrameSelector';
 import type { Answers, Question } from '@/types/question';
-import { FileText, Eye, Brain, Activity, Flag } from 'lucide-react';
+import { FileText, Eye, Brain, Activity, Flag, PlusIcon, ArrowRight, ArrowRightCircle } from 'lucide-react';
 import { apiFetch } from '@/utils/api';
 import { useAuth } from '@/store/auth';
 
@@ -692,31 +692,40 @@ export default function AiRightPanel({
 
                   if (!generated[section.id]) {
                     return (
-                      <Card key={section.id} className="">
-                        <CardContent className="p-4">
-                          <div className="flex items-start gap-3">
-                            <div className="p-2 rounded-lg bg-gray-100">
-                              <section.icon className="h-4 w-4 text-gray-600" />
+                      <Card key={section.id} className="p-4">
+                        <CardContent className="p-2">
+                          <div className="flex items-center gap-2">
+                            <div className="p-1.5 rounded-lg bg-muted/60">
+                              <section.icon className="h-4 w-4 text-muted-foreground text-primary-500" />
                             </div>
-                            <div className="flex-1">
-                              <h3 className="font-medium text-sm mb-1">
-                                {section.title}
-                              </h3>
-                              <p className="text-xs text-gray-500 mb-4">
-                                {section.description}
-                              </p>
-                              <Button
-                                size="sm"
-                                variant="default"
-                                className="w-full text-xs"
-                                onClick={() => setWizardSection(section.id)}
-                              >
-                                Démarrer la génération
-                              </Button>
+
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-medium text-base truncate">{section.title}</h3>
+
+                                <Button
+                                  size="default"
+                                  variant="default"
+                                  className="ml-auto h-7 px-2 text-sm"
+                                  onClick={() => setWizardSection(section.id)}
+                                >
+                                  Démarrer
+                                  <ArrowRightCircle className="h-4 w-4 ml-1" />
+                                </Button>
+                              </div>
+
+                              {/* Optionnel : afficher la description sans prendre de place */}
+                              {/* Mettre showDesc à true/false selon ton besoin */}
+                              {false && (
+                                <p className="text-[11px] text-muted-foreground mt-1 line-clamp-1">
+                                  {section.description}
+                                </p>
+                              )}
                             </div>
                           </div>
                         </CardContent>
                       </Card>
+
                     );
                   }
 
