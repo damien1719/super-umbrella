@@ -53,6 +53,7 @@ model Profile {
   user               User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   onboardingDone     Boolean     @default(false)
   onboardingVersion  String      @default("1")
+  job                Job?
 
   @@map("profile")
   @@schema("public")
@@ -100,7 +101,7 @@ model Section {
   bilanTypeSections BilanTypeSection[]
   author            Profile?               @relation("AuthorSections", fields: [authorId], references: [id])
   examples          SectionExample[]
-  job               Job?
+  job               Job? 
 
   @@schema("psychomot")
 }

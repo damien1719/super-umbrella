@@ -12,7 +12,7 @@ import { Textarea } from './ui/textarea';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import type { TrameOption, TrameExample } from './bilan/TrameSelector';
 import type { Answers, Question } from '@/types/question';
-import { FileText, Eye, Brain, Activity, Flag, PlusIcon, ArrowRight, ArrowRightCircle } from 'lucide-react';
+import { FileText, Eye, Brain, Activity, Flag, PlusIcon, ArrowRight, ArrowRightCircle, Wand2 } from 'lucide-react';
 import { apiFetch } from '@/utils/api';
 import { useAuth } from '@/store/auth';
 
@@ -39,13 +39,13 @@ const sections: SectionInfo[] = [
   },
   {
     id: 'observations-cliniques',
-    title: 'Observations cliniques',
+    title: 'Observations',
     icon: Brain,
     description: 'Observations comportementales et motrices',
   },
   {
     id: 'tests-mabc',
-    title: 'Tests standards MABC',
+    title: 'Tests',
     icon: Activity,
     description: 'Résultats des tests standardisés',
   },
@@ -578,57 +578,6 @@ export default function AiRightPanel({
           ) : (
             <ScrollArea className="h-[calc(100vh-120px)]">
               <div className="space-y-4">
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 rounded-lg bg-gray-100">
-                        <Flag className="h-4 w-4 text-gray-600" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-medium text-sm mb-1">Conclure</h3>
-                        <p className="text-xs text-gray-500 mb-4">
-                          Génère une synthèse et une conclusion du bilan complet
-                        </p>
-                        <Button
-                          size="sm"
-                          variant="default"
-                          className="w-full text-xs"
-                          onClick={handleConclude}
-                          disabled={isGenerating}
-                        >
-                          {isGenerating ? 'Génération...' : 'Conclure'}
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 rounded-lg bg-gray-100">
-                        <Activity className="h-4 w-4 text-gray-600" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-medium text-sm mb-1">
-                          Commenter des résultats de tests
-                        </h3>
-                        <p className="text-xs text-gray-500 mb-4">
-                          Téléversez un fichier Word ou Excel pour obtenir un
-                          commentaire automatique
-                        </p>
-                        <Button
-                          size="sm"
-                          variant="default"
-                          className="w-full text-xs"
-                          onClick={() => setCommentModalOpen(true)}
-                          disabled={isGenerating}
-                        >
-                          Commenter
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
                 {sections.map((section) => {
                   const trameOpts = trames[section.id];
                   const selected = trameOpts.find(
@@ -768,6 +717,46 @@ export default function AiRightPanel({
                     />
                   );
                 })}
+                {/* <Button className="w-full"
+                    size="default"
+                    variant="default"
+                    onClick={handleConclude}
+                    disabled={isGenerating}
+                  >
+                    {isGenerating ? '...' : 'Rédiger une synthèse du bilan'}
+                </Button>
+                <Button className="w-full"
+                    size="default"
+                    variant="default"
+                    onClick={handleConclude}
+                    disabled={isGenerating}
+                  >
+                    {isGenerating ? '...' : 'Commenter des résultats de'}
+                </Button>
+ */}
+                <div className="flex flex-col gap-4"> 
+                <Button
+                  size="default"
+                  variant="default"
+                  className="h-8 px-2 text-base"
+                  onClick={() => setCommentModalOpen(true)}
+                  disabled={isGenerating}
+                >
+                  Commenter des résultats de tests
+                  <Wand2 className="h-4 w-4 ml-1" />
+                </Button>
+                  <Button
+                      size="default"
+                      variant="default"
+                      className="h-8 px-2 text-base"
+                      onClick={handleConclude}
+                      disabled={isGenerating}
+                    >
+                      {isGenerating ? '...' : 'Rédiger la synthèse du bilan'}
+                      <Wand2 className="h-4 w-4 ml-1" />
+                  </Button>
+                </div>
+              
               </div>
             </ScrollArea>
           )}
