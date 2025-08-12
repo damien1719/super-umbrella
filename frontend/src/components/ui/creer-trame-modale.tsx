@@ -116,7 +116,7 @@ export default function CreerTrameModal({
             <Label htmlFor="job">Type de job</Label>
             <Select value={job} onValueChange={(v) => setJob(v as Job)}>
               <SelectTrigger>
-                <SelectValue placeholder="Choisir un type de job" />
+                <SelectValue placeholder="Choisir un métier" />
               </SelectTrigger>
               <SelectContent>
                 {jobOptions.map((j) => (
