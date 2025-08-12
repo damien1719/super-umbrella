@@ -1,5 +1,5 @@
 import React from 'react';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type {
@@ -41,6 +41,11 @@ export function NotesEditor({}: EditorProps) {
 
 export function MultiChoiceEditor({ q, onPatch }: EditorProps) {
   const options = ('options' in q && q.options) || [];
+  useEffect(() => {
+    if (q.commentaire === undefined) {
+      onPatch({ commentaire: true } as Partial<Question>);
+    }
+  }, [q.commentaire, onPatch]);
   const updateOption = (idx: number, value: string) => {
     const opts = [...options];
     opts[idx] = value;
@@ -54,6 +59,9 @@ export function MultiChoiceEditor({ q, onPatch }: EditorProps) {
     const trimmed = value.trim();
     if (!trimmed) return;
     onPatch({ options: [...options, trimmed] } as Partial<Question>);
+  };
+  const toggleComment = () => {
+    onPatch({ commentaire: !q.commentaire } as Partial<Question>);
   };
   return (
     <div className="space-y-4">
@@ -89,6 +97,25 @@ export function MultiChoiceEditor({ q, onPatch }: EditorProps) {
             }}
           />
         </div>
+      </div>
+      <div className="space-y-2">
+        {q.commentaire ? (
+          <div className="flex flex-row items-center gap-2">
+            <div className="p-2 border border-wood-200 rounded">
+              <p className="text-sm text-gray-500 mb-1">
+                La zone de commentaire sera disponible lors de la saisie des
+                données
+              </p>
+            </div>
+            <Button variant="icon" size="sm" onClick={toggleComment}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        ) : (
+          <Button variant="outline" size="sm" onClick={toggleComment}>
+            + Ajouter une zone de commentaire
+          </Button>
+        )}
       </div>
     </div>
   );

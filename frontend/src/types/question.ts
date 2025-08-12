@@ -40,6 +40,7 @@ export interface Question {
   titre: string;
   contenu?: string;
   options?: string[];
+  commentaire?: boolean;
   echelle?: { min: number; max: number; labels?: { min: string; max: string } };
   tableau?: SurveyTable;
 }

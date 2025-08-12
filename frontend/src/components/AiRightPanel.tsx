@@ -228,19 +228,26 @@ export default function AiRightPanel({
     return header + body + comment;
   }
 
-  function markdownifyField(q: Question, value: string): string {
+  function markdownifyField(q: Question, value: unknown): string {
     switch (q.type) {
       case 'notes':
-        return `${q.titre}\n\n${value}`;
+        return `${q.titre}\n\n${value ?? ''}`;
       case 'choix-multiple':
-        return `${q.titre}\n\n${value}`;
+        if (value && typeof value === 'object') {
+          const opt = (value as any).option ?? '';
+          const comment = (value as any).commentaire;
+          return `${q.titre}\n\n${opt}${
+            comment ? `\n\n> **Commentaire** : ${comment}` : ''
+          }`;
+        }
+        return `${q.titre}\n\n${value ?? ''}`;
       case 'echelle':
-        return `${q.titre}\n\n${value}`;
+        return `${q.titre}\n\n${value ?? ''}`;
       case 'titre':
         console.log('here');
-        return `## ${q.titre}\n\n${value}`;
+        return `## ${q.titre}\n\n${value ?? ''}`;
       default:
-        return `${q.titre} : ${value}`;
+        return `${q.titre} : ${value ?? ''}`;
     }
   }
 
@@ -267,11 +274,17 @@ export default function AiRightPanel({
         } else if (q.type === 'titre') {
           mdBlocks.push(markdownifyField(q, ''));
         } else {
-          console.log('questions', q);
-          const raw = String(ans[q.id] ?? '').trim();
-          if (raw) {
-            mdBlocks.push(markdownifyField(q, raw));
-            console.log(mdBlocks);
+          const val = ans[q.id];
+          if (val !== undefined && val !== null) {
+            if (typeof val === 'object') {
+              const hasContent = Object.values(val).some(
+                (v) => String(v || '').trim() !== '',
+              );
+              if (hasContent) mdBlocks.push(markdownifyField(q, val));
+            } else {
+              const raw = String(val).trim();
+              if (raw) mdBlocks.push(markdownifyField(q, raw));
+            }
           }
         }
       }
