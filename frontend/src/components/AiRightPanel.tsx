@@ -234,9 +234,13 @@ export default function AiRightPanel({
         return `${q.titre}\n\n${value ?? ''}`;
       case 'choix-multiple':
         if (value && typeof value === 'object') {
-          const opt = (value as any).option ?? '';
-          const comment = (value as any).commentaire;
-          return `${q.titre}\n\n${opt}${
+          const selectedOptions = Array.isArray((value as any).options) 
+            ? (value as any).options.join(', ')
+            : (value as any).option 
+              ? String((value as any).option)
+              : '';
+          const comment = (value as any).commentaire || '';
+          return `${q.titre}\n\n${selectedOptions}${
             comment ? `\n\n> **Commentaire** : ${comment}` : ''
           }`;
         }
