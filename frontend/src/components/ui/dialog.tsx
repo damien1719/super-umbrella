@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { XIcon } from 'lucide-react';
+import { Fullscreen, XIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
@@ -50,9 +50,11 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  fullscreen = false,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean;
+  fullscreen?: boolean;
 }) {
   return (
     <DialogPortal data-slot="dialog-portal">
@@ -60,7 +62,9 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          'bg-white data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border border-wood-200 p-6 shadow-lg duration-200 sm:max-w-lg',
+          fullscreen
+            ? 'fixed inset-0 z-[50] left-[0%] top-[0%] w-[100%] h-[100%] max-w-none sm:max-w-none p-0 rounded-lg border-wood-200 shadow-none bg-wood-50 overflow-auto'
+            : 'bg-white data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-150 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border border-wood-200 p-6 shadow-lg duration-200 sm:max-w-lg',
           className,
         )}
         {...props}

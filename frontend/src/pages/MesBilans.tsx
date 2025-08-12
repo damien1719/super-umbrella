@@ -14,6 +14,8 @@ import EmptyState from '@/components/bilans/EmptyState';
 import GenericTable, { BilanItem } from '@/components/bilans/GenericTable';
 import PaginationControls from '@/components/bilans/PaginationControls';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { usePatientStore } from '../store/patients'; 
+
 
 export default function Component() {
   const [bilans, setBilans] = useState<BilanItem[]>([]);
@@ -27,6 +29,19 @@ export default function Component() {
   const token = useAuth((s) => s.token);
   const navigate = useNavigate();
   const [isCreationModalOpen, setIsCreationModalOpen] = useState(false);
+  const [bilanTitle, setBilanTitle] = useState('');
+
+  // --- Récupération patients ---
+  const patients = usePatientStore((s) => s.items);
+  const fetchPatients = usePatientStore((s) => s.fetchAll);
+
+  useEffect(() => {
+    if (token) {
+      fetchPatients().catch(() => {});
+    }
+  }, [token, fetchPatients]);
+
+  const hasPatients = patients.length > 0; 
 
   useEffect(() => {
     if (!token) return;
@@ -40,11 +55,11 @@ export default function Component() {
       });
   }, [token]);
 
-  const createBilan = async (patientId: string) => {
+  const createBilan = async (patientId: string, title?: string) => {
     const res = await apiFetch<{ id: string }>('/api/v1/bilans', {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ patientId }),
+      body: JSON.stringify({ patientId, title }),
     });
     navigate(`/bilan/${res.id}`);
   };
@@ -98,7 +113,7 @@ export default function Component() {
               onClick={() => setIsCreationModalOpen(true)}
             >
               <Plus className="w-4 h-4 mr-2" />
-              Nouveau bilan
+              Rédiger un nouveau bilan
             </Button>
           </div>
         </div>
@@ -112,9 +127,6 @@ export default function Component() {
             <Card className="bg-primary-50 border-primary-200">
               <CardContent className="flex items-center justify-between p-6">
                 <div className="flex items-center space-x-4">
-                  <div className="bg-primary-100 p-3 rounded-full">
-                    <Plus className="w-6 h-6 text-primary-600" />
-                  </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
                       Créer un nouveau bilan
@@ -126,7 +138,7 @@ export default function Component() {
                 </div>
                 <Button
                   className=""
-                  variant="primary"
+                  variant="outline"
                   onClick={() => setIsCreationModalOpen(true)}
                 >
                   <Plus className="w-4 h-4 mr-2" />
@@ -159,18 +171,25 @@ export default function Component() {
       <CreationBilan
         isOpen={isCreationModalOpen}
         onClose={() => setIsCreationModalOpen(false)}
-        onNewPatient={() => setIsNewPatientModalOpen(true)}
-        onExistingPatient={() => setIsExistingPatientModalOpen(true)}
+        onNewPatient={(title) => {
+          setBilanTitle(title);
+          setIsNewPatientModalOpen(true);
+        }}
+        onExistingPatient={(title) => {
+          setBilanTitle(title);
+          setIsExistingPatientModalOpen(true);
+        }}
+        hasPatients={hasPatients}
       />
       <NewPatientModal
         isOpen={isNewPatientModalOpen}
         onClose={() => setIsNewPatientModalOpen(false)}
-        onPatientCreated={createBilan}
+        onPatientCreated={(id) => createBilan(id, bilanTitle)}
       />
       <ExistingPatientModal
         isOpen={isExistingPatientModalOpen}
         onClose={() => setIsExistingPatientModalOpen(false)}
-        onPatientSelected={createBilan}
+        onPatientSelected={(id) => createBilan(id, bilanTitle)}
       />
       <ConfirmDialog
         open={!!toDelete}

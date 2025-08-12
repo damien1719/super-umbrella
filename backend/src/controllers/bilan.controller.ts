@@ -4,6 +4,8 @@ import { sanitizeHtml } from "../utils/sanitize";
 import { generateText } from "../services/ai/generate.service";
 import { promptConfigs } from "../services/ai/prompts/promptconfig";
 import { refineSelection } from "../services/ai/refineSelection.service";
+import { concludeBilan } from "../services/ai/conclude.service";
+import { commentTestResults as commentTestResultsService } from "../services/ai/commentTestResults.service";
 
 export const BilanController = {
   async create(req: Request, res: Response, next: NextFunction) {
@@ -89,6 +91,34 @@ export const BilanController = {
         refineInstruction: req.body.refineInstruction,
         selectedText: req.body.selectedText,
       });
+      res.json({ text });
+    } catch (e) {
+      next(e);
+    }
+  },
+
+  async conclude(req: Request, res: Response, next: NextFunction) {
+    try {
+      const bilan = await BilanService.get(req.user.id, req.params.bilanId);
+      if (!bilan || !bilan.descriptionHtml) {
+        res.status(404).json({ error: 'bilan not found' });
+        return;
+      }
+      const text = await concludeBilan(bilan.descriptionHtml);
+      res.json({ text });
+    } catch (e) {
+      next(e);
+    }
+  },
+
+  async commentTestResults(req: Request, res: Response, next: NextFunction) {
+    try {
+      const html = req.body.html;
+      if (typeof html !== 'string') {
+        res.status(400).json({ error: 'html required' });
+        return;
+      }
+      const text = await commentTestResultsService(html);
       res.json({ text });
     } catch (e) {
       next(e);

@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Copy, MoreVertical, Check } from 'lucide-react';
+import { Copy, MoreVertical, Check, ExternalLink, Trash2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +22,9 @@ interface TrameCardProps {
   onSelect?: () => void;
   onDuplicate?: () => void;
   onDelete?: () => void;
+  showLink?: boolean;
+  showDuplicate?: boolean;
+  showDelete?: boolean;
 }
 
 export default function TrameCard({
@@ -30,18 +33,21 @@ export default function TrameCard({
   onSelect,
   onDuplicate,
   onDelete,
+  showLink,
+  showDuplicate,
+  showDelete,
 }: TrameCardProps) {
   return (
     <Card
       onClick={onSelect}
       className={cn(
-        'relative hover:shadow-md hover:bg-wood-100 transition-shadow cursor-pointer',
-        selected && 'border-2 border-blue-500 bg-blue-50',
+        'relative hover:shadow-md hover:bg-wood-100 transition-shadow cursor-pointer max-w-60 w-full',
+        selected && 'border-2 border-primary-500 bg-primary-50',
       )}
     >
-      {(onDuplicate || onDelete) && (
+      {(showDuplicate || showDelete) && (
         <div className="absolute bottom-2 right-2 flex gap-1 z-10">
-          {onDuplicate && (
+{/*           {showDuplicate && onDuplicate && (
             <Button
               size="icon"
               variant="ghost"
@@ -52,8 +58,8 @@ export default function TrameCard({
             >
               <Copy className="w-4 h-4" />
             </Button>
-          )}
-          {onDelete && (
+          )} */}
+{/*           {showDelete && onDelete && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -79,12 +85,11 @@ export default function TrameCard({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          )}
+          )} */}
         </div>
       )}
       <CardHeader className="pb-3">
         <CardTitle className="text-base font-medium text-gray-900 flex items-center gap-1">
-          {selected && <Check className="h-4 w-4 text-blue-600" />}
           {trame.title}
         </CardTitle>
         {trame.sharedBy && (
@@ -93,6 +98,54 @@ export default function TrameCard({
       </CardHeader>
       <CardContent className="space-y-1">
         <p className="text-sm text-gray-600">{trame.description}</p>
+       {/* Barre d’actions (tout en bas, dans le CardContent) */}
+        {(showLink || (showDuplicate && onDuplicate) || (showDelete && onDelete)) && (
+          <div className="pt-2 flex items-center justify-end gap-1">
+            {showLink && (
+              <a
+                href={`/creation-trame/${trame.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center rounded-md p-2 text-primary-600 hover:text-primary-800 hover:bg-primary-50"
+                onClick={(e) => e.stopPropagation()}
+                aria-label="Ouvrir la trame dans un nouvel onglet"
+                title="Ouvrir"
+              >
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            )}
+
+            {showDuplicate && onDuplicate && (
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDuplicate();
+                }}
+                aria-label="Dupliquer la trame"
+                title="Dupliquer"
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            )}
+
+            {showDelete && onDelete && (
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete();
+                }}
+                aria-label="Supprimer la trame"
+                title="Supprimer"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

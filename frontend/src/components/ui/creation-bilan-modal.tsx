@@ -15,8 +15,9 @@ import { Label } from '@/components/ui/label';
 interface CreationBilanProps {
   isOpen: boolean;
   onClose: () => void;
-  onNewPatient: () => void;
-  onExistingPatient: () => void;
+  onNewPatient: (title: string) => void;
+  onExistingPatient: (title: string) => void;
+  hasPatients: boolean;
 }
 
 export function CreationBilan({
@@ -24,6 +25,7 @@ export function CreationBilan({
   onClose,
   onNewPatient,
   onExistingPatient,
+  hasPatients,
 }: CreationBilanProps) {
   const [title, setTitle] = useState('');
 
@@ -51,21 +53,23 @@ export function CreationBilan({
             type="button"
             variant="outline"
             onClick={() => {
-              onNewPatient();
+              onNewPatient(title);
               handleClose();
             }}
           >
             Nouveau patient
           </Button>
-          <Button
-            type="button"
-            onClick={() => {
-              onExistingPatient();
-              handleClose();
-            }}
-          >
-            Patient existant
-          </Button>
+          {hasPatients && (
+            <Button
+              type="button"
+              onClick={() => {
+                onExistingPatient(title);
+                handleClose();
+              }}
+            >
+              Patient existant
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

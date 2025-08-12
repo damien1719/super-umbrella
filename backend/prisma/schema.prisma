@@ -51,6 +51,9 @@ model Profile {
   patients           Patient[]
   sections           Section[]   @relation("AuthorSections")
   user               User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  onboardingDone     Boolean     @default(false)
+  onboardingVersion  String      @default("1")
+  job                Job?
 
   @@map("profile")
   @@schema("public")
@@ -98,7 +101,7 @@ model Section {
   bilanTypeSections BilanTypeSection[]
   author            Profile?               @relation("AuthorSections", fields: [authorId], references: [id])
   examples          SectionExample[]
-  job               Job?
+  job               Job? 
 
   @@schema("psychomot")
 }
@@ -135,6 +138,7 @@ model SectionExample {
 
 model Bilan {
   id              String                 @id @default(uuid())
+  title           String?
   patientId       String?
   bilanTypeId     String?
   descriptionHtml String?
@@ -197,6 +201,7 @@ enum SectionKind {
   tests_standards
   observations
   profil_sensoriel
+  bilan_complet
   CUSTOM_FORM
   conclusion
 

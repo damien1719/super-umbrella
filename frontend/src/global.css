@@ -20,9 +20,9 @@
     --color-primary-200: #C1D9CE;
     --color-primary-300: #9EC5B4;
     --color-primary-400: #7DAA99;
-    --color-primary-500: #5E927F;
-    --color-primary-600: #3E7C6A;
-    --color-primary-700: #2F6656;
+    --color-primary-500: #3FAF88;
+    --color-primary-600: #2F9E78;
+    --color-primary-700: #257E60;
     --color-primary-800: #245146;
     --color-primary-900: #19362F;
   
@@ -53,9 +53,9 @@
     --primary-200:#C1D9CE;
     --primary-300:#9EC5B4;
     --primary-400:#7DAA99;
-    --primary-500:#5E927F;
-    --primary-600:#3E7C6A;
-    --primary-700:#2F6656;
+    --primary-500:#3FAF88;  /* #5E927F */
+    --primary-600:#2F9E78; /* #3E7C6A */
+    --primary-700:#257E60;   /* 2F6656 */
     --primary-800:#245146;
     --primary-900:#19362F;
     --info-600:#7B79D1;
@@ -73,3 +73,18 @@ html, body, #root {
     height: 100%;
     margin: 0;
 }
+
+/* styles globaux (ex: index.css) */
+.editor-content u,
+.editor-content [style*="text-decoration: underline"] {
+  text-decoration: underline;
+}
+.editor-content i, 
+.editor-content [style*="font-style: italic"] {
+  font-style: italic;
+}
+
+/* rendez visibles les puces/numéros et l'indentation */
+.editor-content ul { list-style: disc; padding-left: 1.25rem; }
+.editor-content ol { list-style: decimal; padding-left: 1.25rem; }
+.editor-content li { margin-left: 0.25rem; }

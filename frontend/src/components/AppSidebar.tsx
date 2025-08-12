@@ -77,9 +77,13 @@ export function AppSidebar({ onNavigate }: SidebarProps) {
     <UISidebar collapsible="icon">
       <SidebarHeader>
         <div className="flex items-center gap-3 px-3 py-2">
-          <Home className="h-6 w-6 text-primary-600" />
+          <img
+            src="/logo.png"
+            alt="BilanPlume"
+            className="h-10 w-10 object-contain"
+          />
           <span className="font-semibold text-lg group-data-[collapsible=icon]:hidden">
-            BilanPlume
+            Bilan Plume
           </span>
         </div>
       </SidebarHeader>

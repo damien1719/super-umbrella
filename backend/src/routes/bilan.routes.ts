@@ -35,3 +35,15 @@ bilanRouter.post(
   validateParams(bilanIdParam),
   BilanController.refine,
 );
+
+bilanRouter.post(
+  '/:bilanId/conclude',
+  validateParams(bilanIdParam),
+  BilanController.conclude,
+);
+
+bilanRouter.post(
+  '/:bilanId/comment-test-results',
+  validateParams(bilanIdParam),
+  BilanController.commentTestResults,
+);

@@ -12,7 +12,7 @@ import { Textarea } from './ui/textarea';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import type { TrameOption, TrameExample } from './bilan/TrameSelector';
 import type { Answers, Question } from '@/types/question';
-import { FileText, Eye, Brain, Activity } from 'lucide-react';
+import { FileText, Eye, Brain, Activity, Flag, PlusIcon, ArrowRight, ArrowRightCircle, Wand2 } from 'lucide-react';
 import { apiFetch } from '@/utils/api';
 import { useAuth } from '@/store/auth';
 
@@ -39,13 +39,13 @@ const sections: SectionInfo[] = [
   },
   {
     id: 'observations-cliniques',
-    title: 'Observations cliniques',
+    title: 'Observations',
     icon: Brain,
     description: 'Observations comportementales et motrices',
   },
   {
     id: 'tests-mabc',
-    title: 'Tests standards MABC',
+    title: 'Tests',
     icon: Activity,
     description: 'Résultats des tests standardisés',
   },
@@ -80,6 +80,9 @@ const useTrames = () => {
           label: s.title,
           description: s.description,
           schema: (s.schema || []) as Question[],
+          isPublic: s.isPublic,
+          authorId: s.authorId,
+          author: s.author,
         }));
     });
     return res;
@@ -132,6 +135,9 @@ export default function AiRightPanel({
   const [refinedText, setRefinedText] = useState('');
   useEditorUi((s) => s.selection);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [commentModalOpen, setCommentModalOpen] = useState(false);
+  const [commentFile, setCommentFile] = useState<File | null>(null);
+  const commentFileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (regenSection && textareaRef.current) {
@@ -222,19 +228,26 @@ export default function AiRightPanel({
     return header + body + comment;
   }
 
-  function markdownifyField(q: Question, value: string): string {
+  function markdownifyField(q: Question, value: unknown): string {
     switch (q.type) {
       case 'notes':
-        return `${q.titre}\n\n${value}`;
+        return `${q.titre}\n\n${value ?? ''}`;
       case 'choix-multiple':
-        return `${q.titre}\n\n${value}`;
+        if (value && typeof value === 'object') {
+          const opt = (value as any).option ?? '';
+          const comment = (value as any).commentaire;
+          return `${q.titre}\n\n${opt}${
+            comment ? `\n\n> **Commentaire** : ${comment}` : ''
+          }`;
+        }
+        return `${q.titre}\n\n${value ?? ''}`;
       case 'echelle':
-        return `${q.titre}\n\n${value}`;
+        return `${q.titre}\n\n${value ?? ''}`;
       case 'titre':
         console.log('here');
-        return `## ${q.titre}\n\n${value}`;
+        return `## ${q.titre}\n\n${value ?? ''}`;
       default:
-        return `${q.titre} : ${value}`;
+        return `${q.titre} : ${value ?? ''}`;
     }
   }
 
@@ -261,11 +274,17 @@ export default function AiRightPanel({
         } else if (q.type === 'titre') {
           mdBlocks.push(markdownifyField(q, ''));
         } else {
-          console.log('questions', q);
-          const raw = String(ans[q.id] ?? '').trim();
-          if (raw) {
-            mdBlocks.push(markdownifyField(q, raw));
-            console.log(mdBlocks);
+          const val = ans[q.id];
+          if (val !== undefined && val !== null) {
+            if (typeof val === 'object') {
+              const hasContent = Object.values(val).some(
+                (v) => String(v || '').trim() !== '',
+              );
+              if (hasContent) mdBlocks.push(markdownifyField(q, val));
+            } else {
+              const raw = String(val).trim();
+              if (raw) mdBlocks.push(markdownifyField(q, raw));
+            }
           }
         }
       }
@@ -328,6 +347,92 @@ export default function AiRightPanel({
     }
   };
 
+  const handleConclude = async () => {
+    setIsGenerating(true);
+    try {
+      const res = await apiFetch<{ text: string }>(
+        `/api/v1/bilans/${bilanId}/conclude`,
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      onInsertText(res.text);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  async function convertFileToHtml(file: File): Promise<string> {
+    try {
+      if (
+        file.type ===
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+        file.name.endsWith('.docx')
+      ) {
+        const arrayBuffer = await file.arrayBuffer();
+        const mammoth = await import('mammoth');
+        const result = await mammoth.convertToHtml({ arrayBuffer });
+        return result.value;
+      }
+      if (
+        file.type ===
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+        file.name.endsWith('.xlsx')
+      ) {
+        const arrayBuffer = await file.arrayBuffer();
+        const XLSX = await import('xlsx');
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        return XLSX.utils.sheet_to_html(workbook.Sheets[sheetName]);
+      }
+      if (typeof file.text === 'function') {
+        return await file.text();
+      }
+      return await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsText(file);
+      });
+    } catch {
+      if (typeof file.text === 'function') {
+        return await file.text();
+      }
+      return await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsText(file);
+      });
+    }
+  }
+
+  const handleCommentTestResults = async () => {
+    if (!commentFile) return;
+    setIsGenerating(true);
+    try {
+      const html = await convertFileToHtml(commentFile);
+      const body = {
+        prompt: 'promptCommentTestResults',
+        html,
+      };
+      const res = await apiFetch<{ text: string }>(
+        `/api/v1/bilans/${bilanId}/comment-test-results`,
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: JSON.stringify(body),
+        },
+      );
+      onInsertText(res.text);
+      setCommentModalOpen(false);
+      setCommentFile(null);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
     <div className="w-full max-w-md bg-wood-50 rounded-lg shadow-lg">
       <div className="flex flex-col h-full">
@@ -338,7 +443,17 @@ export default function AiRightPanel({
           </div>
         )} */}
         <div className="sticky top-0 z-10 flex items-center justify-between bg-wood-50 border-b border-wood-200 px-4 py-2 h-14">
-          <span className="font-medium text-sm">Assistant IA</span>
+          <span className="font-medium text-sm">
+            {mode === 'refine'
+              ? 'Raffiner le texte'
+              : wizardSection
+                ? 'Génération de section'
+                : regenSection
+                  ? 'Modifier la section'
+                  : commentModalOpen
+                    ? 'Commenter des résultats'
+                    : 'Assistant IA'}
+          </span>
           {(regenSection || mode === 'refine') && (
             <Button
               variant="ghost"
@@ -439,14 +554,6 @@ export default function AiRightPanel({
               </div>
               <div className="flex justify-end gap-2">
                 <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setRegenSection(null)}
-                  disabled={isGenerating}
-                >
-                  Annuler
-                </Button>
-                <Button
                   size="sm"
                   onClick={() => {
                     const section = sections.find(
@@ -456,7 +563,15 @@ export default function AiRightPanel({
                   }}
                   disabled={isGenerating}
                 >
-                  {isGenerating ? 'Génération...' : 'Re-générer'}
+                  {isGenerating ? 'Génération...' : 'Reformuler ce texte'}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setRegenSection(null)}
+                  disabled={isGenerating}
+                >
+                  Passer à la suite
                 </Button>
               </div>
             </div>
@@ -476,10 +591,7 @@ export default function AiRightPanel({
                         open={true}
                         onOpenChange={(open) => !open && setWizardSection(null)}
                       >
-                        <DialogContent
-                          showCloseButton={false}
-                          className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[100vw] max-w-[100vw] sm:max-w-5xl h-[90vh] max-w-none max-h-none overflow-auto bg-wood-50 rounded-lg shadow-lg"
-                        >
+                        <DialogContent showCloseButton={false} fullscreen>
                           <WizardAIRightPanel
                             sectionInfo={section}
                             trameOptions={trameOpts}
@@ -529,31 +641,40 @@ export default function AiRightPanel({
 
                   if (!generated[section.id]) {
                     return (
-                      <Card key={section.id} className="">
-                        <CardContent className="p-4">
-                          <div className="flex items-start gap-3">
-                            <div className="p-2 rounded-lg bg-gray-100">
-                              <section.icon className="h-4 w-4 text-gray-600" />
+                      <Card key={section.id} className="p-4">
+                        <CardContent className="p-2">
+                          <div className="flex items-center gap-2">
+                            <div className="p-1.5 rounded-lg bg-muted/60">
+                              <section.icon className="h-4 w-4 text-muted-foreground text-primary-500" />
                             </div>
-                            <div className="flex-1">
-                              <h3 className="font-medium text-sm mb-1">
-                                {section.title}
-                              </h3>
-                              <p className="text-xs text-gray-500 mb-4">
-                                {section.description}
-                              </p>
-                              <Button
-                                size="sm"
-                                variant="default"
-                                className="w-full text-xs"
-                                onClick={() => setWizardSection(section.id)}
-                              >
-                                Démarrer la génération
-                              </Button>
+
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-medium text-base truncate">{section.title}</h3>
+
+                                <Button
+                                  size="default"
+                                  variant="default"
+                                  className="ml-auto h-7 px-2 text-sm"
+                                  onClick={() => setWizardSection(section.id)}
+                                >
+                                  Démarrer
+                                  <ArrowRightCircle className="h-4 w-4 ml-1" />
+                                </Button>
+                              </div>
+
+                              {/* Optionnel : afficher la description sans prendre de place */}
+                              {/* Mettre showDesc à true/false selon ton besoin */}
+                              {false && (
+                                <p className="text-[11px] text-muted-foreground mt-1 line-clamp-1">
+                                  {section.description}
+                                </p>
+                              )}
                             </div>
                           </div>
                         </CardContent>
                       </Card>
+
                     );
                   }
 
@@ -596,9 +717,115 @@ export default function AiRightPanel({
                     />
                   );
                 })}
+                {/* <Button className="w-full"
+                    size="default"
+                    variant="default"
+                    onClick={handleConclude}
+                    disabled={isGenerating}
+                  >
+                    {isGenerating ? '...' : 'Rédiger une synthèse du bilan'}
+                </Button>
+                <Button className="w-full"
+                    size="default"
+                    variant="default"
+                    onClick={handleConclude}
+                    disabled={isGenerating}
+                  >
+                    {isGenerating ? '...' : 'Commenter des résultats de'}
+                </Button>
+ */}
+                <div className="flex flex-col gap-4"> 
+                <Button
+                  size="default"
+                  variant="default"
+                  className="h-8 px-2 text-base"
+                  onClick={() => setCommentModalOpen(true)}
+                  disabled={isGenerating}
+                >
+                  Commenter des résultats de tests
+                  <Wand2 className="h-4 w-4 ml-1" />
+                </Button>
+                  <Button
+                      size="default"
+                      variant="default"
+                      className="h-8 px-2 text-base"
+                      onClick={handleConclude}
+                      disabled={isGenerating}
+                    >
+                      {isGenerating ? '...' : 'Rédiger la synthèse du bilan'}
+                      <Wand2 className="h-4 w-4 ml-1" />
+                  </Button>
+                </div>
+              
               </div>
             </ScrollArea>
           )}
+          <Dialog
+            open={commentModalOpen}
+            onOpenChange={(open) => {
+              if (!open) {
+                setCommentModalOpen(false);
+                setCommentFile(null);
+              }
+            }}
+          >
+            <DialogContent showCloseButton={false}>
+              <div className="space-y-4">
+                <div className="flex flex-col items-center justify-center gap-3 min-h-[200px]">
+                  <input
+                    ref={commentFileInputRef}
+                    type="file"
+                    accept=".xls,.xlsx,.doc,.docx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    onChange={(e) =>
+                      setCommentFile(e.target.files?.[0] || null)
+                    }
+                    className="hidden"
+                    data-testid="comment-file-input"
+                  />
+                  {commentFile ? (
+                    <input
+                      type="text"
+                      value={commentFile.name}
+                      readOnly
+                      className="border rounded px-3 py-2 bg-gray-50 text-gray-700 w-full max-w-xs"
+                      style={{ cursor: 'default' }}
+                    />
+                  ) : (
+                    <Button
+                      type="button"
+                      onClick={() => commentFileInputRef.current?.click()}
+                      disabled={isGenerating}
+                    >
+                      +Choisir un fichier
+                    </Button>
+                  )}
+                  <p className="text-xs text-muted-foreground text-center">
+                    Formats acceptés : .doc, .docx, .xls, .xlsx
+                  </p>
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setCommentModalOpen(false);
+                      setCommentFile(null);
+                    }}
+                    disabled={isGenerating}
+                  >
+                    Annuler
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleCommentTestResults}
+                    disabled={!commentFile || isGenerating}
+                  >
+                    {isGenerating ? 'Génération...' : 'Valider'}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>

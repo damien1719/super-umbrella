@@ -47,6 +47,7 @@
     "@lexical/list": "^0.33.1",
     "@lexical/react": "^0.33.1",
     "@lexical/rich-text": "^0.33.1",
+    "@lexical/selection": "^0.33.1",
     "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-dialog": "^1.1.14",
@@ -77,6 +78,7 @@
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
     "vite": "^7.1.0",
+    "mammoth": "^1.8.0",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.2/xlsx-0.20.2.tgz",
     "zustand": "^5.0.5"
   }

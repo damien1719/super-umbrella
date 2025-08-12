@@ -13,9 +13,9 @@ import type { Patient } from '../../store/patients';
 
 export interface BilanItem {
   id: string;
+  title: string;
   date: string;
   patient?: { firstName: string; lastName: string };
-  bilanType?: { name: string };
 }
 
 export type GenericItem = BilanItem | Patient;
@@ -56,8 +56,8 @@ export function GenericTable({
                 {variant === 'bilan' ? (
                   <>
                     <TableHead className="w-32">Date</TableHead>
-                    <TableHead>Nom Patient</TableHead>
-                    <TableHead>Nom bilan</TableHead>
+                    <TableHead>Patient</TableHead>
+                    <TableHead>Titre du bilan</TableHead>
                     <TableHead className="w-10" />
                   </>
                 ) : (
@@ -85,9 +85,7 @@ export function GenericTable({
                         ? `${(item as BilanItem).patient!.firstName} ${(item as BilanItem).patient!.lastName}`
                         : ''}
                     </TableCell>
-                    <TableCell>
-                      {(item as BilanItem).bilanType?.name ?? ''}
-                    </TableCell>
+                    <TableCell>{(item as BilanItem).title}</TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <Button
                         size="icon"

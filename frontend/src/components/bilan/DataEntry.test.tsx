@@ -138,8 +138,11 @@ describe('DataEntry', () => {
       />,
     );
     fireEvent.click(screen.getByRole('button', { name: 'Opt1' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Opt2' }));
     ref.current?.save();
-    expect(handle).toHaveBeenCalledWith({ [mcQuestion.id]: 'Opt1' });
+    expect(handle).toHaveBeenCalledWith({
+      [mcQuestion.id]: { options: ['Opt1', 'Opt2'], commentaire: '' },
+    });
   });
 
   it('renders table rows', () => {
@@ -158,6 +161,18 @@ describe('DataEntry', () => {
     render(
       <DataEntry
         questions={[tableCommentQuestion]}
+        answers={{}}
+        onChange={noop}
+        inline
+      />,
+    );
+    expect(screen.getByText(/Commentaire/)).toBeInTheDocument();
+  });
+
+  it('renders comment field for multi choice by default', () => {
+    render(
+      <DataEntry
+        questions={[mcQuestion]}
         answers={{}}
         onChange={noop}
         inline
