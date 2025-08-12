@@ -12,7 +12,11 @@ jest.mock("../src/services/ai/generate.service");
 jest.mock("../src/services/ai/refineSelection.service");
 jest.mock("../src/services/ai/commentTestResults.service");
 jest.mock("../src/middlewares/requireAuth", () => ({
-  requireAuth: (req: any, _res: any, next: () => void) => {
+  requireAuth: (
+    req: { user?: { id: string } },
+    _res: unknown,
+    next: () => void,
+  ) => {
     req.user = { id: "demo-user" };
     next();
   },
@@ -109,12 +113,12 @@ describe("POST /api/v1/bilans/:id/comment-test-results", () => {
   it("calls comment service with file content", async () => {
     mockedComment.mockResolvedValueOnce("comment");
     const id = "11111111-1111-1111-1111-111111111111";
-    const body = { file: Buffer.from("data").toString("base64") };
+    const body = { html: "<p>data</p>" };
     const res = await request(app)
       .post(`/api/v1/bilans/${id}/comment-test-results`)
       .send(body);
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ text: "comment" });
-    expect(mockedComment).toHaveBeenCalledWith("data");
+    expect(mockedComment).toHaveBeenCalledWith("<p>data</p>");
   });
 });

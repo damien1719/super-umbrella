@@ -350,23 +350,59 @@ export default function AiRightPanel({
     }
   };
 
+  async function convertFileToHtml(file: File): Promise<string> {
+    try {
+      if (
+        file.type ===
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+        file.name.endsWith('.docx')
+      ) {
+        const arrayBuffer = await file.arrayBuffer();
+        const mammoth = await import('mammoth');
+        const result = await mammoth.convertToHtml({ arrayBuffer });
+        return result.value;
+      }
+      if (
+        file.type ===
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+        file.name.endsWith('.xlsx')
+      ) {
+        const arrayBuffer = await file.arrayBuffer();
+        const XLSX = await import('xlsx');
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        return XLSX.utils.sheet_to_html(workbook.Sheets[sheetName]);
+      }
+      if (typeof file.text === 'function') {
+        return await file.text();
+      }
+      return await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsText(file);
+      });
+    } catch {
+      if (typeof file.text === 'function') {
+        return await file.text();
+      }
+      return await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsText(file);
+      });
+    }
+  }
+
   const handleCommentTestResults = async () => {
     if (!commentFile) return;
     setIsGenerating(true);
     try {
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const res = reader.result as string;
-          const b64 = res.split(',')[1] || '';
-          resolve(b64);
-        };
-        reader.onerror = () => reject(reader.error);
-        reader.readAsDataURL(commentFile);
-      });
+      const html = await convertFileToHtml(commentFile);
       const body = {
         prompt: 'promptCommentTestResults',
-        file: base64,
+        html,
       };
       const res = await apiFetch<{ text: string }>(
         `/api/v1/bilans/${bilanId}/comment-test-results`,
@@ -394,17 +430,17 @@ export default function AiRightPanel({
           </div>
         )} */}
         <div className="sticky top-0 z-10 flex items-center justify-between bg-wood-50 border-b border-wood-200 px-4 py-2 h-14">
-        <span className="font-medium text-sm">
-          {mode === 'refine'
-            ? 'Raffiner le texte'
-            : wizardSection
-            ? 'Génération de section'
-            : regenSection
-            ? 'Modifier la section'
-            : commentModalOpen
-            ? 'Commenter des résultats'
-            : 'Assistant IA'}
-        </span>
+          <span className="font-medium text-sm">
+            {mode === 'refine'
+              ? 'Raffiner le texte'
+              : wizardSection
+                ? 'Génération de section'
+                : regenSection
+                  ? 'Modifier la section'
+                  : commentModalOpen
+                    ? 'Commenter des résultats'
+                    : 'Assistant IA'}
+          </span>
           {(regenSection || mode === 'refine') && (
             <Button
               variant="ghost"
@@ -504,7 +540,6 @@ export default function AiRightPanel({
                 />
               </div>
               <div className="flex justify-end gap-2">
-                
                 <Button
                   size="sm"
                   onClick={() => {
@@ -724,13 +759,15 @@ export default function AiRightPanel({
             }}
           >
             <DialogContent showCloseButton={false}>
-            <div className="space-y-4">
+              <div className="space-y-4">
                 <div className="flex flex-col items-center justify-center gap-3 min-h-[200px]">
                   <input
                     ref={commentFileInputRef}
                     type="file"
                     accept=".xls,.xlsx,.doc,.docx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                    onChange={(e) => setCommentFile(e.target.files?.[0] || null)}
+                    onChange={(e) =>
+                      setCommentFile(e.target.files?.[0] || null)
+                    }
                     className="hidden"
                     data-testid="comment-file-input"
                   />
