@@ -4,14 +4,22 @@ import { NotFoundError } from './profile.service';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = prisma as any;
 
+export type Job =
+  | 'PSYCHOMOTRICIEN'
+  | 'ERGOTHERAPEUTE'
+  | 'NEUROPSYCHOLOGUE';
+
+
 export type SectionData = {
   title: string;
   kind: string;
+  job: Job;
   description?: string | null;
   schema?: unknown;
   defaultContent?: unknown;
   isPublic?: boolean;
 };
+
 
 export const SectionService = {
   async create(userId: string, data: SectionData) {
@@ -63,6 +71,7 @@ export const SectionService = {
       data: {
         title: section.title + ' - Copie',
         kind: section.kind,
+        job: section.job,
         description: section.description,
         schema: section.schema,
         defaultContent: section.defaultContent,

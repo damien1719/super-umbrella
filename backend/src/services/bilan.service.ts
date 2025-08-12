@@ -11,6 +11,8 @@ export type BilanData = {
   descriptionHtml?: string | null;
 };
 
+
+
 export const BilanService = {
   list(userId: string) {
     return db.bilan.findMany({

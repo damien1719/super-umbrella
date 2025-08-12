@@ -22,6 +22,7 @@ import { Plus} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSectionStore } from '@/store/sections';
 import { categories } from '@/types/trame';
+import {jobOptions, Job} from '@/types/job';
 
 interface CreerTrameModalProps {
   trigger?: React.ReactNode;
@@ -40,12 +41,14 @@ export default function CreerTrameModal({
     useState(initialCategory);
   const navigate = useNavigate();
   const createSection = useSectionStore((s) => s.create);
+  const [job, setJob] = useState<Job | ''>('');
 
   const handleCreerTrame = async () => {
-    if (!nomTrame || !categorieSelectionnee) return;
+    if (!nomTrame || !categorieSelectionnee  || !job) return;
     const section = await createSection({
       title: nomTrame,
       kind: categorieSelectionnee,
+      job,
     });
     if (onCreated) {
       onCreated(section.id);
@@ -55,6 +58,7 @@ export default function CreerTrameModal({
     setOpen(false);
     setNomTrame('');
     setCategorieSelectionnee(initialCategory);
+    setJob('');
   };
 
   return (
@@ -108,13 +112,29 @@ export default function CreerTrameModal({
           </div>
         </div>
 
+        <div className="space-y-2">
+            <Label htmlFor="job">Type de job</Label>
+            <Select value={job} onValueChange={(v) => setJob(v as Job)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Choisir un type de job" />
+              </SelectTrigger>
+              <SelectContent>
+                {jobOptions.map((j) => (
+                  <SelectItem key={j.id} value={j.id}>
+                    {j.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={() => setOpen(false)}>
             Annuler
           </Button>
           <Button
             onClick={handleCreerTrame}
-            disabled={!nomTrame || !categorieSelectionnee}
+            disabled={!nomTrame || !categorieSelectionnee || !job}
             className="bg-blue-600 hover:bg-blue-700"
           >
             Créer la trame

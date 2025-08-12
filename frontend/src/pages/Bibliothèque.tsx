@@ -12,14 +12,20 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { FileText, ClipboardList, Eye, Brain } from 'lucide-react';
 import CreerTrameModal from '@/components/ui/creer-trame-modale';
 import { useSectionStore, type Section } from '@/store/sections';
 import { Loader2 } from 'lucide-react';
 import { Tabs } from '@/components/ui/tabs';
 import { useUserProfileStore } from '@/store/userProfile';
 import { categories } from '@/types/trame';
-
+import { jobOptions, Job } from '@/types/job';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export default function Bibliotheque() {
   const navigate = useNavigate();
@@ -27,6 +33,7 @@ export default function Bibliotheque() {
   const [toDelete, setToDelete] = useState<Section | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { profile, fetchProfile, loading: profileLoading } = useUserProfileStore();
+  const [jobFilter, setJobFilter] = useState<Job | 'ALL'>('ALL');
 
   const profileId = useMemo(
     () => profile?.id ?? (profile as any)?.id ?? null,
@@ -50,8 +57,11 @@ export default function Bibliotheque() {
     (s) => s.isPublic && (!OFFICIAL_AUTHOR_ID || s.authorId !== OFFICIAL_AUTHOR_ID),
   );
 
+  console.log(myTrames.length, officialTrames.length, communityTrames.length);
+
+
   const [activeTab, setActiveTab] = useState<'mine' | 'official' | 'community'>(
-    myTrames.length ? 'mine' : officialTrames.length ? 'official' : 'community'
+    myTrames.length > 0 ? 'mine' : officialTrames.length > 0 ? 'official' : 'community'
   );
 
   const matchesActiveFilter = (s: Section) => {
@@ -60,6 +70,9 @@ export default function Bibliotheque() {
       return !!OFFICIAL_AUTHOR_ID && s.isPublic && s.authorId === OFFICIAL_AUTHOR_ID;
     return s.isPublic && (!OFFICIAL_AUTHOR_ID || s.authorId !== OFFICIAL_AUTHOR_ID);
   };
+
+  const matchesJobFilter = (s: Section) =>
+    jobFilter === 'ALL' || s.job === jobFilter
 
   return (
     <div className="min-h-screen bg-wood-50 p-6">
@@ -78,16 +91,34 @@ export default function Bibliotheque() {
           </div>
         </div>
         <div className="mt-4">
-            <Tabs
-              active={activeTab}
-              onChange={(k) => setActiveTab(k as 'mine' | 'official' | 'community')}
-              tabs={[
-                { key: 'mine', label: 'Mes trames', count: myTrames.length, hidden: myTrames.length === 0 },
-                { key: 'official', label: 'Trames Bilan Plume', count: officialTrames.length },
-                { key: 'community', label: 'Trames de la communauté', count: communityTrames.length },
-              ]}
-            />
+          <Tabs
+            active={activeTab}
+            onChange={(k) => setActiveTab(k as 'mine' | 'official' | 'community')}
+            tabs={[
+              { key: 'mine', label: 'Mes trames', count: myTrames.length, hidden: myTrames.length === 0 },
+              { key: 'official', label: 'Trames Bilan Plume', count: officialTrames.length },
+              { key: 'community', label: 'Trames de la communauté', count: communityTrames.length },
+            ]}
+          />
+          <div className="w-64">
+            <Select
+              value={jobFilter}
+              onValueChange={(v) => setJobFilter(v as Job | 'ALL')}
+            >
+              <SelectTrigger aria-label="Filtrer par job">
+                <SelectValue placeholder="Tous les jobs" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">Tous les jobs</SelectItem>
+                {jobOptions.map((j) => (
+                  <SelectItem key={j.id} value={j.id}>
+                    {j.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
+        </div>
 
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
@@ -99,7 +130,8 @@ export default function Bibliotheque() {
               const IconComponent = category.icon;
               const sections = items
                 .filter((s) => s.kind === category.id)
-                .filter(matchesActiveFilter);
+                .filter(matchesActiveFilter)
+                .filter(matchesJobFilter);
               return (
                 <div
                   key={category.id}

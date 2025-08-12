@@ -91,7 +91,7 @@ export default function WizardAIRightPanel({
   );
   
   const [activeTab, setActiveTab] = useState<'mine' | 'official' | 'community'>(
-    myTrames.length ? 'mine' : officialTrames.length ? 'official' : 'community'
+    myTrames.length > 0 ? 'mine' : officialTrames.length > 0 ? 'official' : 'community'
   );
 
   const matchesActiveFilter = (s: TrameOption) => {
