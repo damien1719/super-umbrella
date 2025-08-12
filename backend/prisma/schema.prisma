@@ -51,6 +51,8 @@ model Profile {
   patients           Patient[]
   sections           Section[]   @relation("AuthorSections")
   user               User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  onboardingDone     Boolean     @default(false)
+  onboardingVersion  String      @default("1")
 
   @@map("profile")
   @@schema("public")
