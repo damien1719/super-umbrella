@@ -59,7 +59,6 @@ export function QuestionRenderer({
           </div>
           {question.commentaire !== false && (
             <div className="space-y-1 w-full">
-              <Label className="text-sm font-medium">Commentaire</Label>
               <Textarea
                 value={comment}
                 onChange={(e) =>
@@ -68,6 +67,7 @@ export function QuestionRenderer({
                     commentaire: e.target.value,
                   })
                 }
+                placeholder="Commentaire"
               />
             </div>
           )}
