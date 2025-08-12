@@ -138,9 +138,10 @@ describe('DataEntry', () => {
       />,
     );
     fireEvent.click(screen.getByRole('button', { name: 'Opt1' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Opt2' }));
     ref.current?.save();
     expect(handle).toHaveBeenCalledWith({
-      [mcQuestion.id]: { option: 'Opt1', commentaire: '' },
+      [mcQuestion.id]: { options: ['Opt1', 'Opt2'], commentaire: '' },
     });
   });
 

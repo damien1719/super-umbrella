@@ -38,8 +38,12 @@ export function QuestionRenderer({
     case 'choix-multiple':
       const selected =
         typeof value === 'object' && value !== null
-          ? (value as any).option
-          : value;
+          ? Array.isArray((value as any).options)
+            ? ((value as any).options as string[])
+            : (value as any).option
+            ? [String((value as any).option)]
+            : []
+          : [];
       const comment =
         typeof value === 'object' && value !== null
           ? (value as any).commentaire || ''
@@ -47,15 +51,23 @@ export function QuestionRenderer({
       return (
         <div className="space-y-2">
           <div className="flex flex-wrap gap-2">
-            {question.options?.map((opt) => (
-              <Chip
-                key={opt}
-                selected={selected === opt}
-                onClick={() => onChange({ option: opt, commentaire: comment })}
-              >
-                {opt}
-              </Chip>
-            ))}
+            {question.options?.map((opt) => {
+              const isSelected = selected.includes(opt);
+              return (
+                <Chip
+                  key={opt}
+                  selected={isSelected}
+                  onClick={() => {
+                    const newSelected = isSelected
+                      ? selected.filter((o) => o !== opt)
+                      : [...selected, opt];
+                    onChange({ options: newSelected, commentaire: comment });
+                  }}
+                >
+                  {opt}
+                </Chip>
+              );
+            })}
           </div>
           {question.commentaire !== false && (
             <div className="space-y-1 w-full">
@@ -63,7 +75,7 @@ export function QuestionRenderer({
                 value={comment}
                 onChange={(e) =>
                   onChange({
-                    option: selected || '',
+                    options: selected,
                     commentaire: e.target.value,
                   })
                 }
