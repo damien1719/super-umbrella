@@ -57,9 +57,6 @@ export default function Bibliotheque() {
     (s) => s.isPublic && (!OFFICIAL_AUTHOR_ID || s.authorId !== OFFICIAL_AUTHOR_ID),
   );
 
-  console.log(myTrames.length, officialTrames.length, communityTrames.length);
-
-
   const [activeTab, setActiveTab] = useState<'mine' | 'official' | 'community'>(
     myTrames.length > 0 ? 'mine' : officialTrames.length > 0 ? 'official' : 'community'
   );
@@ -100,26 +97,39 @@ export default function Bibliotheque() {
               { key: 'community', label: 'Trames de la communauté', count: communityTrames.length },
             ]}
           />
-          <div className="w-64">
-            <Select
-              value={jobFilter}
-              onValueChange={(v) => setJobFilter(v as Job | 'ALL')}
-            >
-              <SelectTrigger aria-label="Filtrer par job">
-                <SelectValue placeholder="Tous les jobs" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">Tous les jobs</SelectItem>
-                {jobOptions.map((j) => (
-                  <SelectItem key={j.id} value={j.id}>
-                    {j.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="mt-2 mb-2 flex flex-wrap items-center gap-3">
+{/*             <div className="flex-1 min-w-[200px]">
+              <input
+                type="search"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Rechercher une trame…"
+                aria-label="Rechercher une trame"
+                className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-wood-300"
+              />
+            </div> */}
+
+            {/* Filtre métier */}
+            <div className="w-48">
+              <Select
+                value={jobFilter}
+                onValueChange={(v) => setJobFilter(v as Job | 'ALL')}
+              >
+                <SelectTrigger aria-label="Filtrer par job">
+                  <SelectValue placeholder="Tous les métiers" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">Tous les métiers</SelectItem>
+                  {jobOptions.map((j) => (
+                    <SelectItem key={j.id} value={j.id}>
+                      {j.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
-
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
             <Loader2 className="w-8 h-8 animate-spin" />
