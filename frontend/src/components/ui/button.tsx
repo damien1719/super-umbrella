@@ -13,11 +13,15 @@ const buttonVariants = cva(
         destructive: 'bg-red-600 text-white shadow-sm hover:bg-red-700',
         outline:
           'border border-primary-300 bg-white shadow-sm hover:bg-primary-50 hover:text-primary-700',
-        editor:'hover:bg-primary-50 hover:text-primary-700',
+        editor: 'hover:bg-primary-50 hover:text-primary-700',
         secondary: 'bg-wood-200 text-gray-800 shadow-sm hover:bg-wood-300',
         ghost: 'hover:bg-primary-50 hover:text-primary-700',
         link: 'text-blue-600 underline-offset-4 hover:underline',
         icon: 'bg-transparent hover:bg-wood-200 hover:text-primary-700',
+      },
+      active: {
+        true: 'bg-primary-100 text-primary-700 ring-1 ring-primary-300',
+        false: '',
       },
       size: {
         default: 'h-10 py-2 px-4',
@@ -30,6 +34,7 @@ const buttonVariants = cva(
     defaultVariants: {
       variant: 'primary',
       size: 'default',
+      active: false,
     },
   },
 );

@@ -7,7 +7,12 @@ export default function SelectionOverlay() {
   const mode = useEditorUi((s) => s.mode);
   const setMode = useEditorUi((s) => s.setMode);
 
-  if (!selection || selection.rects.length === 0 || mode === 'refine')
+  if (
+    !selection ||
+    selection.rects.length === 0 ||
+    selection.isCollapsed ||
+    mode === 'refine'
+  )
     return null;
   const rect = selection.rects[0];
   const style: React.CSSProperties = {

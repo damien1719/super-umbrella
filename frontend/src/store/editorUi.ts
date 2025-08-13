@@ -6,6 +6,7 @@ export interface SelectionSnapshot {
   rects: DOMRect[];
   text: string;
   htmlFragment: string;
+  isCollapsed: boolean;
   restore: () => boolean;
   clear: () => void;
 }

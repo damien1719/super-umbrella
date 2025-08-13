@@ -59,7 +59,7 @@ function HtmlPlugin({ html }: { html: string }) {
 
 const ImperativeHandlePlugin = forwardRef<
   RichTextEditorHandle,
-  Record<string, never>
+  object
 >(function ImperativeHandlePlugin(_, ref) {
   const [editor] = useLexicalComposerContext();
 
@@ -107,8 +107,14 @@ const ImperativeHandlePlugin = forwardRef<
           editor.focus();
 
           const allTextNodes = nodes
-            .flatMap((node) => node.getChildren()) // on ne descend que d’un niveau
-            .filter((n): n is TextNode => n.getType() === 'text');
+            .map((node) => {
+              const anyNode = node as any;
+              return typeof anyNode.getChildren === 'function'
+                ? anyNode.getChildren()
+                : [];
+            })
+            .flat()
+            .filter((n: any): n is TextNode => typeof n?.getType === 'function' && n.getType() === 'text');
           const firstText = allTextNodes[0];
           const lastText = allTextNodes[allTextNodes.length - 1];
 
@@ -157,7 +163,7 @@ function EditorCore(
   },
   ref: React.ForwardedRef<RichTextEditorHandle>,
 ) {
-  const editorRef = useRef<HTMLDivElement>(null);
+  const editorRef = useRef<HTMLElement>(null as unknown as HTMLElement);
   useVirtualSelection(editorRef);
   const initialConfig = {
     namespace: 'rte',
@@ -170,14 +176,25 @@ function EditorCore(
         h2: 'text-xl font-semibold mb-3',
         h3: 'text-lg font-medium mb-2',
       },
+      text: {
+        underline: 'underline',
+        italic: 'italic',
+        bold: 'font-bold',
+      },
     },
-    nodes: [ListNode, ListItemNode, LinkNode, HeadingNode, QuoteNode],
+    nodes: [
+      ListNode,
+      ListItemNode,
+      LinkNode,
+      HeadingNode,
+      QuoteNode,
+    ],
   };
   return (
     <LexicalComposer initialConfig={initialConfig}>
       {!readOnly && <ToolbarPlugin onSave={onSave} />}
       <div className="relative h-full">
-        <div ref={editorRef} className="h-full bg-wood-100 p-8 overflow-auto">
+        <div ref={editorRef as unknown as React.RefObject<HTMLDivElement>} className="h-full bg-wood-100 p-8 overflow-auto">
           <div className="flex justify-center">
             <div className="bg-paper-50 border border-gray-300 rounded shadow p-16 w-full max-w-3xl min-h-[100vh] flex flex-col">
               <RichTextPlugin
@@ -201,7 +218,7 @@ function EditorCore(
                 }}
               />
               <HtmlPlugin html={initialHtml} />
-              <ImperativeHandlePlugin ref={ref} />
+              <ImperativeHandlePlugin ref={ref as any} />
             </div>
           </div>
         </div>
