@@ -259,6 +259,53 @@ export default function WizardAIRightPanel({
     if (!instanceId) setInstanceId(res.id);
   };
   
+  // Autosave on answers change (debounced) while on step 2
+  const lastSavedRef = useRef<string>('');
+  useEffect(() => {
+    if (step !== 2) return;
+    const payload = JSON.stringify(answers ?? {});
+    if (payload === lastSavedRef.current) return;
+    const t = setTimeout(() => {
+      (async () => {
+        try {
+          await saveNotes(answers);
+          lastSavedRef.current = payload;
+        } catch {
+          // ignore autosave errors silently
+        }
+      })();
+    }, 1000);
+    return () => clearTimeout(t);
+  }, [answers, step]);
+
+  // Autosave on unmount (including ESC close via Dialog)
+  useEffect(() => {
+    return () => {
+      try {
+        const data = dataEntryRef.current?.save() as Answers | undefined;
+        // fire-and-forget
+        void saveNotes(data);
+      } catch {
+        // ignore
+      }
+    };
+  }, []);
+
+  // Save immediately when user presses ESC (best-effort before Dialog closes)
+  useEffect(() => {
+    if (step !== 2) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        try {
+          const data = dataEntryRef.current?.save() as Answers | undefined;
+          void saveNotes(data);
+        } catch {}
+      }
+    };
+    window.addEventListener('keydown', onKeyDown, true);
+    return () => window.removeEventListener('keydown', onKeyDown, true);
+  }, [step]);
+  
   const handleClose = async () => {
     if (step === 2 && selectedTrame) {
       const data = dataEntryRef.current?.save() as Answers | undefined;
