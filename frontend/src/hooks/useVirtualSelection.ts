@@ -9,8 +9,8 @@ export function useVirtualSelection(editorRef: React.RefObject<HTMLElement>) {
       const sel = window.getSelection();
       const mode = useEditorUi.getState().mode;
 
-      // Gérer le cas où il n'y a pas de sélection ou qu'elle est vide
-      if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
+      // Gérer le cas où il n'y a pas de sélection
+      if (!sel || sel.rangeCount === 0) {
         if (mode !== 'refine') setSelection(null);
         return;
       }
@@ -50,7 +50,7 @@ export function useVirtualSelection(editorRef: React.RefObject<HTMLElement>) {
 
       const clear = () => setSelection(null);
 
-      setSelection({ rects, text, htmlFragment, restore, clear });
+      setSelection({ rects, text, htmlFragment, isCollapsed: sel.isCollapsed, restore, clear });
     };
 
     document.addEventListener('selectionchange', onChange);

@@ -69,6 +69,7 @@ export const BilanController = {
         instructions: cfg.instructions,
         userContent: JSON.stringify(answers),
         examples,
+        job: (req.user as any)?.profile?.job,
       });
       res.json({ text });
     } catch (e) {

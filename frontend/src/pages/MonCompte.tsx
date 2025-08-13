@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { UserProfile } from '@monorepo/shared';
+import type { UserProfile } from '../../../shared/src/types/UserProfile';
 import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
 import { useUserProfileStore } from '../store/userProfile';
@@ -19,35 +19,34 @@ export default function MonCompteV2() {
   } = useUserProfileStore();
 
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState<UserProfile>({
-    nom: '',
-    prenom: '',
-    email: '',
-    telephonePersoNum: '',
-  });
+  const [form, setForm] = useState<Pick<UserProfile, 'nom' | 'prenom'> & { job?: 'PSYCHOMOTRICIEN' | 'ERGOTHERAPEUTE' | 'NEUROPSYCHOLOGUE' }>(
+    {
+      nom: '',
+      prenom: '',
+      job: undefined,
+    },
+  );
 
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
 
   useEffect(() => {
-    if (profile) setForm(profile);
+    if (profile)
+      setForm({ nom: profile.nom ?? '', prenom: profile.prenom ?? '', job: profile.job as any });
   }, [profile]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setForm((f) => ({ ...f, [name]: value }));
   };
 
   const save = async () => {
-    if (!validateEmail(form.email)) {
-      alert('Email invalide');
+    if (!form.nom || !form.prenom || !form.job) {
+      alert('Veuillez renseigner Nom, Prénom et Profil');
       return;
     }
-    await updateProfile({
-      ...form,
-      telephonePersoNum: formatPhone(form.telephonePersoNum),
-    });
+    await updateProfile({ nom: form.nom, prenom: form.prenom, job: form.job });
     setEditing(false);
   };
 
@@ -93,20 +92,24 @@ export default function MonCompteV2() {
           disabled={!editing}
           placeholder="Prénom"
         />
-        <Input
-          name="email"
-          value={form.email}
-          onChange={handleChange}
-          disabled={!editing}
-          placeholder="Email"
-        />
-        <Input
-          name="telephonePersoNum"
-          value={form.telephonePersoNum}
-          onChange={handleChange}
-          disabled={!editing}
-          placeholder="Téléphone"
-        />
+        <div>
+          <label className="block text-sm mb-1">Profil</label>
+          <select
+            name="job"
+            value={form.job ?? ''}
+            onChange={handleChange}
+            disabled={!editing}
+            className="border rounded px-3 py-2 w-full text-sm"
+            required
+          >
+            <option value="" disabled>
+              Sélectionnez votre profil
+            </option>
+            <option value="PSYCHOMOTRICIEN">Psychomotricien</option>
+            <option value="ERGOTHERAPEUTE">Ergothérapeute</option>
+            <option value="NEUROPSYCHOLOGUE">Neuropsychologue</option>
+          </select>
+        </div>
         {editing ? (
           <Button type="submit" disabled={loading} className="w-full">
             Enregistrer
