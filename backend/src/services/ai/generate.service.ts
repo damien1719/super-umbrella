@@ -5,7 +5,7 @@ import { ChatCompletionMessageParam, ChatCompletionCreateParams } from "openai/r
 import * as guardrails from "./guardrails";
 
 export async function generateText(
-  params: PromptParams,
+  params: PromptParams & { job?: 'PSYCHOMOTRICIEN' | 'ERGOTHERAPEUTE' | 'NEUROPSYCHOLOGUE' },
   { stream = false } = {}
 ) {
   // 1. Pré-traitement RGPD

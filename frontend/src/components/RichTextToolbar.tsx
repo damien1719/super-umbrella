@@ -15,7 +15,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { $patchStyleText, $setBlocksType } from '@lexical/selection';
 import { $insertNodes } from 'lexical';
 import { Save } from 'lucide-react';
-import { INSERT_TABLE_COMMAND, $createTableCellNode, $createTableNode, $createTableRowNode } from '@lexical/table';
 import { Button } from './ui/button';
 import {
   Select,
@@ -177,6 +176,11 @@ export function ToolbarPlugin({ onSave }: Props) {
     editor.focus();
   };
 
+  const handleSelectClosed = useCallback(() => {
+    // Quand un Select (Radix) se referme, on restaure le caret/focus immédiatement
+    setTimeout(() => restoreSelectionAndFocus(), 0);
+  }, [restoreSelectionAndFocus]);
+
   const changeFontSize = useCallback(
     (size: string) => {
       setFontSizeState(size);
@@ -215,21 +219,15 @@ export function ToolbarPlugin({ onSave }: Props) {
     [editor],
   );
 
-  const insertTable = useCallback(() => {
-    restoreSelectionAndFocus();
-    setTimeout(() => {
-      // Utilise la commande officielle pour insérer un tableau 3x3
-      editor.dispatchCommand(INSERT_TABLE_COMMAND, {
-        columns: '3',
-        rows: '3',
-        includeHeaders: false,
-      } as unknown as any);
-    }, 0);
-  }, [editor]);
+  // Tableau retiré temporairement (cause d'instabilité de certaines versions Lexical)
 
   return (
     <div className="sticky top-0 z-10 flex space-x-2 bg-wood-50 border-b border-wood-200 p-2">
-      <Select value={blockType} onValueChange={(v) => applyBlockType(v as any)}>
+      <Select
+        value={blockType}
+        onValueChange={(v) => applyBlockType(v as any)}
+        onOpenChange={(open) => !open && handleSelectClosed()}
+      >
         <SelectTrigger data-testid="block-type" className="w-40">
           <SelectValue placeholder="Style" />
         </SelectTrigger>
@@ -241,7 +239,11 @@ export function ToolbarPlugin({ onSave }: Props) {
           <SelectItem value="quote">Citation</SelectItem>
         </SelectContent>
       </Select>
-      <Select value={fontSize} onValueChange={changeFontSize}>
+      <Select
+        value={fontSize}
+        onValueChange={changeFontSize}
+        onOpenChange={(open) => !open && handleSelectClosed()}
+      >
         <SelectTrigger data-testid="font-size" className="w-24">
           <SelectValue placeholder="Taille" />
         </SelectTrigger>
@@ -251,7 +253,11 @@ export function ToolbarPlugin({ onSave }: Props) {
           ))}
         </SelectContent>
       </Select>
-      <Select value={fontFamily} onValueChange={changeFontFamily}>
+      <Select
+        value={fontFamily}
+        onValueChange={changeFontFamily}
+        onOpenChange={(open) => !open && handleSelectClosed()}
+      >
         <SelectTrigger data-testid="font-family" className="w-44">
           <SelectValue placeholder="Police" />
         </SelectTrigger>
@@ -291,14 +297,8 @@ export function ToolbarPlugin({ onSave }: Props) {
         <span style={{ textDecoration: 'underline' }}>U</span>
       </Button>
       <div className="w-px self-stretch bg-wood-200 mx-1" />
-      <Button
-        type="button"
-        onMouseDown={(e) => e.preventDefault()}
-        onClick={insertTable}
-        variant="editor"
-      >
-        Tableau 3×3
-      </Button>
+      {/* Bouton tableau retiré temporairement */}
+      
       <Button
         type="button"
         onMouseDown={(e) => e.preventDefault()}

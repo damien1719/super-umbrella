@@ -6,16 +6,7 @@ import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { ListPlugin } from '@lexical/react/LexicalListPlugin';
 import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from '@lexical/html';
-import {
-  $getRoot,
-  $getSelection,
-  $insertNodes,
-  $createParagraphNode,
-  $createRangeSelection,
-  $setSelection,
-  LexicalNode,
-  TextNode,
-} from 'lexical';
+import { $getRoot, $getSelection, $insertNodes } from 'lexical';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { ToolbarPlugin } from './RichTextToolbar';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
@@ -75,26 +66,7 @@ const ImperativeHandlePlugin = forwardRef<
             'text/html',
           );
 
-          let nodes = $generateNodesFromDOM(editor, dom);
-
-          // 3. Nettoyer et wrap TextNode en ParagraphNode
-          nodes = nodes
-            .map((node) => {
-              const type = node.getType();
-              if (type === 'text') {
-                // si vide, on jette
-                if (node.getTextContent().trim() === '') {
-                  return null;
-                }
-                // sinon on wrappe dans un paragraphe
-                return $createParagraphNode().append(node);
-              }
-              if (type === 'linebreak') {
-                return null;
-              }
-              return node;
-            })
-            .filter((n): n is LexicalNode => n !== null);
+          const nodes = $generateNodesFromDOM(editor, dom);
 
           // 4. Insérer au curseur ou à la fin
           const selection = $getSelection();
@@ -105,35 +77,6 @@ const ImperativeHandlePlugin = forwardRef<
           }
 
           editor.focus();
-
-          const allTextNodes = nodes
-            .map((node) => {
-              const anyNode = node as any;
-              return typeof anyNode.getChildren === 'function'
-                ? anyNode.getChildren()
-                : [];
-            })
-            .flat()
-            .filter((n: any): n is TextNode => typeof n?.getType === 'function' && n.getType() === 'text');
-          const firstText = allTextNodes[0];
-          const lastText = allTextNodes[allTextNodes.length - 1];
-
-          if (firstText && lastText) {
-            // 6) créer une RangeSelection sur ces text nodes
-            const range = $createRangeSelection();
-            range.anchor.set(firstText.getKey(), 0, 'text');
-            range.focus.set(
-              lastText.getKey(),
-              lastText.getTextContent().length,
-              'text',
-            );
-
-            setTimeout(() => {
-              editor.update(() => {
-                $setSelection(range);
-              });
-            }, 0);
-          }
           /*        const firstNode = nodes[0];
           const lastNode = nodes[nodes.length - 1];
           if (firstNode && lastNode) {
@@ -182,13 +125,7 @@ function EditorCore(
         bold: 'font-bold',
       },
     },
-    nodes: [
-      ListNode,
-      ListItemNode,
-      LinkNode,
-      HeadingNode,
-      QuoteNode,
-    ],
+    nodes: [ListNode, ListItemNode, LinkNode, HeadingNode, QuoteNode],
   };
   return (
     <LexicalComposer initialConfig={initialConfig}>
