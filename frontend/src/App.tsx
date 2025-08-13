@@ -15,6 +15,7 @@ import SignUp from './pages/SignUp';
 import { usePageStore } from './store/pageContext';
 import { useUserProfileStore } from './store/userProfile';
 import { AppSidebar } from './components/AppSidebar';
+import Onboarding from './pages/Onboarding';
 
 
 /* function useInitAuth() {
@@ -62,7 +63,7 @@ function SilentCheckSso() {
 function ProtectedLayout() {
   const setCurrentPage = usePageStore((s) => s.setCurrentPage);
   const { user } = useAuth();
-  const { profileId, fetchProfile } = useUserProfileStore();
+  const { profileId, fetchProfile, profile } = useUserProfileStore();
   const loading = useInitAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -92,6 +93,11 @@ function ProtectedLayout() {
       return <SSOLoginRedirect />;
     }
     return <Navigate to="/login" replace />;
+  }
+
+  // Redirection onboarding
+  if (profile && profile.onboardingDone === false && location.pathname !== '/onboarding') {
+    return <Navigate to="/onboarding" replace />;
   }
 
   return (
@@ -195,6 +201,7 @@ export default function App() {
       <Route element={<WizardLayout />}></Route>
       <Route element={<BilanLayout />}>
         <Route path="/bilan/:bilanId" element={<Bilan />} />
+        <Route path="/onboarding" element={<Onboarding />} />
       </Route>
       <Route element={<ProtectedLayout />}>
         <Route path="/" element={<BilanV2 />} />

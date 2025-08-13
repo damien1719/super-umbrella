@@ -23,6 +23,8 @@ export const updateProfileSchema = z
       .enum(['PSYCHOMOTRICIEN', 'ERGOTHERAPEUTE', 'NEUROPSYCHOLOGUE'])
       .nullable()
       .optional(),
+    onboardingDone: z.boolean().optional(),
+    onboardingVersion: z.string().optional(),
   })
   .strict();
 export const profileIdParam = z.object({ profileId: z.string().uuid() });

@@ -7,6 +7,7 @@ export interface SectionExample {
   sectionId: string;
   label?: string | null;
   content: string;
+  stylePrompt?: string;
 }
 
 interface SectionExampleState {

@@ -39,6 +39,7 @@ import {
   generateTableFromText,
   type TransformTextToTableParams,
 } from "./prompts/transformTextToTable";
+export type TransformExcelToTableParams = { sheetName: string; html: string }
 
 export async function transformText(params: TransformPromptParams) {
   // 1. RGPD pre-processing similar to generateText
@@ -72,5 +73,52 @@ export async function transformTextToTable(
   const structured = await generateTableFromText(
     JSON.parse(sanitized) as TransformTextToTableParams,
   );
+  return guardrails.post(structured) as { columns: string[]; rowsGroups: string[] };
+}
+
+// Convert a basic HTML table to a markdown table
+function htmlTableToMarkdown(html: string): string {
+  const clean = html
+    .replace(/<\/(thead|tbody)>/gi, '')
+    .replace(/\n|\r/g, ' ')
+    .replace(/\s{2,}/g, ' ');
+
+  const tableMatch = clean.match(/<table[\s\S]*?<\/table>/i);
+  if (!tableMatch) return clean;
+  const tableHtml = tableMatch[0];
+
+  const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
+  const cellRegex = /<(td|th)[^>]*>([\s\S]*?)<\/\1>/gi;
+  const stripTags = (s: string) => s.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+
+  const rows: string[][] = [];
+  let rowMatch: RegExpExecArray | null;
+  while ((rowMatch = rowRegex.exec(tableHtml))) {
+    const rowHtml = rowMatch[1];
+    const cells: string[] = [];
+    let cellMatch: RegExpExecArray | null;
+    while ((cellMatch = cellRegex.exec(rowHtml))) {
+      cells.push(stripTags(cellMatch[2]));
+    }
+    if (cells.length > 0) rows.push(cells);
+  }
+  if (rows.length === 0) return clean;
+
+  const header = rows[0];
+  const md: string[] = [];
+  md.push(`| ${header.join(' | ')} |`);
+  md.push(`| ${header.map(() => '---').join(' | ')} |`);
+  for (let i = 1; i < rows.length; i++) {
+    md.push(`| ${rows[i].join(' | ')} |`);
+  }
+  return md.join('\n');
+}
+
+export async function transformExcelToTable(
+  params: TransformExcelToTableParams,
+): Promise<{ columns: string[]; rowsGroups: string[] }> {
+  const sanitized = JSON.parse(guardrails.pre(JSON.stringify(params))) as TransformExcelToTableParams;
+  const markdown = htmlTableToMarkdown(sanitized.html);
+  const structured = await generateTableFromText({ content: markdown });
   return guardrails.post(structured) as { columns: string[]; rowsGroups: string[] };
 }

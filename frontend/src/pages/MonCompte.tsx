@@ -4,8 +4,9 @@ import type { UserProfile } from '../../../shared/src/types/UserProfile';
 import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
 import { useUserProfileStore } from '../store/userProfile';
-import { formatPhone } from '../utils/formatPhone';
-import { validateEmail } from '../utils/validateEmail';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../components/ui/dropdown-menu';
+import { Job, jobOptions, jobLabels } from '../types/job';
+import { Pencil } from 'lucide-react';
 
 export default function MonCompteV2() {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ export default function MonCompteV2() {
   } = useUserProfileStore();
 
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState<Pick<UserProfile, 'nom' | 'prenom'> & { job?: 'PSYCHOMOTRICIEN' | 'ERGOTHERAPEUTE' | 'NEUROPSYCHOLOGUE' }>(
+  const [form, setForm] = useState<Pick<UserProfile, 'nom' | 'prenom'> & { job?: Job }>(
     {
       nom: '',
       prenom: '',
@@ -33,10 +34,10 @@ export default function MonCompteV2() {
 
   useEffect(() => {
     if (profile)
-      setForm({ nom: profile.nom ?? '', prenom: profile.prenom ?? '', job: profile.job as any });
+      setForm({ nom: profile.nom ?? '', prenom: profile.prenom ?? '', job: profile.job as Job | undefined });
   }, [profile]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm((f) => ({ ...f, [name]: value }));
   };
@@ -65,7 +66,20 @@ export default function MonCompteV2() {
 
   return (
     <div className="max-w-xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold">Mon compte</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Mon compte</h1>
+        {!editing && (
+          <Button
+            type="button"
+            variant="icon"
+            size="icon"
+            aria-label="Modifier le profil"
+            onClick={() => setEditing(true)}
+          >
+            <Pencil className="w-4 h-4" />
+          </Button>
+        )}
+      </div>
       {error && (
         <div role="alert" className="text-red-600">
           {error}
@@ -93,35 +107,24 @@ export default function MonCompteV2() {
           placeholder="Prénom"
         />
         <div>
-          <label className="block text-sm mb-1">Profil</label>
-          <select
-            name="job"
-            value={form.job ?? ''}
-            onChange={handleChange}
-            disabled={!editing}
-            className="border rounded px-3 py-2 w-full text-sm"
-            required
-          >
-            <option value="" disabled>
-              Sélectionnez votre profil
-            </option>
-            <option value="PSYCHOMOTRICIEN">Psychomotricien</option>
-            <option value="ERGOTHERAPEUTE">Ergothérapeute</option>
-            <option value="NEUROPSYCHOLOGUE">Neuropsychologue</option>
-          </select>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild disabled={!editing}>
+              <Button variant="outline" className="w-full justify-between">
+                {form.job ? jobLabels[form.job] : 'Sélectionnez votre profil'}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {jobOptions.map(({ id, label }) => (
+                <DropdownMenuItem key={id} onClick={() => setForm((f) => ({ ...f, job: id }))}>
+                  {label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-        {editing ? (
+        {editing && (
           <Button type="submit" disabled={loading} className="w-full">
             Enregistrer
-          </Button>
-        ) : (
-          <Button
-            type="button"
-            onClick={() => setEditing(true)}
-            variant="outline"
-            className="w-full"
-          >
-            Modifier
           </Button>
         )}
       </form>

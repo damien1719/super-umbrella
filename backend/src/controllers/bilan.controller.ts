@@ -1,7 +1,9 @@
 import type { Request, Response, NextFunction } from "express";
 import { BilanService } from "../services/bilan.service";
+import { ProfileService } from "../services/profile.service";
 import { sanitizeHtml } from "../utils/sanitize";
 import { generateText } from "../services/ai/generate.service";
+import { Anonymization } from "../services/ai/anonymize.service";
 import { promptConfigs } from "../services/ai/prompts/promptconfig";
 import { refineSelection } from "../services/ai/refineSelection.service";
 import { concludeBilan } from "../services/ai/conclude.service";
@@ -59,19 +61,46 @@ export const BilanController = {
     try {
       const section = req.body.section as keyof typeof promptConfigs;
       const answers = req.body.answers ?? {};
+      const stylePrompt = typeof req.body.stylePrompt === 'string' ? req.body.stylePrompt : undefined;
       const examples = Array.isArray(req.body.examples) ? req.body.examples : [];
       const cfg = promptConfigs[section];
       if (!cfg) {
         res.status(400).json({ error: 'invalid section' });
         return;
       }
+      // Récupère le job du profil actif (si disponible)
+      const profiles = (await ProfileService.list(req.user.id)) as unknown as Array<{ job?: 'PSYCHOMOTRICIEN' | 'ERGOTHERAPEUTE' | 'NEUROPSYCHOLOGUE' | null }>;
+      const job = profiles && profiles.length > 0 ? (profiles[0].job ?? undefined) : undefined;
+
+      // Anonymisation en entrée (remplace le nom du patient par un placeholder générique)
+      // Récupère nom/prénom si disponibles
+      const patient = await BilanService.get(req.user.id, req.params.bilanId);
+      let userContent = JSON.stringify(answers);
+      if (patient && typeof patient === 'object') {
+        const firstName = (patient as any).firstName || (patient as any)?.patient?.firstName;
+        const lastName = (patient as any).lastName || (patient as any)?.patient?.lastName;
+        if (firstName || lastName) {
+          userContent = Anonymization.anonymizeText(userContent, { firstName, lastName });
+        }
+      }
+
       const text = await generateText({
         instructions: cfg.instructions,
-        userContent: JSON.stringify(answers),
+        userContent,
         examples,
-        job: (req.user as any)?.profile?.job,
+        stylePrompt,
+        job,
       });
-      res.json({ text });
+      // Post-traitement: réinjecte le nom du patient si connu, sinon renvoie tel quel
+      let postText = text as string;
+      if (patient && typeof patient === 'object') {
+        const firstName = (patient as any).firstName || (patient as any)?.patient?.firstName;
+        const lastName = (patient as any).lastName || (patient as any)?.patient?.lastName;
+        if (firstName || lastName) {
+          postText = Anonymization.deanonymizeText(postText, { firstName, lastName });
+        }
+      }
+      res.json({ text: postText });
     } catch (e) {
       next(e);
     }
@@ -88,9 +117,13 @@ export const BilanController = {
 
   async refine(req: Request, res: Response, next: NextFunction) {
     try {
+      // Récupère aussi le job pour le raffinage
+      const profiles = (await ProfileService.list(req.user.id)) as unknown as Array<{ job?: 'PSYCHOMOTRICIEN' | 'ERGOTHERAPEUTE' | 'NEUROPSYCHOLOGUE' | null }>;
+      const job = profiles && profiles.length > 0 ? (profiles[0].job ?? undefined) : undefined;
       const text = await refineSelection({
         refineInstruction: req.body.refineInstruction,
         selectedText: req.body.selectedText,
+        job,
       });
       res.json({ text });
     } catch (e) {

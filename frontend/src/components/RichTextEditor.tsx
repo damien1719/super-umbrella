@@ -27,6 +27,7 @@ interface Props {
   readOnly?: boolean;
   onChange?: (html: string) => void;
   onSave?: () => void;
+  exportFileName?: string;
 }
 
 function HtmlPlugin({ html }: { html: string }) {
@@ -98,7 +99,7 @@ const ImperativeHandlePlugin = forwardRef<
 });
 
 function EditorCore(
-  { initialHtml = '', readOnly = false, onChange = () => {}, onSave }: Props = {
+  { initialHtml = '', readOnly = false, onChange = () => {}, onSave, exportFileName }: Props = {
     initialHtml: '',
     readOnly: false,
     onChange: () => {},
@@ -129,7 +130,7 @@ function EditorCore(
   };
   return (
     <LexicalComposer initialConfig={initialConfig}>
-      {!readOnly && <ToolbarPlugin onSave={onSave} />}
+      {!readOnly && <ToolbarPlugin onSave={onSave} exportFileName={exportFileName} />}
       <div className="relative h-full">
         <div ref={editorRef as unknown as React.RefObject<HTMLDivElement>} className="h-full bg-wood-100 p-8 overflow-auto">
           <div className="flex justify-center">

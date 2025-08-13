@@ -14,7 +14,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { $patchStyleText, $setBlocksType } from '@lexical/selection';
 import { $insertNodes } from 'lexical';
-import { Save } from 'lucide-react';
+import { Save, FileDown } from 'lucide-react';
 import { Button } from './ui/button';
 import {
   Select,
@@ -25,6 +25,9 @@ import {
 } from './ui/select';
 import { useEditorUi } from '@/store/editorUi';
 import { $createHeadingNode, $createQuoteNode, $isHeadingNode } from '@lexical/rich-text';
+import { $generateHtmlFromNodes } from '@lexical/html';
+import DOMPurify from 'dompurify';
+import { toDocxBlob } from '@/lib/htmlDocx';
 
 export function setFontSize(editor: LexicalEditor, size: string) {
   editor.update(() => {
@@ -45,11 +48,21 @@ export function setFontFamily(editor: LexicalEditor, family: string) {
   });
 }
 
-interface Props {
-  onSave?: () => void;
+export function setLineHeight(editor: LexicalEditor, value: string) {
+  editor.update(() => {
+    const selection = $getSelection();
+    if ($isRangeSelection(selection)) {
+      $patchStyleText(selection, { 'line-height': value || null });
+    }
+  });
 }
 
-export function ToolbarPlugin({ onSave }: Props) {
+interface Props {
+  onSave?: () => void;
+  exportFileName?: string;
+}
+
+export function ToolbarPlugin({ onSave, exportFileName }: Props) {
   const [editor] = useLexicalComposerContext();
   // Tailles "Word-like" en points
   const WORD_FONT_SIZES = [
@@ -93,6 +106,7 @@ export function ToolbarPlugin({ onSave }: Props) {
   const [fontFamily, setFontFamilyState] = useState(
     "Calibri, 'Helvetica Neue', Arial, sans-serif",
   );
+  const [lineHeight, setLineHeightState] = useState('1.15');
   // Appliquer le style par défaut au focus initial (caret)
   // pour démarrer en Calibri 11pt
   useEffect(() => {
@@ -101,6 +115,7 @@ export function ToolbarPlugin({ onSave }: Props) {
       try {
         setFontFamily(editor, fontFamily);
         setFontSize(editor, fontSize);
+        setLineHeight(editor, lineHeight);
       } catch {}
     }, 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -200,6 +215,15 @@ export function ToolbarPlugin({ onSave }: Props) {
     [editor, selectionSnapshot],
   );
 
+  const changeLineHeight = useCallback(
+    (lh: string) => {
+      setLineHeightState(lh);
+      restoreSelectionAndFocus();
+      setTimeout(() => setLineHeight(editor, lh), 0);
+    },
+    [editor, selectionSnapshot],
+  );
+
   const format = useCallback(
     (fmt: 'bold' | 'italic' | 'underline') => {
       // Restaure la sélection avant d'appliquer le format
@@ -269,6 +293,21 @@ export function ToolbarPlugin({ onSave }: Props) {
           ))}
         </SelectContent>
       </Select>
+      <Select
+        value={lineHeight}
+        onValueChange={changeLineHeight}
+        onOpenChange={(open) => !open && handleSelectClosed()}
+      >
+        <SelectTrigger data-testid="line-height" className="w-40">
+          <SelectValue placeholder="Interligne" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="1">Simple (1.0)</SelectItem>
+          <SelectItem value="1.15">1.15</SelectItem>
+          <SelectItem value="1.5">1.5</SelectItem>
+          <SelectItem value="2">Double (2.0)</SelectItem>
+        </SelectContent>
+      </Select>
       <Button
         type="button"
         onMouseDown={(e) => e.preventDefault()}
@@ -326,6 +365,44 @@ export function ToolbarPlugin({ onSave }: Props) {
           <Save className="w-4 h-4" />
         </Button>
       )}
+      <Button
+        type="button"
+        onClick={async () => {
+          let html = '';
+          try {
+            editor.getEditorState().read(() => {
+              html = DOMPurify.sanitize($generateHtmlFromNodes(editor));
+            });
+          } catch {}
+          const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="ie=edge"/><style>
+            body { font-family: ${fontFamily}; font-size: ${fontSize}pt; line-height: ${lineHeight}; }
+            p { margin: 0 0 8px 0; }
+            h1 { font-size: 24pt; margin: 16pt 0 8pt; }
+            h2 { font-size: 18pt; margin: 14pt 0 6pt; }
+            h3 { font-size: 14pt; margin: 12pt 0 6pt; }
+            ul, ol { margin: 0 0 8px 24px; }
+            li { margin: 4px 0; }
+          </style></head><body>${html}</body></html>`;
+          try {
+            const blob = await toDocxBlob(fullHtml);
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${(exportFileName || 'Bilan')}.docx`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+          } catch (e) {
+            // ignore for now
+          }
+        }}
+        variant="editor"
+        aria-label="Exporter Word"
+        title="Exporter en Word (.docx)"
+      >
+        <FileDown className="w-4 h-4" />
+      </Button>
     </div>
   );
 }

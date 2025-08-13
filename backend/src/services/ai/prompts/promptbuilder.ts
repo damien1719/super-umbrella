@@ -13,6 +13,8 @@ export interface PromptParams {
   userContent: string;
   /** Exemples de textes pour guider la génération */
   examples?: string[];
+  /** Un guide de style compact (extrait des exemples) */
+  stylePrompt?: string;
 }
 
 /** Valeur par défaut pour ton system prompt */
@@ -67,6 +69,11 @@ export function buildPrompt(params: PromptParams & { job?: 'PSYCHOMOTRICIEN' | '
 
   // 4. Instructions spécifiques
   msgs.push({ role: 'system', content: `INSTRUCTIONS\n${params.instructions.trim()}` });
+
+  // 4bis. Guide de style compact
+  if (params.stylePrompt && params.stylePrompt.trim().length > 0) {
+    msgs.push({ role: 'system', content: `GUIDE DE STYLE\n${params.stylePrompt.trim()}` });
+  }
 
   
    // 5. démonstration de style (exemples de réponses)

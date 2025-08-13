@@ -15,6 +15,7 @@ import type { Answers, Question } from '@/types/question';
 import { FileText, Eye, Brain, Activity, Flag, PlusIcon, ArrowRight, ArrowRightCircle, Wand2 } from 'lucide-react';
 import { apiFetch } from '@/utils/api';
 import { useAuth } from '@/store/auth';
+import { splitBlocksIntoStringChunks } from '@/lib/chunkAnswers';
 
 const kindMap: Record<string, string> = {
   anamnese: 'anamnese',
@@ -191,41 +192,51 @@ export default function AiRightPanel({
       return '';
     }
 
-    const header =
-      `**${q.titre}**\n\n` +
-      `| ${['Ligne', ...q.tableau.columns.map((c) => c.label)].join(' | ')} |\n` +
-      `| ${['---', ...q.tableau.columns.map(() => '---')].join(' | ')} |\n`;
+    const columns = q.tableau.columns;
+    const allRows = q.tableau.rowsGroups?.flatMap((rg) => rg.rows) || [];
 
-    const body =
-      q.tableau.rowsGroups
-        ?.flatMap((rowGroup) =>
-          rowGroup.rows.map((row) => {
-            const rowData = ansTable[row.id] as
-              | Record<string, unknown>
-              | undefined;
-            const cells =
-              q.tableau?.columns?.map((col) => {
-                const v = rowData?.[col.id];
-                return typeof v === 'string' || typeof v === 'number'
-                  ? String(v)
-                  : '';
-              }) || [];
-            return `| ${[row.label, ...cells].join(' | ')} |`;
-          }),
-        )
-        .join('\n') || '';
+    const isNonEmpty = (v: unknown) => {
+      if (typeof v === 'number') return true;
+      if (typeof v === 'string') return v.trim() !== '';
+      return false;
+    };
+
+    const keptColumns = columns.filter((col) =>
+      allRows.some((row) => {
+        const rowData = ansTable[row.id] as Record<string, unknown> | undefined;
+        const v = rowData?.[col.id];
+        return isNonEmpty(v);
+      }),
+    );
+
+    const titleLine = `**${q.titre}**\n\n`;
+
+    let tablePart = '';
+    if (keptColumns.length > 0) {
+      const headerLine = `| ${['Ligne', ...keptColumns.map((c) => c.label)].join(' | ')} |`;
+      const sepLine = `| ${['---', ...keptColumns.map(() => '---')].join(' | ')} |`;
+      const bodyLines = allRows
+        .map((row) => {
+          const rowData = ansTable[row.id] as Record<string, unknown> | undefined;
+          const cells = keptColumns.map((col) => {
+            const v = rowData?.[col.id];
+            return isNonEmpty(v) ? String(v) : '';
+          });
+          return `| ${[row.label, ...cells].join(' | ')} |`;
+        })
+        .join('\n');
+      tablePart = `${headerLine}\n${sepLine}\n${bodyLines}`;
+    }
 
     const commentVal = ansTable.commentaire;
     const comment =
-      typeof commentVal === 'string'
+      typeof commentVal === 'string' && commentVal.trim() !== ''
         ? `\n\n> **Commentaire** : ${commentVal}`
         : '';
 
-    console.log('header', header);
-    console.log('body', body);
-    console.log('comment', comment);
-
-    return header + body + comment;
+    if (tablePart.trim() === '' && comment.trim() === '') return '';
+    if (tablePart.trim() === '') return titleLine + comment;
+    return titleLine + tablePart + comment;
   }
 
   function markdownifyField(q: Question, value: unknown): string {
@@ -248,7 +259,6 @@ export default function AiRightPanel({
       case 'echelle':
         return `${q.titre}\n\n${value ?? ''}`;
       case 'titre':
-        console.log('here');
         return `## ${q.titre}\n\n${value ?? ''}`;
       default:
         return `${q.titre} : ${value ?? ''}`;
@@ -274,7 +284,8 @@ export default function AiRightPanel({
         console.log('type', q.type);
         if (q.type === 'tableau') {
           const ansTable = (ans[q.id] as TableAnswers) || {};
-          mdBlocks.push(markdownifyTable(q, ansTable));
+          const md = markdownifyTable(q, ansTable);
+          if (md.trim()) mdBlocks.push(md);
         } else if (q.type === 'titre') {
           mdBlocks.push(markdownifyField(q, ''));
         } else {
@@ -296,12 +307,17 @@ export default function AiRightPanel({
       // 5) Concatène tout avec deux retours à la ligne
       const promptMarkdown = mdBlocks.join('\n\n');
 
+      // Ne jamais couper une question en deux: on chunk par blocs/questions déjà construits
+      const chunks = splitBlocksIntoStringChunks(mdBlocks, { maxChars: 1800 });
       const body = {
         section: kindMap[section.id],
-        answers: promptMarkdown,
-        examples: examples
+        answers: chunks,
+        // N'envoie plus le texte entier de l'exemple, seulement le stylePrompt si dispo
+        stylePrompt: examples
           .filter((e) => e.sectionId === trameId)
-          .map((e) => e.content),
+          .map((e) => (e as any).stylePrompt)
+          .filter((s) => typeof s === 'string' && (s as string).trim().length > 0)
+          .slice(0, 1)[0],
       };
 
       console.log('body', body);

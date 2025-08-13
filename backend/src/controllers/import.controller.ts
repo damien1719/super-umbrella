@@ -3,6 +3,7 @@ import {
   transformText,
   transformImageToTable,
   transformTextToTable,
+  transformExcelToTable,
 } from '../services/ai/generate.service';
 import { promptConfigs } from '../services/ai/prompts/promptconfig';
 
@@ -46,6 +47,25 @@ export const ImportController = {
         id: Date.now().toString(),
         type: 'tableau' as const,
         titre: 'Question sans titre',
+        tableau: {
+          columns: table.columns,
+          rowsGroups: table.rowsGroups,
+        },
+      };
+      res.json({ result: [question] });
+    } catch (e) {
+      next(e);
+    }
+  },
+  async transformExcelToTable(req: Request, res: Response, next: NextFunction) {
+    try {
+      const sheetName = String(req.body.sheetName || 'Feuille1');
+      const html = String(req.body.html || '');
+      const table = await transformExcelToTable({ sheetName, html });
+      const question = {
+        id: Date.now().toString(),
+        type: 'tableau' as const,
+        titre: sheetName,
         tableau: {
           columns: table.columns,
           rowsGroups: table.rowsGroups,
