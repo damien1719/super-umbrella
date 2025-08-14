@@ -195,10 +195,21 @@ export default function AiRightPanel({
     const columns = q.tableau.columns;
     const allRows = q.tableau.rowsGroups?.flatMap((rg) => rg.rows) || [];
 
-    const isNonEmpty = (v: unknown) => {
+    const isNonEmpty = (v: unknown, col?: { valueType?: string }) => {
+      if (col?.valueType === 'bool') return v === true;
       if (typeof v === 'number') return true;
       if (typeof v === 'string') return v.trim() !== '';
+      if (typeof v === 'boolean') return v === true; // par sécurité au cas où
       return false;
+    };
+
+    const formatCell = (v: unknown, col?: { valueType?: string }) => {
+      if (col?.valueType === 'bool') return v === true ? '✓' : ''; // ou 'Oui' / ''
+      if (v == null) return '';
+      if (typeof v === 'string') return v.trim();
+      if (typeof v === 'number') return String(v);
+      if (typeof v === 'boolean') return v ? '✓' : '';
+      return '';
     };
 
     const keptColumns = columns.filter((col) =>
@@ -209,6 +220,11 @@ export default function AiRightPanel({
       }),
     );
 
+    console.log("q", q);
+    console.log("keptColumns", keptColumns);
+    console.log("allRows", allRows);
+    console.log("ansTable", ansTable);
+
     const titleLine = `**${q.titre}**\n\n`;
 
     let tablePart = '';
@@ -218,10 +234,7 @@ export default function AiRightPanel({
       const bodyLines = allRows
         .map((row) => {
           const rowData = ansTable[row.id] as Record<string, unknown> | undefined;
-          const cells = keptColumns.map((col) => {
-            const v = rowData?.[col.id];
-            return isNonEmpty(v) ? String(v) : '';
-          });
+          const cells = keptColumns.map((col) => formatCell(rowData?.[col.id], col));
           return `| ${[row.label, ...cells].join(' | ')} |`;
         })
         .join('\n');
