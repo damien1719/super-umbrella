@@ -8,6 +8,7 @@ export type SectionExampleData = {
   sectionId: string;
   label?: string | null;
   content: string;
+  stylePrompt?: string;
 };
 
 export const SectionExampleService = {
@@ -16,7 +17,14 @@ export const SectionExampleService = {
       where: { id: data.sectionId, author: { userId } },
     });
     if (!section) throw new NotFoundError('Section not found for user');
-    return db.sectionExample.create({ data });
+    let stylePrompt = data.stylePrompt;
+    if (!stylePrompt && data.content) {
+      try {
+        const { extractStyle } = await import('./ai/prompts/extractStylePrompt');
+        stylePrompt = await extractStyle({ texts: [data.content] });
+      } catch {}
+    }
+    return db.sectionExample.create({ data: { ...data, stylePrompt } });
   },
 
   list(userId: string) {

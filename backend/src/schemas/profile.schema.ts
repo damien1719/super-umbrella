@@ -1,18 +1,30 @@
 import { z } from 'zod';
 
+// Schéma de création (non utilisé par le front actuel)
 export const createProfileSchema = z.object({
-  prTexte: z.string().max(255),
-  nif: z.string().max(255),
-  nifReadonly: z.boolean(),
-  civilite: z.enum(['M', 'MM']).optional(),
   nom: z.string().max(100),
-  nomUsage: z.string().max(100).optional(),
-  activiteReadonly: z.boolean(),
   prenom: z.string().max(100),
+  job: z
+    .enum(['PSYCHOMOTRICIEN', 'ERGOTHERAPEUTE', 'NEUROPSYCHOLOGUE'])
+    .optional(),
   email: z.string().email().optional(),
   telephonePersoNum: z.string().max(50).optional(),
   telephoneMobileNum: z.string().max(50).optional(),
+  civilite: z.enum(['M', 'MME', 'MLLE']).optional(),
+  nomUsage: z.string().max(100).optional(),
 });
 
-export const updateProfileSchema = createProfileSchema.partial();
+// Schéma de mise à jour: uniquement les champs réellement édités côté front
+export const updateProfileSchema = z
+  .object({
+    nom: z.string().max(100).optional(),
+    prenom: z.string().max(100).optional(),
+    job: z
+      .enum(['PSYCHOMOTRICIEN', 'ERGOTHERAPEUTE', 'NEUROPSYCHOLOGUE'])
+      .nullable()
+      .optional(),
+    onboardingDone: z.boolean().optional(),
+    onboardingVersion: z.string().optional(),
+  })
+  .strict();
 export const profileIdParam = z.object({ profileId: z.string().uuid() });

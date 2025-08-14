@@ -13,7 +13,7 @@ export type Job =
 export type SectionData = {
   title: string;
   kind: string;
-  job: Job;
+  job: Job[];
   description?: string | null;
   schema?: unknown;
   defaultContent?: unknown;

@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { UserProfile } from '@monorepo/shared';
+import type { UserProfile } from '../../../shared/src/types/UserProfile';
 import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
 import { useUserProfileStore } from '../store/userProfile';
-import { formatPhone } from '../utils/formatPhone';
-import { validateEmail } from '../utils/validateEmail';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../components/ui/dropdown-menu';
+import { Job, jobOptions, jobLabels } from '../types/job';
+import { Pencil } from 'lucide-react';
 
 export default function MonCompteV2() {
   const navigate = useNavigate();
@@ -19,19 +20,21 @@ export default function MonCompteV2() {
   } = useUserProfileStore();
 
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState<UserProfile>({
-    nom: '',
-    prenom: '',
-    email: '',
-    telephonePersoNum: '',
-  });
+  const [form, setForm] = useState<Pick<UserProfile, 'nom' | 'prenom'> & { job?: Job }>(
+    {
+      nom: '',
+      prenom: '',
+      job: undefined,
+    },
+  );
 
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
 
   useEffect(() => {
-    if (profile) setForm(profile);
+    if (profile)
+      setForm({ nom: profile.nom ?? '', prenom: profile.prenom ?? '', job: profile.job as Job | undefined });
   }, [profile]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,14 +43,11 @@ export default function MonCompteV2() {
   };
 
   const save = async () => {
-    if (!validateEmail(form.email)) {
-      alert('Email invalide');
+    if (!form.nom || !form.prenom || !form.job) {
+      alert('Veuillez renseigner Nom, Prénom et Profil');
       return;
     }
-    await updateProfile({
-      ...form,
-      telephonePersoNum: formatPhone(form.telephonePersoNum),
-    });
+    await updateProfile({ nom: form.nom, prenom: form.prenom, job: form.job });
     setEditing(false);
   };
 
@@ -66,7 +66,20 @@ export default function MonCompteV2() {
 
   return (
     <div className="max-w-xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold">Mon compte</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Mon compte</h1>
+        {!editing && (
+          <Button
+            type="button"
+            variant="icon"
+            size="icon"
+            aria-label="Modifier le profil"
+            onClick={() => setEditing(true)}
+          >
+            <Pencil className="w-4 h-4" />
+          </Button>
+        )}
+      </div>
       {error && (
         <div role="alert" className="text-red-600">
           {error}
@@ -93,32 +106,25 @@ export default function MonCompteV2() {
           disabled={!editing}
           placeholder="Prénom"
         />
-        <Input
-          name="email"
-          value={form.email}
-          onChange={handleChange}
-          disabled={!editing}
-          placeholder="Email"
-        />
-        <Input
-          name="telephonePersoNum"
-          value={form.telephonePersoNum}
-          onChange={handleChange}
-          disabled={!editing}
-          placeholder="Téléphone"
-        />
-        {editing ? (
+        <div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild disabled={!editing}>
+              <Button variant="outline" className="w-full justify-between">
+                {form.job ? jobLabels[form.job] : 'Sélectionnez votre profil'}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {jobOptions.map(({ id, label }) => (
+                <DropdownMenuItem key={id} onClick={() => setForm((f) => ({ ...f, job: id }))}>
+                  {label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        {editing && (
           <Button type="submit" disabled={loading} className="w-full">
             Enregistrer
-          </Button>
-        ) : (
-          <Button
-            type="button"
-            onClick={() => setEditing(true)}
-            variant="outline"
-            className="w-full"
-          >
-            Modifier
           </Button>
         )}
       </form>

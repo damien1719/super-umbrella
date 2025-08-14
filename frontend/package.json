@@ -79,6 +79,7 @@
     "tailwindcss-animate": "^1.0.7",
     "vite": "^7.1.0",
     "mammoth": "^1.8.0",
+    "html-docx-js-typescript": "^0.1.5",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.2/xlsx-0.20.2.tgz",
     "zustand": "^5.0.5"
   }

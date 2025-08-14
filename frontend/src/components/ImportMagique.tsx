@@ -56,7 +56,7 @@ export default function ImportMagique({
       .map((c, idx) => ({
         id: `c${idx}`,
         label: String(c).trim(),
-        valueType: 'text',
+        valueType: 'text' as const,
       }))
       .filter((c) => c.label);
     const lignes: Row[] = rows
@@ -99,11 +99,21 @@ export default function ImportMagique({
           reader.readAsArrayBuffer(file);
         });
         const workbook = read(data, { type: 'array' });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const rows = utils.sheet_to_json<(string | number)[]>(sheet, {
-          header: 1,
-        }) as (string | number)[][];
-        onDone(addDefaultValueType(transformTable(rows)));
+        const results: Question[] = [];
+        for (const name of workbook.SheetNames) {
+          const sheet = workbook.Sheets[name];
+          const html = utils.sheet_to_html(sheet);
+          const res = await apiFetch<{ result: Question[] }>(
+            '/api/v1/import/transform-excel-table',
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+              body: JSON.stringify({ sheetName: name, html }),
+            },
+          );
+          results.push(...addDefaultValueType(res.result));
+        }
+        onDone(results);
       } else if (tableImportType === 'image' && image) {
         const base64 = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();

@@ -1,14 +1,14 @@
 import { create } from 'zustand';
 import { apiFetch } from '../utils/api';
 import { useAuth } from './auth';
-import type { SectionKind } from '../types/trame';
+import type { CategoryId as SectionKind } from '../types/trame';
 import { Job } from '../types/job';
 
 export interface Section {
   id: string;
   title: string;
   kind: SectionKind;
-  job: Job;
+  job: Job[];
   description?: string | null;
   schema?: unknown;
   defaultContent?: unknown;
@@ -17,7 +17,7 @@ export interface Section {
   author?: { prenom?: string | null } | null;
 }
 
-export type SectionInput = Omit<Section, 'id' | 'author' | 'job'>;
+export type SectionInput = Omit<Section, 'id' | 'author'>;
 
 interface SectionState {
   items: Section[];

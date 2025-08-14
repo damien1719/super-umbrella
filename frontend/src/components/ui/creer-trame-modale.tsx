@@ -21,8 +21,8 @@ import {
 import { Plus} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSectionStore } from '@/store/sections';
-import { categories } from '@/types/trame';
-import {jobOptions, Job} from '@/types/job';
+import { categories, type CategoryId } from '@/types/trame';
+import { jobOptions, Job } from '@/types/job';
 
 interface CreerTrameModalProps {
   trigger?: React.ReactNode;
@@ -38,17 +38,17 @@ export default function CreerTrameModal({
   const [open, setOpen] = useState(false);
   const [nomTrame, setNomTrame] = useState('');
   const [categorieSelectionnee, setCategorieSelectionnee] =
-    useState(initialCategory);
+    useState<CategoryId | ''>('');
   const navigate = useNavigate();
   const createSection = useSectionStore((s) => s.create);
-  const [job, setJob] = useState<Job | ''>('');
+  const [jobs, setJobs] = useState<Job[]>([]);
 
   const handleCreerTrame = async () => {
-    if (!nomTrame || !categorieSelectionnee  || !job) return;
+    if (!nomTrame || !categorieSelectionnee || jobs.length === 0) return;
     const section = await createSection({
       title: nomTrame,
       kind: categorieSelectionnee,
-      job,
+      job: jobs,
     });
     if (onCreated) {
       onCreated(section.id);
@@ -57,8 +57,8 @@ export default function CreerTrameModal({
     }
     setOpen(false);
     setNomTrame('');
-    setCategorieSelectionnee(initialCategory);
-    setJob('');
+    setCategorieSelectionnee('');
+    setJobs([]);
   };
 
   return (
@@ -90,7 +90,7 @@ export default function CreerTrameModal({
             <Label htmlFor="categorie">Catégorie</Label>
             <Select
               value={categorieSelectionnee}
-              onValueChange={setCategorieSelectionnee}
+              onValueChange={(v) => setCategorieSelectionnee(v as CategoryId)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Choisir une catégorie" />
@@ -113,19 +113,38 @@ export default function CreerTrameModal({
         </div>
 
         <div className="space-y-2">
-            <Label htmlFor="job">Type de job</Label>
-            <Select value={job} onValueChange={(v) => setJob(v as Job)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choisir un métier" />
-              </SelectTrigger>
-              <SelectContent>
-                {jobOptions.map((j) => (
-                  <SelectItem key={j.id} value={j.id}>
-                    {j.label}
-                  </SelectItem>
+            <Label htmlFor="job">Métiers concernés</Label>
+            <div className="border rounded p-2">
+              <div className="flex flex-wrap gap-2 mb-2">
+                {jobs.map((j) => (
+                  <span key={j} className="px-2 py-1 text-xs bg-primary-100 text-primary-700 rounded">
+                    {jobOptions.find((o) => o.id === j)?.label}
+                    <button
+                      type="button"
+                      className="ml-1 text-primary-700"
+                      onClick={() => setJobs((prev) => prev.filter((x) => x !== j))}
+                    >
+                      ×
+                    </button>
+                  </span>
                 ))}
-              </SelectContent>
-            </Select>
+              </div>
+              <Select onValueChange={(v) => {
+                const val = v as Job;
+                setJobs((prev) => (prev.includes(val) ? prev : [...prev, val]));
+              }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Ajouter un métier" />
+                </SelectTrigger>
+                <SelectContent>
+                  {jobOptions.map((j) => (
+                    <SelectItem key={j.id} value={j.id}>
+                      {j.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
         <div className="flex justify-end gap-2">
@@ -134,7 +153,7 @@ export default function CreerTrameModal({
           </Button>
           <Button
             onClick={handleCreerTrame}
-            disabled={!nomTrame || !categorieSelectionnee || !job}
+            disabled={!nomTrame || !categorieSelectionnee || jobs.length === 0}
             className="bg-blue-600 hover:bg-blue-700"
           >
             Créer la trame

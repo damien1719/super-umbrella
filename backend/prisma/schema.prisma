@@ -101,7 +101,7 @@ model Section {
   bilanTypeSections BilanTypeSection[]
   author            Profile?               @relation("AuthorSections", fields: [authorId], references: [id])
   examples          SectionExample[]
-  job               Job? 
+  job               Job[] @default([])
 
   @@schema("psychomot")
 }
@@ -131,7 +131,9 @@ model SectionExample {
   sectionId String
   label     String?
   content   String
+  stylePrompt String
   section   Section @relation(fields: [sectionId], references: [id])
+
 
   @@schema("psychomot")
 }

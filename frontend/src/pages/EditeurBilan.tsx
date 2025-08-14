@@ -97,6 +97,7 @@ export default function Bilan() {
                 initialHtml={descriptionHtml ?? ''}
                 onChange={setHtml}
                 onSave={save}
+                exportFileName={bilan.title || 'Bilan'}
               />
             </Suspense>
             <SelectionOverlay />

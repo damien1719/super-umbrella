@@ -53,9 +53,14 @@ export const BilanService = {
   },
 
   async remove(userId: string, id: string) {
-    const { count } = await db.bilan.deleteMany({
+    // Supprime d'abord les sections liées pour respecter la contrainte FK
+    const ownerCheck = await db.bilan.findFirst({
       where: { id, patient: { profile: { userId } } },
+      select: { id: true },
     });
-    if (count === 0) throw new NotFoundError();
+    if (!ownerCheck) throw new NotFoundError();
+
+    await db.bilanSectionInstance.deleteMany({ where: { bilanId: id } });
+    await db.bilan.delete({ where: { id } });
   },
 };
