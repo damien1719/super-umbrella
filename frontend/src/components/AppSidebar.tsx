@@ -140,9 +140,6 @@ export function AppSidebar({ onNavigate }: SidebarProps) {
                     <span className="truncate font-semibold">
                       {profile ? `${profile.prenom} ${profile.nom}` : ''}
                     </span>
-                    <span className="truncate text-xs">
-                      {profile?.email ?? ''}
-                    </span>
                   </div>
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
@@ -166,9 +163,6 @@ export function AppSidebar({ onNavigate }: SidebarProps) {
                     <div className="grid flex-1 text-left text-sm leading-tight">
                       <span className="truncate font-semibold">
                         {profile ? `${profile.prenom} ${profile.nom}` : ''}
-                      </span>
-                      <span className="truncate text-xs">
-                        {profile?.email ?? ''}
                       </span>
                     </div>
                   </div>
