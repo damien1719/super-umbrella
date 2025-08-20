@@ -278,7 +278,11 @@ export default function AiRightPanel({
     }
   }
 
-  const handleGenerate = async (section: SectionInfo, newAnswers?: Answers) => {
+  const handleGenerate = async (
+    section: SectionInfo,
+    newAnswers?: Answers,
+    rawNotes?: string,
+  ) => {
     setIsGenerating(true);
     setSelectedSection(section.id);
 
@@ -322,7 +326,7 @@ export default function AiRightPanel({
 
       // Ne jamais couper une question en deux: on chunk par blocs/questions déjà construits
       const chunks = splitBlocksIntoStringChunks(mdBlocks, { maxChars: 1800 });
-      const body = {
+      const body: any = {
         section: kindMap[section.id],
         answers: chunks,
         // N'envoie plus le texte entier de l'exemple, seulement le stylePrompt si dispo
@@ -332,6 +336,9 @@ export default function AiRightPanel({
           .filter((s) => typeof s === 'string' && (s as string).trim().length > 0)
           .slice(0, 1)[0],
       };
+      if (rawNotes && rawNotes.trim()) {
+        body.rawNotes = rawNotes;
+      }
 
       console.log('body', body);
 
@@ -658,8 +665,8 @@ export default function AiRightPanel({
                             onAnswersChange={(a) =>
                               setAnswers({ ...answers, [section.id]: a })
                             }
-                            onGenerate={(latest) =>
-                              handleGenerate(section, latest)
+                            onGenerate={(latest, notes) =>
+                              handleGenerate(section, latest, notes)
                             }
                             isGenerating={
                               isGenerating && selectedSection === section.id

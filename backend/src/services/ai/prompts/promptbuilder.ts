@@ -15,6 +15,8 @@ export interface PromptParams {
   examples?: string[];
   /** Un guide de style compact (extrait des exemples) */
   stylePrompt?: string;
+  /** Notes brutes importées */
+  rawNotes?: string;
 }
 
 /** Valeur par défaut pour ton system prompt */
@@ -87,6 +89,13 @@ export function buildPrompt(params: PromptParams & { job?: 'PSYCHOMOTRICIEN' | '
 
   // 6. Données utilisateur
   msgs.push({ role: 'user', content: `Données du patient actuel (Markdown):\n${params.userContent.trim()}` });
+
+  if (params.rawNotes && params.rawNotes.trim().length > 0) {
+    msgs.push({
+      role: 'user',
+      content: `Notes brutes importées:\n${params.rawNotes.trim()}`,
+    });
+  }
 
 
   return msgs ;
