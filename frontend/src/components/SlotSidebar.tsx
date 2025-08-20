@@ -18,9 +18,12 @@ export default function SlotSidebar({ slots, onChange, onAddSlot }: Props) {
     const slot: Slot = {
       id: Date.now().toString(),
       type: 'text',
+      mode: 'user',
       label: '',
       options: [],
       prompt: '',
+      pattern: '',
+      deps: [],
     };
     onChange([...slots, slot]);
     onAddSlot?.(slot);

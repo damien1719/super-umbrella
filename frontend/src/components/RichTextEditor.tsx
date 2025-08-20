@@ -73,9 +73,17 @@ const ImperativeHandlePlugin = forwardRef<RichTextEditorHandle, object>(
       () => ({
         setEditorStateJson(state: unknown) {
           try {
-            const parsed = editor.parseEditorState(state as string);
-            editor.setEditorState(parsed);
-          } catch {
+            if (typeof state === 'string') {
+              const parsed = editor.parseEditorState(state);
+              editor.setEditorState(parsed);
+            } else if (state && typeof state === 'object') {
+              // Si c'est un objet, on le convertit en string JSON d'abord
+              const jsonString = JSON.stringify(state);
+              const parsed = editor.parseEditorState(jsonString);
+              editor.setEditorState(parsed);
+            }
+          } catch (error) {
+            console.error('Error setting editor state:', error);
             // ignore invalid state
           }
         },

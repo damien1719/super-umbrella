@@ -1,4 +1,4 @@
-import type { Slot, SlotType } from '../types/template';
+import type { Slot, SlotType, SlotMode } from '../types/template';
 
 interface Props {
   slot: Slot;
@@ -7,6 +7,7 @@ interface Props {
 }
 
 const types: SlotType[] = ['text', 'number', 'choice', 'table'];
+const modes: SlotMode[] = ['user', 'computed', 'llm'];
 
 export default function SlotEditor({ slot, onChange, onRemove }: Props) {
   return (
@@ -27,6 +28,18 @@ export default function SlotEditor({ slot, onChange, onRemove }: Props) {
         value={slot.label ?? ''}
         onChange={(e) => onChange({ label: e.target.value })}
       />
+      <label className="block text-xs mt-2">Mode</label>
+      <select
+        className="w-full border rounded p-1"
+        value={slot.mode || 'user'}
+        onChange={(e) => onChange({ mode: e.target.value as SlotMode })}
+      >
+        {modes.map((m) => (
+          <option key={m} value={m}>
+            {m}
+          </option>
+        ))}
+      </select>
       <label className="block text-xs mt-2">Type</label>
       <select
         className="w-full border rounded p-1"
@@ -55,6 +68,33 @@ export default function SlotEditor({ slot, onChange, onRemove }: Props) {
                   .filter(Boolean),
               })
             }
+          />
+        </>
+      )}
+      {slot.mode === 'computed' && (
+        <>
+          <label className="block text-xs mt-2">Pattern</label>
+          <input
+            className="w-full border rounded p-1"
+            value={slot.pattern ?? ''}
+            onChange={(e) => onChange({ pattern: e.target.value })}
+            placeholder="ex: {firstName} {lastName}"
+          />
+          <label className="block text-xs mt-2">
+            Dependencies (séparées par des virgules)
+          </label>
+          <input
+            className="w-full border rounded p-1"
+            value={(slot.deps ?? []).join(',')}
+            onChange={(e) =>
+              onChange({
+                deps: e.target.value
+                  .split(',')
+                  .map((s) => s.trim())
+                  .filter(Boolean),
+              })
+            }
+            placeholder="ex: firstName, lastName"
           />
         </>
       )}

@@ -396,7 +396,7 @@ export default function AiRightPanel({
       if (!targetInstanceId) return;
       const body = {
         instanceId: targetInstanceId,
-        sectionTemplateId: trameId,
+        trameId: trameId,
         contentNotes: current,
         stylePrompt: examples
           .filter((e) => e.sectionId === trameId)

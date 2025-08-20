@@ -23,7 +23,7 @@ export const bilanSectionInstanceListQuery = z.object({
 
 export const generateFromTemplateSchema = z.object({
   instanceId: z.string().uuid(),
-  sectionTemplateId: z.string(),
+  trameId: z.string().uuid(), // Section.id
   contentNotes: z.any().optional(),
   userSlots: z.any().optional(),
   stylePrompt: z.string().optional(),

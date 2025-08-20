@@ -12,7 +12,6 @@ export type BilanData = {
 };
 
 
-
 export const BilanService = {
   list(userId: string) {
     return db.bilan.findMany({

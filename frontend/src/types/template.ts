@@ -1,11 +1,16 @@
 export type SlotType = 'text' | 'number' | 'choice' | 'table';
 
+export type SlotMode = 'user' | 'computed' | 'llm';
+
 export interface Slot {
   id: string;
   type: SlotType;
+  mode?: SlotMode;
   label?: string;
   options?: string[];
   prompt?: string;
+  pattern?: string;
+  deps?: string[];
 }
 
 export interface SectionTemplate {

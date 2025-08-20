@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { BilanSectionInstanceService } from '../services/bilanSectionInstance.service';
-import { generateFromTemplate as generateFromTemplateSvc } from '../services/ai/prompts/generateFromTemplate.service';
+import { generateFromTemplate as generateFromTemplateSvc } from '../services/ai/generateFromTemplate.service';
+import { prisma } from '../prisma';
 
 export const BilanSectionInstanceController = {
   async create(req: Request, res: Response, next: NextFunction) {
@@ -62,13 +63,24 @@ export const BilanSectionInstanceController = {
 
   async generateFromTemplate(req: Request, res: Response, next: NextFunction) {
     try {
-      const { instanceId, sectionTemplateId, contentNotes, userSlots, stylePrompt } = req.body as {
-        instanceId: string; sectionTemplateId: string; contentNotes: Record<string, unknown>; userSlots?: Record<string, unknown>; stylePrompt?: string;
+      const { instanceId, trameId, contentNotes, userSlots, stylePrompt } = req.body as {
+        instanceId: string; trameId: string; contentNotes: Record<string, unknown>; userSlots?: Record<string, unknown>; stylePrompt?: string;
       };
-      if (!instanceId || !sectionTemplateId) {
-        res.status(400).json({ error: 'instanceId and sectionTemplateId are required' });
+      if (!instanceId || !trameId) {
+        res.status(400).json({ error: 'instanceId and trameId are required' });
         return;
       }
+      // Resolve Section.templateRef.id from trameId (Section.id)
+      const section = await (prisma as any).section.findUnique({ where: { id: trameId }, include: { templateRef: true } });
+      const sectionTemplateId = section?.templateRefId || section?.templateRef?.id;
+      if (!sectionTemplateId) {
+        res.status(400).json({ error: 'Section has no associated templateRef' });
+        return;
+      }
+      console.log('sectionTemplateId', sectionTemplateId);
+      console.log('contentNotes', contentNotes);
+      console.log('userSlots', userSlots);
+      console.log('stylePrompt', stylePrompt);
       const result = await generateFromTemplateSvc(sectionTemplateId, contentNotes || {}, { instanceId, userSlots, stylePrompt });
       res.json(result);
     } catch (e) {
