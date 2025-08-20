@@ -1,4 +1,4 @@
-import { generateFromTemplate } from '../src/services/ai/generateFromTemplate.service';
+import { generateFromTemplate } from '../src/services/ai/generateFromTemplate';
 import { SectionTemplateService } from '../src/services/sectionTemplate.service';
 import { prisma } from '../src/prisma';
 

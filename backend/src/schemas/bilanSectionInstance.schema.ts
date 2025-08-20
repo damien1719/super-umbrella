@@ -24,8 +24,12 @@ export const bilanSectionInstanceListQuery = z.object({
 export const generateFromTemplateSchema = z.object({
   instanceId: z.string().uuid(),
   trameId: z.string().uuid(), // Section.id
+  // harmonized inputs similar to /bilans/:id/generate
+  answers: z.array(z.string()),
+  stylePrompt: z.string().optional(),
+  rawNotes: z.string().optional(),
+  // backward compat fields (optional, still accepted)
   contentNotes: z.any().optional(),
   userSlots: z.any().optional(),
-  stylePrompt: z.string().optional(),
 });
 

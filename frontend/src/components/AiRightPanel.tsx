@@ -24,8 +24,8 @@ import {
   Wand2,
 } from 'lucide-react';
 import { apiFetch } from '@/utils/api';
+import { generateSection } from '@/services/generation';
 import { useAuth } from '@/store/auth';
-import { splitBlocksIntoStringChunks } from '@/lib/chunkAnswers';
 
 const kindMap: Record<string, string> = {
   anamnese: 'anamnese',
@@ -197,190 +197,35 @@ export default function AiRightPanel({
     remove(id).catch(() => {});
   };
 
+  // local markdown helpers moved to services/generation
   type TableAnswers = Record<string, unknown> & { commentaire?: string };
-
-  function markdownifyTable(q: Question, ansTable: TableAnswers): string {
-    if (!q.tableau?.columns) {
-      return '';
-    }
-
-    const columns = q.tableau.columns;
-    const allRows = q.tableau.rowsGroups?.flatMap((rg) => rg.rows) || [];
-
-    const isNonEmpty = (v: unknown, col?: { valueType?: string }) => {
-      if (col?.valueType === 'bool') return v === true;
-      if (typeof v === 'number') return true;
-      if (typeof v === 'string') return v.trim() !== '';
-      if (typeof v === 'boolean') return v === true; // par sécurité au cas où
-      return false;
-    };
-
-    const formatCell = (v: unknown, col?: { valueType?: string }) => {
-      if (col?.valueType === 'bool') return v === true ? '✓' : ''; // ou 'Oui' / ''
-      if (v == null) return '';
-      if (typeof v === 'string') return v.trim();
-      if (typeof v === 'number') return String(v);
-      if (typeof v === 'boolean') return v ? '✓' : '';
-      return '';
-    };
-
-    const keptColumns = columns.filter((col) =>
-      allRows.some((row) => {
-        const rowData = ansTable[row.id] as Record<string, unknown> | undefined;
-        const v = rowData?.[col.id];
-        return isNonEmpty(v);
-      }),
-    );
-
-    console.log('q', q);
-    console.log('keptColumns', keptColumns);
-    console.log('allRows', allRows);
-    console.log('ansTable', ansTable);
-
-    const titleLine = `**${q.titre}**\n\n`;
-
-    let tablePart = '';
-    if (keptColumns.length > 0) {
-      const headerLine = `| ${['Ligne', ...keptColumns.map((c) => c.label)].join(' | ')} |`;
-      const sepLine = `| ${['---', ...keptColumns.map(() => '---')].join(' | ')} |`;
-      const bodyLines = allRows
-        .map((row) => {
-          const rowData = ansTable[row.id] as
-            | Record<string, unknown>
-            | undefined;
-          const cells = keptColumns.map((col) =>
-            formatCell(rowData?.[col.id], col),
-          );
-          return `| ${[row.label, ...cells].join(' | ')} |`;
-        })
-        .join('\n');
-      tablePart = `${headerLine}\n${sepLine}\n${bodyLines}`;
-    }
-
-    const commentVal = ansTable.commentaire;
-    const comment =
-      typeof commentVal === 'string' && commentVal.trim() !== ''
-        ? `\n\n> **Commentaire** : ${commentVal}`
-        : '';
-
-    if (tablePart.trim() === '' && comment.trim() === '') return '';
-    if (tablePart.trim() === '') return titleLine + comment;
-    return titleLine + tablePart + comment;
-  }
-
-  function markdownifyField(q: Question, value: unknown): string {
-    switch (q.type) {
-      case 'notes':
-        return `${q.titre}\n\n${value ?? ''}`;
-      case 'choix-multiple':
-        if (value && typeof value === 'object') {
-          const selectedOptions = Array.isArray((value as any).options)
-            ? (value as any).options.join(', ')
-            : (value as any).option
-              ? String((value as any).option)
-              : '';
-          const comment = (value as any).commentaire || '';
-          return `${q.titre}\n\n${selectedOptions}${
-            comment ? `\n\n> **Commentaire** : ${comment}` : ''
-          }`;
-        }
-        return `${q.titre}\n\n${value ?? ''}`;
-      case 'echelle':
-        return `${q.titre}\n\n${value ?? ''}`;
-      case 'titre':
-        return `## ${q.titre}\n\n${value ?? ''}`;
-      default:
-        return `${q.titre} : ${value ?? ''}`;
-    }
-  }
 
   const handleGenerate = async (
     section: SectionInfo,
     newAnswers?: Answers,
     rawNotes?: string,
   ) => {
-    setIsGenerating(true);
-    setSelectedSection(section.id);
-
-    try {
-      const trameId = selectedTrames[section.id];
-      const trame = trames[section.id].find((t) => t.value === trameId);
-      const questions: Question[] = (trame?.schema as Question[]) || [];
-      const ans = newAnswers || answers[section.id] || {};
-
-      const mdBlocks: string[] = [];
-
-      // Titre principal
-      // mdBlocks.push(`# ${section.title}\n`);
-
-      for (const q of questions) {
-        console.log('type', q.type);
-        if (q.type === 'tableau') {
-          const ansTable = (ans[q.id] as TableAnswers) || {};
-          const md = markdownifyTable(q, ansTable);
-          if (md.trim()) mdBlocks.push(md);
-        } else if (q.type === 'titre') {
-          mdBlocks.push(markdownifyField(q, ''));
-        } else {
-          const val = ans[q.id];
-          if (val !== undefined && val !== null) {
-            if (typeof val === 'object') {
-              const hasContent = Object.values(val).some(
-                (v) => String(v || '').trim() !== '',
-              );
-              if (hasContent) mdBlocks.push(markdownifyField(q, val));
-            } else {
-              const raw = String(val).trim();
-              if (raw) mdBlocks.push(markdownifyField(q, raw));
-            }
-          }
-        }
-      }
-
-      // 5) Concatène tout avec deux retours à la ligne
-      const promptMarkdown = mdBlocks.join('\n\n');
-
-      // Ne jamais couper une question en deux: on chunk par blocs/questions déjà construits
-      const chunks = splitBlocksIntoStringChunks(mdBlocks, { maxChars: 1800 });
-      const body: any = {
-        section: kindMap[section.id],
-        answers: chunks,
-        // N'envoie plus le texte entier de l'exemple, seulement le stylePrompt si dispo
-        stylePrompt: examples
-          .filter((e) => e.sectionId === trameId)
-          .map((e) => (e as any).stylePrompt)
-          .filter(
-            (s) => typeof s === 'string' && (s as string).trim().length > 0,
-          )
-          .slice(0, 1)[0],
-      };
-      if (rawNotes && rawNotes.trim()) {
-        body.rawNotes = rawNotes;
-      }
-
-      console.log('body', body);
-
-      const res = await apiFetch<{ text: string }>(
-        `/api/v1/bilans/${bilanId}/generate`,
-        {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
-          body: JSON.stringify(body),
-        },
-      );
-
-      const header = `## ${section.title}\n\n`;
-      const textWithHeader = header + res.text;
-
-      onInsertText(textWithHeader);
-      setGenerated((g) => ({ ...g, [section.id]: true }));
-      setRegenSection(section.id);
-      setRegenPrompt('');
-    } finally {
-      setIsGenerating(false);
-      setSelectedSection(null);
-      setWizardSection(null);
-    }
+    await generateSection({
+      mode: 'direct',
+      section,
+      trames,
+      selectedTrames,
+      answers,
+      newAnswers,
+      rawNotes,
+      token,
+      bilanId,
+      kindMap,
+      setIsGenerating,
+      setSelectedSection,
+      setWizardSection,
+      setGenerated,
+      setRegenSection,
+      setRegenPrompt,
+      onInsertText,
+      onSetEditorStateJson,
+      examples: examples as any,
+    });
   };
 
   const handleGenerateFromTemplate = async (
@@ -389,43 +234,26 @@ export default function AiRightPanel({
     rawNotes?: string,
     instId?: string,
   ) => {
-    try {
-      const trameId = selectedTrames[section.id];
-      const current = newAnswers || answers[section.id] || {};
-      const targetInstanceId = instId || null;
-      if (!targetInstanceId) return;
-      const body = {
-        instanceId: targetInstanceId,
-        trameId: trameId,
-        contentNotes: current,
-        stylePrompt: examples
-          .filter((e) => e.sectionId === trameId)
-          .map((e) => (e as any).stylePrompt)
-          .filter((s) => typeof s === 'string' && (s as string).trim().length > 0)
-          .slice(0, 1)[0],
-      } as any;
-      const res = await apiFetch<{ assembledState: unknown }>(
-        `/api/v1/bilan-section-instances/generate-from-template`,
-        {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
-          body: JSON.stringify(body),
-        },
-      );
-      // Insert hydrated Lexical state into the editor via parent callback
-      // The parent passes onInsertText for text; to set JSON we need editor ref.
-      // We'll emit a special marker string for now; parent should replace with setEditorStateJson
-      // Better: lift a callback prop for JSON injection. For now, fallback to plain text notice.
-      if (res.assembledState) {
-        if (onSetEditorStateJson) onSetEditorStateJson(res.assembledState);
-        else {
-          const event = new CustomEvent('lexical:set-json', { detail: res.assembledState });
-          window.dispatchEvent(event);
-        }
-      }
-    } catch (e) {
-      // ignore for now
-    }
+    if (!instId) return;
+    await generateSection({
+      mode: 'template',
+      section,
+      trames,
+      selectedTrames,
+      answers,
+      newAnswers,
+      rawNotes,
+      instanceId: instId,
+      token,
+      bilanId,
+      kindMap,
+      setIsGenerating,
+      setSelectedSection,
+      setWizardSection,
+      onInsertText,
+      onSetEditorStateJson,
+      examples: examples as any,
+    });
   };
 
   const handleRefine = async () => {

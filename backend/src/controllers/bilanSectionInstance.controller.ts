@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { BilanSectionInstanceService } from '../services/bilanSectionInstance.service';
-import { generateFromTemplate as generateFromTemplateSvc } from '../services/ai/generateFromTemplate.service';
+import { generateFromTemplate as generateFromTemplateSvc } from '../services/ai/generateFromTemplate';
 import { prisma } from '../prisma';
 
 export const BilanSectionInstanceController = {
@@ -63,8 +63,8 @@ export const BilanSectionInstanceController = {
 
   async generateFromTemplate(req: Request, res: Response, next: NextFunction) {
     try {
-      const { instanceId, trameId, contentNotes, userSlots, stylePrompt } = req.body as {
-        instanceId: string; trameId: string; contentNotes: Record<string, unknown>; userSlots?: Record<string, unknown>; stylePrompt?: string;
+      const { instanceId, trameId, answers, stylePrompt, rawNotes, contentNotes, userSlots } = req.body as {
+        instanceId: string; trameId: string; answers: string[]; stylePrompt?: string; rawNotes?: string; contentNotes?: Record<string, unknown>; userSlots?: Record<string, unknown>;
       };
       if (!instanceId || !trameId) {
         res.status(400).json({ error: 'instanceId and trameId are required' });
@@ -78,10 +78,20 @@ export const BilanSectionInstanceController = {
         return;
       }
       console.log('sectionTemplateId', sectionTemplateId);
+      console.log('answers', answers);
+      console.log('rawNotes', rawNotes);
       console.log('contentNotes', contentNotes);
       console.log('userSlots', userSlots);
       console.log('stylePrompt', stylePrompt);
-      const result = await generateFromTemplateSvc(sectionTemplateId, contentNotes || {}, { instanceId, userSlots, stylePrompt });
+
+      // Recompose notes context from chunks + raw notes + optional structured answers (contentNotes)
+      const aggregatedNotes: Record<string, unknown> = {
+        ...(contentNotes || {}),
+        _chunks: answers,
+        _rawNotes: rawNotes,
+      };
+
+      const result = await generateFromTemplateSvc(sectionTemplateId, aggregatedNotes, { instanceId, userSlots, stylePrompt });
       res.json(result);
     } catch (e) {
       next(e);
