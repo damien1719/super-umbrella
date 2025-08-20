@@ -3,13 +3,23 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import CreationTrame from './CreationTrame';
 import { useSectionStore } from '../store/sections';
 import { useSectionExampleStore } from '../store/sectionExamples';
+import { useSectionTemplateStore } from '../store/sectionTemplates';
 import { vi } from 'vitest';
+
+const tplCreate = vi.fn().mockResolvedValue({
+  id: 'tpl',
+  label: '',
+  ast: null,
+  slots: [],
+  stylePrompt: '',
+});
 
 it('shows navigation tabs', async () => {
   useSectionStore.setState({
     fetchOne: vi.fn().mockResolvedValue({ title: '', kind: '', schema: [] }),
     update: vi.fn(),
   });
+  useSectionTemplateStore.setState({ create: tplCreate });
   render(
     <MemoryRouter initialEntries={['/creation-trame/1']}>
       <Routes>
@@ -27,6 +37,7 @@ it('shows navigation tabs', async () => {
     screen.getByRole('button', { name: /Pré-visualisation/i }),
   ).toBeInTheDocument();
   expect(screen.getByRole('button', { name: /Exemples/i })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /Template/i })).toBeInTheDocument();
   expect(
     await screen.findByRole('button', { name: /Déplacer la question/i }),
   ).toBeInTheDocument();
@@ -51,6 +62,7 @@ it('shows table specific options', async () => {
     }),
     update: vi.fn(),
   });
+  useSectionTemplateStore.setState({ create: tplCreate });
   render(
     <MemoryRouter initialEntries={['/creation-trame/1']}>
       <Routes>
@@ -75,6 +87,7 @@ it('prompts to save when leaving and saves on confirm', async () => {
     update,
   });
   useSectionExampleStore.setState({ create: vi.fn() });
+  useSectionTemplateStore.setState({ create: tplCreate });
 
   render(
     <MemoryRouter initialEntries={['/creation-trame/1']}>
@@ -97,4 +110,5 @@ it('prompts to save when leaving and saves on confirm', async () => {
   fireEvent.click(screen.getByRole('button', { name: 'Oui' }));
 
   await waitFor(() => expect(update).toHaveBeenCalled());
+  expect(tplCreate).toHaveBeenCalled();
 });
