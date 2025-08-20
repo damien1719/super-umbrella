@@ -24,6 +24,7 @@ const kindMap: Record<string, string> = {
 };
 import type { TrameOption, TrameExample } from './bilan/TrameSelector';
 import { DataEntry, type DataEntryHandle } from './bilan/DataEntry';
+import ImportNotes from './ImportNotes';
 import type { Answers, Question } from '@/types/question';
 import type { SectionInfo } from './bilan/SectionCard';
 
@@ -38,7 +39,7 @@ interface WizardAIRightPanelProps {
   questions: Question[];
   answers: Answers;
   onAnswersChange: (a: Answers) => void;
-  onGenerate: (latest?: Answers) => void;
+  onGenerate: (latest?: Answers, rawNotes?: string) => void;
   isGenerating: boolean;
   bilanId: string;
   onCancel: () => void;
@@ -70,6 +71,9 @@ export default function WizardAIRightPanel({
     [profile],
   );
   const OFFICIAL_AUTHOR_ID = import.meta.env.VITE_OFFICIAL_AUTHOR_ID;
+
+  const [notesMode, setNotesMode] = useState<'manual' | 'import'>('manual');
+  const [rawNotes, setRawNotes] = useState('');
 
   useEffect(() => {
     fetchProfile().catch(() => {});
@@ -225,14 +229,30 @@ export default function WizardAIRightPanel({
     );
   } else {
     content = (
-      <div className="flex flex-1 h-full overflow-y-hidden">
-        <DataEntry
-          ref={dataEntryRef}
-          questions={questions}
-          answers={answers}
-          onChange={onAnswersChange}
-          inline
+      <div className="flex flex-1 h-full overflow-y-hidden flex-col">
+        <Tabs
+          className="mb-4"
+          active={notesMode}
+          onChange={(k) => {
+            setNotesMode(k as 'manual' | 'import');
+            if (k === 'manual') setRawNotes('');
+          }}
+          tabs={[
+            { key: 'manual', label: 'Saisie manuelle' },
+            { key: 'import', label: 'Import des notes' },
+          ]}
         />
+        {notesMode === 'manual' ? (
+          <DataEntry
+            ref={dataEntryRef}
+            questions={questions}
+            answers={answers}
+            onChange={onAnswersChange}
+            inline
+          />
+        ) : (
+          <ImportNotes onChange={setRawNotes} />
+        )}
       </div>
     );
   }
@@ -371,9 +391,14 @@ export default function WizardAIRightPanel({
             ) : (
               <Button
                 onClick={async () => {
-                  const data = dataEntryRef.current?.save() as Answers | undefined;
-                  await saveNotes(data);
-                  onGenerate(data);
+                  const data =
+                    notesMode === 'manual'
+                      ? (dataEntryRef.current?.save() as Answers | undefined)
+                      : undefined;
+                  if (notesMode === 'manual') {
+                    await saveNotes(data);
+                  }
+                  onGenerate(data, rawNotes);
                 }}
                 disabled={isGenerating}
                 type="button"

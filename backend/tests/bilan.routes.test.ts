@@ -6,11 +6,15 @@ import { promptConfigs } from "../src/services/ai/prompts/promptconfig";
 import { sanitizeHtml } from "../src/utils/sanitize";
 import { refineSelection } from "../src/services/ai/refineSelection.service";
 import { commentTestResults } from "../src/services/ai/commentTestResults.service";
+import { ProfileService } from "../src/services/profile.service";
 
 jest.mock("../src/services/bilan.service");
 jest.mock("../src/services/ai/generate.service");
 jest.mock("../src/services/ai/refineSelection.service");
 jest.mock("../src/services/ai/commentTestResults.service");
+jest.mock("../src/services/profile.service", () => ({
+  ProfileService: { list: jest.fn() },
+}));
 jest.mock("../src/middlewares/requireAuth", () => ({
   requireAuth: (
     req: { user?: { id: string } },
@@ -31,6 +35,7 @@ const mockedService = BilanService as jest.Mocked<typeof BilanService>;
 const mockedGenerate = generateText as jest.MockedFunction<typeof generateText>;
 const mockedRefine = refineSelection as jest.MockedFunction<typeof refineSelection>;
 const mockedComment = commentTestResults as jest.MockedFunction<typeof commentTestResults>;
+const mockedProfile = ProfileService as unknown as { list: jest.Mock };
 
 describe("GET /api/v1/bilans", () => {
   it("returns bilans from service", async () => {
@@ -71,11 +76,14 @@ describe("PUT /api/v1/bilans/:id", () => {
 describe("POST /api/v1/bilans/:id/generate", () => {
   it("calls ai service with prompt params", async () => {
     mockedGenerate.mockResolvedValueOnce("texte");
+    (mockedService.get as jest.Mock).mockResolvedValueOnce(null);
+    (mockedProfile.list as jest.Mock).mockResolvedValueOnce([]);
     const id = "11111111-1111-1111-1111-111111111111";
     const body = {
       section: "anamnese",
       answers: { foo: "bar" },
       examples: ["demo"],
+      rawNotes: "notes",
     };
 
     const res = await request(app)
@@ -88,6 +96,7 @@ describe("POST /api/v1/bilans/:id/generate", () => {
       instructions: promptConfigs.anamnese.instructions,
       userContent: JSON.stringify(body.answers),
       examples: ["demo"],
+      rawNotes: "notes",
     });
   });
 });
@@ -95,6 +104,7 @@ describe("POST /api/v1/bilans/:id/generate", () => {
 describe("POST /api/v1/bilans/:id/refine", () => {
   it("calls refine service with selected text", async () => {
     mockedRefine.mockResolvedValueOnce("refined");
+    (mockedProfile.list as jest.Mock).mockResolvedValueOnce([]);
     const id = "11111111-1111-1111-1111-111111111111";
     const body = { selectedText: "old", refineInstruction: "inst" };
     const res = await request(app)

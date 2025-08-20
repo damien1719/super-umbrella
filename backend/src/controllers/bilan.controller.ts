@@ -61,6 +61,7 @@ export const BilanController = {
     try {
       const section = req.body.section as keyof typeof promptConfigs;
       const answers = req.body.answers ?? {};
+      const rawNotes = typeof req.body.rawNotes === 'string' ? req.body.rawNotes : undefined;
       const stylePrompt = typeof req.body.stylePrompt === 'string' ? req.body.stylePrompt : undefined;
       const examples = Array.isArray(req.body.examples) ? req.body.examples : [];
       const cfg = promptConfigs[section];
@@ -77,8 +78,13 @@ export const BilanController = {
       const patient = await BilanService.get(req.user.id, req.params.bilanId);
       let userContent = JSON.stringify(answers);
       if (patient && typeof patient === 'object') {
-        const firstName = (patient as any).firstName || (patient as any)?.patient?.firstName;
-        const lastName = (patient as any).lastName || (patient as any)?.patient?.lastName;
+        const p = patient as {
+          firstName?: string;
+          lastName?: string;
+          patient?: { firstName?: string; lastName?: string };
+        };
+        const firstName = p.firstName || p.patient?.firstName;
+        const lastName = p.lastName || p.patient?.lastName;
         if (firstName || lastName) {
           userContent = Anonymization.anonymizeText(userContent, { firstName, lastName });
         }
@@ -89,13 +95,19 @@ export const BilanController = {
         userContent,
         examples,
         stylePrompt,
+        rawNotes,
         job,
       });
       // Post-traitement: réinjecte le nom du patient si connu, sinon renvoie tel quel
       let postText = text as string;
       if (patient && typeof patient === 'object') {
-        const firstName = (patient as any).firstName || (patient as any)?.patient?.firstName;
-        const lastName = (patient as any).lastName || (patient as any)?.patient?.lastName;
+        const p = patient as {
+          firstName?: string;
+          lastName?: string;
+          patient?: { firstName?: string; lastName?: string };
+        };
+        const firstName = p.firstName || p.patient?.firstName;
+        const lastName = p.lastName || p.patient?.lastName;
         if (firstName || lastName) {
           postText = Anonymization.deanonymizeText(postText, { firstName, lastName });
         }
