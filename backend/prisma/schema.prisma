@@ -103,7 +103,7 @@ model Section {
   examples          SectionExample[]
   job               Job[] @default([])
 
-    /// Lien (optionnel) vers un template réutilisable
+  /// Lien (optionnel) vers un template réutilisable
   templateRefId     String?                @db.VarChar(160)
   templateRef       SectionTemplate?       @relation(fields: [templateRefId], references: [id])
 
