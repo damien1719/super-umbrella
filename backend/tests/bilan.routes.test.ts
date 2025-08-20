@@ -3,7 +3,6 @@ import app from "../src/app";
 import { BilanService } from "../src/services/bilan.service";
 import { generateText } from "../src/services/ai/generate.service";
 import { promptConfigs } from "../src/services/ai/prompts/promptconfig";
-import { sanitizeHtml } from "../src/utils/sanitize";
 import { refineSelection } from "../src/services/ai/refineSelection.service";
 import { commentTestResults } from "../src/services/ai/commentTestResults.service";
 import { ProfileService } from "../src/services/profile.service";
