@@ -46,6 +46,9 @@ export default function CreationTrame() {
   const [showImport, setShowImport] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const createTemplate = useSectionTemplateStore((s) => s.create);
+  const getTemplate = useSectionTemplateStore((s) => s.get);
+  const updateTemplate = useSectionTemplateStore((s) => s.update);
+  const [templateRefId, setTemplateRefId] = useState<string | null>(null);
   const [template, setTemplate] = useState<SectionTemplate>({
     id: Date.now().toString(),
     label: '',
@@ -67,7 +70,18 @@ export default function CreationTrame() {
       setNomTrame(section.title);
       setCategorie(section.kind);
       setIsPublic(section.isPublic ?? false);
-      setTemplate((t) => ({ ...t, label: section.title }));
+      setTemplateRefId(section.templateRefId ?? null);
+      if (section.templateRefId) {
+        getTemplate(section.templateRefId).then((tpl) => setTemplate(tpl));
+      } else {
+        setTemplate({
+          id: Date.now().toString(),
+          label: section.title,
+          ast: null,
+          slots: [],
+          stylePrompt: '',
+        });
+      }
       const loaded: Question[] =
         Array.isArray(section.schema) && section.schema.length > 0
           ? (section.schema as Question[])
@@ -75,7 +89,7 @@ export default function CreationTrame() {
       setQuestions(loaded);
       if (loaded.length > 0) setSelectedId(loaded[0].id);
     });
-  }, [sectionId, fetchOne]);
+  }, [sectionId, fetchOne, getTemplate]);
 
   const onPatch = (id: string, partial: Partial<Question>) => {
     setQuestions((qs) =>
@@ -141,13 +155,20 @@ export default function CreationTrame() {
 
   const save = async () => {
     if (!sectionId) return;
-    const created = await createTemplate({ ...template, label: nomTrame });
+    let tplId = templateRefId;
+    if (tplId) {
+      await updateTemplate(tplId, { ...template, label: nomTrame });
+    } else {
+      const created = await createTemplate({ ...template, label: nomTrame });
+      tplId = created.id;
+      setTemplateRefId(tplId);
+    }
     await updateSection(sectionId, {
       title: nomTrame,
       kind: categorie,
       schema: questions,
       isPublic,
-      templateRefId: created.id,
+      templateRefId: tplId,
     });
     for (const content of newExamples) {
       await createExample({ sectionId, content });
