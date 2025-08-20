@@ -31,7 +31,7 @@ export const BilanSectionInstanceService = {
     });
     if (!section) throw new NotFoundError('Section not found for user');
 
-    return db.bilanSectionInstance.create({ data });
+    return db.bilanSectionInstance.create({ data: { ...data, contentNotes: data.contentNotes ?? {} } });
   },
 
   list(
@@ -59,9 +59,13 @@ export const BilanSectionInstanceService = {
   },
 
   async update(userId: string, id: string, data: Partial<BilanSectionInstanceData>) {
+    const updateData = { ...data } as Partial<BilanSectionInstanceData>;
+    if (Object.prototype.hasOwnProperty.call(updateData, 'contentNotes') && (updateData as any).contentNotes == null) {
+      (updateData as any).contentNotes = {};
+    }
     const { count } = await db.bilanSectionInstance.updateMany({
       where: { id, bilan: { patient: { profile: { userId } } } },
-      data,
+      data: updateData,
     });
     if (count === 0) throw new NotFoundError();
     return db.bilanSectionInstance.findUnique({ where: { id } });

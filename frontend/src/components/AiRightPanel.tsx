@@ -103,6 +103,7 @@ const useTrames = () => {
 interface AiRightPanelProps {
   bilanId: string;
   onInsertText: (text: string) => void;
+  onSetEditorStateJson?: (state: unknown) => void;
   initialWizardSection?: string;
   initialTrameId?: string;
 }
@@ -110,6 +111,7 @@ interface AiRightPanelProps {
 export default function AiRightPanel({
   bilanId,
   onInsertText,
+  onSetEditorStateJson,
   initialWizardSection,
   initialTrameId,
 }: AiRightPanelProps) {
@@ -385,8 +387,45 @@ export default function AiRightPanel({
     section: SectionInfo,
     newAnswers?: Answers,
     rawNotes?: string,
+    instId?: string,
   ) => {
-    console.log('generateFromTemplate', section.id, newAnswers, rawNotes);
+    try {
+      const trameId = selectedTrames[section.id];
+      const current = newAnswers || answers[section.id] || {};
+      const targetInstanceId = instId || null;
+      if (!targetInstanceId) return;
+      const body = {
+        instanceId: targetInstanceId,
+        sectionTemplateId: trameId,
+        contentNotes: current,
+        stylePrompt: examples
+          .filter((e) => e.sectionId === trameId)
+          .map((e) => (e as any).stylePrompt)
+          .filter((s) => typeof s === 'string' && (s as string).trim().length > 0)
+          .slice(0, 1)[0],
+      } as any;
+      const res = await apiFetch<{ assembledState: unknown }>(
+        `/api/v1/bilan-section-instances/generate-from-template`,
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: JSON.stringify(body),
+        },
+      );
+      // Insert hydrated Lexical state into the editor via parent callback
+      // The parent passes onInsertText for text; to set JSON we need editor ref.
+      // We'll emit a special marker string for now; parent should replace with setEditorStateJson
+      // Better: lift a callback prop for JSON injection. For now, fallback to plain text notice.
+      if (res.assembledState) {
+        if (onSetEditorStateJson) onSetEditorStateJson(res.assembledState);
+        else {
+          const event = new CustomEvent('lexical:set-json', { detail: res.assembledState });
+          window.dispatchEvent(event);
+        }
+      }
+    } catch (e) {
+      // ignore for now
+    }
   };
 
   const handleRefine = async () => {
@@ -692,8 +731,8 @@ export default function AiRightPanel({
                             onGenerate={(latest, notes) =>
                               handleGenerate(section, latest, notes)
                             }
-                            onGenerateFromTemplate={(latest, notes) =>
-                              handleGenerateFromTemplate(section, latest, notes)
+                            onGenerateFromTemplate={(latest, notes, id) =>
+                              handleGenerateFromTemplate(section, latest, notes, id)
                             }
                             isGenerating={
                               isGenerating && selectedSection === section.id

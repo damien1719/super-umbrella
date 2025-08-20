@@ -1,8 +1,7 @@
-import { prisma } from '../prisma';
-import { SectionTemplateService } from './sectionTemplate.service';
-import { openaiProvider } from './ai/providers/openai.provider';
+import { prisma } from '../../../prisma';
+import { SectionTemplateService } from '../../sectionTemplate.service';
+import { openaiProvider } from '../providers/openai.provider';
 import { z } from 'zod';
-import { jsonrepair } from 'jsonrepair';
 
 type Notes = Record<string, unknown>;
 
@@ -95,7 +94,15 @@ async function generateLLM(ids: string[], spec: Record<string, SlotSpec>, notes:
   try {
     parsed = JSON.parse(raw as string);
   } catch {
-    parsed = JSON.parse(jsonrepair(raw as string));
+    // fallback: try to extract JSON-ish substring; if it fails, default to {}
+    try {
+      const text = String(raw || '');
+      const start = text.indexOf('{');
+      const end = text.lastIndexOf('}');
+      parsed = start >= 0 && end > start ? JSON.parse(text.slice(start, end + 1)) : {};
+    } catch {
+      parsed = {};
+    }
   }
   const schema = buildZod(ids, spec);
   const slots = schema.parse(parsed as object);

@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { BilanSectionInstanceService } from '../services/bilanSectionInstance.service';
+import { generateFromTemplate as generateFromTemplateSvc } from '../services/ai/prompts/generateFromTemplate.service';
 
 export const BilanSectionInstanceController = {
   async create(req: Request, res: Response, next: NextFunction) {
@@ -54,6 +55,22 @@ export const BilanSectionInstanceController = {
         req.body,
       );
       res.json(instance);
+    } catch (e) {
+      next(e);
+    }
+  },
+
+  async generateFromTemplate(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { instanceId, sectionTemplateId, contentNotes, userSlots, stylePrompt } = req.body as {
+        instanceId: string; sectionTemplateId: string; contentNotes: Record<string, unknown>; userSlots?: Record<string, unknown>; stylePrompt?: string;
+      };
+      if (!instanceId || !sectionTemplateId) {
+        res.status(400).json({ error: 'instanceId and sectionTemplateId are required' });
+        return;
+      }
+      const result = await generateFromTemplateSvc(sectionTemplateId, contentNotes || {}, { instanceId, userSlots, stylePrompt });
+      res.json(result);
     } catch (e) {
       next(e);
     }

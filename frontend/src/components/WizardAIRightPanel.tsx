@@ -40,7 +40,7 @@ interface WizardAIRightPanelProps {
   answers: Answers;
   onAnswersChange: (a: Answers) => void;
   onGenerate: (latest?: Answers, rawNotes?: string) => void;
-  onGenerateFromTemplate?: (latest?: Answers, rawNotes?: string) => void;
+  onGenerateFromTemplate?: (latest?: Answers, rawNotes?: string, instanceId?: string) => void;
   isGenerating: boolean;
   bilanId: string;
   onCancel: () => void;
@@ -285,7 +285,7 @@ export default function WizardAIRightPanel({
     );
   }
 
-  const saveNotes = async (notes: Answers | undefined) => {
+  const saveNotes = async (notes: Answers | undefined): Promise<string | null> => {
     if (!selectedTrame) return;
     const body = instanceId
       ? { contentNotes: notes }
@@ -305,6 +305,7 @@ export default function WizardAIRightPanel({
       body: JSON.stringify(body),
     });
     if (!instanceId) setInstanceId(res.id);
+    return instanceId || res.id || null;
   };
 
   // Autosave on answers change (debounced) while on step 2
@@ -456,10 +457,12 @@ export default function WizardAIRightPanel({
                               | Answers
                               | undefined)
                           : undefined;
+                      let id: string | null = instanceId;
                       if (notesMode === 'manual') {
-                        await saveNotes(data);
+                        id = await saveNotes(data);
                       }
-                      onGenerateFromTemplate(data, rawNotes);
+                      onGenerateFromTemplate(data, rawNotes, id || undefined);
+                      onCancel();
                     }}
                     disabled={isGenerating}
                     type="button"
