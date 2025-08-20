@@ -1,13 +1,13 @@
-import type { Slot, SlotType } from '../types/template';
+import type { Slot } from '../types/template';
+import SlotEditor from './SlotEditor';
 
 interface Props {
   slots: Slot[];
   onChange: (slots: Slot[]) => void;
+  onAddSlot?: (slot: Slot) => void;
 }
 
-const types: SlotType[] = ['text', 'number', 'choice', 'table'];
-
-export default function SlotSidebar({ slots, onChange }: Props) {
+export default function SlotSidebar({ slots, onChange, onAddSlot }: Props) {
   const updateSlot = (index: number, partial: Partial<Slot>) => {
     const next = [...slots];
     next[index] = { ...next[index], ...partial };
@@ -15,16 +15,15 @@ export default function SlotSidebar({ slots, onChange }: Props) {
   };
 
   const addSlot = () => {
-    onChange([
-      ...slots,
-      {
-        id: Date.now().toString(),
-        type: 'text',
-        label: '',
-        options: [],
-        prompt: '',
-      },
-    ]);
+    const slot: Slot = {
+      id: Date.now().toString(),
+      type: 'text',
+      label: '',
+      options: [],
+      prompt: '',
+    };
+    onChange([...slots, slot]);
+    onAddSlot?.(slot);
   };
 
   const removeSlot = (id: string) => {
@@ -44,63 +43,12 @@ export default function SlotSidebar({ slots, onChange }: Props) {
         </button>
       </div>
       {slots.map((slot, idx) => (
-        <div key={slot.id} className="border-b pb-2 last:border-b-0">
-          <div className="flex justify-between items-center">
-            <span className="text-xs font-mono">{slot.id}</span>
-            <button
-              type="button"
-              className="text-xs text-red-600"
-              onClick={() => removeSlot(slot.id)}
-            >
-              Supprimer
-            </button>
-          </div>
-          <label className="block text-xs mt-2">Label</label>
-          <input
-            className="w-full border rounded p-1"
-            value={slot.label ?? ''}
-            onChange={(e) => updateSlot(idx, { label: e.target.value })}
-          />
-          <label className="block text-xs mt-2">Type</label>
-          <select
-            className="w-full border rounded p-1"
-            value={slot.type}
-            onChange={(e) =>
-              updateSlot(idx, { type: e.target.value as SlotType })
-            }
-          >
-            {types.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
-          {slot.type === 'choice' && (
-            <>
-              <label className="block text-xs mt-2">
-                Options (séparées par des virgules)
-              </label>
-              <input
-                className="w-full border rounded p-1"
-                value={(slot.options ?? []).join(',')}
-                onChange={(e) =>
-                  updateSlot(idx, {
-                    options: e.target.value
-                      .split(',')
-                      .map((s) => s.trim())
-                      .filter(Boolean),
-                  })
-                }
-              />
-            </>
-          )}
-          <label className="block text-xs mt-2">Prompt</label>
-          <textarea
-            className="w-full border rounded p-1"
-            value={slot.prompt ?? ''}
-            onChange={(e) => updateSlot(idx, { prompt: e.target.value })}
-          />
-        </div>
+        <SlotEditor
+          key={slot.id}
+          slot={slot}
+          onChange={(partial) => updateSlot(idx, partial)}
+          onRemove={() => removeSlot(slot.id)}
+        />
       ))}
     </aside>
   );

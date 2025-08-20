@@ -32,6 +32,7 @@ export default function TemplateEditor({ template, onChange }: Props) {
       <SlotSidebar
         slots={template.slots}
         onChange={(slots) => onChange({ ...template, slots })}
+        onAddSlot={(slot) => editorRef.current?.insertSlot(slot.id, slot.type)}
       />
     </div>
   );
