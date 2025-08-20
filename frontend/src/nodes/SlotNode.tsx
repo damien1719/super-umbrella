@@ -5,6 +5,7 @@ import React from 'react';
 export type SerializedSlotNode = {
   type: 'slot';
   slotId: string;
+  slotLabel?: string;
   slotType: SlotType;
   optional: boolean;
   placeholder: string;
@@ -13,12 +14,14 @@ export type SerializedSlotNode = {
 
 export class SlotNode extends DecoratorNode<JSX.Element> {
   __slotId: string;
+  __slotLabel: string;
   __slotType: SlotType;
   __optional: boolean;
   __placeholder: string;
 
   constructor(
     slotId: string,
+    slotLabel: string,
     slotType: SlotType,
     optional: boolean,
     placeholder: string,
@@ -26,6 +29,7 @@ export class SlotNode extends DecoratorNode<JSX.Element> {
   ) {
     super(key);
     this.__slotId = slotId;
+    this.__slotLabel = slotLabel ?? slotId;
     this.__slotType = slotType;
     this.__optional = optional;
     this.__placeholder = placeholder;
@@ -38,6 +42,7 @@ export class SlotNode extends DecoratorNode<JSX.Element> {
   static clone(node: SlotNode): SlotNode {
     return new SlotNode(
       node.__slotId,
+      node.__slotLabel,
       node.__slotType,
       node.__optional,
       node.__placeholder,
@@ -48,7 +53,7 @@ export class SlotNode extends DecoratorNode<JSX.Element> {
   createDOM(): HTMLElement {
     const span = document.createElement('span');
     span.className = 'bg-yellow-200 text-yellow-800 px-1 rounded';
-    span.textContent = this.__slotId;
+    span.textContent = this.__slotLabel;
     span.contentEditable = 'false';
     return span;
   }
@@ -60,6 +65,7 @@ export class SlotNode extends DecoratorNode<JSX.Element> {
   static importJSON(json: SerializedSlotNode): SlotNode {
     return new SlotNode(
       json.slotId,
+      json.slotLabel ?? json.slotId,
       json.slotType,
       json.optional,
       json.placeholder,
@@ -70,6 +76,7 @@ export class SlotNode extends DecoratorNode<JSX.Element> {
     return {
       type: 'slot',
       slotId: this.__slotId,
+      slotLabel: this.__slotLabel,
       slotType: this.__slotType,
       optional: this.__optional,
       placeholder: this.__placeholder,
@@ -83,7 +90,7 @@ export class SlotNode extends DecoratorNode<JSX.Element> {
         className="bg-yellow-200 text-yellow-800 px-1 rounded"
         contentEditable={false}
       >
-        {this.__slotId}
+        {this.__slotLabel}
       </span>
     );
   }
@@ -91,11 +98,12 @@ export class SlotNode extends DecoratorNode<JSX.Element> {
 
 export function $createSlotNode(
   slotId: string,
+  slotLabel: string,
   slotType: SlotType,
   optional = false,
   placeholder = '…',
 ): SlotNode {
-  return new SlotNode(slotId, slotType, optional, placeholder);
+  return new SlotNode(slotId, slotLabel, slotType, optional, placeholder);
 }
 
 export function $isSlotNode(

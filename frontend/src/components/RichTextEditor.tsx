@@ -28,7 +28,7 @@ export interface RichTextEditorHandle {
   setEditorStateJson: (state: unknown) => void;
   getEditorStateJson: () => unknown;
   insertPlainText: (text: string) => void;
-  insertSlot: (slotId: string, slotType: SlotType) => void;
+  insertSlot: (slotId: string, slotLabel: string, slotType: SlotType) => void;
 }
 
 interface Props {
@@ -103,9 +103,15 @@ const ImperativeHandlePlugin = forwardRef<RichTextEditorHandle, object>(
             editor.focus();
           });
         },
-        insertSlot(slotId: string, slotType: SlotType) {
+        insertSlot(slotId: string, slotLabel: string, slotType: SlotType) {
           editor.update(() => {
-            const node = $createSlotNode(slotId, slotType, false, '…');
+            const node = $createSlotNode(
+              slotId,
+              slotLabel,
+              slotType,
+              false,
+              '…',
+            );
             const selection = $getSelection();
             if (selection) {
               $insertNodes([node]);
