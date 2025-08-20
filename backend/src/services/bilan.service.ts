@@ -8,7 +8,7 @@ export type BilanData = {
   patientId: string;
   bilanTypeId?: string | null;
   date?: Date;
-  descriptionHtml?: string | null;
+  descriptionJson?: unknown | null;
 };
 
 

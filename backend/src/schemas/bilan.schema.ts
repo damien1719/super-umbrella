@@ -5,7 +5,7 @@ export const createBilanSchema = z.object({
   title: z.string().optional(),
   bilanTypeId: z.string().uuid().optional(),
   date: z.coerce.date().optional(),
-  descriptionHtml: z.string().optional(),
+  descriptionJson: z.any().optional(),
 });
 
 export const updateBilanSchema = createBilanSchema.partial();

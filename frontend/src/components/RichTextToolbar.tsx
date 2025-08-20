@@ -6,6 +6,7 @@ import {
   type LexicalEditor,
   $createParagraphNode,
   $isRootOrShadowRoot,
+  $getRoot,
 } from 'lexical';
 import {
   INSERT_UNORDERED_LIST_COMMAND,
@@ -25,8 +26,7 @@ import {
 } from './ui/select';
 import { useEditorUi } from '@/store/editorUi';
 import { $createHeadingNode, $createQuoteNode, $isHeadingNode } from '@lexical/rich-text';
-import { $generateHtmlFromNodes } from '@lexical/html';
-import DOMPurify from 'dompurify';
+// HTML generation removed; we now avoid converting to HTML inside the editor
 import { toDocxBlob } from '@/lib/htmlDocx';
 
 export function setFontSize(editor: LexicalEditor, size: string) {
@@ -368,21 +368,18 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
       <Button
         type="button"
         onClick={async () => {
-          let html = '';
+          // Fallback export: use plain text from the editor state
+          let plainText = '';
           try {
             editor.getEditorState().read(() => {
-              html = DOMPurify.sanitize($generateHtmlFromNodes(editor));
+              plainText = $getRoot().getTextContent();
             });
           } catch {}
+          const escaped = (plainText || '').split('\n').map((line) => `<p>${line.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</p>`).join('');
           const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="ie=edge"/><style>
             body { font-family: ${fontFamily}; font-size: ${fontSize}pt; line-height: ${lineHeight}; }
             p { margin: 0 0 8px 0; }
-            h1 { font-size: 24pt; margin: 16pt 0 8pt; }
-            h2 { font-size: 18pt; margin: 14pt 0 6pt; }
-            h3 { font-size: 14pt; margin: 12pt 0 6pt; }
-            ul, ol { margin: 0 0 8px 24px; }
-            li { margin: 4px 0; }
-          </style></head><body>${html}</body></html>`;
+          </style></head><body>${escaped}</body></html>`;
           try {
             const blob = await toDocxBlob(fullHtml);
             const url = URL.createObjectURL(blob);
