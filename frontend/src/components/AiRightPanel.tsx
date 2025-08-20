@@ -12,7 +12,17 @@ import { Textarea } from './ui/textarea';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import type { TrameOption, TrameExample } from './bilan/TrameSelector';
 import type { Answers, Question } from '@/types/question';
-import { FileText, Eye, Brain, Activity, Flag, PlusIcon, ArrowRight, ArrowRightCircle, Wand2 } from 'lucide-react';
+import {
+  FileText,
+  Eye,
+  Brain,
+  Activity,
+  Flag,
+  PlusIcon,
+  ArrowRight,
+  ArrowRightCircle,
+  Wand2,
+} from 'lucide-react';
 import { apiFetch } from '@/utils/api';
 import { useAuth } from '@/store/auth';
 import { splitBlocksIntoStringChunks } from '@/lib/chunkAnswers';
@@ -220,10 +230,10 @@ export default function AiRightPanel({
       }),
     );
 
-    console.log("q", q);
-    console.log("keptColumns", keptColumns);
-    console.log("allRows", allRows);
-    console.log("ansTable", ansTable);
+    console.log('q', q);
+    console.log('keptColumns', keptColumns);
+    console.log('allRows', allRows);
+    console.log('ansTable', ansTable);
 
     const titleLine = `**${q.titre}**\n\n`;
 
@@ -233,8 +243,12 @@ export default function AiRightPanel({
       const sepLine = `| ${['---', ...keptColumns.map(() => '---')].join(' | ')} |`;
       const bodyLines = allRows
         .map((row) => {
-          const rowData = ansTable[row.id] as Record<string, unknown> | undefined;
-          const cells = keptColumns.map((col) => formatCell(rowData?.[col.id], col));
+          const rowData = ansTable[row.id] as
+            | Record<string, unknown>
+            | undefined;
+          const cells = keptColumns.map((col) =>
+            formatCell(rowData?.[col.id], col),
+          );
           return `| ${[row.label, ...cells].join(' | ')} |`;
         })
         .join('\n');
@@ -258,9 +272,9 @@ export default function AiRightPanel({
         return `${q.titre}\n\n${value ?? ''}`;
       case 'choix-multiple':
         if (value && typeof value === 'object') {
-          const selectedOptions = Array.isArray((value as any).options) 
+          const selectedOptions = Array.isArray((value as any).options)
             ? (value as any).options.join(', ')
-            : (value as any).option 
+            : (value as any).option
               ? String((value as any).option)
               : '';
           const comment = (value as any).commentaire || '';
@@ -333,7 +347,9 @@ export default function AiRightPanel({
         stylePrompt: examples
           .filter((e) => e.sectionId === trameId)
           .map((e) => (e as any).stylePrompt)
-          .filter((s) => typeof s === 'string' && (s as string).trim().length > 0)
+          .filter(
+            (s) => typeof s === 'string' && (s as string).trim().length > 0,
+          )
           .slice(0, 1)[0],
       };
       if (rawNotes && rawNotes.trim()) {
@@ -363,6 +379,14 @@ export default function AiRightPanel({
       setSelectedSection(null);
       setWizardSection(null);
     }
+  };
+
+  const handleGenerateFromTemplate = async (
+    section: SectionInfo,
+    newAnswers?: Answers,
+    rawNotes?: string,
+  ) => {
+    console.log('generateFromTemplate', section.id, newAnswers, rawNotes);
   };
 
   const handleRefine = async () => {
@@ -668,6 +692,9 @@ export default function AiRightPanel({
                             onGenerate={(latest, notes) =>
                               handleGenerate(section, latest, notes)
                             }
+                            onGenerateFromTemplate={(latest, notes) =>
+                              handleGenerateFromTemplate(section, latest, notes)
+                            }
                             isGenerating={
                               isGenerating && selectedSection === section.id
                             }
@@ -690,7 +717,9 @@ export default function AiRightPanel({
 
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2">
-                                <h3 className="font-medium text-base truncate">{section.title}</h3>
+                                <h3 className="font-medium text-base truncate">
+                                  {section.title}
+                                </h3>
 
                                 <Button
                                   size="default"
@@ -714,7 +743,6 @@ export default function AiRightPanel({
                           </div>
                         </CardContent>
                       </Card>
-
                     );
                   }
 
@@ -774,29 +802,28 @@ export default function AiRightPanel({
                     {isGenerating ? '...' : 'Commenter des résultats de'}
                 </Button>
  */}
-                <div className="flex flex-col gap-4"> 
-                <Button
-                  size="default"
-                  variant="default"
-                  className="h-8 px-2 text-base"
-                  onClick={() => setCommentModalOpen(true)}
-                  disabled={isGenerating}
-                >
-                  Commenter des résultats de tests
-                  <Wand2 className="h-4 w-4 ml-1" />
-                </Button>
+                <div className="flex flex-col gap-4">
                   <Button
-                      size="default"
-                      variant="default"
-                      className="h-8 px-2 text-base"
-                      onClick={handleConclude}
-                      disabled={isGenerating}
-                    >
-                      {isGenerating ? '...' : 'Rédiger la synthèse du bilan'}
-                      <Wand2 className="h-4 w-4 ml-1" />
+                    size="default"
+                    variant="default"
+                    className="h-8 px-2 text-base"
+                    onClick={() => setCommentModalOpen(true)}
+                    disabled={isGenerating}
+                  >
+                    Commenter des résultats de tests
+                    <Wand2 className="h-4 w-4 ml-1" />
+                  </Button>
+                  <Button
+                    size="default"
+                    variant="default"
+                    className="h-8 px-2 text-base"
+                    onClick={handleConclude}
+                    disabled={isGenerating}
+                  >
+                    {isGenerating ? '...' : 'Rédiger la synthèse du bilan'}
+                    <Wand2 className="h-4 w-4 ml-1" />
                   </Button>
                 </div>
-              
               </div>
             </ScrollArea>
           )}
