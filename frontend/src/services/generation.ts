@@ -276,6 +276,15 @@ export async function generateSection(opts: {
       });
     } else {
       if (!instanceId) throw new Error('Missing instanceId for template mode');
+      console.log('[DEBUG] generateSection - About to call doRequestFromTemplate with:', {
+        token: '***token***',
+        instanceId,
+        trameId,
+        chunksCount: chunks.length,
+        stylePrompt: stylePrompt ? '***stylePrompt***' : null,
+        contentNotes: current,
+        rawNotes
+      });
       result = await doRequestFromTemplate({
         token,
         instanceId,
@@ -285,6 +294,7 @@ export async function generateSection(opts: {
         contentNotes: current,
         rawNotes,
       });
+      console.log('[DEBUG] generateSection - doRequestFromTemplate result:', result);
     }
 
     if (result.type === 'text') {

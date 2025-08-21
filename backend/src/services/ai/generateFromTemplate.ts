@@ -182,6 +182,15 @@ export async function generateFromTemplate(
 
   const slots = { ...(opts.userSlots || {}), ...computed, ...llm.slots };
 
+  // DEBUG mapping for templated ids: log unmatched ids
+  const allIds = Object.keys(slotsSpec);
+  const provided = Object.keys(slots);
+  const missing = allIds.filter((id) => slots[id] === undefined);
+  if (missing.length > 0) {
+    // eslint-disable-next-line no-console
+    console.warn('[generateFromTemplate] Missing slot values for:', missing.slice(0, 20));
+  }
+
   const hydratedState = hydrate(ast, slots, slotsSpec);
 
   function toArray<T>(val: unknown): T[] {

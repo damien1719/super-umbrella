@@ -17,6 +17,8 @@ export interface PromptParams {
   stylePrompt?: string;
   /** Notes brutes importées */
   rawNotes?: string;
+  /** Override du modèle OpenAI par défaut */
+  model?: string;
 }
 
 /** Valeur par défaut pour ton system prompt */
@@ -44,10 +46,16 @@ Les réponses doivent être conformes aux recommandations de bonnes pratiques fr
 Format attendu : structuré, avec distinction claire entre données objectives, analyses et conclusions cliniques.
 `.trim();
 
+/** Résultat de buildPrompt avec les messages et le modèle */
+export type PromptResult = {
+  messages: readonly SingleMessage[];
+  model?: string;
+};
+
 /**
  * Construit les messages pour l'API OpenAI en structurant le prompt en plusieurs parties
  */
-export function buildPrompt(params: PromptParams & { job?: 'PSYCHOMOTRICIEN' | 'ERGOTHERAPEUTE' | 'NEUROPSYCHOLOGUE' }): readonly SingleMessage[] {
+export function buildPrompt(params: PromptParams & { job?: 'PSYCHOMOTRICIEN' | 'ERGOTHERAPEUTE' | 'NEUROPSYCHOLOGUE' }): PromptResult {
   const msgs: SingleMessage[] = [];
 
   // 1. System prompt global
@@ -98,8 +106,10 @@ export function buildPrompt(params: PromptParams & { job?: 'PSYCHOMOTRICIEN' | '
   }
 
 
-  return msgs ;
+  return { messages: msgs, model: params.model };
 }
 
 // Alias pour la rétrocompatibilité
 export const buildSinglePrompt = buildPrompt;
+
+

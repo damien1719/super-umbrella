@@ -6,9 +6,10 @@ import type { SectionTemplate } from '../types/template';
 interface Props {
   template: SectionTemplate;
   onChange: (t: SectionTemplate) => void;
+  onUpdateSlot?: (slotId: string, slotLabel: string) => void;
 }
 
-export default function TemplateEditor({ template, onChange }: Props) {
+export default function TemplateEditor({ template, onChange, onUpdateSlot }: Props) {
   const editorRef = useRef<RichTextEditorHandle>(null);
   return (
     <div className="flex w-full gap-4">
@@ -36,10 +37,28 @@ export default function TemplateEditor({ template, onChange }: Props) {
           onAddSlot={(slot) =>
             editorRef.current?.insertSlot?.(
               slot.id,
-              slot.label ?? slot.id,
+              slot.label || `Slot ${slot.id.split('.').pop()}`,
               slot.type,
             )
           }
+          onUpdateSlot={(slotId, slotLabel) => {
+            const active = document.activeElement as (HTMLInputElement | HTMLTextAreaElement | null);
+            const selStart = (active as HTMLInputElement | HTMLTextAreaElement | null)?.selectionStart ?? null;
+            const selEnd = (active as HTMLInputElement | HTMLTextAreaElement | null)?.selectionEnd ?? null;
+
+            editorRef.current?.updateSlot?.(slotId, slotLabel);
+
+            // Restore focus and selection to the previously focused input/textarea
+            if (active && typeof active.focus === 'function') {
+              // Use microtask to let Lexical finish its update cycle
+              queueMicrotask(() => {
+                active.focus({ preventScroll: true } as any);
+                if (selStart !== null && selEnd !== null && 'setSelectionRange' in active) {
+                  try { (active as HTMLInputElement | HTMLTextAreaElement).setSelectionRange(selStart, selEnd); } catch {}
+                }
+              });
+            }
+          }}
         />
       </div>
     </div>

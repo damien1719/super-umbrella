@@ -5,7 +5,9 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useSectionStore } from '../store/sections';
 import { useSectionExampleStore } from '../store/sectionExamples';
 import type { Question } from '../types/Typequestion';
-import { categories } from '../types/trame';
+// Narrow the answers type to satisfy DataEntry
+type Answers = Record<string, string | number | boolean | string[] | Record<string, unknown>>;
+import { categories, type CategoryId } from '../types/trame';
 import TrameHeader from '@/components/TrameHeader';
 import QuestionList from '@/components/QuestionList';
 import { DataEntry } from '@/components/bilan/DataEntry';
@@ -34,12 +36,10 @@ export default function CreationTrame() {
   const [tab, setTab] = useState<
     'questions' | 'preview' | 'examples' | 'template'
   >('questions');
-  const [previewAnswers, setPreviewAnswers] = useState<Record<string, unknown>>(
-    {},
-  );
+  const [previewAnswers, setPreviewAnswers] = useState<Answers>({});
   const [newExamples, setNewExamples] = useState<string[]>([]);
   const [nomTrame, setNomTrame] = useState('');
-  const [categorie, setCategorie] = useState('');
+  const [categorie, setCategorie] = useState<CategoryId | undefined>(undefined);
   const [isPublic, setIsPublic] = useState(false);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -92,29 +92,21 @@ export default function CreationTrame() {
   }, [sectionId, fetchOne, getTemplate]);
 
   const onPatch = (id: string, partial: Partial<Question>) => {
-    setQuestions((qs) =>
-      qs.map((q) =>
-        q.id === id
-          ? {
-              ...q,
-              ...partial,
-              tableau: partial.tableau
-                ? {
-                    ...('tableau' in q && q.tableau ? q.tableau : {}),
-                    ...partial.tableau,
-                  }
-                : 'tableau' in q
-                  ? q.tableau
-                  : undefined,
-            }
-          : q,
-      ),
+    setQuestions((qs: Question[]) =>
+      qs.map((q: Question) => {
+        if (q.id !== id) return q;
+        const merged: any = { ...q, ...partial };
+        if ((partial as any).tableau !== undefined && (q as any).tableau !== undefined) {
+          merged.tableau = { ...(q as any).tableau, ...(partial as any).tableau };
+        }
+        return merged as Question;
+      }),
     );
   };
 
   const onReorder = (from: number, to: number) => {
-    setQuestions((qs) => {
-      const updated = [...qs];
+    setQuestions((qs: Question[]) => {
+      const updated: Question[] = [...qs];
       const [moved] = updated.splice(from, 1);
       updated.splice(to, 0, moved);
       return updated;
@@ -188,11 +180,11 @@ export default function CreationTrame() {
       <div className="w-full mx-auto">
         <TrameHeader
           title={nomTrame}
-          category={categorie}
+          category={categorie ?? ''}
           isPublic={isPublic}
           categories={categories}
           onTitleChange={setNomTrame}
-          onCategoryChange={setCategorie}
+          onCategoryChange={(v: string) => setCategorie(v as CategoryId)}
           onPublicChange={setIsPublic}
           onSave={save}
           onImport={() => setShowImport(true)}
@@ -289,6 +281,15 @@ export default function CreationTrame() {
               }
             }}
             onCancel={() => setShowImport(false)}
+            sectionId={sectionId}
+            onTemplateCreated={(id) => {
+              setShowImport(false);
+              setTab('template');
+              if (id) {
+                getTemplate(id).then((tpl) => setTemplate(tpl));
+                setTemplateRefId(id);
+              }
+            }}
           />
         </DialogContent>
       </Dialog>

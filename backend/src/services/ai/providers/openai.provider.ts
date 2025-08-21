@@ -11,15 +11,15 @@ export class OpenAIProvider {
   /** Appel chat completions, avec retry simple */
   async chat(
     opts: ChatCompletionCreateParams,
-    onChunk?: (delta: string) => void
+    onChunk?: (delta: string) => void,
+    model?: string
   ) {
     let attempt = 0;
     while (attempt++ < 3) {
       try {
         const res = await this.client.chat.completions.create({
           ...opts,
-          model: "gpt-4.1-2025-04-14",
-          //model: "gpt-4.1-mini-2025-04-14",
+          model: model || "gpt-4.1-mini-2025-04-14",
           stream: Boolean(onChunk),
         });
 

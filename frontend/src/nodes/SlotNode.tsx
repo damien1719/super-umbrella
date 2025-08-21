@@ -12,7 +12,7 @@ export type SerializedSlotNode = {
   version: 1;
 };
 
-export class SlotNode extends DecoratorNode<JSX.Element> {
+export class SlotNode extends DecoratorNode<React.ReactNode> {
   __slotId: string;
   __slotLabel: string;
   __slotType: SlotType;
@@ -53,8 +53,9 @@ export class SlotNode extends DecoratorNode<JSX.Element> {
   createDOM(): HTMLElement {
     const span = document.createElement('span');
     span.className = 'bg-yellow-200 text-yellow-800 px-1 rounded';
-    span.textContent = this.__slotLabel;
     span.contentEditable = 'false';
+    // Ne pas mettre textContent ici - le rendu est géré par decorate()
+
     return span;
   }
 
@@ -63,7 +64,7 @@ export class SlotNode extends DecoratorNode<JSX.Element> {
   }
 
   // Ensure custom node is exported to HTML when using $generateHtmlFromNodes
-  exportDOM(_editor: LexicalEditor): DOMExportOutput | null {
+  exportDOM(_editor: LexicalEditor): DOMExportOutput {
     const span = document.createElement('span');
     span.textContent = this.__slotLabel;
     span.setAttribute('data-slot-id', this.__slotId);
@@ -99,7 +100,22 @@ export class SlotNode extends DecoratorNode<JSX.Element> {
     };
   }
 
-  decorate(): JSX.Element {
+  // Public helpers for external updates inside editor.update()
+  getSlotId(): string {
+    return this.__slotId;
+  }
+
+  getLabel(): string {
+    return this.__slotLabel;
+  }
+
+  setLabel(newLabel: string): void {
+    // Use Lexical's immutable pattern: get writable clone before mutation
+    const writable = this.getWritable() as SlotNode;
+    writable.__slotLabel = newLabel;
+  }
+
+  decorate(): React.ReactNode {
     return (
       <span
         className="bg-yellow-200 text-yellow-800 px-1 rounded"

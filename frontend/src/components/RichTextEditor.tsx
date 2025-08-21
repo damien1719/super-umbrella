@@ -26,6 +26,7 @@ export interface RichTextEditorHandle {
   insertHtml: (html: string) => void;
   setEditorStateJson: (state: unknown) => void;
   insertSlot?: (slotId: string, slotLabel: string, slotType: SlotType) => void;
+  updateSlot?: (slotId: string, slotLabel: string) => void;
 }
 
 interface Props {
@@ -197,6 +198,25 @@ const ImperativeHandlePlugin = forwardRef<
           editor.focus();
         });
       },
+      updateSlot(slotId: string, slotLabel: string) {
+        editor.update(() => {
+          const root = $getRoot();
+          const visit = (node: any): boolean => {
+            if (typeof node?.getSlotId === 'function' && node.getSlotId() === slotId) {
+              // Safe mutation using node API
+              node.setLabel?.(slotLabel);
+              return true;
+            }
+            if (typeof node?.getChildren === 'function') {
+              for (const child of node.getChildren()) {
+                if (visit(child)) return true;
+              }
+            }
+            return false;
+          };
+          visit(root);
+        });
+      },
     }),
     [editor],
   );
@@ -229,19 +249,6 @@ function EditorCore(
     TableRowNode,
     TableCellNode,
   ];
-
-  CANDIDATE_NODES.forEach((N, i) => {
-    const name = (N as any)?.name ?? `index:${i}`;
-    const hasGetType = typeof (N as any)?.getType === 'function';
-    if (!N) {
-      // eslint-disable-next-line no-console
-      console.error('[Lexical nodes] Import undefined ->', name, N);
-    } else if (!hasGetType) {
-      console.error('[Lexical nodes] Missing static getType() ->', name, N);
-    } else {
-      console.log('[Lexical nodes] OK ->', name);
-    }
-  });
 
 
   const initialConfig = {

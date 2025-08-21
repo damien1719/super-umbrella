@@ -1,13 +1,16 @@
 import type { SlotSpec, FieldSpec, GroupSpec, RepeatSpec } from '../types/template';
 import SlotEditor from './SlotEditor';
+import { Button } from './ui/button';
+import { Card, CardHeader, CardContent } from './ui/card';
 
 interface Props {
   slots: SlotSpec[];
   onChange: (slots: SlotSpec[]) => void;
   onAddSlot?: (slot: FieldSpec) => void;
+  onUpdateSlot?: (slotId: string, slotLabel: string) => void;
 }
 
-export default function SlotSidebar({ slots, onChange, onAddSlot }: Props) {
+export default function SlotSidebar({ slots, onChange, onAddSlot, onUpdateSlot }: Props) {
   const simpleTpl = (input: string, ctx: Record<string, unknown>) =>
     String(input || '').replace(/\{\{\s*([\w\.]+)\s*\}\}/g, (_, key) => {
       const parts = String(key).split('.');
@@ -62,15 +65,15 @@ export default function SlotSidebar({ slots, onChange, onAddSlot }: Props) {
     const rep: RepeatSpec = {
       kind: 'repeat',
       id: repId,
-      from: { enum: [{ key: 'item1', label: 'Item 1' }] },
+      from: { enum: [{ key: 'key_1', label: 'value_1' }] },
       ctx: 'item',
       namePattern: '',
       slots: [
         {
-          id: `${repId}.{{item.key}}.field-1`,
+          id: `${repId}.{{item.key}}.champ_1`,
           type: 'text',
           mode: 'llm',
-          label: 'Nouveau champ',
+          label: 'Champ_1',
         },
       ],
     };
@@ -80,11 +83,11 @@ export default function SlotSidebar({ slots, onChange, onAddSlot }: Props) {
     if ('enum' in rep.from && rep.slots.length > 0) {
       for (const it of rep.from.enum) {
         for (const child of rep.slots) {
-          const baseId = simpleTpl(child.id, { [ctxName]: it, item: it });
-          const finalId = rep.namePattern
-            ? simpleTpl(rep.namePattern, { group: '', item: it, slotId: baseId })
-            : baseId;
-          onAddSlot?.({ ...child, id: finalId });
+          const stableId = `${repId}.${it.key}.${child.id}`;   // id interne stable
+          const fieldIndex = rep.slots.indexOf(child) + 1;
+          const cleanLabel = it.label.replace(/^value_?/, '').replace(/_/g, '');
+          const displayLabel = `${cleanLabel}_slot${fieldIndex}`; // pour l'UI
+          onAddSlot?.({ ...child, id: stableId, label: displayLabel });
         }
       }
     }
@@ -95,32 +98,39 @@ export default function SlotSidebar({ slots, onChange, onAddSlot }: Props) {
   };
 
   return (
-    <aside className="w-120 border-l pl-4 space-y-4">
-      <div className="space-y-2">
-        <div className="flex justify-between items-center">
-          <h3 className="font-semibold">Slots</h3>
-        </div>
-        <div className="flex gap-2">
-          <button type="button" className="text-sm text-primary-600" onClick={addField}>
-            + Ajouter un champ
-          </button>
-          <button type="button" className="text-sm text-primary-600" onClick={addGroup}>
-            + Ajouter un groupe
-          </button>
-          <button type="button" className="text-sm text-primary-600" onClick={addRepeat}>
-            + Ajouter un répéteur
-          </button>
-        </div>
-      </div>
-      {slots.map((slot, idx) => (
-        <SlotEditor
-          key={(slot as any).id || `${(slot as any).kind}-${idx}`}
-          slot={slot}
-          onChange={(updated) => updateSlot(idx, updated)}
-         onRemove={() => removeSlot((slot as any).id)}
-         onAddSlot={onAddSlot}
-        />
-      ))}
+    <aside className="w-120 border-l">
+      <Card className="border-0 shadow-none">
+        <CardHeader className="pb-3">
+          <div className="flex justify-between items-center">
+            <h3 className="font-semibold">Slots</h3>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex gap-2 flex-wrap">
+            <Button size="sm" variant="outline" onClick={addField}>
+              + Ajouter un champ
+            </Button>
+            <Button size="sm" variant="outline" onClick={addGroup}>
+              + Ajouter un groupe
+            </Button>
+            <Button size="sm" variant="outline" onClick={addRepeat}>
+              + Ajouter un répéteur
+            </Button>
+          </div>
+          <div className="space-y-2">
+            {slots.map((slot, idx) => (
+              <SlotEditor
+                key={(slot as any).id || `${(slot as any).kind}-${idx}`}
+                slot={slot}
+                onChange={(updated) => updateSlot(idx, updated)}
+                onRemove={() => removeSlot((slot as any).id)}
+                onAddSlot={onAddSlot}
+                onUpdateSlot={onUpdateSlot}
+              />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </aside>
   );
 }

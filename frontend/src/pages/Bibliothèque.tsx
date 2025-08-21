@@ -49,8 +49,6 @@ export default function Bibliotheque() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  console.log("OFFICIAL_AUTHOR_ID", OFFICIAL_AUTHOR_ID);
-  console.log("profileId", profileId);
 
   const myTrames = items.filter((s) => !!profileId && s.authorId === profileId);
   const officialTrames = items.filter(

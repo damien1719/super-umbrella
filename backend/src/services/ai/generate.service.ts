@@ -12,19 +12,21 @@ export async function generateText(
   const sanitized = guardrails.pre(JSON.stringify(params));
 
   // 2. Prompt
-  const messages = buildSinglePrompt(
+  const { messages, model } = buildSinglePrompt(
     JSON.parse(sanitized),
-  ) as unknown as ChatCompletionMessageParam[];
+  );
+  const chatMessages = messages as unknown as ChatCompletionMessageParam[];
 
   // 3. Appel modèle (avec ou sans streaming)
   if (stream) {
     return openaiProvider.chat(
-      { messages } as ChatCompletionCreateParams,
-      chunk => process.stdout.write(chunk) // ici on renvoie vers stdout, à toi de brancher SSE/WS
+      { messages: chatMessages } as ChatCompletionCreateParams,
+      chunk => process.stdout.write(chunk), // ici on renvoie vers stdout, à toi de brancher SSE/WS
+      model
     );
   }
 
-  const result = await openaiProvider.chat({ messages } as ChatCompletionCreateParams);
+  const result = await openaiProvider.chat({ messages: chatMessages } as ChatCompletionCreateParams, undefined, model);
   // 4. Post-traitement
   return guardrails.post(result || "");
 }
