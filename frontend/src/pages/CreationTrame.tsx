@@ -13,6 +13,9 @@ import SaisieExempleTrame from '@/components/SaisieExempleTrame';
 import ImportMagique from '@/components/ImportMagique';
 import ExitConfirmation from '@/components/ExitConfirmation';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import TemplateEditor from '@/components/TemplateEditor';
+import { useSectionTemplateStore } from '../store/sectionTemplates';
+import type { SectionTemplate } from '../types/template';
 
 interface ImportResponse {
   result: Question[][];
@@ -28,9 +31,9 @@ export default function CreationTrame() {
   const updateSection = useSectionStore((s) => s.update);
   const createExample = useSectionExampleStore((s) => s.create);
 
-  const [tab, setTab] = useState<'questions' | 'preview' | 'examples'>(
-    'questions',
-  );
+  const [tab, setTab] = useState<
+    'questions' | 'preview' | 'examples' | 'template'
+  >('questions');
   const [previewAnswers, setPreviewAnswers] = useState<Record<string, unknown>>(
     {},
   );
@@ -42,6 +45,17 @@ export default function CreationTrame() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showImport, setShowImport] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const createTemplate = useSectionTemplateStore((s) => s.create);
+  const getTemplate = useSectionTemplateStore((s) => s.get);
+  const updateTemplate = useSectionTemplateStore((s) => s.update);
+  const [templateRefId, setTemplateRefId] = useState<string | null>(null);
+  const [template, setTemplate] = useState<SectionTemplate>({
+    id: Date.now().toString(),
+    label: '',
+    ast: null,
+    slots: [],
+    stylePrompt: '',
+  });
 
   const createDefaultNote = (): Question => ({
     id: Date.now().toString(),
@@ -56,6 +70,18 @@ export default function CreationTrame() {
       setNomTrame(section.title);
       setCategorie(section.kind);
       setIsPublic(section.isPublic ?? false);
+      setTemplateRefId(section.templateRefId ?? null);
+      if (section.templateRefId) {
+        getTemplate(section.templateRefId).then((tpl) => setTemplate(tpl));
+      } else {
+        setTemplate({
+          id: Date.now().toString(),
+          label: section.title,
+          ast: null,
+          slots: [],
+          stylePrompt: '',
+        });
+      }
       const loaded: Question[] =
         Array.isArray(section.schema) && section.schema.length > 0
           ? (section.schema as Question[])
@@ -63,7 +89,7 @@ export default function CreationTrame() {
       setQuestions(loaded);
       if (loaded.length > 0) setSelectedId(loaded[0].id);
     });
-  }, [sectionId, fetchOne]);
+  }, [sectionId, fetchOne, getTemplate]);
 
   const onPatch = (id: string, partial: Partial<Question>) => {
     setQuestions((qs) =>
@@ -129,11 +155,20 @@ export default function CreationTrame() {
 
   const save = async () => {
     if (!sectionId) return;
+    let tplId = templateRefId;
+    if (tplId) {
+      await updateTemplate(tplId, { ...template, label: nomTrame });
+    } else {
+      const created = await createTemplate({ ...template, label: nomTrame });
+      tplId = created.id;
+      setTemplateRefId(tplId);
+    }
     await updateSection(sectionId, {
       title: nomTrame,
       kind: categorie,
       schema: questions,
       isPublic,
+      templateRefId: tplId,
     });
     for (const content of newExamples) {
       await createExample({ sectionId, content });
@@ -192,6 +227,14 @@ export default function CreationTrame() {
             >
               Exemples
             </button>
+            <button
+              className={`pb-2 px-1 border-b-2 ${
+                tab === 'template' ? 'border-primary-600' : 'border-transparent'
+              }`}
+              onClick={() => setTab('template')}
+            >
+              Template
+            </button>
           </nav>
         </div>
 
@@ -222,6 +265,10 @@ export default function CreationTrame() {
             examples={newExamples}
             onAdd={(c) => setNewExamples((p) => [...p, c])}
           />
+        )}
+
+        {tab === 'template' && (
+          <TemplateEditor template={template} onChange={setTemplate} />
         )}
       </div>
       <Dialog open={showImport} onOpenChange={setShowImport}>

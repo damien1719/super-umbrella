@@ -1,6 +1,5 @@
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useEffect, useState, Suspense, lazy, useRef } from 'react';
-import DOMPurify from 'dompurify';
 import { Button } from '../components/ui/button';
 import ExitConfirmation from '../components/ExitConfirmation';
 import { apiFetch } from '../utils/api';
@@ -15,7 +14,7 @@ const AiRightPanel = lazy(() => import('../components/AiRightPanel'));
 interface BilanData {
   id: string;
   title: string;
-  descriptionHtml: string | null;
+  descriptionJson: unknown | null;
 }
 
 import type { RichTextEditorHandle } from '../components/RichTextEditor';
@@ -28,13 +27,13 @@ export default function Bilan() {
   };
   const token = useAuth((s) => s.token);
   const [bilan, setBilan] = useState<BilanData | null>(null);
-  const { descriptionHtml, setHtml, reset } = useBilanDraft();
+  const { descriptionJson, setStateJson, reset } = useBilanDraft();
   const editorRef = useRef<RichTextEditorHandle>(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const setMode = useEditorUi((s) => s.setMode);
   const setSelection = useEditorUi((s) => s.setSelection);
 
-  const hasChanges = bilan?.descriptionHtml !== descriptionHtml;
+  const hasChanges = JSON.stringify(bilan?.descriptionJson ?? null) !== JSON.stringify(descriptionJson ?? null);
 
   const handleBack = async () => {
     if (hasChanges) {
@@ -52,9 +51,9 @@ export default function Bilan() {
       headers: { Authorization: `Bearer ${token}` },
     }).then((data) => {
       setBilan(data);
-      setHtml(data.descriptionHtml ?? '');
+      setStateJson(data.descriptionJson ?? null);
     });
-  }, [bilanId, token, setHtml]);
+  }, [bilanId, token, setStateJson]);
 
   useEffect(() => {
     return () => {
@@ -65,14 +64,13 @@ export default function Bilan() {
 
   const save = async () => {
     if (!bilanId) return;
-    const clean = DOMPurify.sanitize(descriptionHtml);
     const res = await apiFetch<BilanData>(`/api/v1/bilans/${bilanId}`, {
       method: 'PUT',
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ title: bilan.title, descriptionHtml: clean }),
+      body: JSON.stringify({ title: bilan.title, descriptionJson }),
     });
     setBilan(res);
   };
@@ -94,8 +92,8 @@ export default function Bilan() {
             <Suspense fallback="Chargement...">
               <RichTextEditor
                 ref={editorRef}
-                initialHtml={descriptionHtml ?? ''}
-                onChange={setHtml}
+                initialStateJson={descriptionJson ?? null}
+                onChange={setStateJson}
                 onSave={save}
                 exportFileName={bilan.title || 'Bilan'}
               />
@@ -107,7 +105,8 @@ export default function Bilan() {
               {bilanId && (
                 <AiRightPanel
                   bilanId={bilanId}
-                  onInsertText={(text) => editorRef.current?.insertHtml(text)}
+                  onInsertText={(text) => editorRef.current?.insertPlainText(text)}
+                  onSetEditorStateJson={(st) => editorRef.current?.setEditorStateJson(st)}
                   initialWizardSection={state?.wizardSection}
                   initialTrameId={state?.trameId}
                 />

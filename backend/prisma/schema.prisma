@@ -103,8 +103,39 @@ model Section {
   examples          SectionExample[]
   job               Job[] @default([])
 
+  /// Lien (optionnel) vers un template réutilisable
+  templateRefId     String?                @db.VarChar(160)
+  templateRef       SectionTemplate?       @relation(fields: [templateRefId], references: [id])
+
+  /// Options d’affichage / variantes propres à cette Section (ex: bulletStyle)
+  templateOptions   Json?                  // libre; UI-only
+  version           Int                    @default(1)
+
+
   @@schema("psychomot")
 }
+
+model SectionTemplate {
+  id          String   @id @db.VarChar(160)   // ex: "cvp@v1" ou uuid()
+  label       String
+  version     Int      @default(1)
+
+  /// Toujours du Lexical EditorState JSON (AST) avec d’éventuels SlotNodes
+  content     Json
+
+  /// Spéc des slots attendus par ce template :
+  /// [{ id, type: "text"|"list"|"kv"|"table", source: "llm"|"computed"|"user", hint?, pattern?, optional? }, ...]
+  slotsSpec   Json
+
+  isDeprecated Boolean  @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  sections    Section[]
+
+  @@schema("psychomot")
+}
+
 
 enum Job {
   PSYCHOMOTRICIEN
@@ -131,7 +162,7 @@ model SectionExample {
   sectionId String
   label     String?
   content   String
-  stylePrompt String
+  stylePrompt String?
   section   Section @relation(fields: [sectionId], references: [id])
 
 
@@ -143,7 +174,7 @@ model Bilan {
   title           String?
   patientId       String?
   bilanTypeId     String?
-  descriptionHtml String?
+  descriptionJson Json?
   date            DateTime               @default(now())
   createdAt       DateTime               @default(now())
   updatedAt       DateTime               @updatedAt
@@ -166,10 +197,17 @@ model BilanSectionInstance {
   generatedContent  Json?
   generatedContentCreatedAt    DateTime? @default(now())
   generatedContentUpdatedAt    DateTime? @updatedAt
+
+  // Traçabilité de la génération (utile pour re-render / export)
+  templateIdUsed      String?  @db.VarChar(160)   // id du SectionTemplate utilisé
+  templateVersionUsed Int?
   
   status            BilanSectionStatus @default(DRAFT)
   bilan             Bilan   @relation(fields: [bilanId], references: [id])
   section           Section @relation(fields: [sectionId], references: [id])
+
+
+
 
   @@index([bilanId, order])
   @@schema("psychomot")

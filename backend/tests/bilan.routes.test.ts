@@ -3,7 +3,6 @@ import app from "../src/app";
 import { BilanService } from "../src/services/bilan.service";
 import { generateText } from "../src/services/ai/generate.service";
 import { promptConfigs } from "../src/services/ai/prompts/promptconfig";
-import { sanitizeHtml } from "../src/utils/sanitize";
 import { refineSelection } from "../src/services/ai/refineSelection.service";
 import { commentTestResults } from "../src/services/ai/commentTestResults.service";
 import { ProfileService } from "../src/services/profile.service";
@@ -51,24 +50,23 @@ describe("GET /api/v1/bilans", () => {
 });
 
 describe("PUT /api/v1/bilans/:id", () => {
-  it("sanitizes descriptionHtml before update", async () => {
+  it("accepts descriptionJson without sanitization", async () => {
     mockedService.update.mockResolvedValueOnce({
       id: "1",
       patientId: "p1",
-      descriptionHtml: "<p>ok</p>",
+      descriptionJson: { root: { type: 'root', version: 1, children: [] } },
     } as BilanStub);
 
-    const dirty = "<img src=x onerror=alert(1)>";
-    const expected = sanitizeHtml(dirty);
+    const state = { root: { type: 'root', version: 1, children: [] } };
     const id = "11111111-1111-1111-1111-111111111111";
 
     const res = await request(app)
       .put(`/api/v1/bilans/${id}`)
-      .send({ descriptionHtml: dirty });
+      .send({ descriptionJson: state });
 
     expect(res.status).toBe(200);
     expect(mockedService.update).toHaveBeenCalledWith("demo-user", id, {
-      descriptionHtml: expected,
+      descriptionJson: state,
     });
   });
 });

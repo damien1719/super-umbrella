@@ -6,6 +6,7 @@ import {
   type LexicalEditor,
   $createParagraphNode,
   $isRootOrShadowRoot,
+  $getRoot,
 } from 'lexical';
 import {
   INSERT_UNORDERED_LIST_COMMAND,
@@ -26,7 +27,7 @@ import {
 import { useEditorUi } from '@/store/editorUi';
 import { $createHeadingNode, $createQuoteNode, $isHeadingNode } from '@lexical/rich-text';
 import { $generateHtmlFromNodes } from '@lexical/html';
-import DOMPurify from 'dompurify';
+// We convert Lexical state to HTML for Word export to preserve formatting
 import { toDocxBlob } from '@/lib/htmlDocx';
 
 export function setFontSize(editor: LexicalEditor, size: string) {
@@ -370,18 +371,20 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
         onClick={async () => {
           let html = '';
           try {
-            editor.getEditorState().read(() => {
-              html = DOMPurify.sanitize($generateHtmlFromNodes(editor));
+            html = editor.getEditorState().read(() => {
+              return $generateHtmlFromNodes(editor);
             });
-          } catch {}
+          } catch {
+            // ignore and keep html as empty
+          }
           const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="ie=edge"/><style>
             body { font-family: ${fontFamily}; font-size: ${fontSize}pt; line-height: ${lineHeight}; }
             p { margin: 0 0 8px 0; }
-            h1 { font-size: 24pt; margin: 16pt 0 8pt; }
-            h2 { font-size: 18pt; margin: 14pt 0 6pt; }
-            h3 { font-size: 14pt; margin: 12pt 0 6pt; }
+            blockquote { margin: 0 0 8px 0; padding-left: 12px; border-left: 3px solid #ccc; }
+            h1 { font-size: 2em; margin: 0 0 12px 0; }
+            h2 { font-size: 1.5em; margin: 0 0 10px 0; }
+            h3 { font-size: 1.17em; margin: 0 0 8px 0; }
             ul, ol { margin: 0 0 8px 24px; }
-            li { margin: 4px 0; }
           </style></head><body>${html}</body></html>`;
           try {
             const blob = await toDocxBlob(fullHtml);

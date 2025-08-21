@@ -55,7 +55,7 @@ export async function transformText(params: TransformPromptParams) {
 }
 
 
-//Dette ici -> Ancien format de tableau -> A CLEANER
+//DETTE ICI// -> Ancien format de tableau -> A CLEANER
 export async function transformImageToTable(
   params: TransformImageToTableParams,
 ): Promise<{ columns: string[]; rowsGroups: string[] }> {

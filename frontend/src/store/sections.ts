@@ -15,6 +15,7 @@ export interface Section {
   isPublic?: boolean;
   authorId?: string | null;
   author?: { prenom?: string | null } | null;
+  templateRefId?: string | null;
 }
 
 export type SectionInput = Omit<Section, 'id' | 'author'>;

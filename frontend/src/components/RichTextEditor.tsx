@@ -5,32 +5,41 @@ import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { ListPlugin } from '@lexical/react/LexicalListPlugin';
 import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
-import { $generateHtmlFromNodes, $generateNodesFromDOM } from '@lexical/html';
-import { $getRoot, $getSelection, $insertNodes } from 'lexical';
+import {
+  $getRoot,
+  $getSelection,
+  $insertNodes,
+  $createParagraphNode,
+  $createTextNode,
+} from 'lexical';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { ToolbarPlugin } from './RichTextToolbar';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { LinkNode } from '@lexical/link';
 import { ListNode, ListItemNode } from '@lexical/list';
 import { useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
-import DOMPurify from 'dompurify';
-import { marked } from 'marked';
+// HTML/Markdown parsing removed: we now work exclusively with Lexical JSON editor state
 import { HeadingNode, QuoteNode } from '@lexical/rich-text';
+import { SlotNode, $createSlotNode } from '../nodes/SlotNode';
 import { useVirtualSelection } from '../hooks/useVirtualSelection';
+import type { SlotType } from '../types/template';
 
 export interface RichTextEditorHandle {
-  insertHtml: (html: string) => void;
+  setEditorStateJson: (state: unknown) => void;
+  getEditorStateJson: () => unknown;
+  insertPlainText: (text: string) => void;
+  insertSlot: (slotId: string, slotLabel: string, slotType: SlotType) => void;
 }
 
 interface Props {
-  initialHtml: string;
+  initialStateJson: unknown;
   readOnly?: boolean;
-  onChange?: (html: string) => void;
+  onChange?: (stateJson: unknown) => void;
   onSave?: () => void;
   exportFileName?: string;
 }
 
-function HtmlPlugin({ html }: { html: string }) {
+function JsonStatePlugin({ state }: { state: unknown }) {
   const [editor] = useLexicalComposerContext();
   const hasLoaded = useRef(false);
 
@@ -38,69 +47,105 @@ function HtmlPlugin({ html }: { html: string }) {
     if (hasLoaded.current) return; // on ne ré‑injecte jamais deux fois
     hasLoaded.current = true;
 
-    editor.update(() => {
-      const dom = new DOMParser().parseFromString(html, 'text/html');
-      const nodes = $generateNodesFromDOM(editor, dom);
-      const root = $getRoot();
-      root.clear();
-      root.append(...nodes);
-    });
-  }, [editor, html]);
+    try {
+      const parsed = editor.parseEditorState(state as string);
+      editor.setEditorState(parsed);
+    } catch {
+      // fallback: empty document
+      editor.update(() => {
+        const root = $getRoot();
+        root.clear();
+        const p = $createParagraphNode();
+        p.append($createTextNode(''));
+        root.append(p);
+      });
+    }
+  }, [editor, state]);
   return null;
 }
 
-const ImperativeHandlePlugin = forwardRef<
-  RichTextEditorHandle,
-  object
->(function ImperativeHandlePlugin(_, ref) {
-  const [editor] = useLexicalComposerContext();
+const ImperativeHandlePlugin = forwardRef<RichTextEditorHandle, object>(
+  function ImperativeHandlePlugin(_, ref) {
+    const [editor] = useLexicalComposerContext();
 
-  useImperativeHandle(
-    ref,
-    () => ({
-      insertHtml(html: string) {
-        editor.update(() => {
-          const parser = new DOMParser();
-          const mdHtml = marked.parse(html);
-          const dom = parser.parseFromString(
-            `<div>${mdHtml}</div>`,
-            'text/html',
-          );
-
-          const nodes = $generateNodesFromDOM(editor, dom);
-
-          // 4. Insérer au curseur ou à la fin
-          const selection = $getSelection();
-          if (selection) {
-            $insertNodes(nodes);
-          } else {
-            $getRoot().append(...nodes);
+    useImperativeHandle(
+      ref,
+      () => ({
+        setEditorStateJson(state: unknown) {
+          try {
+            if (typeof state === 'string') {
+              const parsed = editor.parseEditorState(state);
+              editor.setEditorState(parsed);
+            } else if (state && typeof state === 'object') {
+              // Si c'est un objet, on le convertit en string JSON d'abord
+              const jsonString = JSON.stringify(state);
+              const parsed = editor.parseEditorState(jsonString);
+              editor.setEditorState(parsed);
+            }
+          } catch (error) {
+            console.error('Error setting editor state:', error);
+            // ignore invalid state
           }
+        },
+        getEditorStateJson() {
+          try {
+            return editor.getEditorState().toJSON();
+          } catch {
+            return null;
+          }
+        },
+        insertPlainText(text: string) {
+          editor.update(() => {
+            const lines = (text ?? '').split(/\r?\n/);
+            const nodes = lines.map((line) => {
+              const p = $createParagraphNode();
+              p.append($createTextNode(line));
+              return p;
+            });
+            const selection = $getSelection();
+            if (selection) {
+              $insertNodes(nodes);
+            } else {
+              $getRoot().append(...nodes);
+            }
+            editor.focus();
+          });
+        },
+        insertSlot(slotId: string, slotLabel: string, slotType: SlotType) {
+          editor.update(() => {
+            const node = $createSlotNode(
+              slotId,
+              slotLabel,
+              slotType,
+              false,
+              '…',
+            );
+            const selection = $getSelection();
+            if (selection) {
+              $insertNodes([node]);
+            } else {
+              $getRoot().append(node);
+            }
+            editor.focus();
+          });
+        },
+      }),
+      [editor],
+    );
 
-          editor.focus();
-          /*        const firstNode = nodes[0];
-          const lastNode = nodes[nodes.length - 1];
-          if (firstNode && lastNode) {
-            const range = $createRangeSelection();
-            range.anchor.set(firstNode.getKey(), 0, 'element');
-            const length = lastNode.getTextContentSize
-              ? lastNode.getTextContentSize()
-              : lastNode.getTextContent().length;
-            range.focus.set(lastNode.getKey(), length, 'element');
-            $setSelection(range);
-          } */
-        });
-      },
-    }),
-    [editor],
-  );
-
-  return null;
-});
+    return null;
+  },
+);
 
 function EditorCore(
-  { initialHtml = '', readOnly = false, onChange = () => {}, onSave, exportFileName }: Props = {
-    initialHtml: '',
+  {
+    initialStateJson = null,
+    readOnly = false,
+    onChange = () => {},
+    onSave,
+    exportFileName,
+  }: Props = {
+    initialStateJson: null,
     readOnly: false,
     onChange: () => {},
     onSave: undefined,
@@ -126,13 +171,18 @@ function EditorCore(
         bold: 'font-bold',
       },
     },
-    nodes: [ListNode, ListItemNode, LinkNode, HeadingNode, QuoteNode],
+    nodes: [ListNode, ListItemNode, LinkNode, HeadingNode, QuoteNode, SlotNode],
   };
   return (
     <LexicalComposer initialConfig={initialConfig}>
-      {!readOnly && <ToolbarPlugin onSave={onSave} exportFileName={exportFileName} />}
+      {!readOnly && (
+        <ToolbarPlugin onSave={onSave} exportFileName={exportFileName} />
+      )}
       <div className="relative h-full">
-        <div ref={editorRef as unknown as React.RefObject<HTMLDivElement>} className="h-full bg-wood-100 p-8 overflow-auto">
+        <div
+          ref={editorRef as unknown as React.RefObject<HTMLDivElement>}
+          className="h-full bg-wood-100 p-8 overflow-auto"
+        >
           <div className="flex justify-center">
             <div className="bg-paper-50 border border-gray-300 rounded shadow p-16 w-full max-w-3xl min-h-[100vh] flex flex-col">
               <RichTextPlugin
@@ -146,17 +196,15 @@ function EditorCore(
               <ListPlugin />
               <LinkPlugin />
               <OnChangePlugin
-                onChange={(state, editor) => {
-                  state.read(() => {
-                    const html = DOMPurify.sanitize(
-                      $generateHtmlFromNodes(editor),
-                    );
-                    onChange?.(html);
-                  });
+                onChange={(state) => {
+                  try {
+                    const json = state.toJSON();
+                    onChange?.(json);
+                  } catch {}
                 }}
               />
-              <HtmlPlugin html={initialHtml} />
-              <ImperativeHandlePlugin ref={ref as any} />
+              <JsonStatePlugin state={initialStateJson} />
+              <ImperativeHandlePlugin ref={ref} />
             </div>
           </div>
         </div>

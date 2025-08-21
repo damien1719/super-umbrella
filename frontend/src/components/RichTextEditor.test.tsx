@@ -6,22 +6,61 @@ import { setFontFamily, setFontSize } from './RichTextToolbar';
 import { $getRoot, TextNode, type LexicalEditor } from 'lexical';
 
 describe('RichTextEditor', () => {
-  it('converts markdown to HTML when inserting', async () => {
+  it('loads and exposes JSON editor state', async () => {
     const ref = React.createRef<RichTextEditorHandle>();
+    const initialState = {
+      root: {
+        children: [
+          {
+            children: [
+              { detail: 0, format: 0, mode: 'normal', style: '', text: 'Hello', type: 'text', version: 1 },
+            ],
+            direction: null,
+            format: '',
+            indent: 0,
+            type: 'paragraph',
+            version: 1,
+          },
+        ],
+        direction: null,
+        format: '',
+        indent: 0,
+        type: 'root',
+        version: 1,
+      },
+    };
     const { container } = render(
-      <RichTextEditor ref={ref} initialHtml="" onChange={() => {}} />,
+      <RichTextEditor ref={ref} initialStateJson={initialState} onChange={() => {}} />,
     );
     await waitFor(() => expect(ref.current).not.toBeNull());
-    ref.current!.insertHtml('**bold**');
-    await waitFor(() => {
-      const textbox = container.querySelector('[contenteditable="true"]');
-      expect(textbox?.innerHTML).toMatch(/<strong[^>]*>bold<\/strong>/);
-    });
+    const state = ref.current!.getEditorStateJson();
+    expect(state).toBeTruthy();
   });
 
   it('changes font size and family on selection', async () => {
+    const initialState = {
+      root: {
+        children: [
+          {
+            children: [
+              { detail: 0, format: 0, mode: 'normal', style: '', text: 'Hello', type: 'text', version: 1 },
+            ],
+            direction: null,
+            format: '',
+            indent: 0,
+            type: 'paragraph',
+            version: 1,
+          },
+        ],
+        direction: null,
+        format: '',
+        indent: 0,
+        type: 'root',
+        version: 1,
+      },
+    };
     const { container } = render(
-      <RichTextEditor initialHtml="<p>Hello</p>" onChange={() => {}} />,
+      <RichTextEditor initialStateJson={initialState} onChange={() => {}} />,
     );
     const textbox = container.querySelector(
       '[contenteditable="true"]',

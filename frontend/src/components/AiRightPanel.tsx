@@ -12,10 +12,20 @@ import { Textarea } from './ui/textarea';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import type { TrameOption, TrameExample } from './bilan/TrameSelector';
 import type { Answers, Question } from '@/types/question';
-import { FileText, Eye, Brain, Activity, Flag, PlusIcon, ArrowRight, ArrowRightCircle, Wand2 } from 'lucide-react';
+import {
+  FileText,
+  Eye,
+  Brain,
+  Activity,
+  Flag,
+  PlusIcon,
+  ArrowRight,
+  ArrowRightCircle,
+  Wand2,
+} from 'lucide-react';
 import { apiFetch } from '@/utils/api';
+import { generateSection } from '@/services/generation';
 import { useAuth } from '@/store/auth';
-import { splitBlocksIntoStringChunks } from '@/lib/chunkAnswers';
 
 const kindMap: Record<string, string> = {
   anamnese: 'anamnese',
@@ -93,6 +103,7 @@ const useTrames = () => {
 interface AiRightPanelProps {
   bilanId: string;
   onInsertText: (text: string) => void;
+  onSetEditorStateJson?: (state: unknown) => void;
   initialWizardSection?: string;
   initialTrameId?: string;
 }
@@ -100,6 +111,7 @@ interface AiRightPanelProps {
 export default function AiRightPanel({
   bilanId,
   onInsertText,
+  onSetEditorStateJson,
   initialWizardSection,
   initialTrameId,
 }: AiRightPanelProps) {
@@ -185,184 +197,63 @@ export default function AiRightPanel({
     remove(id).catch(() => {});
   };
 
+  // local markdown helpers moved to services/generation
   type TableAnswers = Record<string, unknown> & { commentaire?: string };
-
-  function markdownifyTable(q: Question, ansTable: TableAnswers): string {
-    if (!q.tableau?.columns) {
-      return '';
-    }
-
-    const columns = q.tableau.columns;
-    const allRows = q.tableau.rowsGroups?.flatMap((rg) => rg.rows) || [];
-
-    const isNonEmpty = (v: unknown, col?: { valueType?: string }) => {
-      if (col?.valueType === 'bool') return v === true;
-      if (typeof v === 'number') return true;
-      if (typeof v === 'string') return v.trim() !== '';
-      if (typeof v === 'boolean') return v === true; // par sécurité au cas où
-      return false;
-    };
-
-    const formatCell = (v: unknown, col?: { valueType?: string }) => {
-      if (col?.valueType === 'bool') return v === true ? '✓' : ''; // ou 'Oui' / ''
-      if (v == null) return '';
-      if (typeof v === 'string') return v.trim();
-      if (typeof v === 'number') return String(v);
-      if (typeof v === 'boolean') return v ? '✓' : '';
-      return '';
-    };
-
-    const keptColumns = columns.filter((col) =>
-      allRows.some((row) => {
-        const rowData = ansTable[row.id] as Record<string, unknown> | undefined;
-        const v = rowData?.[col.id];
-        return isNonEmpty(v);
-      }),
-    );
-
-    console.log("q", q);
-    console.log("keptColumns", keptColumns);
-    console.log("allRows", allRows);
-    console.log("ansTable", ansTable);
-
-    const titleLine = `**${q.titre}**\n\n`;
-
-    let tablePart = '';
-    if (keptColumns.length > 0) {
-      const headerLine = `| ${['Ligne', ...keptColumns.map((c) => c.label)].join(' | ')} |`;
-      const sepLine = `| ${['---', ...keptColumns.map(() => '---')].join(' | ')} |`;
-      const bodyLines = allRows
-        .map((row) => {
-          const rowData = ansTable[row.id] as Record<string, unknown> | undefined;
-          const cells = keptColumns.map((col) => formatCell(rowData?.[col.id], col));
-          return `| ${[row.label, ...cells].join(' | ')} |`;
-        })
-        .join('\n');
-      tablePart = `${headerLine}\n${sepLine}\n${bodyLines}`;
-    }
-
-    const commentVal = ansTable.commentaire;
-    const comment =
-      typeof commentVal === 'string' && commentVal.trim() !== ''
-        ? `\n\n> **Commentaire** : ${commentVal}`
-        : '';
-
-    if (tablePart.trim() === '' && comment.trim() === '') return '';
-    if (tablePart.trim() === '') return titleLine + comment;
-    return titleLine + tablePart + comment;
-  }
-
-  function markdownifyField(q: Question, value: unknown): string {
-    switch (q.type) {
-      case 'notes':
-        return `${q.titre}\n\n${value ?? ''}`;
-      case 'choix-multiple':
-        if (value && typeof value === 'object') {
-          const selectedOptions = Array.isArray((value as any).options) 
-            ? (value as any).options.join(', ')
-            : (value as any).option 
-              ? String((value as any).option)
-              : '';
-          const comment = (value as any).commentaire || '';
-          return `${q.titre}\n\n${selectedOptions}${
-            comment ? `\n\n> **Commentaire** : ${comment}` : ''
-          }`;
-        }
-        return `${q.titre}\n\n${value ?? ''}`;
-      case 'echelle':
-        return `${q.titre}\n\n${value ?? ''}`;
-      case 'titre':
-        return `## ${q.titre}\n\n${value ?? ''}`;
-      default:
-        return `${q.titre} : ${value ?? ''}`;
-    }
-  }
 
   const handleGenerate = async (
     section: SectionInfo,
     newAnswers?: Answers,
     rawNotes?: string,
   ) => {
-    setIsGenerating(true);
-    setSelectedSection(section.id);
+    await generateSection({
+      mode: 'direct',
+      section,
+      trames,
+      selectedTrames,
+      answers,
+      newAnswers,
+      rawNotes,
+      token,
+      bilanId,
+      kindMap,
+      setIsGenerating,
+      setSelectedSection,
+      setWizardSection,
+      setGenerated,
+      setRegenSection,
+      setRegenPrompt,
+      onInsertText,
+      onSetEditorStateJson,
+      examples: examples as any,
+    });
+  };
 
-    try {
-      const trameId = selectedTrames[section.id];
-      const trame = trames[section.id].find((t) => t.value === trameId);
-      const questions: Question[] = (trame?.schema as Question[]) || [];
-      const ans = newAnswers || answers[section.id] || {};
-
-      const mdBlocks: string[] = [];
-
-      // Titre principal
-      // mdBlocks.push(`# ${section.title}\n`);
-
-      for (const q of questions) {
-        console.log('type', q.type);
-        if (q.type === 'tableau') {
-          const ansTable = (ans[q.id] as TableAnswers) || {};
-          const md = markdownifyTable(q, ansTable);
-          if (md.trim()) mdBlocks.push(md);
-        } else if (q.type === 'titre') {
-          mdBlocks.push(markdownifyField(q, ''));
-        } else {
-          const val = ans[q.id];
-          if (val !== undefined && val !== null) {
-            if (typeof val === 'object') {
-              const hasContent = Object.values(val).some(
-                (v) => String(v || '').trim() !== '',
-              );
-              if (hasContent) mdBlocks.push(markdownifyField(q, val));
-            } else {
-              const raw = String(val).trim();
-              if (raw) mdBlocks.push(markdownifyField(q, raw));
-            }
-          }
-        }
-      }
-
-      // 5) Concatène tout avec deux retours à la ligne
-      const promptMarkdown = mdBlocks.join('\n\n');
-
-      // Ne jamais couper une question en deux: on chunk par blocs/questions déjà construits
-      const chunks = splitBlocksIntoStringChunks(mdBlocks, { maxChars: 1800 });
-      const body: any = {
-        section: kindMap[section.id],
-        answers: chunks,
-        // N'envoie plus le texte entier de l'exemple, seulement le stylePrompt si dispo
-        stylePrompt: examples
-          .filter((e) => e.sectionId === trameId)
-          .map((e) => (e as any).stylePrompt)
-          .filter((s) => typeof s === 'string' && (s as string).trim().length > 0)
-          .slice(0, 1)[0],
-      };
-      if (rawNotes && rawNotes.trim()) {
-        body.rawNotes = rawNotes;
-      }
-
-      console.log('body', body);
-
-      const res = await apiFetch<{ text: string }>(
-        `/api/v1/bilans/${bilanId}/generate`,
-        {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
-          body: JSON.stringify(body),
-        },
-      );
-
-      const header = `## ${section.title}\n\n`;
-      const textWithHeader = header + res.text;
-
-      onInsertText(textWithHeader);
-      setGenerated((g) => ({ ...g, [section.id]: true }));
-      setRegenSection(section.id);
-      setRegenPrompt('');
-    } finally {
-      setIsGenerating(false);
-      setSelectedSection(null);
-      setWizardSection(null);
-    }
+  const handleGenerateFromTemplate = async (
+    section: SectionInfo,
+    newAnswers?: Answers,
+    rawNotes?: string,
+    instId?: string,
+  ) => {
+    if (!instId) return;
+    await generateSection({
+      mode: 'template',
+      section,
+      trames,
+      selectedTrames,
+      answers,
+      newAnswers,
+      rawNotes,
+      instanceId: instId,
+      token,
+      bilanId,
+      kindMap,
+      setIsGenerating,
+      setSelectedSection,
+      setWizardSection,
+      onInsertText,
+      onSetEditorStateJson,
+      examples: examples as any,
+    });
   };
 
   const handleRefine = async () => {
@@ -668,6 +559,9 @@ export default function AiRightPanel({
                             onGenerate={(latest, notes) =>
                               handleGenerate(section, latest, notes)
                             }
+                            onGenerateFromTemplate={(latest, notes, id) =>
+                              handleGenerateFromTemplate(section, latest, notes, id)
+                            }
                             isGenerating={
                               isGenerating && selectedSection === section.id
                             }
@@ -690,7 +584,9 @@ export default function AiRightPanel({
 
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2">
-                                <h3 className="font-medium text-base truncate">{section.title}</h3>
+                                <h3 className="font-medium text-base truncate">
+                                  {section.title}
+                                </h3>
 
                                 <Button
                                   size="default"
@@ -714,7 +610,6 @@ export default function AiRightPanel({
                           </div>
                         </CardContent>
                       </Card>
-
                     );
                   }
 
@@ -774,29 +669,28 @@ export default function AiRightPanel({
                     {isGenerating ? '...' : 'Commenter des résultats de'}
                 </Button>
  */}
-                <div className="flex flex-col gap-4"> 
-                <Button
-                  size="default"
-                  variant="default"
-                  className="h-8 px-2 text-base"
-                  onClick={() => setCommentModalOpen(true)}
-                  disabled={isGenerating}
-                >
-                  Commenter des résultats de tests
-                  <Wand2 className="h-4 w-4 ml-1" />
-                </Button>
+                <div className="flex flex-col gap-4">
                   <Button
-                      size="default"
-                      variant="default"
-                      className="h-8 px-2 text-base"
-                      onClick={handleConclude}
-                      disabled={isGenerating}
-                    >
-                      {isGenerating ? '...' : 'Rédiger la synthèse du bilan'}
-                      <Wand2 className="h-4 w-4 ml-1" />
+                    size="default"
+                    variant="default"
+                    className="h-8 px-2 text-base"
+                    onClick={() => setCommentModalOpen(true)}
+                    disabled={isGenerating}
+                  >
+                    Commenter des résultats de tests
+                    <Wand2 className="h-4 w-4 ml-1" />
+                  </Button>
+                  <Button
+                    size="default"
+                    variant="default"
+                    className="h-8 px-2 text-base"
+                    onClick={handleConclude}
+                    disabled={isGenerating}
+                  >
+                    {isGenerating ? '...' : 'Rédiger la synthèse du bilan'}
+                    <Wand2 className="h-4 w-4 ml-1" />
                   </Button>
                 </div>
-              
               </div>
             </ScrollArea>
           )}

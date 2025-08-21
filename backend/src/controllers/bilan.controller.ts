@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import { BilanService } from "../services/bilan.service";
 import { ProfileService } from "../services/profile.service";
-import { sanitizeHtml } from "../utils/sanitize";
+// No HTML sanitization needed for JSON editor state
 import { generateText } from "../services/ai/generate.service";
 import { Anonymization } from "../services/ai/anonymize.service";
 import { promptConfigs } from "../services/ai/prompts/promptconfig";
@@ -43,9 +43,6 @@ export const BilanController = {
 
   async update(req: Request, res: Response, next: NextFunction) {
     try {
-      if (req.body.descriptionHtml) {
-        req.body.descriptionHtml = sanitizeHtml(req.body.descriptionHtml);
-      }
       const bilan = await BilanService.update(
         req.user.id,
         req.params.bilanId,
@@ -146,11 +143,12 @@ export const BilanController = {
   async conclude(req: Request, res: Response, next: NextFunction) {
     try {
       const bilan = await BilanService.get(req.user.id, req.params.bilanId);
-      if (!bilan || !bilan.descriptionHtml) {
+      if (!bilan || !bilan.descriptionJson) {
         res.status(404).json({ error: 'bilan not found' });
         return;
       }
-      const text = await concludeBilan(bilan.descriptionHtml);
+      // The export/renderer will render from JSON state; for conclude, send plain text for now
+      const text = await concludeBilan(JSON.stringify(bilan.descriptionJson));
       res.json({ text });
     } catch (e) {
       next(e);

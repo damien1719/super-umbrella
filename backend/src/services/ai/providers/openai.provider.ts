@@ -18,7 +18,8 @@ export class OpenAIProvider {
       try {
         const res = await this.client.chat.completions.create({
           ...opts,
-          model: "gpt-4.1-mini-2025-04-14",
+          model: "gpt-4.1-2025-04-14",
+          //model: "gpt-4.1-mini-2025-04-14",
           stream: Boolean(onChunk),
         });
 

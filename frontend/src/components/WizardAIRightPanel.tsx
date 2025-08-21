@@ -40,6 +40,7 @@ interface WizardAIRightPanelProps {
   answers: Answers;
   onAnswersChange: (a: Answers) => void;
   onGenerate: (latest?: Answers, rawNotes?: string) => void;
+  onGenerateFromTemplate?: (latest?: Answers, rawNotes?: string, instanceId?: string) => void;
   isGenerating: boolean;
   bilanId: string;
   onCancel: () => void;
@@ -54,6 +55,7 @@ export default function WizardAIRightPanel({
   answers,
   onAnswersChange,
   onGenerate,
+  onGenerateFromTemplate,
   isGenerating,
   bilanId,
   onCancel,
@@ -84,29 +86,30 @@ export default function WizardAIRightPanel({
   );
   const officialTrames = trameOptions.filter(
     (s) =>
-      !!OFFICIAL_AUTHOR_ID &&
-      s.isPublic &&
-      s.authorId === OFFICIAL_AUTHOR_ID,
+      !!OFFICIAL_AUTHOR_ID && s.isPublic && s.authorId === OFFICIAL_AUTHOR_ID,
   );
   const communityTrames = trameOptions.filter(
     (s) =>
-      s.isPublic &&
-      (!OFFICIAL_AUTHOR_ID || s.authorId !== OFFICIAL_AUTHOR_ID),
+      s.isPublic && (!OFFICIAL_AUTHOR_ID || s.authorId !== OFFICIAL_AUTHOR_ID),
   );
-  
+
   const [activeTab, setActiveTab] = useState<'mine' | 'official' | 'community'>(
-    myTrames.length > 0 ? 'mine' : officialTrames.length > 0 ? 'official' : 'community'
+    myTrames.length > 0
+      ? 'mine'
+      : officialTrames.length > 0
+        ? 'official'
+        : 'community',
   );
 
   const matchesActiveFilter = (s: TrameOption) => {
     if (activeTab === 'mine') return !!profileId && s.authorId === profileId;
     if (activeTab === 'official')
       return (
-        !!OFFICIAL_AUTHOR_ID &&
-        s.isPublic &&
-        s.authorId === OFFICIAL_AUTHOR_ID
+        !!OFFICIAL_AUTHOR_ID && s.isPublic && s.authorId === OFFICIAL_AUTHOR_ID
       );
-    return s.isPublic && (!OFFICIAL_AUTHOR_ID || s.authorId !== OFFICIAL_AUTHOR_ID);
+    return (
+      s.isPublic && (!OFFICIAL_AUTHOR_ID || s.authorId !== OFFICIAL_AUTHOR_ID)
+    );
   };
 
   // Preload latest notes when section/trame changes
@@ -139,7 +142,10 @@ export default function WizardAIRightPanel({
   const next = () => setStep((s) => Math.min(total, s + 1));
   const prev = () => setStep((s) => Math.max(1, s - 1));
 
-  const stepTitles = ['Trame', "Ecrivez vos notes brutes ou saisissez les résultats de vos observations: c'est la matière brute utilisée par l'IA pour rédiger"];
+  const stepTitles = [
+    'Trame',
+    "Ecrivez vos notes brutes ou saisissez les résultats de vos observations: c'est la matière brute utilisée par l'IA pour rédiger",
+  ];
 
   const headerTitle =
     step === 1
@@ -154,21 +160,38 @@ export default function WizardAIRightPanel({
     const displayedTrames = trameOptions.filter(matchesActiveFilter);
     content = (
       <div className="space-y-4">
-      {/* Toolbar sticky */}
-      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-wood-50/60
-                      border-b border-wood-200 pt-2 pb-3">
-        <div className="flex items-center justify-between gap-3">
-          <Tabs
-            active={activeTab}
-            onChange={(k) => setActiveTab(k as 'mine'|'official'|'community')}
-            tabs={[
-              { key: 'mine', label: 'Mes trames', count: myTrames.length, hidden: myTrames.length===0 },
-              { key: 'official', label: 'Trames Bilan Plume', count: officialTrames.length },
-              { key: 'community', label: 'Trames de la communauté', count: communityTrames.length },
-            ]}
-          />
+        {/* Toolbar sticky */}
+        <div
+          className="sticky top-0 z-10 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-wood-50/60
+                      border-b border-wood-200 pt-2 pb-3"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <Tabs
+              active={activeTab}
+              onChange={(k) =>
+                setActiveTab(k as 'mine' | 'official' | 'community')
+              }
+              tabs={[
+                {
+                  key: 'mine',
+                  label: 'Mes trames',
+                  count: myTrames.length,
+                  hidden: myTrames.length === 0,
+                },
+                {
+                  key: 'official',
+                  label: 'Trames Bilan Plume',
+                  count: officialTrames.length,
+                },
+                {
+                  key: 'community',
+                  label: 'Trames de la communauté',
+                  count: communityTrames.length,
+                },
+              ]}
+            />
+          </div>
         </div>
-      </div>
         <div className="flex flex-wrap gap-4">
           {displayedTrames.map((trame) => (
             <TrameCard
@@ -211,7 +234,9 @@ export default function WizardAIRightPanel({
                 >
                   <Plus className="h-5 w-5" />
                 </span>
-                <span className="font-semibold text-primary-700">Créez votre trame</span>
+                <span className="font-semibold text-primary-700">
+                  Créez votre trame
+                </span>
                 <span className="mt-1 text-sm text-primary-700/80">
                   Trame personnalisée à votre pratique
                 </span>
@@ -220,7 +245,10 @@ export default function WizardAIRightPanel({
             initialCategory={kindMap[sectionInfo.id]}
             onCreated={(id) =>
               navigate(`/creation-trame/${id}`, {
-                state: { returnTo: `/bilan/${bilanId}`, wizardSection: sectionInfo.id },
+                state: {
+                  returnTo: `/bilan/${bilanId}`,
+                  wizardSection: sectionInfo.id,
+                },
               })
             }
           />
@@ -257,7 +285,7 @@ export default function WizardAIRightPanel({
     );
   }
 
-  const saveNotes = async (notes: Answers | undefined) => {
+  const saveNotes = async (notes: Answers | undefined): Promise<string | null> => {
     if (!selectedTrame) return;
     const body = instanceId
       ? { contentNotes: notes }
@@ -277,8 +305,9 @@ export default function WizardAIRightPanel({
       body: JSON.stringify(body),
     });
     if (!instanceId) setInstanceId(res.id);
+    return instanceId || res.id || null;
   };
-  
+
   // Autosave on answers change (debounced) while on step 2
   const lastSavedRef = useRef<string>('');
   useEffect(() => {
@@ -325,15 +354,18 @@ export default function WizardAIRightPanel({
     window.addEventListener('keydown', onKeyDown, true);
     return () => window.removeEventListener('keydown', onKeyDown, true);
   }, [step]);
-  
+
   const handleClose = async () => {
     if (step === 2 && selectedTrame) {
       const data = dataEntryRef.current?.save() as Answers | undefined;
-      try { await saveNotes(data); } catch { /* ignore/option: toast */ }
+      try {
+        await saveNotes(data);
+      } catch {
+        /* ignore/option: toast */
+      }
     }
     onCancel();
   };
-  
 
   return (
     <div className="h-full flex flex-col overflow-hidden relative">
@@ -345,14 +377,14 @@ export default function WizardAIRightPanel({
       >
         <X className="h-4 w-4" />
       </button>
-  
+
       <ExitConfirmation
         open={showConfirm}
         onOpenChange={setShowConfirm}
         onConfirm={onCancel}
         onCancel={handleClose}
       />
-  
+
       {/* Row 1 — Header */}
       <div className="px-4 pt-4 pb-6">
         <DialogHeader>
@@ -364,17 +396,17 @@ export default function WizardAIRightPanel({
           </DialogDescription>
         </DialogHeader>
       </div>
-  
+
       {/* Row 2 — Scrollable content */}
-      <div className="flex-1 overflow-y-auto px-4 min-h-0">
-        {content}
-      </div>
-  
+      <div className="flex-1 overflow-y-auto px-4 min-h-0">{content}</div>
+
       {/* Row 3 — Footer glued to bottom (not sticky anymore) */}
       <div className="px-4">
-        <div className="bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/70
+        <div
+          className="bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/70
                         border-t border-gray-200 shadow-[0_-1px_0_0_rgba(0,0,0,0.04)]
-                        py-3">
+                        py-3"
+        >
           <div className="flex items-center justify-between">
             {step > 1 ? (
               <Button variant="secondary" onClick={prev} type="button">
@@ -383,42 +415,73 @@ export default function WizardAIRightPanel({
             ) : (
               <span />
             )}
-  
+
             {step < total ? (
               <Button onClick={next} type="button" size="lg">
                 Étape suivante
               </Button>
             ) : (
-              <Button
-                onClick={async () => {
-                  const data =
-                    notesMode === 'manual'
-                      ? (dataEntryRef.current?.save() as Answers | undefined)
-                      : undefined;
-                  if (notesMode === 'manual') {
-                    await saveNotes(data);
-                  }
-                  onGenerate(data, rawNotes);
-                }}
-                disabled={isGenerating}
-                type="button"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                    Génération...
-                  </>
-                ) : (
-                  <>
-                    <Wand2 className="h-5 w-5 mr-2" />
-                    Générer
-                  </>
+              <div className="flex gap-2">
+                <Button
+                  onClick={async () => {
+                    const data =
+                      notesMode === 'manual'
+                        ? (dataEntryRef.current?.save() as Answers | undefined)
+                        : undefined;
+                    if (notesMode === 'manual') {
+                      await saveNotes(data);
+                    }
+                    onGenerate(data, rawNotes);
+                  }}
+                  disabled={isGenerating}
+                  type="button"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                      Génération...
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 className="h-5 w-5 mr-2" />
+                      Générer
+                    </>
+                  )}
+                </Button>
+                {onGenerateFromTemplate && (
+                  <Button
+                    onClick={async () => {
+                      const data =
+                        notesMode === 'manual'
+                          ? (dataEntryRef.current?.save() as
+                              | Answers
+                              | undefined)
+                          : undefined;
+                      let id: string | null = instanceId;
+                      if (notesMode === 'manual') {
+                        id = await saveNotes(data);
+                      }
+                      onGenerateFromTemplate(data, rawNotes, id || undefined);
+                      onCancel();
+                    }}
+                    disabled={isGenerating}
+                    type="button"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                        Génération...
+                      </>
+                    ) : (
+                      <>Generate from template</>
+                    )}
+                  </Button>
                 )}
-              </Button>
+              </div>
             )}
           </div>
         </div>
       </div>
     </div>
-  );  
+  );
 }
