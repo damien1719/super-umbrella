@@ -105,8 +105,11 @@ export default function Bilan() {
               {bilanId && (
                 <AiRightPanel
                   bilanId={bilanId}
-                  onInsertText={(text) => editorRef.current?.insertPlainText(text)}
-                  onSetEditorStateJson={(st) => editorRef.current?.setEditorStateJson(st)}
+                  onInsertText={(text) => editorRef.current?.insertHtml(text)}
+                  onSetEditorStateJson={(st) => {
+                    console.log('[EditeurBilan] onSetEditorStateJson called with:', st);
+                    editorRef.current?.setEditorStateJson(st);
+                  }}
                   initialWizardSection={state?.wizardSection}
                   initialTrameId={state?.trameId}
                 />

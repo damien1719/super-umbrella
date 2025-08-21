@@ -294,8 +294,13 @@ export async function generateSection(opts: {
       setRegenSection?.(section.id);
       setRegenPrompt?.('');
     } else if (result.type === 'lexical') {
-      if (onSetEditorStateJson) onSetEditorStateJson(result.state);
-      else {
+      console.log('[Generation] Received lexical result:', result.state);
+      console.log('[Generation] Result state type:', typeof result.state);
+      if (onSetEditorStateJson) {
+        console.log('[Generation] Calling onSetEditorStateJson with state');
+        onSetEditorStateJson(result.state);
+      } else {
+        console.log('[Generation] Fallback to custom event');
         const event = new CustomEvent('lexical:set-json', { detail: result.state });
         window.dispatchEvent(event);
       }

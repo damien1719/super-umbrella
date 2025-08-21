@@ -1,13 +1,13 @@
 import { create } from 'zustand';
 import { apiFetch } from '../utils/api';
 import { useAuth } from './auth';
-import type { SectionTemplate, Slot } from '../types/template';
+import type { SectionTemplate, SlotSpec } from '../types/template';
 
 interface ApiSectionTemplate {
   id: string;
   label: string;
   content: unknown;
-  slotsSpec?: { slots?: Slot[]; stylePrompt?: string };
+  slotsSpec?: { slots?: SlotSpec[]; stylePrompt?: string };
 }
 
 interface SectionTemplateState {

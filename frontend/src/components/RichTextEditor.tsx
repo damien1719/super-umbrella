@@ -19,15 +19,21 @@ import { HeadingNode, QuoteNode } from '@lexical/rich-text';
 import { TableNode, TableRowNode, TableCellNode } from '@lexical/table';
 import { TablePlugin } from '@lexical/react/LexicalTablePlugin';
 import { useVirtualSelection } from '../hooks/useVirtualSelection';
+import { SlotNode, $createSlotNode } from '../nodes/SlotNode';
+import type { SlotType } from '../types/template';
 
 export interface RichTextEditorHandle {
   insertHtml: (html: string) => void;
+  setEditorStateJson: (state: unknown) => void;
+  insertSlot?: (slotId: string, slotLabel: string, slotType: SlotType) => void;
 }
 
 interface Props {
-  initialHtml: string;
+  initialHtml?: string;
+  initialStateJson?: unknown;
   readOnly?: boolean;
   onChange?: (html: string) => void;
+  onChangeStateJson?: (stateJson: unknown) => void;
   onSave?: () => void;
   exportFileName?: string;
 }
@@ -48,6 +54,46 @@ function HtmlPlugin({ html }: { html: string }) {
       root.append(...nodes);
     });
   }, [editor, html]);
+  return null;
+}
+
+function StateJsonPlugin({ stateJson }: { stateJson: unknown }) {
+  const [editor] = useLexicalComposerContext();
+  const hasLoaded = useRef(false);
+
+  useEffect(() => {
+    if (hasLoaded.current || !stateJson) return;
+    hasLoaded.current = true;
+
+    editor.update(() => {
+      try {
+        const serialized =
+          typeof stateJson === 'string' ? stateJson.trim() : JSON.stringify(stateJson);
+        if (typeof serialized === 'string' && serialized.startsWith('<')) {
+          // HTML fallback
+          const dom = new DOMParser().parseFromString(`<div>${serialized}</div>`, 'text/html');
+          const nodes = $generateNodesFromDOM(editor, dom);
+          const root = $getRoot();
+          root.clear();
+          root.append(...nodes);
+          return;
+        }
+        const state = editor.parseEditorState(serialized);
+        let isEmpty = true;
+        state.read(() => {
+          const root = $getRoot();
+          isEmpty = root.getChildrenSize() === 0 && root.getTextContentSize() === 0;
+        });
+        if (isEmpty) {
+          console.warn('[Lexical] Ignored empty editor state');
+          return;
+        }
+        editor.setEditorState(state);
+      } catch (error) {
+        console.error('Failed to parse editor state JSON:', error);
+      }
+    });
+  }, [editor, stateJson]);
   return null;
 }
 
@@ -93,6 +139,64 @@ const ImperativeHandlePlugin = forwardRef<
           } */
         });
       },
+      setEditorStateJson(state: unknown) {
+        console.log('[Lexical] setEditorStateJson called with:', state);
+        editor.update(() => {
+          try {
+            const stateString = typeof state === 'string' ? state.trim() : JSON.stringify(state);
+            console.log('[Lexical] State stringified (first 200):', stateString.slice(0, 200));
+            if (typeof stateString === 'string' && stateString.startsWith('<')) {
+              // HTML fallback
+              console.log('[Lexical] Detected HTML string, importing as HTML');
+              const dom = new DOMParser().parseFromString(`<div>${stateString}</div>`, 'text/html');
+              const nodes = $generateNodesFromDOM(editor, dom);
+              const root = $getRoot();
+              root.clear();
+              root.append(...nodes);
+              editor.focus();
+              return;
+            }
+            const editorState = editor.parseEditorState(stateString);
+            let isEmpty = true;
+            let childrenSize = 0;
+            let textContentSize = 0;
+            editorState.read(() => {
+              const root = $getRoot();
+              childrenSize = root.getChildrenSize();
+              textContentSize = root.getTextContentSize();
+              isEmpty = childrenSize === 0 && textContentSize === 0;
+              console.log('[Lexical] Root analysis:', {
+                childrenSize,
+                textContentSize,
+                isEmpty,
+                rootChildrenCount: root.getChildren().length,
+                rootTextContent: root.getTextContent()
+              });
+            });
+            if (isEmpty) {
+              // eslint-disable-next-line no-console
+              console.warn('[Lexical] Ignored empty editor state - no content to insert');
+              return;
+            }
+            console.log('[Lexical] Setting editor state with content');
+            editor.setEditorState(editorState);
+          } catch (error) {
+            console.error('[Lexical] Failed to set editor state JSON:', error);
+          }
+        });
+      },
+      insertSlot(slotId: string, slotLabel: string, slotType: SlotType) {
+        editor.update(() => {
+          const node = $createSlotNode(slotId, slotLabel, slotType, false, '…');
+          const selection = $getSelection();
+          if (selection) {
+            $insertNodes([node]);
+          } else {
+            $getRoot().append(node);
+          }
+          editor.focus();
+        });
+      },
     }),
     [editor],
   );
@@ -101,16 +205,45 @@ const ImperativeHandlePlugin = forwardRef<
 });
 
 function EditorCore(
-  { initialHtml = '', readOnly = false, onChange = () => {}, onSave, exportFileName }: Props = {
-    initialHtml: '',
+  { initialHtml, initialStateJson, readOnly = false, onChange = () => {}, onChangeStateJson, onSave, exportFileName }: Props = {
+    initialHtml: undefined,
+    initialStateJson: undefined,
     readOnly: false,
     onChange: () => {},
+    onChangeStateJson: undefined,
     onSave: undefined,
   },
   ref: React.ForwardedRef<RichTextEditorHandle>,
 ) {
   const editorRef = useRef<HTMLElement>(null as unknown as HTMLElement);
   useVirtualSelection(editorRef);
+
+  // --- DEBUG: vérifie chaque Node enregistré
+  const CANDIDATE_NODES = [
+    ListNode,
+    ListItemNode,
+    LinkNode,
+    HeadingNode,
+    QuoteNode,
+    TableNode,
+    TableRowNode,
+    TableCellNode,
+  ];
+
+  CANDIDATE_NODES.forEach((N, i) => {
+    const name = (N as any)?.name ?? `index:${i}`;
+    const hasGetType = typeof (N as any)?.getType === 'function';
+    if (!N) {
+      // eslint-disable-next-line no-console
+      console.error('[Lexical nodes] Import undefined ->', name, N);
+    } else if (!hasGetType) {
+      console.error('[Lexical nodes] Missing static getType() ->', name, N);
+    } else {
+      console.log('[Lexical nodes] OK ->', name);
+    }
+  });
+
+
   const initialConfig = {
     namespace: 'rte',
     editable: !readOnly,
@@ -137,6 +270,7 @@ function EditorCore(
       TableNode,
       TableRowNode,
       TableCellNode,
+      SlotNode,
     ],
   };
   return (
@@ -165,9 +299,20 @@ function EditorCore(
                     );
                     onChange?.(html);
                   });
+                  try {
+                    const json = state.toJSON();
+                    onChangeStateJson?.(json as unknown);
+                  } catch (e) {
+                    // eslint-disable-next-line no-console
+                    console.warn('[Lexical] Failed to serialize editor state to JSON', e);
+                  }
                 }}
               />
-              <HtmlPlugin html={initialHtml} />
+              {initialStateJson ? (
+                <StateJsonPlugin stateJson={initialStateJson} />
+              ) : (
+                initialHtml && <HtmlPlugin html={initialHtml} />
+              )}
               <ImperativeHandlePlugin ref={ref as any} />
             </div>
           </div>

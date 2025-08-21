@@ -202,13 +202,13 @@ export default function App() {
       <Route element={<BilanLayout />}>
         <Route path="/bilan/:bilanId" element={<Bilan />} />
         <Route path="/onboarding" element={<Onboarding />} />
+        <Route path="/creation-trame/:sectionId" element={<CreationTrame />} />
       </Route>
       <Route element={<ProtectedLayout />}>
         <Route path="/" element={<BilanV2 />} />
         <Route path="/patients" element={<Patients />} />
         <Route path="/agenda" element={<Agenda />} />
         <Route path="/bibliotheque" element={<Bibliotheque />} />
-        <Route path="/creation-trame/:sectionId" element={<CreationTrame />} />
         <Route path="/abonnement" element={<Abonnement />} />
         <Route path="/compte" element={<MonCompteV2 />} />
       </Route>

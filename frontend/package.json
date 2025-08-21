@@ -48,6 +48,7 @@
     "@lexical/react": "^0.33.1",
     "@lexical/rich-text": "^0.33.1",
     "@lexical/selection": "^0.33.1",
+    "@lexical/table": "0.33.1",
     "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-dialog": "^1.1.14",
@@ -65,9 +66,11 @@
     "clsx": "^2.1.1",
     "dompurify": "^3.2.6",
     "dotenv": "^16.5.0",
+    "html-docx-js-typescript": "^0.1.5",
     "keycloak-js": "^26.2.0",
     "lexical": "^0.33.1",
     "lucide-react": "^0.515.0",
+    "mammoth": "^1.8.0",
     "marked": "^16.1.1",
     "next": "^15.3.3",
     "react": "^19.1.0",
@@ -78,8 +81,6 @@
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
     "vite": "^7.1.0",
-    "mammoth": "^1.8.0",
-    "html-docx-js-typescript": "^0.1.5",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.2/xlsx-0.20.2.tgz",
     "zustand": "^5.0.5"
   }

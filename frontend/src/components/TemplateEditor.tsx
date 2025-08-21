@@ -11,12 +11,12 @@ interface Props {
 export default function TemplateEditor({ template, onChange }: Props) {
   const editorRef = useRef<RichTextEditorHandle>(null);
   return (
-    <div className="flex gap-4">
-      <div className="flex-1">
+    <div className="flex w-full gap-4">
+      <div className="basis-3/4 min-w-0">
         <RichTextEditor
           ref={editorRef}
           initialStateJson={template.ast}
-          onChange={(ast) => onChange({ ...template, ast })}
+          onChangeStateJson={(ast) => onChange({ ...template, ast })}
         />
         <div className="mt-4">
           <label className="block text-sm font-medium mb-1">Style prompt</label>
@@ -29,17 +29,19 @@ export default function TemplateEditor({ template, onChange }: Props) {
           />
         </div>
       </div>
-      <SlotSidebar
-        slots={template.slots}
-        onChange={(slots) => onChange({ ...template, slots })}
-        onAddSlot={(slot) =>
-          editorRef.current?.insertSlot(
-            slot.id,
-            slot.label ?? slot.id,
-            slot.type,
-          )
-        }
-      />
+      <div className="basis-1/4 shrink-0">
+        <SlotSidebar
+          slots={template.slots}
+          onChange={(slots) => onChange({ ...template, slots })}
+          onAddSlot={(slot) =>
+            editorRef.current?.insertSlot?.(
+              slot.id,
+              slot.label ?? slot.id,
+              slot.type,
+            )
+          }
+        />
+      </div>
     </div>
   );
 }

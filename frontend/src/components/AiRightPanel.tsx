@@ -235,25 +235,37 @@ export default function AiRightPanel({
     instId?: string,
   ) => {
     if (!instId) return;
-    await generateSection({
-      mode: 'template',
-      section,
-      trames,
-      selectedTrames,
-      answers,
-      newAnswers,
-      rawNotes,
-      instanceId: instId,
-      token,
-      bilanId,
-      kindMap,
-      setIsGenerating,
-      setSelectedSection,
-      setWizardSection,
-      onInsertText,
-      onSetEditorStateJson,
-      examples: examples as any,
-    });
+    try {
+      console.log('[AiRightPanel] handleGenerateFromTemplate start', {
+        sectionId: section.id,
+        instId,
+        hasNewAnswers: !!newAnswers,
+        hasRawNotes: !!rawNotes,
+      });
+      await generateSection({
+        mode: 'template',
+        section,
+        trames,
+        selectedTrames,
+        answers,
+        newAnswers,
+        rawNotes,
+        instanceId: instId,
+        token,
+        bilanId,
+        kindMap,
+        setIsGenerating,
+        setSelectedSection,
+        setWizardSection,
+        onInsertText,
+        onSetEditorStateJson,
+        examples: examples as any,
+      });
+      console.log('[AiRightPanel] handleGenerateFromTemplate done');
+    } catch (e) {
+      console.error('[AiRightPanel] handleGenerateFromTemplate error', e);
+      throw e;
+    }
   };
 
   const handleRefine = async () => {
