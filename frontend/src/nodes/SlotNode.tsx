@@ -1,4 +1,4 @@
-import { DecoratorNode, type LexicalNode, type NodeKey } from 'lexical';
+import { DecoratorNode, type LexicalNode, type NodeKey, type LexicalEditor, type DOMExportOutput } from 'lexical';
 import type { SlotType } from '../types/template';
 import React from 'react';
 
@@ -60,6 +60,21 @@ export class SlotNode extends DecoratorNode<JSX.Element> {
 
   updateDOM(): boolean {
     return false;
+  }
+
+  // Ensure custom node is exported to HTML when using $generateHtmlFromNodes
+  exportDOM(_editor: LexicalEditor): DOMExportOutput | null {
+    const span = document.createElement('span');
+    span.textContent = this.__slotLabel;
+    span.setAttribute('data-slot-id', this.__slotId);
+    span.setAttribute('data-slot-type', String(this.__slotType || ''));
+    span.setAttribute('data-optional', String(!!this.__optional));
+    span.style.backgroundColor = '#FEF08A'; // tailwind yellow-200
+    span.style.color = '#854D0E'; // tailwind yellow-800
+    span.style.padding = '0 2px';
+    span.style.borderRadius = '2px';
+    span.style.whiteSpace = 'nowrap';
+    return { element: span };
   }
 
   static importJSON(json: SerializedSlotNode): SlotNode {

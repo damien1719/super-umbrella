@@ -28,7 +28,7 @@ export default function SlotEditor({ slot, onChange, onRemove }: Props) {
         value={slot.label ?? ''}
         onChange={(e) => onChange({ label: e.target.value })}
       />
-      <label className="block text-xs mt-2">Mode</label>
+{/*       <label className="block text-xs mt-2">Mode</label>
       <select
         className="w-full border rounded p-1"
         value={slot.mode || 'user'}
@@ -39,7 +39,7 @@ export default function SlotEditor({ slot, onChange, onRemove }: Props) {
             {m}
           </option>
         ))}
-      </select>
+      </select> */}
       <label className="block text-xs mt-2">Type</label>
       <select
         className="w-full border rounded p-1"

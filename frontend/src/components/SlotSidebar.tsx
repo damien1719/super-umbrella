@@ -18,8 +18,8 @@ export default function SlotSidebar({ slots, onChange, onAddSlot }: Props) {
     const slot: Slot = {
       id: Date.now().toString(),
       type: 'text',
-      mode: 'user',
-      label: '',
+      mode: 'llm',
+      label: 'Nouveau slot ' + (slots.length + 1),
       options: [],
       prompt: '',
       pattern: '',
@@ -34,7 +34,7 @@ export default function SlotSidebar({ slots, onChange, onAddSlot }: Props) {
   };
 
   return (
-    <aside className="w-64 border-l pl-4 space-y-4">
+    <aside className="w-120 border-l pl-4 space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="font-semibold">Slots</h3>
         <button
@@ -50,7 +50,7 @@ export default function SlotSidebar({ slots, onChange, onAddSlot }: Props) {
           key={slot.id}
           slot={slot}
           onChange={(partial) => updateSlot(idx, partial)}
-          onRemove={() => removeSlot(slot.id)}
+         onRemove={() => removeSlot(slot.id)}
         />
       ))}
     </aside>

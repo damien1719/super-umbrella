@@ -26,7 +26,8 @@ import {
 } from './ui/select';
 import { useEditorUi } from '@/store/editorUi';
 import { $createHeadingNode, $createQuoteNode, $isHeadingNode } from '@lexical/rich-text';
-// HTML generation removed; we now avoid converting to HTML inside the editor
+import { $generateHtmlFromNodes } from '@lexical/html';
+// We convert Lexical state to HTML for Word export to preserve formatting
 import { toDocxBlob } from '@/lib/htmlDocx';
 
 export function setFontSize(editor: LexicalEditor, size: string) {
@@ -368,18 +369,23 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
       <Button
         type="button"
         onClick={async () => {
-          // Fallback export: use plain text from the editor state
-          let plainText = '';
+          let html = '';
           try {
-            editor.getEditorState().read(() => {
-              plainText = $getRoot().getTextContent();
+            html = editor.getEditorState().read(() => {
+              return $generateHtmlFromNodes(editor);
             });
-          } catch {}
-          const escaped = (plainText || '').split('\n').map((line) => `<p>${line.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</p>`).join('');
+          } catch {
+            // ignore and keep html as empty
+          }
           const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="ie=edge"/><style>
             body { font-family: ${fontFamily}; font-size: ${fontSize}pt; line-height: ${lineHeight}; }
             p { margin: 0 0 8px 0; }
-          </style></head><body>${escaped}</body></html>`;
+            blockquote { margin: 0 0 8px 0; padding-left: 12px; border-left: 3px solid #ccc; }
+            h1 { font-size: 2em; margin: 0 0 12px 0; }
+            h2 { font-size: 1.5em; margin: 0 0 10px 0; }
+            h3 { font-size: 1.17em; margin: 0 0 8px 0; }
+            ul, ol { margin: 0 0 8px 24px; }
+          </style></head><body>${html}</body></html>`;
           try {
             const blob = await toDocxBlob(fullHtml);
             const url = URL.createObjectURL(blob);
