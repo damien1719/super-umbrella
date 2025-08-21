@@ -5,41 +5,34 @@ import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { ListPlugin } from '@lexical/react/LexicalListPlugin';
 import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
-import {
-  $getRoot,
-  $getSelection,
-  $insertNodes,
-  $createParagraphNode,
-  $createTextNode,
-} from 'lexical';
+import { $generateHtmlFromNodes, $generateNodesFromDOM } from '@lexical/html';
+import { $getRoot, $getSelection, $insertNodes } from 'lexical';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { ToolbarPlugin } from './RichTextToolbar';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { LinkNode } from '@lexical/link';
 import { ListNode, ListItemNode } from '@lexical/list';
 import { useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
-// HTML/Markdown parsing removed: we now work exclusively with Lexical JSON editor state
+import DOMPurify from 'dompurify';
+import { marked } from 'marked';
 import { HeadingNode, QuoteNode } from '@lexical/rich-text';
-import { SlotNode, $createSlotNode } from '../nodes/SlotNode';
+import { TableNode, TableRowNode, TableCellNode } from '@lexical/table';
+import { TablePlugin } from '@lexical/react/LexicalTablePlugin';
 import { useVirtualSelection } from '../hooks/useVirtualSelection';
-import type { SlotType } from '../types/template';
 
 export interface RichTextEditorHandle {
-  setEditorStateJson: (state: unknown) => void;
-  getEditorStateJson: () => unknown;
-  insertPlainText: (text: string) => void;
-  insertSlot: (slotId: string, slotLabel: string, slotType: SlotType) => void;
+  insertHtml: (html: string) => void;
 }
 
 interface Props {
-  initialStateJson: unknown;
+  initialHtml: string;
   readOnly?: boolean;
-  onChange?: (stateJson: unknown) => void;
+  onChange?: (html: string) => void;
   onSave?: () => void;
   exportFileName?: string;
 }
 
-function JsonStatePlugin({ state }: { state: unknown }) {
+function HtmlPlugin({ html }: { html: string }) {
   const [editor] = useLexicalComposerContext();
   const hasLoaded = useRef(false);
 
@@ -47,105 +40,69 @@ function JsonStatePlugin({ state }: { state: unknown }) {
     if (hasLoaded.current) return; // on ne ré‑injecte jamais deux fois
     hasLoaded.current = true;
 
-    try {
-      const parsed = editor.parseEditorState(state as string);
-      editor.setEditorState(parsed);
-    } catch {
-      // fallback: empty document
-      editor.update(() => {
-        const root = $getRoot();
-        root.clear();
-        const p = $createParagraphNode();
-        p.append($createTextNode(''));
-        root.append(p);
-      });
-    }
-  }, [editor, state]);
+    editor.update(() => {
+      const dom = new DOMParser().parseFromString(html, 'text/html');
+      const nodes = $generateNodesFromDOM(editor, dom);
+      const root = $getRoot();
+      root.clear();
+      root.append(...nodes);
+    });
+  }, [editor, html]);
   return null;
 }
 
-const ImperativeHandlePlugin = forwardRef<RichTextEditorHandle, object>(
-  function ImperativeHandlePlugin(_, ref) {
-    const [editor] = useLexicalComposerContext();
+const ImperativeHandlePlugin = forwardRef<
+  RichTextEditorHandle,
+  object
+>(function ImperativeHandlePlugin(_, ref) {
+  const [editor] = useLexicalComposerContext();
 
-    useImperativeHandle(
-      ref,
-      () => ({
-        setEditorStateJson(state: unknown) {
-          try {
-            if (typeof state === 'string') {
-              const parsed = editor.parseEditorState(state);
-              editor.setEditorState(parsed);
-            } else if (state && typeof state === 'object') {
-              // Si c'est un objet, on le convertit en string JSON d'abord
-              const jsonString = JSON.stringify(state);
-              const parsed = editor.parseEditorState(jsonString);
-              editor.setEditorState(parsed);
-            }
-          } catch (error) {
-            console.error('Error setting editor state:', error);
-            // ignore invalid state
-          }
-        },
-        getEditorStateJson() {
-          try {
-            return editor.getEditorState().toJSON();
-          } catch {
-            return null;
-          }
-        },
-        insertPlainText(text: string) {
-          editor.update(() => {
-            const lines = (text ?? '').split(/\r?\n/);
-            const nodes = lines.map((line) => {
-              const p = $createParagraphNode();
-              p.append($createTextNode(line));
-              return p;
-            });
-            const selection = $getSelection();
-            if (selection) {
-              $insertNodes(nodes);
-            } else {
-              $getRoot().append(...nodes);
-            }
-            editor.focus();
-          });
-        },
-        insertSlot(slotId: string, slotLabel: string, slotType: SlotType) {
-          editor.update(() => {
-            const node = $createSlotNode(
-              slotId,
-              slotLabel,
-              slotType,
-              false,
-              '…',
-            );
-            const selection = $getSelection();
-            if (selection) {
-              $insertNodes([node]);
-            } else {
-              $getRoot().append(node);
-            }
-            editor.focus();
-          });
-        },
-      }),
-      [editor],
-    );
+  useImperativeHandle(
+    ref,
+    () => ({
+      insertHtml(html: string) {
+        editor.update(() => {
+          const parser = new DOMParser();
+          const mdHtml = marked.parse(html);
+          const dom = parser.parseFromString(
+            `<div>${mdHtml}</div>`,
+            'text/html',
+          );
 
-    return null;
-  },
-);
+          const nodes = $generateNodesFromDOM(editor, dom);
+
+          // 4. Insérer au curseur ou à la fin
+          const selection = $getSelection();
+          if (selection) {
+            $insertNodes(nodes);
+          } else {
+            $getRoot().append(...nodes);
+          }
+
+          editor.focus();
+          /*        const firstNode = nodes[0];
+          const lastNode = nodes[nodes.length - 1];
+          if (firstNode && lastNode) {
+            const range = $createRangeSelection();
+            range.anchor.set(firstNode.getKey(), 0, 'element');
+            const length = lastNode.getTextContentSize
+              ? lastNode.getTextContentSize()
+              : lastNode.getTextContent().length;
+            range.focus.set(lastNode.getKey(), length, 'element');
+            $setSelection(range);
+          } */
+        });
+      },
+    }),
+    [editor],
+  );
+
+  return null;
+});
 
 function EditorCore(
-  {
-    initialStateJson = null,
-    readOnly = false,
-    onChange = () => {},
-    onSave,
-    exportFileName,
-  }: Props = {
-    initialStateJson: null,
+  { initialHtml = '', readOnly = false, onChange = () => {}, onSave, exportFileName }: Props = {
+    initialHtml: '',
     readOnly: false,
     onChange: () => {},
     onSave: undefined,
@@ -171,18 +128,22 @@ function EditorCore(
         bold: 'font-bold',
       },
     },
-    nodes: [ListNode, ListItemNode, LinkNode, HeadingNode, QuoteNode, SlotNode],
+    nodes: [
+      ListNode,
+      ListItemNode,
+      LinkNode,
+      HeadingNode,
+      QuoteNode,
+      TableNode,
+      TableRowNode,
+      TableCellNode,
+    ],
   };
   return (
     <LexicalComposer initialConfig={initialConfig}>
-      {!readOnly && (
-        <ToolbarPlugin onSave={onSave} exportFileName={exportFileName} />
-      )}
+      {!readOnly && <ToolbarPlugin onSave={onSave} exportFileName={exportFileName} />}
       <div className="relative h-full">
-        <div
-          ref={editorRef as unknown as React.RefObject<HTMLDivElement>}
-          className="h-full bg-wood-100 p-8 overflow-auto"
-        >
+        <div ref={editorRef as unknown as React.RefObject<HTMLDivElement>} className="h-full bg-wood-100 p-8 overflow-auto">
           <div className="flex justify-center">
             <div className="bg-paper-50 border border-gray-300 rounded shadow p-16 w-full max-w-3xl min-h-[100vh] flex flex-col">
               <RichTextPlugin
@@ -195,16 +156,19 @@ function EditorCore(
               <HistoryPlugin />
               <ListPlugin />
               <LinkPlugin />
+              <TablePlugin hasCellMerge hasCellBackgroundColor />
               <OnChangePlugin
-                onChange={(state) => {
-                  try {
-                    const json = state.toJSON();
-                    onChange?.(json);
-                  } catch {}
+                onChange={(state, editor) => {
+                  state.read(() => {
+                    const html = DOMPurify.sanitize(
+                      $generateHtmlFromNodes(editor),
+                    );
+                    onChange?.(html);
+                  });
                 }}
               />
-              <JsonStatePlugin state={initialStateJson} />
-              <ImperativeHandlePlugin ref={ref} />
+              <HtmlPlugin html={initialHtml} />
+              <ImperativeHandlePlugin ref={ref as any} />
             </div>
           </div>
         </div>

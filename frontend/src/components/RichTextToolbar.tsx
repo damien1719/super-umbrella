@@ -6,7 +6,6 @@ import {
   type LexicalEditor,
   $createParagraphNode,
   $isRootOrShadowRoot,
-  $getRoot,
 } from 'lexical';
 import {
   INSERT_UNORDERED_LIST_COMMAND,
@@ -26,8 +25,9 @@ import {
 } from './ui/select';
 import { useEditorUi } from '@/store/editorUi';
 import { $createHeadingNode, $createQuoteNode, $isHeadingNode } from '@lexical/rich-text';
+import { INSERT_TABLE_COMMAND } from '@lexical/table';
 import { $generateHtmlFromNodes } from '@lexical/html';
-// We convert Lexical state to HTML for Word export to preserve formatting
+import DOMPurify from 'dompurify';
 import { toDocxBlob } from '@/lib/htmlDocx';
 
 export function setFontSize(editor: LexicalEditor, size: string) {
@@ -245,6 +245,9 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
   );
 
   // Tableau retiré temporairement (cause d'instabilité de certaines versions Lexical)
+  const insertTable = useCallback(() => {
+    editor.dispatchCommand(INSERT_TABLE_COMMAND, { columns: '3', rows: '3' } as any);
+  }, [editor]);
 
   return (
     <div className="sticky top-0 z-10 flex space-x-2 bg-wood-50 border-b border-wood-200 p-2">
@@ -337,7 +340,16 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
         <span style={{ textDecoration: 'underline' }}>U</span>
       </Button>
       <div className="w-px self-stretch bg-wood-200 mx-1" />
-      {/* Bouton tableau retiré temporairement */}
+      <Button
+        type="button"
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={insertTable}
+        variant="editor"
+        aria-label="Insérer un tableau"
+        title="Insérer un tableau 3×3"
+      >
+        Tbl
+      </Button>
       
       <Button
         type="button"
@@ -371,20 +383,18 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
         onClick={async () => {
           let html = '';
           try {
-            html = editor.getEditorState().read(() => {
-              return $generateHtmlFromNodes(editor);
+            editor.getEditorState().read(() => {
+              html = DOMPurify.sanitize($generateHtmlFromNodes(editor));
             });
-          } catch {
-            // ignore and keep html as empty
-          }
+          } catch {}
           const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="ie=edge"/><style>
             body { font-family: ${fontFamily}; font-size: ${fontSize}pt; line-height: ${lineHeight}; }
             p { margin: 0 0 8px 0; }
-            blockquote { margin: 0 0 8px 0; padding-left: 12px; border-left: 3px solid #ccc; }
-            h1 { font-size: 2em; margin: 0 0 12px 0; }
-            h2 { font-size: 1.5em; margin: 0 0 10px 0; }
-            h3 { font-size: 1.17em; margin: 0 0 8px 0; }
+            h1 { font-size: 24pt; margin: 16pt 0 8pt; }
+            h2 { font-size: 18pt; margin: 14pt 0 6pt; }
+            h3 { font-size: 14pt; margin: 12pt 0 6pt; }
             ul, ol { margin: 0 0 8px 24px; }
+            li { margin: 4px 0; }
           </style></head><body>${html}</body></html>`;
           try {
             const blob = await toDocxBlob(fullHtml);
