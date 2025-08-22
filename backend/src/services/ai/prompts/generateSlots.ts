@@ -2,23 +2,22 @@ import { z } from 'zod';
 import { openaiProvider } from '../providers/openai.provider';
 import { createHash } from 'crypto';
 
-export type SlotSpec = {
-  mode: 'user' | 'computed' | 'llm';
-  type: 'text' | 'number' | 'list' | 'table';
-  pattern?: string;
-  deps?: string[];
-  prompt?: string;
-};
+import type { SlotSpec } from '../../../types/template';
 
 type Notes = Record<string, unknown>;
+
+function isFieldSpec(spec: SlotSpec): spec is import('../../../types/template').FieldSpec {
+  return spec.kind === 'field';
+}
 
 export function buildPrompt(ids: string[], spec: Record<string, SlotSpec>, notes: Notes, style?: string) {
   const schema: Record<string, string> = {};
   const prompts: Record<string, string> = {};
 
   ids.forEach((id) => {
-    schema[id] = spec[id]?.type || 'text';
-    const slotPrompt = (notes as any)?.[`${id}_prompt`] || (spec[id] as any)?.prompt || '';
+    const slotSpec = spec[id];
+    schema[id] = (slotSpec && isFieldSpec(slotSpec)) ? slotSpec.type : 'text';
+    const slotPrompt = (notes as any)?.[`${id}_prompt`] || (slotSpec && isFieldSpec(slotSpec) ? slotSpec.prompt : '') || '';
     if (slotPrompt) prompts[id] = slotPrompt;
   });
 
@@ -57,7 +56,8 @@ Règles STRICTES :
 export function buildZod(ids: string[], spec: Record<string, SlotSpec>) {
 /*   const shape: Record<string, z.ZodTypeAny> = {};
   ids.forEach((id) => {
-    const t = spec[id]?.type;
+    const slotSpec = spec[id];
+    const t = (slotSpec && isFieldSpec(slotSpec)) ? slotSpec.type : 'text';
     switch (t) {
       case 'number':
         shape[id] = z.number();
@@ -156,7 +156,17 @@ function normalizeToArray(data: unknown): Array<{ id: string; value: unknown }> 
 }
 
 export async function callModel(ids: string[], spec: Record<string, SlotSpec>, notes: Notes, style?: string) {
+  console.log('[DEBUG] callModel - STARTED', {
+    idsCount: ids.length,
+    ids: ids,
+    hasNotes: !!notes,
+    notesKeys: Object.keys(notes || {}),
+    hasStyle: !!style,
+    styleLength: style?.length || 0,
+  });
+
   if (ids.length === 0) {
+    console.log('[DEBUG] callModel - No IDs to process, returning empty result');
     return { slots: {}, promptHash: '' } as { slots: Record<string, unknown>; promptHash: string };
   }
 
@@ -164,25 +174,90 @@ export async function callModel(ids: string[], spec: Record<string, SlotSpec>, n
   const mergedSlots: Record<string, unknown> = {};
   const promptsForHash: string[] = [];
 
-  for (const batch of idBatches) {
+  console.log('[DEBUG] callModel - Processing in batches:', {
+    totalIds: ids.length,
+    batchCount: idBatches.length,
+    maxBatchSize: MAX_BATCH,
+    batches: idBatches.map(batch => ({ size: batch.length, ids: batch })),
+  });
+
+  for (let batchIndex = 0; batchIndex < idBatches.length; batchIndex++) {
+    const batch = idBatches[batchIndex];
+    console.log(`[DEBUG] callModel - Processing batch ${batchIndex + 1}/${idBatches.length}:`, {
+      batchSize: batch.length,
+      batchIds: batch,
+    });
+
     const prompt = buildPrompt(batch, spec, notes, style);
+    console.log(`[DEBUG] callModel - Batch ${batchIndex + 1} prompt built:`, {
+      promptLength: prompt.length,
+      promptPreview: prompt.slice(0, 300) + '...',
+    });
+
     promptsForHash.push(prompt);
     const messages = [{ role: 'user', content: prompt }];
 
+    console.log(`[DEBUG] callModel - Batch ${batchIndex + 1} calling OpenAI...`);
     const raw = await openaiProvider.chat({ messages } as unknown as import('openai/resources/index').ChatCompletionCreateParams);
+
+    console.log(`[DEBUG] callModel - Batch ${batchIndex + 1} LLM response received:`, {
+      rawType: typeof raw,
+      rawLength: typeof raw === 'string' ? raw.length : 'N/A',
+      rawPreview: typeof raw === 'string' ? raw.slice(0, 500) + '...' : JSON.stringify(raw).slice(0, 500) + '...',
+    });
+
     const parsed = parseJsonLoose(raw);
+    console.log(`[DEBUG] callModel - Batch ${batchIndex + 1} parsed JSON:`, {
+      parsedType: typeof parsed,
+      parsedKeys: typeof parsed === 'object' ? Object.keys(parsed || {}) : 'N/A',
+      parsedPreview: JSON.stringify(parsed).slice(0, 300) + '...',
+    });
+
     const normalized = normalizeToArray(parsed);
+    console.log(`[DEBUG] callModel - Batch ${batchIndex + 1} normalized data:`, {
+      normalizedLength: normalized.length,
+      normalizedItems: normalized.map(item => ({ id: item.id, valueType: typeof item.value, valuePreview: String(item.value).slice(0, 100) })),
+    });
 
     const schema = buildZod(batch, spec);
-    const batchSlots = schema.parse(normalized as unknown as object) as Record<string, unknown>;
-    Object.assign(mergedSlots, batchSlots);
+    console.log(`[DEBUG] callModel - Batch ${batchIndex + 1} applying Zod schema...`);
+
+    try {
+      const batchSlots = schema.parse(normalized as unknown as object) as Record<string, unknown>;
+      console.log(`[DEBUG] callModel - Batch ${batchIndex + 1} Zod validation successful:`, {
+        batchSlotsKeys: Object.keys(batchSlots),
+        batchSlotsCount: Object.keys(batchSlots).length,
+        batchSlotsPreview: Object.entries(batchSlots).slice(0, 3),
+      });
+
+      Object.assign(mergedSlots, batchSlots);
+      console.log(`[DEBUG] callModel - Batch ${batchIndex + 1} merged into final slots, current total:`, {
+        mergedSlotsCount: Object.keys(mergedSlots).length,
+        mergedSlotsKeys: Object.keys(mergedSlots),
+      });
+    } catch (error) {
+      console.error(`[DEBUG] callModel - Batch ${batchIndex + 1} Zod validation ERROR:`, error);
+      console.error(`[DEBUG] callModel - Batch ${batchIndex + 1} Zod error details:`, {
+        error: error,
+        message: error instanceof Error ? error.message : 'Unknown error',
+      });
+      throw error;
+    }
   }
 
+  console.log('[DEBUG] callModel - All batches processed, finalizing...');
   const hasher = createHash('sha256');
   for (const p of promptsForHash) {
     hasher.update(p);
   }
   const promptHash = hasher.digest('hex');
+
+  console.log('[DEBUG] callModel - COMPLETED successfully:', {
+    finalSlotsCount: Object.keys(mergedSlots).length,
+    finalSlotsKeys: Object.keys(mergedSlots),
+    promptHash: promptHash,
+    finalSlotsPreview: Object.entries(mergedSlots).slice(0, 5),
+  });
 
   return { slots: mergedSlots, promptHash } as { slots: Record<string, unknown>; promptHash: string };
 }

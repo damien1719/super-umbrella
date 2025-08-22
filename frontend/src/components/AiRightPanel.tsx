@@ -208,12 +208,12 @@ export default function AiRightPanel({
     await generateSection({
       mode: 'direct',
       section,
-      trames,
+      trames: trames as any,
       selectedTrames,
       answers,
       newAnswers,
       rawNotes,
-      token,
+      token: token || '',
       bilanId,
       kindMap,
       setIsGenerating,
@@ -234,24 +234,40 @@ export default function AiRightPanel({
     rawNotes?: string,
     instId?: string,
   ) => {
-    if (!instId) return;
+    console.log('[AiRightPanel] handleGenerateFromTemplate - STARTED', {
+      sectionId: section.id,
+      sectionTitle: section.title,
+      instId,
+      hasNewAnswers: !!newAnswers,
+      hasRawNotes: !!rawNotes,
+      rawNotesLength: rawNotes?.length || 0,
+      newAnswersKeys: Object.keys(newAnswers || {}),
+      selectedTramesForSection: selectedTrames[section.id],
+      currentAnswersKeys: Object.keys(answers[section.id] || {}),
+    });
+
+    if (!instId) {
+      console.error(
+        '[AiRightPanel] handleGenerateFromTemplate - ERROR: No instanceId provided',
+      );
+      return;
+    }
+
     try {
-      console.log('[AiRightPanel] handleGenerateFromTemplate start', {
-        sectionId: section.id,
-        instId,
-        hasNewAnswers: !!newAnswers,
-        hasRawNotes: !!rawNotes,
-      });
-      await generateSection({
-        mode: 'template',
+      console.log(
+        '[AiRightPanel] handleGenerateFromTemplate - Preparing generation params...',
+      );
+
+      const generationParams = {
+        mode: 'template' as const,
         section,
-        trames,
+        trames: trames as any,
         selectedTrames,
         answers,
         newAnswers,
         rawNotes,
         instanceId: instId,
-        token,
+        token: token || '',
         bilanId,
         kindMap,
         setIsGenerating,
@@ -260,10 +276,48 @@ export default function AiRightPanel({
         onInsertText,
         onSetEditorStateJson,
         examples: examples as any,
-      });
-      console.log('[AiRightPanel] handleGenerateFromTemplate done');
+      };
+
+      console.log(
+        '[AiRightPanel] handleGenerateFromTemplate - Generation params prepared:',
+        {
+          mode: generationParams.mode,
+          sectionId: generationParams.section.id,
+          instanceId: generationParams.instanceId,
+          hasToken: !!generationParams.token,
+          hasBilanId: !!generationParams.bilanId,
+          hasNewAnswers: !!generationParams.newAnswers,
+          hasRawNotes: !!generationParams.rawNotes,
+          hasOnSetEditorStateJson: !!generationParams.onSetEditorStateJson,
+          hasOnInsertText: !!generationParams.onInsertText,
+        },
+      );
+
+      console.log(
+        '[AiRightPanel] handleGenerateFromTemplate - About to call generateSection...',
+      );
+
+      await generateSection(generationParams);
+
+      console.log(
+        '[AiRightPanel] handleGenerateFromTemplate - generateSection completed successfully',
+      );
+      console.log(
+        '[AiRightPanel] handleGenerateFromTemplate - DONE - Template generation completed',
+      );
     } catch (e) {
-      console.error('[AiRightPanel] handleGenerateFromTemplate error', e);
+      console.error(
+        '[AiRightPanel] handleGenerateFromTemplate - ERROR occurred:',
+        e,
+      );
+      console.error(
+        '[AiRightPanel] handleGenerateFromTemplate - Error details:',
+        {
+          error: e,
+          errorMessage: e instanceof Error ? e.message : 'Unknown error',
+          errorStack: e instanceof Error ? e.stack : 'No stack trace',
+        },
+      );
       throw e;
     }
   };
@@ -572,7 +626,12 @@ export default function AiRightPanel({
                               handleGenerate(section, latest, notes)
                             }
                             onGenerateFromTemplate={(latest, notes, id) =>
-                              handleGenerateFromTemplate(section, latest, notes, id)
+                              handleGenerateFromTemplate(
+                                section,
+                                latest,
+                                notes,
+                                id,
+                              )
                             }
                             isGenerating={
                               isGenerating && selectedSection === section.id

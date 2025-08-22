@@ -1,6 +1,12 @@
-import { DecoratorNode, type LexicalNode, type NodeKey, type LexicalEditor, type DOMExportOutput } from 'lexical';
+import {
+  DecoratorNode,
+  type LexicalNode,
+  type NodeKey,
+  type LexicalEditor,
+  type DOMExportOutput,
+} from 'lexical';
 import type { SlotType } from '../types/template';
-import React from 'react';
+import * as React from 'react';
 
 export type SerializedSlotNode = {
   type: 'slot';

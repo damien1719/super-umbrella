@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -41,8 +41,8 @@ export function QuestionRenderer({
           ? Array.isArray((value as any).options)
             ? ((value as any).options as string[])
             : (value as any).option
-            ? [String((value as any).option)]
-            : []
+              ? [String((value as any).option)]
+              : []
           : [];
       const comment =
         typeof value === 'object' && value !== null

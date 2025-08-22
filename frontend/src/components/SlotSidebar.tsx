@@ -1,4 +1,9 @@
-import type { SlotSpec, FieldSpec, GroupSpec, RepeatSpec } from '../types/template';
+import type {
+  SlotSpec,
+  FieldSpec,
+  GroupSpec,
+  RepeatSpec,
+} from '../types/template';
 import SlotEditor from './SlotEditor';
 import { Button } from './ui/button';
 import { Card, CardHeader, CardContent } from './ui/card';
@@ -10,7 +15,33 @@ interface Props {
   onUpdateSlot?: (slotId: string, slotLabel: string) => void;
 }
 
-export default function SlotSidebar({ slots, onChange, onAddSlot, onUpdateSlot }: Props) {
+export default function SlotSidebar({
+  slots,
+  onChange,
+  onAddSlot,
+  onUpdateSlot,
+}: Props) {
+  // Debug logs
+  console.log('[DEBUG] SlotSidebar - Props received:', {
+    slotsCount: slots?.length || 0,
+    slotsType: typeof slots,
+    isArray: Array.isArray(slots),
+    slotsContent: JSON.stringify(slots, null, 2),
+  });
+
+  if (slots && slots.length > 0) {
+    console.log('[DEBUG] SlotSidebar - First few slots structure:');
+    slots.slice(0, 3).forEach((slot, idx) => {
+      console.log(`[DEBUG] SlotSidebar - Slot ${idx}:`, {
+        kind: (slot as any).kind,
+        id: (slot as any).id,
+        label: (slot as any).label,
+        type: (slot as any).type,
+        fullSlot: slot,
+      });
+    });
+  }
+
   const simpleTpl = (input: string, ctx: Record<string, unknown>) =>
     String(input || '').replace(/\{\{\s*([\w\.]+)\s*\}\}/g, (_, key) => {
       const parts = String(key).split('.');
@@ -20,13 +51,14 @@ export default function SlotSidebar({ slots, onChange, onAddSlot, onUpdateSlot }
     });
 
   const updateSlot = (index: number, updated: SlotSpec) => {
-    const next = [...slots];
+    const next = [...(slots || [])];
     next[index] = updated;
     onChange(next);
   };
 
   const addField = () => {
     const slot: FieldSpec = {
+      kind: 'field',
       id: `field-${Date.now()}`,
       type: 'text',
       mode: 'llm',
@@ -42,6 +74,7 @@ export default function SlotSidebar({ slots, onChange, onAddSlot, onUpdateSlot }
   const addGroup = () => {
     const groupId = `group-${Date.now()}`;
     const firstField: FieldSpec = {
+      kind: 'field',
       id: `${groupId}.field-1`,
       type: 'text',
       mode: 'llm',
@@ -70,7 +103,8 @@ export default function SlotSidebar({ slots, onChange, onAddSlot, onUpdateSlot }
       namePattern: '',
       slots: [
         {
-          id: `${repId}.{{item.key}}.champ_1`,
+          kind: 'field',
+          id: `field-${Date.now()}`,
           type: 'text',
           mode: 'llm',
           label: 'Champ_1',
@@ -83,42 +117,46 @@ export default function SlotSidebar({ slots, onChange, onAddSlot, onUpdateSlot }
     if ('enum' in rep.from && rep.slots.length > 0) {
       for (const it of rep.from.enum) {
         for (const child of rep.slots) {
-          const stableId = `${repId}.${it.key}.${child.id}`;   // id interne stable
-          const fieldIndex = rep.slots.indexOf(child) + 1;
-          const cleanLabel = it.label.replace(/^value_?/, '').replace(/_/g, '');
-          const displayLabel = `${cleanLabel}_slot${fieldIndex}`; // pour l'UI
-          onAddSlot?.({ ...child, id: stableId, label: displayLabel });
+          if (child.kind === 'field' && 'id' in child) {
+            const stableId = `${repId}.${it.key}.${child.id}`; // id interne stable
+            const fieldIndex = rep.slots.indexOf(child) + 1;
+            const cleanLabel = it.label
+              .replace(/^value_?/, '')
+              .replace(/_/g, '');
+            const displayLabel = `${cleanLabel}_slot${fieldIndex}`; // pour l'UI
+            onAddSlot?.({ ...child, id: stableId, label: displayLabel });
+          }
         }
       }
     }
   };
 
   const removeSlot = (id: string) => {
-    onChange(slots.filter((s) => (s as any).id !== id));
+    onChange((slots || []).filter((s) => (s as any).id !== id));
   };
 
   return (
     <aside className="w-120 border-l">
       <Card className="border-0 shadow-none">
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-2">
           <div className="flex justify-between items-center">
-            <h3 className="font-semibold">Slots</h3>
+            <h3 className="font-semibold text-sm">Slots</h3>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-2 flex-wrap">
+        <CardContent className="space-y-2 pt-2">
+          <div className="flex gap-1 flex-wrap">
             <Button size="sm" variant="outline" onClick={addField}>
-              + Ajouter un champ
+              + Champ
             </Button>
             <Button size="sm" variant="outline" onClick={addGroup}>
-              + Ajouter un groupe
+              + Groupe
             </Button>
             <Button size="sm" variant="outline" onClick={addRepeat}>
-              + Ajouter un répéteur
+              + Répéteur
             </Button>
           </div>
-          <div className="space-y-2">
-            {slots.map((slot, idx) => (
+          <div className="space-y-1">
+            {(slots || []).map((slot, idx) => (
               <SlotEditor
                 key={(slot as any).id || `${(slot as any).kind}-${idx}`}
                 slot={slot}

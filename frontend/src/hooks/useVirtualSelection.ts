@@ -1,10 +1,10 @@
-import { useEffect } from 'react';
+import * as React from 'react';
 import { useEditorUi } from '../store/editorUi';
 
 export function useVirtualSelection(editorRef: React.RefObject<HTMLElement>) {
   const setSelection = useEditorUi((s) => s.setSelection);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const onChange = () => {
       const sel = window.getSelection();
       const mode = useEditorUi.getState().mode;
@@ -50,7 +50,14 @@ export function useVirtualSelection(editorRef: React.RefObject<HTMLElement>) {
 
       const clear = () => setSelection(null);
 
-      setSelection({ rects, text, htmlFragment, isCollapsed: sel.isCollapsed, restore, clear });
+      setSelection({
+        rects,
+        text,
+        htmlFragment,
+        isCollapsed: sel.isCollapsed,
+        restore,
+        clear,
+      });
     };
 
     document.addEventListener('selectionchange', onChange);

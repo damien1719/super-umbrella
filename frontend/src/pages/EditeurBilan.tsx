@@ -33,7 +33,9 @@ export default function Bilan() {
   const setMode = useEditorUi((s) => s.setMode);
   const setSelection = useEditorUi((s) => s.setSelection);
 
-  const hasChanges = JSON.stringify(bilan?.descriptionJson ?? null) !== JSON.stringify(descriptionJson ?? null);
+  const hasChanges =
+    JSON.stringify(bilan?.descriptionJson ?? null) !==
+    JSON.stringify(descriptionJson ?? null);
 
   const handleBack = async () => {
     if (hasChanges) {
@@ -63,7 +65,7 @@ export default function Bilan() {
   }, [setMode, setSelection]);
 
   const save = async () => {
-    if (!bilanId) return;
+    if (!bilanId || !bilan) return;
     const res = await apiFetch<BilanData>(`/api/v1/bilans/${bilanId}`, {
       method: 'PUT',
       headers: {
@@ -83,7 +85,9 @@ export default function Bilan() {
         <Button variant="ghost" onClick={handleBack} className="px-2 py-1">
           Retour
         </Button>
-        <h1 className="flex-1 text-center text-lg font-semibold">{bilan.title}</h1>
+        <h1 className="flex-1 text-center text-lg font-semibold">
+          {bilan.title}
+        </h1>
       </div>
 
       <div className="flex-1 overflow-hidden">
@@ -93,7 +97,7 @@ export default function Bilan() {
               <RichTextEditor
                 ref={editorRef}
                 initialStateJson={descriptionJson ?? null}
-                onChange={setStateJson}
+                onChangeStateJson={setStateJson}
                 onSave={save}
                 exportFileName={bilan.title || 'Bilan'}
               />
@@ -107,7 +111,10 @@ export default function Bilan() {
                   bilanId={bilanId}
                   onInsertText={(text) => editorRef.current?.insertHtml(text)}
                   onSetEditorStateJson={(st) => {
-                    console.log('[EditeurBilan] onSetEditorStateJson called with:', st);
+                    console.log(
+                      '[EditeurBilan] onSetEditorStateJson called with:',
+                      st,
+                    );
                     editorRef.current?.setEditorStateJson(st);
                   }}
                   initialWizardSection={state?.wizardSection}

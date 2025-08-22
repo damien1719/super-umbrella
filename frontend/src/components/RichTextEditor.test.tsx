@@ -1,6 +1,6 @@
+import * as React from 'react';
 import { render, waitFor } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import React from 'react';
 import RichTextEditor, { type RichTextEditorHandle } from './RichTextEditor';
 import { setFontFamily, setFontSize } from './RichTextToolbar';
 import { $getRoot, TextNode, type LexicalEditor } from 'lexical';
@@ -13,7 +13,15 @@ describe('RichTextEditor', () => {
         children: [
           {
             children: [
-              { detail: 0, format: 0, mode: 'normal', style: '', text: 'Hello', type: 'text', version: 1 },
+              {
+                detail: 0,
+                format: 0,
+                mode: 'normal',
+                style: '',
+                text: 'Hello',
+                type: 'text',
+                version: 1,
+              },
             ],
             direction: null,
             format: '',
@@ -30,7 +38,11 @@ describe('RichTextEditor', () => {
       },
     };
     const { container } = render(
-      <RichTextEditor ref={ref} initialStateJson={initialState} onChange={() => {}} />,
+      <RichTextEditor
+        ref={ref}
+        initialStateJson={initialState}
+        onChange={() => {}}
+      />,
     );
     await waitFor(() => expect(ref.current).not.toBeNull());
     const state = ref.current!.getEditorStateJson();
@@ -43,7 +55,15 @@ describe('RichTextEditor', () => {
         children: [
           {
             children: [
-              { detail: 0, format: 0, mode: 'normal', style: '', text: 'Hello', type: 'text', version: 1 },
+              {
+                detail: 0,
+                format: 0,
+                mode: 'normal',
+                style: '',
+                text: 'Hello',
+                type: 'text',
+                version: 1,
+              },
             ],
             direction: null,
             format: '',

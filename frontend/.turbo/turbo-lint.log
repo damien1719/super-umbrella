@@ -3,4 +3,3 @@
 > frontend@1.0.0 lint /Users/mossuz/Documents/Documents personnels/super-umbrella/frontend
 > eslint . --ext .ts,.tsx,.js,.jsx --fix
 
-Warning: React version not specified in eslint-plugin-react settings. See https://github.com/jsx-eslint/eslint-plugin-react#configuration .

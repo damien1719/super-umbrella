@@ -1,3 +1,9 @@
+import React, { useMemo, useEffect, useImperativeHandle, useRef, forwardRef } from 'react';
+
+// Debug React import
+console.log('[RichTextEditor] React import:', React);
+console.log('[RichTextEditor] useRef function:', useRef);
+console.log('[RichTextEditor] React.useRef:', React?.useRef);
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
@@ -12,7 +18,6 @@ import { ToolbarPlugin } from './RichTextToolbar';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { LinkNode } from '@lexical/link';
 import { ListNode, ListItemNode } from '@lexical/list';
-import { useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
 import DOMPurify from 'dompurify';
 import { marked } from 'marked';
 import { HeadingNode, QuoteNode } from '@lexical/rich-text';
@@ -23,15 +28,38 @@ import { SlotNode, $createSlotNode } from '../nodes/SlotNode';
 import type { SlotType } from '../types/template';
 
 export interface RichTextEditorHandle {
+  importHtml: (html: string) => void;
   insertHtml: (html: string) => void;
   setEditorStateJson: (state: unknown) => void;
+  getEditorStateJson?: () => unknown;
   insertSlot?: (slotId: string, slotLabel: string, slotType: SlotType) => void;
   updateSlot?: (slotId: string, slotLabel: string) => void;
 }
 
+// Safe default Lexical state with a non-empty root
+const DEFAULT_EMPTY_STATE = {
+  root: {
+    children: [
+      {
+        children: [],
+        direction: null,
+        format: '',
+        indent: 0,
+        type: 'paragraph',
+        version: 1,
+      },
+    ],
+    direction: null,
+    format: '',
+    indent: 0,
+    type: 'root',
+    version: 1,
+  },
+};
+
 interface Props {
-  initialHtml?: string;
   initialStateJson?: unknown;
+  templateKey?: string;
   readOnly?: boolean;
   onChange?: (html: string) => void;
   onChangeStateJson?: (stateJson: unknown) => void;
@@ -39,217 +67,164 @@ interface Props {
   exportFileName?: string;
 }
 
-function HtmlPlugin({ html }: { html: string }) {
-  const [editor] = useLexicalComposerContext();
-  const hasLoaded = useRef(false);
+// Removed HtmlPlugin and StateJsonPlugin: initial AST is provided via initialConfig.editorState and remount key
 
-  useEffect(() => {
-    if (hasLoaded.current) return; // on ne ré‑injecte jamais deux fois
-    hasLoaded.current = true;
+const ImperativeHandlePlugin = forwardRef<RichTextEditorHandle, object>(function ImperativeHandlePlugin(_, ref) {
+    const [editor] = useLexicalComposerContext();
 
-    editor.update(() => {
-      const dom = new DOMParser().parseFromString(html, 'text/html');
-      const nodes = $generateNodesFromDOM(editor, dom);
-      const root = $getRoot();
-      root.clear();
-      root.append(...nodes);
-    });
-  }, [editor, html]);
-  return null;
-}
+    useImperativeHandle(
+      ref,
+      () => ({
+        importHtml(html: string) {
+          editor.update(() => {
+            const parser = new DOMParser();
+            const dom = parser.parseFromString(`<div>${html}</div>`, 'text/html');
 
-function StateJsonPlugin({ stateJson }: { stateJson: unknown }) {
-  const [editor] = useLexicalComposerContext();
-  const hasLoaded = useRef(false);
+            const nodes = $generateNodesFromDOM(editor, dom);
 
-  useEffect(() => {
-    if (hasLoaded.current || !stateJson) return;
-    hasLoaded.current = true;
-
-    editor.update(() => {
-      try {
-        const serialized =
-          typeof stateJson === 'string' ? stateJson.trim() : JSON.stringify(stateJson);
-        if (typeof serialized === 'string' && serialized.startsWith('<')) {
-          // HTML fallback
-          const dom = new DOMParser().parseFromString(`<div>${serialized}</div>`, 'text/html');
-          const nodes = $generateNodesFromDOM(editor, dom);
-          const root = $getRoot();
-          root.clear();
-          root.append(...nodes);
-          return;
-        }
-        const state = editor.parseEditorState(serialized);
-        let isEmpty = true;
-        state.read(() => {
-          const root = $getRoot();
-          isEmpty = root.getChildrenSize() === 0 && root.getTextContentSize() === 0;
-        });
-        if (isEmpty) {
-          console.warn('[Lexical] Ignored empty editor state');
-          return;
-        }
-        editor.setEditorState(state);
-      } catch (error) {
-        console.error('Failed to parse editor state JSON:', error);
-      }
-    });
-  }, [editor, stateJson]);
-  return null;
-}
-
-const ImperativeHandlePlugin = forwardRef<
-  RichTextEditorHandle,
-  object
->(function ImperativeHandlePlugin(_, ref) {
-  const [editor] = useLexicalComposerContext();
-
-  useImperativeHandle(
-    ref,
-    () => ({
-      insertHtml(html: string) {
-        editor.update(() => {
-          const parser = new DOMParser();
-          const mdHtml = marked.parse(html);
-          const dom = parser.parseFromString(
-            `<div>${mdHtml}</div>`,
-            'text/html',
-          );
-
-          const nodes = $generateNodesFromDOM(editor, dom);
-
-          // 4. Insérer au curseur ou à la fin
-          const selection = $getSelection();
-          if (selection) {
-            $insertNodes(nodes);
-          } else {
-            $getRoot().append(...nodes);
-          }
-
-          editor.focus();
-          /*        const firstNode = nodes[0];
-          const lastNode = nodes[nodes.length - 1];
-          if (firstNode && lastNode) {
-            const range = $createRangeSelection();
-            range.anchor.set(firstNode.getKey(), 0, 'element');
-            const length = lastNode.getTextContentSize
-              ? lastNode.getTextContentSize()
-              : lastNode.getTextContent().length;
-            range.focus.set(lastNode.getKey(), length, 'element');
-            $setSelection(range);
-          } */
-        });
-      },
-      setEditorStateJson(state: unknown) {
-        console.log('[Lexical] setEditorStateJson called with:', state);
-        editor.update(() => {
-          try {
-            const stateString = typeof state === 'string' ? state.trim() : JSON.stringify(state);
-            console.log('[Lexical] State stringified (first 200):', stateString.slice(0, 200));
-            if (typeof stateString === 'string' && stateString.startsWith('<')) {
-              // HTML fallback
-              console.log('[Lexical] Detected HTML string, importing as HTML');
-              const dom = new DOMParser().parseFromString(`<div>${stateString}</div>`, 'text/html');
-              const nodes = $generateNodesFromDOM(editor, dom);
-              const root = $getRoot();
-              root.clear();
-              root.append(...nodes);
-              editor.focus();
-              return;
+            // 4. Insérer au curseur ou à la fin
+            const selection = $getSelection();
+            if (selection) {
+              $insertNodes(nodes);
+            } else {
+              $getRoot().append(...nodes);
             }
-            const editorState = editor.parseEditorState(stateString);
-            let isEmpty = true;
-            let childrenSize = 0;
-            let textContentSize = 0;
-            editorState.read(() => {
-              const root = $getRoot();
-              childrenSize = root.getChildrenSize();
-              textContentSize = root.getTextContentSize();
-              isEmpty = childrenSize === 0 && textContentSize === 0;
-              console.log('[Lexical] Root analysis:', {
-                childrenSize,
-                textContentSize,
-                isEmpty,
-                rootChildrenCount: root.getChildren().length,
-                rootTextContent: root.getTextContent()
-              });
-            });
-            if (isEmpty) {
-              // eslint-disable-next-line no-console
-              console.warn('[Lexical] Ignored empty editor state - no content to insert');
-              return;
+
+            editor.focus();
+          });
+        },
+        insertHtml(html: string) {
+          // Backward compatibility: accept Markdown and import as HTML
+          editor.update(() => {
+            const parser = new DOMParser();
+            const mdHtml = marked.parse(html);
+            const dom = parser.parseFromString(`<div>${mdHtml}</div>`, 'text/html');
+            const nodes = $generateNodesFromDOM(editor, dom);
+            const selection = $getSelection();
+            if (selection) {
+              $insertNodes(nodes);
+            } else {
+              $getRoot().append(...nodes);
             }
-            console.log('[Lexical] Setting editor state with content');
-            editor.setEditorState(editorState);
-          } catch (error) {
-            console.error('[Lexical] Failed to set editor state JSON:', error);
-          }
-        });
-      },
-      insertSlot(slotId: string, slotLabel: string, slotType: SlotType) {
-        editor.update(() => {
-          const node = $createSlotNode(slotId, slotLabel, slotType, false, '…');
-          const selection = $getSelection();
-          if (selection) {
-            $insertNodes([node]);
-          } else {
-            $getRoot().append(node);
-          }
-          editor.focus();
-        });
-      },
-      updateSlot(slotId: string, slotLabel: string) {
-        editor.update(() => {
-          const root = $getRoot();
-          const visit = (node: any): boolean => {
-            if (typeof node?.getSlotId === 'function' && node.getSlotId() === slotId) {
-              // Safe mutation using node API
-              node.setLabel?.(slotLabel);
-              return true;
+            editor.focus();
+          });
+        },
+        setEditorStateJson(state: unknown) {
+             try {
+               const stateString = typeof state === 'string' ? state.trim() : JSON.stringify(state);
+               const next = editor.parseEditorState(stateString);
+               editor.setEditorState(next); // pas besoin de editor.update()
+             } catch (e) {
+               console.error('[Lexical] Failed to set editor state JSON:', e);
+             }
+        },
+        insertSlot(slotId: string, slotLabel: string, slotType: SlotType) {
+          editor.update(() => {
+            const node = $createSlotNode(
+              slotId,
+              slotLabel,
+              slotType,
+              false,
+              '…',
+            );
+            const selection = $getSelection();
+            if (selection) {
+              $insertNodes([node]);
+            } else {
+              $getRoot().append(node);
             }
-            if (typeof node?.getChildren === 'function') {
-              for (const child of node.getChildren()) {
-                if (visit(child)) return true;
+            editor.focus();
+          });
+        },
+        updateSlot(slotId: string, slotLabel: string) {
+          editor.update(() => {
+            const root = $getRoot();
+            const visit = (node: any): boolean => {
+              if (
+                typeof node?.getSlotId === 'function' &&
+                node.getSlotId() === slotId
+              ) {
+                // Safe mutation using node API
+                node.setLabel?.(slotLabel);
+                return true;
               }
-            }
-            return false;
-          };
-          visit(root);
-        });
-      },
-    }),
-    [editor],
-  );
+              if (typeof node?.getChildren === 'function') {
+                for (const child of node.getChildren()) {
+                  if (visit(child)) return true;
+                }
+              }
+              return false;
+            };
+            visit(root);
+          });
+        },
+        getEditorStateJson() {
+          try {
+            return editor.getEditorState().toJSON();
+          } catch (e) {
+            console.error('[Lexical] Failed to get editor state JSON:', e);
+            return null;
+          }
+        },
+      }),
+      [editor],
+    );
 
-  return null;
-});
-
-function EditorCore(
-  { initialHtml, initialStateJson, readOnly = false, onChange = () => {}, onChangeStateJson, onSave, exportFileName }: Props = {
-    initialHtml: undefined,
-    initialStateJson: undefined,
-    readOnly: false,
-    onChange: () => {},
-    onChangeStateJson: undefined,
-    onSave: undefined,
+    return null;
   },
-  ref: React.ForwardedRef<RichTextEditorHandle>,
-) {
+);
+
+
+const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
+  function RichTextEditor(rawProps, ref) {
+    // 1) props par défaut robustes
+    const defaultProps: Required<Pick<Props,
+      'readOnly' | 'onChange' | 'exportFileName'
+    >> = {
+      readOnly: false,
+      onChange: () => {},
+      exportFileName: '',
+    };
+
+    const props = { ...defaultProps, ...(rawProps || {}) } as Props;
+
+    const {
+      initialStateJson,
+      templateKey,
+      readOnly,
+      onChange,
+      onChangeStateJson,
+      onSave,
+      exportFileName,
+    } = props;
+
+
   const editorRef = useRef<HTMLElement>(null as unknown as HTMLElement);
-  useVirtualSelection(editorRef);
+  //useVirtualSelection(editorRef);
+ 
+  // helper: valide (très simple) pour un état Lexical sérialisé
+  function isLexicalStateLike(obj: any): boolean {
+    return !!obj && typeof obj === 'object' && obj.root && obj.root.type === 'root';
+  }
 
-  // --- DEBUG: vérifie chaque Node enregistré
-  const CANDIDATE_NODES = [
-    ListNode,
-    ListItemNode,
-    LinkNode,
-    HeadingNode,
-    QuoteNode,
-    TableNode,
-    TableRowNode,
-    TableCellNode,
-  ];
+  const serialized = useMemo(() => {
+    if (!initialStateJson) return null;
+    try {
+      // prends la version string si déjà string, sinon stringify
+      const str =
+        typeof initialStateJson === 'string'
+          ? initialStateJson
+          : JSON.stringify(initialStateJson);
 
+      // on valide la forme (si c'est un string on parse juste pour checker)
+      const probe =
+        typeof initialStateJson === 'string' ? JSON.parse(str) : initialStateJson;
+
+      return isLexicalStateLike(probe) ? str : null;
+    } catch {
+      return null;
+      }
+  }, [initialStateJson]);
 
   const initialConfig = {
     namespace: 'rte',
@@ -280,11 +255,77 @@ function EditorCore(
       SlotNode,
     ],
   };
+
+// stringify propre de l’état initial
+ const initialEditorState = useMemo(() => {
+   try {
+     if (!initialStateJson) return JSON.stringify(DEFAULT_EMPTY_STATE);
+     if (typeof initialStateJson === 'string') {
+       const probe = JSON.parse(initialStateJson);
+       return (probe?.root?.type === 'root') ? initialStateJson : JSON.stringify(DEFAULT_EMPTY_STATE);
+     }
+     return (initialStateJson as any)?.root?.type === 'root'
+       ? JSON.stringify(initialStateJson)
+      : JSON.stringify(DEFAULT_EMPTY_STATE);
+   } catch {
+     return JSON.stringify(DEFAULT_EMPTY_STATE);
+   }
+ }, [initialStateJson]);
+  // Apply template once when templateKey changes (no remount)
+/*   function TemplateLoaderPlugin({ templateKey, stateJson }: { templateKey?: string; stateJson?: unknown }) {
+    const [editor] = useLexicalComposerContext();
+    const appliedKeyRef = useRef<string | undefined>(undefined);
+
+    useEffect(() => {
+      if (!templateKey) return;
+      if (appliedKeyRef.current === templateKey) return;
+      appliedKeyRef.current = templateKey;
+
+      editor.update(() => {
+        try {
+          let serialized: string | null = null;
+          try {
+            if (typeof stateJson === 'string') {
+              const probe = JSON.parse(stateJson);
+              if (isLexicalStateLike(probe)) serialized = stateJson;
+            } else if (isLexicalStateLike(stateJson)) {
+              serialized = JSON.stringify(stateJson);
+            }
+          } catch {
+            // ignore parse errors, will fallback below
+          }
+
+          if (!serialized) {
+            serialized = JSON.stringify(DEFAULT_EMPTY_STATE);
+          }
+
+          const next = editor.parseEditorState(serialized);
+          editor.setEditorState(next);
+        } catch (e) {
+          console.warn('[Lexical] Ignoring invalid template state:', e);
+        }
+      });
+      try { editor.focus(); } catch {}
+    }, [editor, templateKey, stateJson]);
+    return null;
+  } */
+
   return (
-    <LexicalComposer initialConfig={initialConfig}>
-      {!readOnly && <ToolbarPlugin onSave={onSave} exportFileName={exportFileName} />}
+    <LexicalComposer
+      key={templateKey}
+      initialConfig={{
+       ...initialConfig,
+       editorState: initialEditorState, // ← état initial sans plugin ni update()
+     }}
+    >
+    {!readOnly && (
+        <ToolbarPlugin onSave={onSave} exportFileName={exportFileName} />
+    )}
       <div className="relative h-full">
-        <div ref={editorRef as unknown as React.RefObject<HTMLDivElement>} className="h-full bg-wood-100 p-8 overflow-auto">
+        <div
+          ref={editorRef as unknown as React.RefObject<HTMLDivElement>}
+          className="h-full bg-wood-100 p-8 overflow-auto"
+        >
           <div className="flex justify-center">
             <div className="bg-paper-50 border border-gray-300 rounded shadow p-16 w-full max-w-3xl min-h-[100vh] flex flex-col">
               <RichTextPlugin
@@ -310,16 +351,13 @@ function EditorCore(
                     const json = state.toJSON();
                     onChangeStateJson?.(json as unknown);
                   } catch (e) {
-                    // eslint-disable-next-line no-console
-                    console.warn('[Lexical] Failed to serialize editor state to JSON', e);
+                    console.warn(
+                      '[Lexical] Failed to serialize editor state to JSON',
+                      e,
+                    );
                   }
                 }}
               />
-              {initialStateJson ? (
-                <StateJsonPlugin stateJson={initialStateJson} />
-              ) : (
-                initialHtml && <HtmlPlugin html={initialHtml} />
-              )}
               <ImperativeHandlePlugin ref={ref as any} />
             </div>
           </div>
@@ -329,7 +367,6 @@ function EditorCore(
     </LexicalComposer>
   );
 }
-
-const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(EditorCore);
+);
 
 export default RichTextEditor;

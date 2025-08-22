@@ -1,3 +1,5 @@
+import type { FieldSpec, GroupSpec, RepeatSpec, UseKitSpec, SlotSpec } from '../../types/template';
+
 import { prisma } from '../../prisma';
 import { SectionTemplateService } from '../sectionTemplate.service';
 import { callModel } from './prompts/generateSlots';
@@ -7,43 +9,6 @@ type Notes = Record<string, unknown>;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = prisma as any;
-
-// Expanded field spec used by the generator/hydrator
-export type FieldSpec = {
-  id: string;
-  label?: string;
-  mode: 'user' | 'computed' | 'llm';
-  type: 'text' | 'number' | 'list' | 'table';
-  pattern?: string;
-  deps?: string[];
-  prompt?: string;
-  template?: string;
-};
-
-export type GroupSpec = {
-  kind: 'group';
-  id: string;
-  label?: string;
-  slots: SlotSpec[];
-};
-
-export type RepeatSpec = {
-  kind: 'repeat';
-  id: string;
-  from: { enum: Array<{ key: string; label: string }>} | { path: string };
-  ctx?: string;
-  namePattern?: string; // "${group}.${item.key}.${slotId}"
-  slots: Array<Omit<FieldSpec, 'id' | 'deps' | 'prompt'> & { id: string; deps?: string[]; prompt?: string }>;
-};
-
-export type UseKitSpec = {
-  kind: 'use';
-  kit: string;
-  as?: string;
-  with?: Record<string, unknown>;
-};
-
-export type SlotSpec = FieldSpec | GroupSpec | RepeatSpec | UseKitSpec;
 
 function getAtPath(obj: unknown, path: string): unknown {
   if (!path) return undefined;
@@ -69,79 +34,93 @@ function simpleTpl(input: string, ctx: Record<string, unknown>): string {
   });
 }
 
-function expandSlotsSpec(raw: unknown, notes: Notes): Record<string, FieldSpec> {
-  // Back-compat: allow object map { id: spec }
-  if (raw && typeof raw === 'object' && !Array.isArray((raw as any).slots)) {
-    const obj = (raw as Record<string, unknown>) as Record<string, FieldSpec>;
-    // Filter to fields only if an object map is provided
-    const out: Record<string, FieldSpec> = {};
-    for (const [id, s] of Object.entries(obj)) {
-      if ((s as any).type) out[id] = { ...(s as any), id } as FieldSpec;
-    }
-    return out;
-  }
+type Item = { key: string; label: string };
 
-  const list = (raw && typeof raw === 'object' && Array.isArray((raw as any).slots)) ? (raw as any).slots as SlotSpec[] : (Array.isArray(raw) ? (raw as SlotSpec[]) : []);
+function expandSlotsSpec(slots: SlotSpec[]): Record<string, FieldSpec> {
+  const out: Record<string, FieldSpec> = {};
 
-  const fields: Record<string, FieldSpec> = {};
+  const push = (f: FieldSpec, trace: string) => {
+    if (!f.id) throw new Error(`Missing field id at ${trace}`);
+    if (out[f.id]) throw new Error(`Duplicate field id "${f.id}" at ${trace}`);
+    out[f.id] = f;
+  };
 
-  function pushField(field: FieldSpec) {
-    if (!field.id) return;
-    fields[field.id] = { ...field };
-  }
+  const visit = (
+    node: SlotSpec,
+    ctx: { groupPath: string[]; repeatParts: string[] },
+    trace: string,
+  ) => {
+    switch (node.kind) {
+      case 'field': {
+        // ID par défaut = <groups>.<repeats...>.<fieldId>
+        const segments: string[] = [];
+        if (ctx.groupPath.length) segments.push(ctx.groupPath.join('.'));
+        if (ctx.repeatParts.length) segments.push(ctx.repeatParts.join('.'));
+        segments.push(node.id);
 
-  function expand(node: SlotSpec, ctx: { groupId?: string; item?: { key: string; label: string } }) {
-    if ((node as any).kind === 'group') {
-      const group = node as GroupSpec;
-      for (const child of group.slots || []) expand(child, { groupId: group.id, item: ctx.item });
-      return;
-    }
-    if ((node as any).kind === 'repeat') {
-      const rep = node as RepeatSpec;
-      const items: Array<{ key: string; label: string }> = 'enum' in rep.from
-        ? ensureArray(rep.from.enum)
-        : ensureArray(getAtPath({ notes }, (rep.from as any).path)) as Array<{ key: string; label: string }>;
+        const finalId = segments.filter(Boolean).join('.');
 
-      const ctxName = rep.ctx || 'item';
-
-      for (const it of items) {
-        for (const child of rep.slots) {
-          // Build id using namePattern or child id with moustache
-          const slotIdBase = simpleTpl(child.id, { [ctxName]: it, group: ctx.groupId, item: it });
-          const slotId = rep.namePattern
-            ? simpleTpl(rep.namePattern, { group: ctx.groupId ?? '', item: it, slotId: slotIdBase })
-            : slotIdBase;
-
-          const deps = ensureArray<string>(child.deps).map((d) => simpleTpl(d as string, { [ctxName]: it, item: it }));
-          const prompt = child.prompt ? simpleTpl(child.prompt, { [ctxName]: it, item: it }) : undefined;
-
-          pushField({
-            id: slotId,
-            label: child.label,
-            mode: child.mode,
-            type: child.type,
-            pattern: child.pattern,
-            deps: deps.length > 0 ? deps : undefined,
-            prompt,
-            template: child.template,
-          });
-        }
+        const field: FieldSpec = {
+          kind: 'field',
+          id: finalId,
+          type: node.type,
+          mode: node.mode,
+          label: node.label,
+          pattern: node.pattern,
+          deps: node.deps,     // laissé tel quel (pas de templating)
+          prompt: node.prompt, // laissé tel quel
+          template: node.template,
+          optional: node.optional,
+        };
+        push(field, trace);
+        return;
       }
-      return;
-    }
-    if ((node as any).kind === 'use') {
-      // Not implemented: fallback to no-op to keep compatibility
-      return;
-    }
 
-    // Field
-    const f = node as FieldSpec;
-    pushField({ ...f });
-  }
+      case 'group': {
+        const gctx = {
+          groupPath: [...ctx.groupPath, node.id],
+          repeatParts: ctx.repeatParts,
+        };
+        node.slots.forEach((child, i) =>
+          visit(child, gctx, `${trace}/group(${node.id})#${i}`),
+        );
+        return;
+      }
 
-  for (const n of list) expand(n, {});
-  return fields;
+      case 'repeat': {
+        const items: Item[] = node.from.enum ?? [];
+        items.forEach((it, idx) => {
+          if (!it || typeof it.key !== 'string' || typeof it.label !== 'string') {
+            throw new Error(`Invalid repeat item at ${trace}.enum[${idx}]`);
+          }
+          const rctx = {
+            groupPath: ctx.groupPath,
+            // Par défaut: on ajoute "<repeatId>.<item.key>" dans le chemin
+            repeatParts: [...ctx.repeatParts, node.id, it.key],
+          };
+          node.slots.forEach((child, j) =>
+            visit(child, rctx, `${trace}/repeat(${node.id})[${it.key}]#${j}`),
+          );
+        });
+        return;
+      }
+
+      case 'use': {
+        throw new Error(`'use' not implemented (kit="${node.kit}") at ${trace}`);
+      }
+
+      default: {
+        const _never: never = node;
+        throw new Error(`Unknown slot kind at ${trace}`);
+      }
+    }
+  };
+
+  const rootCtx = { groupPath: [], repeatParts: [] as string[] };
+  slots.forEach((n, i) => visit(n, rootCtx, `root#${i}`));
+  return out;
 }
+
 
 function partitionSlots(spec: Record<string, FieldSpec>) {
   const res = { user: [] as string[], computed: [] as string[], llm: [] as string[] };
@@ -171,16 +150,43 @@ export async function generateFromTemplate(
   contentNotes: Notes,
   opts: { instanceId: string; userSlots?: Record<string, unknown>; stylePrompt?: string; model?: string },
 ) {
+
   const template = await SectionTemplateService.get(sectionTemplateId);
-  if (!template) throw new Error('Template not found');
+  if (!template) {
+    throw new Error('Template not found');
+  }
+
   const ast = template.content;
-  const slotsSpec = expandSlotsSpec(template.slotsSpec, contentNotes);
+  
+  console.log("template.slotsSpec", template.slotsSpec);  
+
+  const slotsSpec = expandSlotsSpec(template.slotsSpec);
+
+  console.log("slotsSpec", slotsSpec);
+
   const parts = partitionSlots(slotsSpec);
 
+  console.log("parts", parts);
+
   const computed = computeComputed(parts.computed, slotsSpec, contentNotes);
+
+  console.log("computed", computed);
+
+  console.log('[DEBUG] generateFromTemplate - About to call LLM with:');
+  console.log('[DEBUG] generateFromTemplate - LLM slots to generate:', parts.llm);
+  console.log('[DEBUG] generateFromTemplate - LLM slotsSpec preview:', JSON.stringify(slotsSpec, null, 2));
+  console.log('[DEBUG] generateFromTemplate - LLM contentNotes preview:', JSON.stringify(contentNotes, null, 2));
+  console.log('[DEBUG] generateFromTemplate - LLM stylePrompt:', opts.stylePrompt);
+
   const llm = await callModel(parts.llm, slotsSpec, contentNotes, opts.stylePrompt);
 
-  const slots = { ...(opts.userSlots || {}), ...computed, ...llm.slots };
+  console.log('[DEBUG] generateFromTemplate - LLM response received:');
+  console.log('[DEBUG] generateFromTemplate - LLM slots generated:', Object.keys(llm.slots || {}));
+  console.log('[DEBUG] generateFromTemplate - LLM slots count:', Object.keys(llm.slots || {}).length);
+  console.log('[DEBUG] generateFromTemplate - LLM slots content preview:', JSON.stringify(llm.slots, null, 2).slice(0, 1000));
+  console.log('[DEBUG] generateFromTemplate - LLM full response object:', JSON.stringify(llm, null, 2));
+
+  const slots = { ...(opts.userSlots || {}), ...computed, ...(llm.slots as Record<string, string | number | null | undefined>) };
 
   // DEBUG mapping for templated ids: log unmatched ids
   const allIds = Object.keys(slotsSpec);
@@ -191,64 +197,103 @@ export async function generateFromTemplate(
     console.warn('[generateFromTemplate] Missing slot values for:', missing.slice(0, 20));
   }
 
-  const hydratedState = hydrate(ast, slots, slotsSpec);
+  console.log('[DEBUG] generateFromTemplate - About to hydrate AST:');
+  console.log('[DEBUG] generateFromTemplate - AST input:', JSON.stringify(ast).slice(0, 200));
+  console.log('[DEBUG] generateFromTemplate - Slots for hydration:', Object.keys(slots));
+  console.log('[DEBUG] generateFromTemplate - First few slot values:', Object.entries(slots).slice(0, 3));
+
+  const hydratedState = hydrate(ast, slots as Record<string, string | number | null | undefined>, slotsSpec);
+
+  console.log('[DEBUG] generateFromTemplate - Hydrated state type:', typeof hydratedState);
+  console.log('[DEBUG] generateFromTemplate - Hydrated state keys:', Object.keys(hydratedState || {}));
+  console.log('[DEBUG] generateFromTemplate - Hydrated state preview:', JSON.stringify(hydratedState).slice(0, 500) + '...');
+  console.log('[DEBUG] generateFromTemplate - Hydrated state full length:', JSON.stringify(hydratedState).length);
 
   function toArray<T>(val: unknown): T[] {
     if (Array.isArray(val)) return val as T[];
     if (val == null) return [] as T[];
     return [val as T];
   }
-
+  
   function ensureTextDefaults(node: any): any {
-    if (node?.type === 'text') {
-      return {
-        detail: 0,
-        format: 0,
-        mode: 'normal',
-        style: '',
-        version: 1,
-        ...node,
-      };
-    }
-    return node;
+    if (node?.type !== 'text') return node;
+    return {
+      ...node,
+      detail: node.detail ?? 0,
+      format: node.format ?? 0,
+      style: node.style ?? '',
+      version: node.version ?? 1,
+      // mode: node.mode ?? 'normal', // seulement si ta version le requiert
+    };
   }
-
+  
   function ensureParagraphDefaults(node: any): any {
-    if (node?.type === 'paragraph') {
-      return {
-        direction: 'ltr',
-        format: '',
-        indent: 0,
-        version: 1,
-        children: toArray<any>(node.children).map(ensureTextDefaults),
-        ...node,
-      };
+    if (node?.type !== 'paragraph') return node;
+    return {
+      ...node,
+      direction: node.direction ?? 'ltr',
+      format: node.format ?? '',
+      indent: node.indent ?? 0,
+      version: node.version ?? 1,
+      children: toArray<any>(node.children).map(ensureTextDefaults),
+    };
+  }
+  
+  function wrapInParagraph(child: any): any {
+    if (child?.type === 'paragraph') return ensureParagraphDefaults(child);
+    if (child?.type === 'text') {
+      return ensureParagraphDefaults({
+        type: 'paragraph',
+        children: [ensureTextDefaults(child)],
+      });
     }
-    return node;
+    return child;
   }
-
+  
   function normalizeChildren(children: any): any[] {
-    return toArray<any>(children).map((c) => ensureParagraphDefaults(ensureTextDefaults(c)));
+    return toArray<any>(children).map((c) => wrapInParagraph(ensureTextDefaults(c)));
   }
-
+  
   function buildLexicalRoot(input: any) {
     const maybeRoot = input?.root ?? input;
     const children = normalizeChildren(maybeRoot?.children ?? maybeRoot);
     return {
       type: 'root',
-      direction: 'ltr',
+      direction: maybeRoot?.direction ?? 'ltr',
       format: '',
       indent: 0,
       version: 1,
       children,
     };
   }
-
+  
   const editorState = {
     root: buildLexicalRoot(hydratedState),
     version: 1,
   };
+  
   const assembledState = JSON.stringify(editorState);
+  
+
+  console.log('[DEBUG] generateFromTemplate - About to return result:', {
+    hasSlots: !!slots,
+    slotsKeys: Object.keys(slots || {}),
+    hasAssembledState: !!assembledState,
+    assembledStateLength: assembledState?.length || 0,
+    assembledStatePreview: assembledState?.slice(0, 300),
+    instanceId: opts.instanceId,
+    assembledStateType: typeof assembledState,
+    assembledStateKeys: typeof assembledState === 'object' ? Object.keys(assembledState || {}) : 'N/A',
+  });
+
+  console.log('[DEBUG] generateFromTemplate - About to update database with:', {
+    instanceId: opts.instanceId,
+    hasGeneratedContent: true,
+    templateIdUsed: sectionTemplateId,
+    templateVersionUsed: template.version,
+    generatedContentSlotsKeys: Object.keys(slots || {}),
+    generatedContentAssembledStateLength: assembledState?.length || 0,
+  });
 
   await db.bilanSectionInstance.update({
     where: { id: opts.instanceId },
@@ -259,6 +304,13 @@ export async function generateFromTemplate(
       generatedContentUpdatedAt: new Date(),
     },
   });
+
+  console.log('[DEBUG] generateFromTemplate - Database updated successfully, returning result');
+  console.log('[DEBUG] generateFromTemplate - Final return object:', {
+    slotsKeys: Object.keys(slots || {}),
+    assembledStateLength: assembledState?.length || 0,
+    assembledStatePreview: assembledState?.slice(0, 1000),
+  });
   return { slots, assembledState };
 }
 
@@ -267,15 +319,25 @@ export async function regenerateSlots(instanceId: string, slotIds: string[]) {
   if (!instance?.templateIdUsed) throw new Error('Template missing');
   const template = await SectionTemplateService.get(instance.templateIdUsed);
   if (!template) throw new Error('Template not found');
-  const slotsSpec = expandSlotsSpec(template.slotsSpec, instance.contentNotes as Notes);
+  const slotsSpec = expandSlotsSpec(template.slotsSpec);
   const parts = partitionSlots(slotsSpec);
   const computedIds = slotIds.filter((id) => parts.computed.includes(id));
   const llmIds = slotIds.filter((id) => parts.llm.includes(id));
   const computed = computeComputed(computedIds, slotsSpec, instance.contentNotes as Notes);
+
+  console.log('[DEBUG] regenerateSlots - About to call LLM with:');
+  console.log('[DEBUG] regenerateSlots - LLM slots to regenerate:', llmIds);
+  console.log('[DEBUG] regenerateSlots - LLM slotsSpec preview:', JSON.stringify(slotsSpec, null, 2));
+  console.log('[DEBUG] regenerateSlots - LLM contentNotes preview:', JSON.stringify(instance.contentNotes, null, 2));
+
   const llm = await callModel(llmIds, slotsSpec, instance.contentNotes as Notes, undefined);
+
+  console.log('[DEBUG] regenerateSlots - LLM response received:');
+  console.log('[DEBUG] regenerateSlots - LLM slots regenerated:', Object.keys(llm.slots || {}));
+  console.log('[DEBUG] regenerateSlots - LLM slots content:', JSON.stringify(llm.slots, null, 2));
   const existing = (instance.generatedContent as Record<string, unknown>)?.slots || {};
-  const slots = { ...existing, ...computed, ...llm.slots };
-  const hydratedState = hydrate(template.content, slots, slotsSpec);
+  const slots = { ...existing, ...computed, ...(llm.slots as Record<string, string | number | null | undefined>) };
+  const hydratedState = hydrate(template.content, slots as Record<string, string | number | null | undefined>, slotsSpec);
 
   const editorState = {
     root: (hydratedState as any)?.root || hydratedState,
@@ -283,12 +345,26 @@ export async function regenerateSlots(instanceId: string, slotIds: string[]) {
   };
   const assembledState = JSON.stringify(editorState);
 
+  console.log('[DEBUG] regenerateSlots - About to update database with regenerated content');
+  console.log('[DEBUG] regenerateSlots - Editor state created:', {
+    hasRoot: !!editorState.root,
+    version: editorState.version,
+    assembledStateLength: assembledState.length,
+    assembledStatePreview: assembledState.slice(0, 200),
+  });
+
   await db.bilanSectionInstance.update({
     where: { id: instanceId },
     data: {
       generatedContent: { ...(instance.generatedContent as Record<string, unknown>), slots, assembledState },
       generatedContentUpdatedAt: new Date(),
     },
+  });
+
+  console.log('[DEBUG] regenerateSlots - Database updated successfully');
+  console.log('[DEBUG] regenerateSlots - Returning result:', {
+    slotsKeys: Object.keys(slots || {}),
+    assembledStateLength: assembledState.length,
   });
   return { slots, assembledState };
 }

@@ -1,5 +1,4 @@
-import React from 'react';
-import { useState, useRef, useEffect } from 'react';
+import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type {
@@ -41,7 +40,7 @@ export function NotesEditor({}: EditorProps) {
 
 export function MultiChoiceEditor({ q, onPatch }: EditorProps) {
   const options = ('options' in q && q.options) || [];
-  useEffect(() => {
+  React.useEffect(() => {
     if (q.commentaire === undefined) {
       onPatch({ commentaire: true } as Partial<Question>);
     }
@@ -129,8 +128,10 @@ export function ScaleEditor({}: EditorProps) {
 
 export function TableEditor({ q, onPatch }: EditorProps) {
   const genId = () => Math.random().toString(36).slice(2);
-  const [groupToDelete, setGroupToDelete] = useState<string | null>(null);
-  const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
+  const [groupToDelete, setGroupToDelete] = React.useState<string | null>(null);
+  const [editingGroupId, setEditingGroupId] = React.useState<string | null>(
+    null,
+  );
   const tableau: SurveyTable & { commentaire?: boolean } = q.tableau
     ? 'rowsGroups' in q.tableau
       ? q.tableau
@@ -211,9 +212,9 @@ export function TableEditor({ q, onPatch }: EditorProps) {
     setTable({ ...tableau, commentaire: !tableau.commentaire });
   };
 
-  const [editingColIdx, setEditingColIdx] = useState<number | null>(null);
+  const [editingColIdx, setEditingColIdx] = React.useState<number | null>(null);
 
-  const colDragIdx = useRef<number | null>(null);
+  const colDragIdx = React.useRef<number | null>(null);
   const handleColDragStart = (idx: number) => {
     colDragIdx.current = idx;
   };
@@ -232,7 +233,7 @@ export function TableEditor({ q, onPatch }: EditorProps) {
     colDragIdx.current = null;
   };
 
-  const rowDrag = useRef<{ groupId: string; index: number } | null>(null);
+  const rowDrag = React.useRef<{ groupId: string; index: number } | null>(null);
   const handleRowDragStart = (groupId: string, idx: number) => {
     rowDrag.current = { groupId, index: idx };
   };

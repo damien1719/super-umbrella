@@ -37,7 +37,13 @@ describe('Bilan page', () => {
     (fetch as unknown as vi.Mock)
       .mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({ id: '1', descriptionJson: { root: { type: 'root', version: 1, children: [] } } }),
+        json: () =>
+          Promise.resolve({
+            id: '1',
+            descriptionJson: {
+              root: { type: 'root', version: 1, children: [] },
+            },
+          }),
       })
       .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([]) })
       .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([]) });
@@ -61,13 +67,25 @@ describe('Bilan page', () => {
     fetchMock
       .mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({ id: '1', descriptionJson: { root: { type: 'root', version: 1, children: [] } } }),
+        json: () =>
+          Promise.resolve({
+            id: '1',
+            descriptionJson: {
+              root: { type: 'root', version: 1, children: [] },
+            },
+          }),
       })
       .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([]) })
       .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([]) })
       .mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({ id: '1', descriptionJson: { root: { type: 'root', version: 1, children: [] } } }),
+        json: () =>
+          Promise.resolve({
+            id: '1',
+            descriptionJson: {
+              root: { type: 'root', version: 1, children: [] },
+            },
+          }),
       });
 
     render(
@@ -96,13 +114,25 @@ describe('Bilan page', () => {
     fetchMock
       .mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({ id: '1', descriptionJson: { root: { type: 'root', version: 1, children: [] } } }),
+        json: () =>
+          Promise.resolve({
+            id: '1',
+            descriptionJson: {
+              root: { type: 'root', version: 1, children: [] },
+            },
+          }),
       })
       .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([]) })
       .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([]) })
       .mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({ id: '1', descriptionJson: { root: { type: 'root', version: 1, children: [] } } }),
+        json: () =>
+          Promise.resolve({
+            id: '1',
+            descriptionJson: {
+              root: { type: 'root', version: 1, children: [] },
+            },
+          }),
       });
 
     render(
@@ -115,7 +145,9 @@ describe('Bilan page', () => {
 
     await screen.findByText(/mon bilan/i);
     act(() => {
-      useBilanDraft.setState({ descriptionJson: { root: { type: 'root', version: 1, children: [] } } });
+      useBilanDraft.setState({
+        descriptionJson: { root: { type: 'root', version: 1, children: [] } },
+      });
     });
 
     fireEvent.click(screen.getByRole('button', { name: /Retour/i }));

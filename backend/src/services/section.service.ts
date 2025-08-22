@@ -101,6 +101,12 @@ export const SectionService = {
   },
 
   async remove(userId: string, id: string) {
+    // Vérifier que la section existe et appartient à l'utilisateur
+    const section = await db.section.findFirst({
+      where: { id, author: { userId } },
+    });
+    if (!section) throw new NotFoundError();
+
     const { count } = await db.section.deleteMany({
       where: { id, author: { userId } },
     });

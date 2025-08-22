@@ -24,7 +24,11 @@ import {
   SelectValue,
 } from './ui/select';
 import { useEditorUi } from '@/store/editorUi';
-import { $createHeadingNode, $createQuoteNode, $isHeadingNode } from '@lexical/rich-text';
+import {
+  $createHeadingNode,
+  $createQuoteNode,
+  $isHeadingNode,
+} from '@lexical/rich-text';
 import { INSERT_TABLE_COMMAND } from '@lexical/table';
 import { $generateHtmlFromNodes } from '@lexical/html';
 import DOMPurify from 'dompurify';
@@ -91,7 +95,10 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
     { label: 'Cambria', value: "Cambria, Georgia, 'Times New Roman', serif" },
     { label: 'Times New Roman', value: "'Times New Roman', Times, serif" },
     { label: 'Georgia', value: "Georgia, 'Times New Roman', Times, serif" },
-    { label: 'Garamond', value: "Garamond, 'Apple Garamond', 'URW Garamond', serif" },
+    {
+      label: 'Garamond',
+      value: "Garamond, 'Apple Garamond', 'URW Garamond', serif",
+    },
     { label: 'Arial', value: 'Arial, Helvetica, sans-serif' },
     { label: 'Verdana', value: 'Verdana, Geneva, Tahoma, sans-serif' },
     { label: 'Tahoma', value: 'Tahoma, Verdana, Segoe, sans-serif' },
@@ -119,7 +126,6 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
         setLineHeight(editor, lineHeight);
       } catch {}
     }, 0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const selectionSnapshot = useEditorUi((s) => s.selection);
 
@@ -127,7 +133,9 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
   const [isBold, setIsBold] = useState(false);
   const [isItalic, setIsItalic] = useState(false);
   const [isUnderline, setIsUnderline] = useState(false);
-  const [blockType, setBlockType] = useState<'paragraph' | 'h1' | 'h2' | 'h3' | 'quote'>('paragraph');
+  const [blockType, setBlockType] = useState<
+    'paragraph' | 'h1' | 'h2' | 'h3' | 'quote'
+  >('paragraph');
 
   useEffect(() => {
     const unregister = editor.registerUpdateListener(({ editorState }) => {
@@ -174,8 +182,7 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
               $setBlocksType(selection, () => $createParagraphNode());
             else if (next === 'quote')
               $setBlocksType(selection, () => $createQuoteNode());
-            else
-              $setBlocksType(selection, () => $createHeadingNode(next));
+            else $setBlocksType(selection, () => $createHeadingNode(next));
           }
         });
       }, 0);
@@ -246,7 +253,10 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
 
   // Tableau retiré temporairement (cause d'instabilité de certaines versions Lexical)
   const insertTable = useCallback(() => {
-    editor.dispatchCommand(INSERT_TABLE_COMMAND, { columns: '3', rows: '3' } as any);
+    editor.dispatchCommand(INSERT_TABLE_COMMAND, {
+      columns: '3',
+      rows: '3',
+    } as any);
   }, [editor]);
 
   return (
@@ -277,7 +287,9 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
         </SelectTrigger>
         <SelectContent>
           {WORD_FONT_SIZES.map((s) => (
-            <SelectItem key={s} value={s}>{s}</SelectItem>
+            <SelectItem key={s} value={s}>
+              {s}
+            </SelectItem>
           ))}
         </SelectContent>
       </Select>
@@ -350,7 +362,7 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
       >
         Tbl
       </Button>
-      
+
       <Button
         type="button"
         onMouseDown={(e) => e.preventDefault()}
@@ -401,7 +413,7 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `${(exportFileName || 'Bilan')}.docx`;
+            a.download = `${exportFileName || 'Bilan'}.docx`;
             document.body.appendChild(a);
             a.click();
             a.remove();

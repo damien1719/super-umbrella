@@ -64,7 +64,9 @@ function markdownifyTable(q: Question, ansTable: TableAnswers): string {
     const bodyLines = allRows
       .map((row) => {
         const rowData = ansTable[row.id] as Record<string, unknown> | undefined;
-        const cells = keptColumns.map((col) => formatCell(rowData?.[col.id], col));
+        const cells = keptColumns.map((col) =>
+          formatCell(rowData?.[col.id], col),
+        );
         return `| ${[row.label, ...cells].join(' | ')} |`;
       })
       .join('\n');
@@ -178,6 +180,38 @@ async function doRequestFromTemplate(params: {
   contentNotes?: Answers;
   rawNotes?: string;
 }): Promise<GenerationResult> {
+  console.log('[DEBUG] doRequestFromTemplate - Starting request with params:');
+  console.log('[DEBUG] doRequestFromTemplate - instanceId:', params.instanceId);
+  console.log('[DEBUG] doRequestFromTemplate - trameId:', params.trameId);
+  console.log(
+    '[DEBUG] doRequestFromTemplate - chunks count:',
+    params.chunks.length,
+  );
+  console.log(
+    '[DEBUG] doRequestFromTemplate - chunks preview:',
+    params.chunks.slice(0, 2),
+  );
+  console.log(
+    '[DEBUG] doRequestFromTemplate - has stylePrompt:',
+    !!params.stylePrompt,
+  );
+  console.log(
+    '[DEBUG] doRequestFromTemplate - has contentNotes:',
+    !!params.contentNotes,
+  );
+  console.log(
+    '[DEBUG] doRequestFromTemplate - has rawNotes:',
+    !!params.rawNotes,
+  );
+  console.log(
+    '[DEBUG] doRequestFromTemplate - contentNotes keys:',
+    Object.keys(params.contentNotes || {}),
+  );
+  console.log(
+    '[DEBUG] doRequestFromTemplate - rawNotes length:',
+    params.rawNotes?.length || 0,
+  );
+
   const body: any = {
     instanceId: params.instanceId,
     trameId: params.trameId,
@@ -186,6 +220,19 @@ async function doRequestFromTemplate(params: {
     contentNotes: params.contentNotes,
     rawNotes: params.rawNotes,
   };
+
+  console.log('[DEBUG] doRequestFromTemplate - Request body prepared:', {
+    hasInstanceId: !!body.instanceId,
+    hasTrameId: !!body.trameId,
+    answersCount: body.answers?.length || 0,
+    hasStylePrompt: !!body.stylePrompt,
+    hasContentNotes: !!body.contentNotes,
+    hasRawNotes: !!body.rawNotes,
+  });
+
+  console.log(
+    '[DEBUG] doRequestFromTemplate - Making API call to generate-from-template...',
+  );
 
   const res = await apiFetch<{ assembledState: unknown }>(
     `/api/v1/bilan-section-instances/generate-from-template`,
@@ -196,7 +243,36 @@ async function doRequestFromTemplate(params: {
     },
   );
 
-  return { type: 'lexical', state: res.assembledState };
+  console.log('[DEBUG] doRequestFromTemplate - API response received:');
+  console.log('[DEBUG] doRequestFromTemplate - Response type:', typeof res);
+  console.log(
+    '[DEBUG] doRequestFromTemplate - Has assembledState:',
+    !!res.assembledState,
+  );
+  console.log(
+    '[DEBUG] doRequestFromTemplate - AssembledState type:',
+    typeof res.assembledState,
+  );
+  console.log(
+    '[DEBUG] doRequestFromTemplate - AssembledState length:',
+    typeof res.assembledState === 'string' ? res.assembledState.length : 'N/A',
+  );
+  console.log(
+    '[DEBUG] doRequestFromTemplate - AssembledState preview:',
+    typeof res.assembledState === 'string'
+      ? res.assembledState.slice(0, 300)
+      : JSON.stringify(res.assembledState).slice(0, 300),
+  );
+
+  const result = { type: 'lexical' as const, state: res.assembledState };
+
+  console.log('[DEBUG] doRequestFromTemplate - Returning result:', {
+    type: result.type,
+    hasState: !!result.state,
+    stateType: typeof result.state,
+  });
+
+  return result;
 }
 
 export async function generateSection(opts: {
@@ -216,7 +292,9 @@ export async function generateSection(opts: {
   setIsGenerating: (b: boolean) => void;
   setSelectedSection: (id: string | null) => void;
   setWizardSection?: (id: string | null) => void;
-  setGenerated?: (fn: (prev: Record<string, boolean>) => Record<string, boolean>) => void;
+  setGenerated?: (
+    fn: (prev: Record<string, boolean>) => Record<string, boolean>,
+  ) => void;
   setRegenSection?: (id: string | null) => void;
   setRegenPrompt?: (s: string) => void;
   onInsertText?: (text: string) => void;
@@ -276,15 +354,18 @@ export async function generateSection(opts: {
       });
     } else {
       if (!instanceId) throw new Error('Missing instanceId for template mode');
-      console.log('[DEBUG] generateSection - About to call doRequestFromTemplate with:', {
-        token: '***token***',
-        instanceId,
-        trameId,
-        chunksCount: chunks.length,
-        stylePrompt: stylePrompt ? '***stylePrompt***' : null,
-        contentNotes: current,
-        rawNotes
-      });
+      console.log(
+        '[DEBUG] generateSection - About to call doRequestFromTemplate with:',
+        {
+          token: '***token***',
+          instanceId,
+          trameId,
+          chunksCount: chunks.length,
+          stylePrompt: stylePrompt ? '***stylePrompt***' : null,
+          contentNotes: current,
+          rawNotes,
+        },
+      );
       result = await doRequestFromTemplate({
         token,
         instanceId,
@@ -294,7 +375,10 @@ export async function generateSection(opts: {
         contentNotes: current,
         rawNotes,
       });
-      console.log('[DEBUG] generateSection - doRequestFromTemplate result:', result);
+      console.log(
+        '[DEBUG] generateSection - doRequestFromTemplate result:',
+        result,
+      );
     }
 
     if (result.type === 'text') {
@@ -304,16 +388,107 @@ export async function generateSection(opts: {
       setRegenSection?.(section.id);
       setRegenPrompt?.('');
     } else if (result.type === 'lexical') {
-      console.log('[Generation] Received lexical result:', result.state);
-      console.log('[Generation] Result state type:', typeof result.state);
-      if (onSetEditorStateJson) {
-        console.log('[Generation] Calling onSetEditorStateJson with state');
-        onSetEditorStateJson(result.state);
-      } else {
-        console.log('[Generation] Fallback to custom event');
-        const event = new CustomEvent('lexical:set-json', { detail: result.state });
-        window.dispatchEvent(event);
+      console.log(
+        '[DEBUG] Generation - Received lexical result - START processing',
+      );
+      console.log(
+        '[DEBUG] Generation - Result state type:',
+        typeof result.state,
+      );
+      console.log(
+        '[DEBUG] Generation - Result state is null/undefined:',
+        result.state == null,
+      );
+      console.log(
+        '[DEBUG] Generation - Result state length:',
+        typeof result.state === 'string' ? result.state.length : 'N/A',
+      );
+      console.log(
+        '[DEBUG] Generation - Result state preview:',
+        typeof result.state === 'string'
+          ? result.state.slice(0, 300)
+          : JSON.stringify(result.state).slice(0, 300),
+      );
+
+      // Additional detailed logging for lexical state
+      if (typeof result.state === 'object' && result.state !== null) {
+        console.log(
+          '[DEBUG] Generation - Lexical state is object with keys:',
+          Object.keys(result.state),
+        );
+        console.log(
+          '[DEBUG] Generation - Lexical state has root:',
+          !!(result.state as any).root,
+        );
+        console.log(
+          '[DEBUG] Generation - Lexical state has version:',
+          (result.state as any).version !== undefined,
+        );
       }
+
+      console.log('[DEBUG] Generation - onSetEditorStateJson availability:', {
+        exists: !!onSetEditorStateJson,
+        isFunction: typeof onSetEditorStateJson === 'function',
+      });
+
+      if (onSetEditorStateJson) {
+        console.log(
+          '[DEBUG] Generation - onSetEditorStateJson is available, preparing to call it',
+        );
+        console.log(
+          '[DEBUG] Generation - About to call onSetEditorStateJson with state:',
+          {
+            hasState: !!result.state,
+            stateType: typeof result.state,
+            stateSize:
+              typeof result.state === 'string' ? result.state.length : 'N/A',
+          },
+        );
+
+        try {
+          onSetEditorStateJson(result.state);
+          console.log(
+            '[DEBUG] Generation - onSetEditorStateJson called successfully - EDITOR STATE UPDATED',
+          );
+        } catch (error) {
+          console.error(
+            '[DEBUG] Generation - ERROR calling onSetEditorStateJson:',
+            error,
+          );
+          console.error('[DEBUG] Generation - Error details:', {
+            error: error,
+            message: error instanceof Error ? error.message : 'Unknown error',
+            stack: error instanceof Error ? error.stack : 'No stack trace',
+          });
+        }
+      } else {
+        console.log(
+          '[DEBUG] Generation - onSetEditorStateJson is NOT available, using fallback custom event',
+        );
+        console.log('[DEBUG] Generation - Creating custom event with state:', {
+          hasState: !!result.state,
+          stateType: typeof result.state,
+        });
+
+        const event = new CustomEvent('lexical:set-json', {
+          detail: result.state,
+        });
+
+        console.log('[DEBUG] Generation - Dispatching custom event...');
+        window.dispatchEvent(event);
+        console.log(
+          '[DEBUG] Generation - Custom event dispatched successfully',
+        );
+
+        // Listen for potential errors in event handling
+        setTimeout(() => {
+          console.log(
+            '[DEBUG] Generation - Checking if custom event was handled (5s after dispatch)',
+          );
+        }, 5000);
+      }
+
+      console.log('[DEBUG] Generation - Lexical result processing completed');
     }
   } finally {
     setIsGenerating(false);
@@ -321,5 +496,3 @@ export async function generateSection(opts: {
     setWizardSection?.(null);
   }
 }
-
-

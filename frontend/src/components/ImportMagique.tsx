@@ -111,7 +111,10 @@ export default function ImportMagique({
             '/api/v1/import/transform-excel-table',
             {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
               body: JSON.stringify({ sheetName: name, html }),
             },
           );
@@ -368,7 +371,8 @@ export default function ImportMagique({
           ) : (
             <div className="space-y-3">
               <div className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded p-3">
-                Attention: cette opération va écraser le template existant de cette section s'il existe déjà.
+                Attention: cette opération va écraser le template existant de
+                cette section s'il existe déjà.
               </div>
               <Textarea
                 value={text}
@@ -381,13 +385,26 @@ export default function ImportMagique({
                   type="button"
                   disabled={!text.trim() || !sectionId.trim()}
                   onClick={async () => {
-                    console.log('[DEBUG] ImportMagique - Starting template generation');
-                    console.log('[DEBUG] ImportMagique - sectionId:', sectionId);
-                    console.log('[DEBUG] ImportMagique - sourceText length:', text.length);
-                    console.log('[DEBUG] ImportMagique - token present:', !!token);
+                    console.log(
+                      '[DEBUG] ImportMagique - Starting template generation',
+                    );
+                    console.log(
+                      '[DEBUG] ImportMagique - sectionId:',
+                      sectionId,
+                    );
+                    console.log(
+                      '[DEBUG] ImportMagique - sourceText length:',
+                      text.length,
+                    );
+                    console.log(
+                      '[DEBUG] ImportMagique - token present:',
+                      !!token,
+                    );
 
                     if (!sectionId) {
-                      console.error('[DEBUG] ImportMagique - No sectionId provided');
+                      console.error(
+                        '[DEBUG] ImportMagique - No sectionId provided',
+                      );
                       return;
                     }
                     setLoading(true);
@@ -397,18 +414,47 @@ export default function ImportMagique({
                         '/api/v1/import/importMagiqueToTemplate',
                         {
                           method: 'POST',
-                          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                          headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${token}`,
+                          },
                           body: JSON.stringify({ sectionId, sourceText: text }),
                         },
                       );
-                      console.log('[DEBUG] ImportMagique - API response received:', tpl);
+                      console.log(
+                        '[DEBUG] ImportMagique - API response received:',
+                        tpl,
+                      );
+                      console.log(
+                        '[DEBUG] ImportMagique - API response structure:',
+                        {
+                          hasTemplate: !!tpl?.template,
+                          templateId: tpl?.template?.id,
+                          templateType: typeof tpl?.template,
+                          fullResponse: JSON.stringify(tpl, null, 2),
+                        },
+                      );
                       if (tpl?.template?.id) {
+                        console.log(
+                          '[DEBUG] ImportMagique - Calling onTemplateCreated with ID:',
+                          tpl.template.id,
+                        );
                         onTemplateCreated?.(tpl.template.id);
+                      } else {
+                        console.error(
+                          '[DEBUG] ImportMagique - No template ID found in response:',
+                          tpl,
+                        );
                       }
                       onCancel();
                     } catch (error) {
-                      console.error('[DEBUG] ImportMagique - API call failed:', error);
-                      alert('Erreur lors de la génération du template. Vérifiez la console pour plus de détails.');
+                      console.error(
+                        '[DEBUG] ImportMagique - API call failed:',
+                        error,
+                      );
+                      alert(
+                        'Erreur lors de la génération du template. Vérifiez la console pour plus de détails.',
+                      );
                     } finally {
                       setLoading(false);
                     }

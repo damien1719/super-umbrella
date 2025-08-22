@@ -1,76 +1,107 @@
-export type SlotSpec = {
-  mode: 'user' | 'computed' | 'llm';
-  type: 'text' | 'number' | 'list' | 'table';
-  pattern?: string;
-  deps?: string[];
-  prompt?: string;
-};
+import type { SlotSpec, SlotType } from '../../../types/template';
 
-export function hydrate(ast: unknown, slots: Record<string, unknown>, spec: Record<string, SlotSpec>): unknown {
-  if (Array.isArray(ast)) {
-    return ast.map((n) => hydrate(n, slots, spec));
-  }
-  if (ast && typeof ast === 'object') {
-    const node = ast as { type?: string; slotId?: string; id?: string; children?: unknown; root?: unknown } & Record<string, unknown>;
+type SlotsDict = Record<string, string | number | null | undefined>;
+type SpecDict  = Record<string, SlotSpec>;
 
-    // Editor state wrapper
-    if (Object.prototype.hasOwnProperty.call(node, 'root')) {
-      const out: Record<string, unknown> = { ...node };
-      out.root = hydrate(node.root, slots, spec);
+function makeTextNode(text: string) {
+  return { type: 'text', version: 1, text, format: 0, style: '' };
+}
+
+function isFieldSpec(spec?: SlotSpec): spec is import('../../../types/template').FieldSpec {
+  return spec?.kind === 'field';
+}
+
+function formatValue(val: unknown, spec?: SlotSpec): string {
+  if (val == null) return '';
+  // AVANT: spec?.type (erreur TypeScript car SlotSpec est union)
+  // APRÈS: isFieldSpec(spec) && spec.type (TypeScript sait que spec est FieldSpec)
+  if (isFieldSpec(spec) && spec.type === 'list' && Array.isArray(val)) return val.join(', ');
+  // pour tout le reste (text/number/table), on stringify simplement
+  return String(val);
+}
+
+/** Remplace uniquement { type:'slot', slotId } par un TextNode. */
+export function hydrate(ast: unknown, slots: SlotsDict, spec: SpecDict): unknown {
+  console.log('[DEBUG] hydrate - STARTED', {
+    astType: typeof ast,
+    astKeys: typeof ast === 'object' ? Object.keys(ast || {}) : 'N/A',
+    slotsCount: Object.keys(slots || {}).length,
+    slotsKeys: Object.keys(slots || {}),
+    specCount: Object.keys(spec || {}).length,
+    specKeys: Object.keys(spec || {}),
+  });
+
+  let slotsReplacedCount = 0;
+  let nodesVisitedCount = 0;
+
+  const visit = (node: any): any => {
+    nodesVisitedCount++;
+
+    if (Array.isArray(node)) {
+      console.log(`[DEBUG] hydrate - Processing array with ${node.length} items`);
+      return node.map(visit);
+    }
+
+    if (node && typeof node === 'object') {
+      // Cas slot principal
+      if (node.type === 'slot' && typeof node.slotId === 'string') {
+        const id = node.slotId;
+        const slotValue = slots[id];
+        const slotSpec = spec[id];
+
+        console.log(`[DEBUG] hydrate - Replacing slot:`, {
+          slotId: id,
+          slotValue: slotValue,
+          slotValueType: typeof slotValue,
+          hasSlotSpec: !!slotSpec,
+          slotSpecType: slotSpec?.kind,
+          slotSpecFieldType: isFieldSpec(slotSpec) ? slotSpec.type : 'N/A',
+        });
+
+        const formattedValue = formatValue(slotValue, slotSpec);
+        const textNode = makeTextNode(formattedValue);
+
+        console.log(`[DEBUG] hydrate - Slot replaced:`, {
+          slotId: id,
+          originalValue: slotValue,
+          formattedValue: formattedValue,
+          textNode: textNode,
+        });
+
+        slotsReplacedCount++;
+        return textNode;
+      }
+
+      // Descente générique sur tous les champs objets/arrays
+      const out: any = {};
+      for (const [k, v] of Object.entries(node)) {
+        out[k] = (v && typeof v === 'object') ? visit(v) : v;
+      }
+
+      console.log(`[DEBUG] hydrate - Processed object node:`, {
+        nodeType: node.type || 'unknown',
+        originalKeys: Object.keys(node),
+        processedKeys: Object.keys(out),
+        hasChanges: Object.keys(node).length !== Object.keys(out).length,
+      });
+
       return out;
     }
 
-    // Slot node from frontend can be { type: 'slot', slotId } or legacy { type:'slot', id }
-    if (node.type === 'slot' && (typeof node.slotId === 'string' || typeof (node as any).id === 'string')) {
-      const slotId = (typeof node.slotId === 'string' ? node.slotId : (node as any).id) as string;
+    return node;
+  };
 
-      // 1) Direct lookup
-      let value: unknown = slots[slotId];
+  console.log('[DEBUG] hydrate - Starting AST traversal...');
+  const result = visit(ast);
 
-      // 2) Fallback for templated or repeated ids (e.g., includes {{item.key}} or extra segments)
-      if (value === undefined) {
-        const keys = Object.keys(spec || {});
-        const firstSeg = slotId.split('.')[0];
-        const lastSeg = slotId.split('.').pop() || slotId;
+  console.log('[DEBUG] hydrate - COMPLETED', {
+    nodesVisitedCount: nodesVisitedCount,
+    slotsReplacedCount: slotsReplacedCount,
+    resultType: typeof result,
+    resultKeys: typeof result === 'object' ? Object.keys(result || {}) : 'N/A',
+    resultSize: JSON.stringify(result).length,
+    resultPreview: JSON.stringify(result).slice(0, 300) + '...',
+  });
 
-        // a) Try regex replacing templated parts
-        try {
-          const regexText = slotId
-            .replace(/\./g, '\\.')
-            .replace(/\{\{[^}]+\}\}/g, '[^.]+');
-          const regex = new RegExp(`^${regexText}$`);
-          const key = keys.find((k) => regex.test(k));
-          if (key && slots[key] !== undefined) value = slots[key];
-        } catch {}
-
-        // b) Try heuristic: startsWith first segment and endsWith last segment
-        if (value === undefined) {
-          const key = keys.find((k) => k.startsWith(firstSeg) && k.endsWith(lastSeg));
-          if (key && slots[key] !== undefined) value = slots[key];
-        }
-      }
-
-      const text = Array.isArray(value) ? (value as unknown[]).join(', ') : String(value ?? '');
-      return {
-        type: 'text',
-        text,
-        detail: 0,
-        format: 0,
-        mode: 'normal',
-        style: '',
-        version: 1,
-      };
-    }
-
-    const out: Record<string, unknown> = { ...node };
-    if (node.children !== undefined) {
-      out.children = hydrate(node.children, slots, spec);
-    }
-    return out;
-  }
-  return ast;
+  return result;
 }
-
-export const _test = { hydrate };
-
-

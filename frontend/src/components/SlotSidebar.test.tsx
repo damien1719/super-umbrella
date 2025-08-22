@@ -1,12 +1,12 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { vi } from 'vitest';
 import SlotSidebar from './SlotSidebar';
-import type { Slot } from '../types/template';
+import type { SlotSpec } from '../types/template';
 
 test('adds slot and calls callbacks', () => {
   const onChange = vi.fn();
   const onAddSlot = vi.fn();
-  const slots: Slot[] = [];
+  const slots: SlotSpec[] = [];
   render(
     <SlotSidebar slots={slots} onChange={onChange} onAddSlot={onAddSlot} />,
   );

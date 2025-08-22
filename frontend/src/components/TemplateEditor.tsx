@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import * as React from 'react';
 import RichTextEditor, { RichTextEditorHandle } from './RichTextEditor';
 import SlotSidebar from './SlotSidebar';
 import type { SectionTemplate } from '../types/template';
@@ -9,15 +9,32 @@ interface Props {
   onUpdateSlot?: (slotId: string, slotLabel: string) => void;
 }
 
-export default function TemplateEditor({ template, onChange, onUpdateSlot }: Props) {
-  const editorRef = useRef<RichTextEditorHandle>(null);
+export default function TemplateEditor({
+  template,
+  onChange,
+  onUpdateSlot,
+}: Props) {
+  const editorRef = React.useRef<RichTextEditorHandle>(null);
+  const [, forceUpdate] = React.useState(0);
+  /* 
+  // Force re-render when AST changes
+  React.useEffect(() => {
+    // Force a re-render to ensure RichTextEditor gets updated
+    forceUpdate((prev) => prev + 1);
+  }, [template.id, template.content, template.slotsSpec]);
+
+ */
+
   return (
     <div className="flex w-full gap-4">
       <div className="basis-3/4 min-w-0">
         <RichTextEditor
           ref={editorRef}
-          initialStateJson={template.ast}
-          onChangeStateJson={(ast) => onChange({ ...template, ast })}
+          templateKey={`${template.id}:${template.updatedAt || ''}`}
+          initialStateJson={template.content}
+          onChangeStateJson={(ast) => {
+            onChange({ ...template, content: ast });
+          }}
         />
         <div className="mt-4">
           <label className="block text-sm font-medium mb-1">Style prompt</label>
@@ -32,8 +49,8 @@ export default function TemplateEditor({ template, onChange, onUpdateSlot }: Pro
       </div>
       <div className="basis-1/4 shrink-0">
         <SlotSidebar
-          slots={template.slots}
-          onChange={(slots) => onChange({ ...template, slots })}
+          slots={template.slotsSpec}
+          onChange={(slots) => onChange({ ...template, slotsSpec: slots })}
           onAddSlot={(slot) =>
             editorRef.current?.insertSlot?.(
               slot.id,
@@ -42,23 +59,39 @@ export default function TemplateEditor({ template, onChange, onUpdateSlot }: Pro
             )
           }
           onUpdateSlot={(slotId, slotLabel) => {
-            const active = document.activeElement as (HTMLInputElement | HTMLTextAreaElement | null);
-            const selStart = (active as HTMLInputElement | HTMLTextAreaElement | null)?.selectionStart ?? null;
-            const selEnd = (active as HTMLInputElement | HTMLTextAreaElement | null)?.selectionEnd ?? null;
+            const active = document.activeElement as
+              | HTMLInputElement
+              | HTMLTextAreaElement
+              | null;
+            const selStart =
+              (active as HTMLInputElement | HTMLTextAreaElement | null)
+                ?.selectionStart ?? null;
+            const selEnd =
+              (active as HTMLInputElement | HTMLTextAreaElement | null)
+                ?.selectionEnd ?? null;
 
             editorRef.current?.updateSlot?.(slotId, slotLabel);
 
             // Restore focus and selection to the previously focused input/textarea
             if (active && typeof active.focus === 'function') {
               // Use microtask to let Lexical finish its update cycle
-              queueMicrotask(() => {
+              requestAnimationFrame(() => {
                 active.focus({ preventScroll: true } as any);
-                if (selStart !== null && selEnd !== null && 'setSelectionRange' in active) {
-                  try { (active as HTMLInputElement | HTMLTextAreaElement).setSelectionRange(selStart, selEnd); } catch {}
+                if (
+                  selStart !== null &&
+                  selEnd !== null &&
+                  'setSelectionRange' in active
+                ) {
+                  try {
+                    (
+                      active as HTMLInputElement | HTMLTextAreaElement
+                    ).setSelectionRange(selStart, selEnd);
+                  } catch {}
                 }
               });
             }
-          }}
+          }
+        }
         />
       </div>
     </div>

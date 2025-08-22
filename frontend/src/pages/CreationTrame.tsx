@@ -1,12 +1,14 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useSectionStore } from '../store/sections';
 import { useSectionExampleStore } from '../store/sectionExamples';
 import type { Question } from '../types/Typequestion';
 // Narrow the answers type to satisfy DataEntry
-type Answers = Record<string, string | number | boolean | string[] | Record<string, unknown>>;
+type Answers = Record<
+  string,
+  string | number | boolean | string[] | Record<string, unknown>
+>;
 import { categories, type CategoryId } from '../types/trame';
 import TrameHeader from '@/components/TrameHeader';
 import QuestionList from '@/components/QuestionList';
@@ -52,10 +54,15 @@ export default function CreationTrame() {
   const [template, setTemplate] = useState<SectionTemplate>({
     id: Date.now().toString(),
     label: '',
-    ast: null,
-    slots: [],
+    version: 1,
+    content: null,
+    slotsSpec: [],
     stylePrompt: '',
+    isDeprecated: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   });
+  const [loadingTemplate, setLoadingTemplate] = useState(false);
 
   const createDefaultNote = (): Question => ({
     id: Date.now().toString(),
@@ -77,9 +84,13 @@ export default function CreationTrame() {
         setTemplate({
           id: Date.now().toString(),
           label: section.title,
-          ast: null,
-          slots: [],
+          version: 1,
+          content: null,
+          slotsSpec: [],
           stylePrompt: '',
+          isDeprecated: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         });
       }
       const loaded: Question[] =
@@ -96,8 +107,14 @@ export default function CreationTrame() {
       qs.map((q: Question) => {
         if (q.id !== id) return q;
         const merged: any = { ...q, ...partial };
-        if ((partial as any).tableau !== undefined && (q as any).tableau !== undefined) {
-          merged.tableau = { ...(q as any).tableau, ...(partial as any).tableau };
+        if (
+          (partial as any).tableau !== undefined &&
+          (q as any).tableau !== undefined
+        ) {
+          merged.tableau = {
+            ...(q as any).tableau,
+            ...(partial as any).tableau,
+          };
         }
         return merged as Question;
       }),
@@ -260,7 +277,19 @@ export default function CreationTrame() {
         )}
 
         {tab === 'template' && (
-          <TemplateEditor template={template} onChange={setTemplate} />
+          <div>
+            {loadingTemplate && (
+              <div className="bg-blue-50 border border-blue-200 rounded p-4 mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                  <span className="text-blue-800">
+                    Chargement du template...
+                  </span>
+                </div>
+              </div>
+            )}
+            <TemplateEditor template={template} onChange={setTemplate} />
+          </div>
         )}
       </div>
       <Dialog open={showImport} onOpenChange={setShowImport}>
@@ -282,12 +311,81 @@ export default function CreationTrame() {
             }}
             onCancel={() => setShowImport(false)}
             sectionId={sectionId}
-            onTemplateCreated={(id) => {
+            onTemplateCreated={async (id) => {
+              console.log(
+                '[DEBUG] CreationTrame - onTemplateCreated called with ID:',
+                id,
+              );
+              console.log('[DEBUG] CreationTrame - ID type:', typeof id);
+              console.log(
+                '[DEBUG] CreationTrame - ID is empty?',
+                !id || id.trim() === '',
+              );
+
               setShowImport(false);
-              setTab('template');
-              if (id) {
-                getTemplate(id).then((tpl) => setTemplate(tpl));
-                setTemplateRefId(id);
+              setLoadingTemplate(true);
+
+              if (id && id.trim() !== '') {
+                try {
+                  console.log(
+                    '[DEBUG] CreationTrame - Loading template from DB with ID:',
+                    id,
+                  );
+                  console.log(
+                    '[DEBUG] CreationTrame - getTemplate function available:',
+                    !!getTemplate,
+                  );
+
+                  const tpl = await getTemplate(id);
+                  console.log(
+                    '[DEBUG] CreationTrame - Template loaded from DB:',
+                    {
+                      id: tpl.id,
+                      label: tpl.label,
+                      hasContent: !!tpl.content,
+                      contentType: typeof tpl.content,
+                      slotsCount: tpl.slotsSpec?.length || 0,
+                      slotsType: typeof tpl.slotsSpec,
+                      stylePrompt: tpl.stylePrompt,
+                      fullTemplate: JSON.stringify(tpl, null, 2),
+                    },
+                  );
+
+                  console.log(
+                    '[DEBUG] CreationTrame - Setting template state...',
+                  );
+                  setTemplate(tpl);
+                  setTemplateRefId(id);
+
+                  // Only switch to template tab after template is loaded
+                  console.log(
+                    '[DEBUG] CreationTrame - Switching to template tab',
+                  );
+                  setTab('template');
+
+                  console.log(
+                    '[DEBUG] CreationTrame - Template setup completed successfully',
+                  );
+                } catch (error) {
+                  console.error(
+                    '[DEBUG] CreationTrame - Error loading template:',
+                    error,
+                  );
+                  console.error('[DEBUG] CreationTrame - Error details:', {
+                    error: error,
+                    message:
+                      error instanceof Error ? error.message : 'Unknown error',
+                    stack: error instanceof Error ? error.stack : 'No stack',
+                  });
+                } finally {
+                  setLoadingTemplate(false);
+                }
+              } else {
+                console.error(
+                  '[DEBUG] CreationTrame - Invalid or empty template ID:',
+                  id,
+                );
+                setLoadingTemplate(false);
               }
             }}
           />

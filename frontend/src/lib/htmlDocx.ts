@@ -4,5 +4,3 @@ export async function toDocxBlob(html: string): Promise<Blob> {
   const api = (mod && (mod.asBlob ? mod : mod.default)) || mod;
   return api.asBlob(html);
 }
-
-

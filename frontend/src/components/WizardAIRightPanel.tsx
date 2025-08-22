@@ -40,7 +40,11 @@ interface WizardAIRightPanelProps {
   answers: Answers;
   onAnswersChange: (a: Answers) => void;
   onGenerate: (latest?: Answers, rawNotes?: string) => void;
-  onGenerateFromTemplate?: (latest?: Answers, rawNotes?: string, instanceId?: string) => void;
+  onGenerateFromTemplate?: (
+    latest?: Answers,
+    rawNotes?: string,
+    instanceId?: string,
+  ) => void;
   isGenerating: boolean;
   bilanId: string;
   onCancel: () => void;
@@ -285,7 +289,9 @@ export default function WizardAIRightPanel({
     );
   }
 
-  const saveNotes = async (notes: Answers | undefined): Promise<string | null> => {
+  const saveNotes = async (
+    notes: Answers | undefined,
+  ): Promise<string | null> => {
     if (!selectedTrame) return;
     const body = instanceId
       ? { contentNotes: notes }
