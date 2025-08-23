@@ -39,11 +39,12 @@ interface WizardAIRightPanelProps {
   questions: Question[];
   answers: Answers;
   onAnswersChange: (a: Answers) => void;
-  onGenerate: (latest?: Answers, rawNotes?: string) => void;
+  onGenerate: (latest?: Answers, rawNotes?: string, imageBase64?: string) => void;
   onGenerateFromTemplate?: (
     latest?: Answers,
     rawNotes?: string,
     instanceId?: string,
+    imageBase64?: string,
   ) => void;
   isGenerating: boolean;
   bilanId: string;
@@ -80,6 +81,16 @@ export default function WizardAIRightPanel({
 
   const [notesMode, setNotesMode] = useState<'manual' | 'import'>('manual');
   const [rawNotes, setRawNotes] = useState('');
+  const [imageBase64, setImageBase64] = useState<string | undefined>(undefined);
+
+  // Debug: log when imageBase64 changes
+  useEffect(() => {
+    console.log('[DEBUG] WizardAIRightPanel - imageBase64 state changed:', {
+      hasImage: !!imageBase64,
+      imageLength: imageBase64?.length || 0,
+      preview: imageBase64?.substring(0, 100) + '...' || 'none'
+    });
+  }, [imageBase64]);
 
   useEffect(() => {
     fetchProfile().catch(() => {});
@@ -158,7 +169,7 @@ export default function WizardAIRightPanel({
 
   const headerDescription = `Étape ${step}/${total} – ${stepTitles[step - 1]}`;
 
-  let content: JSX.Element | null = null;
+  let content: React.JSX.Element | null = null;
 
   if (step === 1) {
     const displayedTrames = trameOptions.filter(matchesActiveFilter);
@@ -267,7 +278,10 @@ export default function WizardAIRightPanel({
           active={notesMode}
           onChange={(k) => {
             setNotesMode(k as 'manual' | 'import');
-            if (k === 'manual') setRawNotes('');
+            if (k === 'manual') {
+              setRawNotes('');
+              setImageBase64(undefined);
+            }
           }}
           tabs={[
             { key: 'manual', label: 'Saisie manuelle' },
@@ -283,7 +297,7 @@ export default function WizardAIRightPanel({
             inline
           />
         ) : (
-          <ImportNotes onChange={setRawNotes} />
+          <ImportNotes onChange={setRawNotes} onImageChange={setImageBase64} />
         )}
       </div>
     );
@@ -292,7 +306,7 @@ export default function WizardAIRightPanel({
   const saveNotes = async (
     notes: Answers | undefined,
   ): Promise<string | null> => {
-    if (!selectedTrame) return;
+    if (!selectedTrame) return null;
     const body = instanceId
       ? { contentNotes: notes }
       : {
@@ -428,17 +442,24 @@ export default function WizardAIRightPanel({
               </Button>
             ) : (
               <div className="flex gap-2">
-                <Button
-                  onClick={async () => {
-                    const data =
-                      notesMode === 'manual'
-                        ? (dataEntryRef.current?.save() as Answers | undefined)
-                        : undefined;
-                    if (notesMode === 'manual') {
-                      await saveNotes(data);
-                    }
-                    onGenerate(data, rawNotes);
-                  }}
+                                  <Button
+                    onClick={async () => {
+                      console.log('[DEBUG] WizardAIRightPanel - Generate button clicked:', {
+                        notesMode,
+                        hasRawNotes: !!rawNotes,
+                        hasImageBase64: !!imageBase64,
+                        imageBase64Length: imageBase64?.length || 0
+                      });
+
+                      const data =
+                        notesMode === 'manual'
+                          ? (dataEntryRef.current?.save() as Answers | undefined)
+                          : undefined;
+                      if (notesMode === 'manual') {
+                        await saveNotes(data);
+                      }
+                      onGenerate(data, rawNotes, imageBase64);
+                    }}
                   disabled={isGenerating}
                   type="button"
                 >
@@ -457,6 +478,14 @@ export default function WizardAIRightPanel({
                 {onGenerateFromTemplate && (
                   <Button
                     onClick={async () => {
+                      console.log('[DEBUG] WizardAIRightPanel - GenerateFromTemplate button clicked:', {
+                        notesMode,
+                        hasRawNotes: !!rawNotes,
+                        hasImageBase64: !!imageBase64,
+                        imageBase64Length: imageBase64?.length || 0,
+                        instanceId
+                      });
+
                       const data =
                         notesMode === 'manual'
                           ? (dataEntryRef.current?.save() as
@@ -467,7 +496,7 @@ export default function WizardAIRightPanel({
                       if (notesMode === 'manual') {
                         id = await saveNotes(data);
                       }
-                      onGenerateFromTemplate(data, rawNotes, id || undefined);
+                      onGenerateFromTemplate(data, rawNotes, id || undefined, imageBase64);
                       onCancel();
                     }}
                     disabled={isGenerating}

@@ -8,9 +8,10 @@ import { useAuth } from '@/store/auth';
 
 interface ImportNotesProps {
   onChange: (text: string) => void;
+  onImageChange?: (imageBase64: string | undefined) => void;
 }
 
-export default function ImportNotes({ onChange }: ImportNotesProps) {
+export default function ImportNotes({ onChange, onImageChange }: ImportNotesProps) {
   const [mode, setMode] = useState<'text' | 'excel' | 'image'>('text');
   const [text, setText] = useState('');
   const [file, setFile] = useState<File | null>(null);
@@ -22,7 +23,9 @@ export default function ImportNotes({ onChange }: ImportNotesProps) {
   useEffect(() => {
     if (mode === 'text') {
       onChange(text);
+      onImageChange?.(undefined);
     } else if (mode === 'excel' && file) {
+      onImageChange?.(undefined);
       const reader = new FileReader();
       reader.onload = () => {
         try {
@@ -42,6 +45,15 @@ export default function ImportNotes({ onChange }: ImportNotesProps) {
       reader.onload = async () => {
         const res = reader.result as string;
         const base64 = res.split(',')[1] || '';
+
+        // Notifier l'image en base64
+        console.log('[DEBUG] ImportNotes - onImageChange called with base64:', {
+          hasBase64: !!base64,
+          base64Length: base64.length,
+          preview: base64.substring(0, 100) + '...'
+        });
+        onImageChange?.(base64);
+
         try {
           const r = await apiFetch<{
             result: Array<{ tableau?: { columns: any[]; rowsGroups: any[] } }>;
@@ -70,8 +82,10 @@ export default function ImportNotes({ onChange }: ImportNotesProps) {
         }
       };
       reader.readAsDataURL(image);
+    } else {
+      onImageChange?.(undefined);
     }
-  }, [mode, text, file, image, onChange, token]);
+  }, [mode, text, file, image, onChange, onImageChange, token]);
 
   return (
     <div className="space-y-4 w-full">

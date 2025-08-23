@@ -151,6 +151,7 @@ async function doRequestDirect(params: {
   chunks: string[];
   stylePrompt?: string;
   rawNotes?: string;
+  imageBase64?: string;
 }): Promise<GenerationResult> {
   const body: any = {
     section: params.sectionKind,
@@ -158,6 +159,7 @@ async function doRequestDirect(params: {
     stylePrompt: params.stylePrompt,
   };
   if (params.rawNotes?.trim()) body.rawNotes = params.rawNotes;
+  if (params.imageBase64) body.imageBase64 = params.imageBase64;
 
   const res = await apiFetch<{ text: string }>(
     `/api/v1/bilans/${params.bilanId}/generate`,
@@ -179,6 +181,7 @@ async function doRequestFromTemplate(params: {
   stylePrompt?: string;
   contentNotes?: Answers;
   rawNotes?: string;
+  imageBase64?: string;
 }): Promise<GenerationResult> {
   console.log('[DEBUG] doRequestFromTemplate - Starting request with params:');
   console.log('[DEBUG] doRequestFromTemplate - instanceId:', params.instanceId);
@@ -220,6 +223,7 @@ async function doRequestFromTemplate(params: {
     contentNotes: params.contentNotes,
     rawNotes: params.rawNotes,
   };
+  if (params.imageBase64) body.imageBase64 = params.imageBase64;
 
   console.log('[DEBUG] doRequestFromTemplate - Request body prepared:', {
     hasInstanceId: !!body.instanceId,
@@ -283,6 +287,7 @@ export async function generateSection(opts: {
   answers: Record<string, Answers>;
   newAnswers?: Answers;
   rawNotes?: string;
+  imageBase64?: string;
   instanceId?: string;
 
   token: string;
@@ -310,6 +315,7 @@ export async function generateSection(opts: {
     answers,
     newAnswers,
     rawNotes,
+    imageBase64,
     instanceId,
 
     token,
@@ -351,6 +357,7 @@ export async function generateSection(opts: {
         chunks,
         stylePrompt,
         rawNotes,
+        imageBase64,
       });
     } else {
       if (!instanceId) throw new Error('Missing instanceId for template mode');
@@ -374,6 +381,7 @@ export async function generateSection(opts: {
         stylePrompt,
         contentNotes: current,
         rawNotes,
+        imageBase64,
       });
       console.log(
         '[DEBUG] generateSection - doRequestFromTemplate result:',

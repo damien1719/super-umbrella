@@ -1,5 +1,8 @@
 /** Message OpenAI unique */
-export type SingleMessage = { role: 'system' | 'user' | 'assistant'; content: string };
+export type SingleMessage = {
+  role: 'system' | 'user' | 'assistant';
+  content: string | Array<{ type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }>
+};
 
 /** Paramètres génériques pour tout type de prompt */
 export interface PromptParams {
@@ -19,6 +22,8 @@ export interface PromptParams {
   rawNotes?: string;
   /** Override du modèle OpenAI par défaut */
   model?: string;
+  /** Image importée en base64 (optionnel) */
+  imageBase64?: string;
 }
 
 /** Valeur par défaut pour ton system prompt */
@@ -95,14 +100,42 @@ export function buildPrompt(params: PromptParams & { job?: 'PSYCHOMOTRICIEN' | '
     });
   }
 
-  // 6. Données utilisateur
-  msgs.push({ role: 'user', content: `Données du patient actuel (Markdown):\n${params.userContent.trim()}` });
+  console.log('[DEBUG] buildPrompt - imageBase64:', params.imageBase64);
 
-  if (params.rawNotes && params.rawNotes.trim().length > 0) {
-    msgs.push({
-      role: 'user',
-      content: `Notes brutes importées:\n${params.rawNotes.trim()}`,
-    });
+  // 6. Données utilisateur
+  if (params.imageBase64) {
+    // Si on a une image, on utilise un message multimodal
+    const content = [
+      {
+        type: 'image_url' as const,
+        image_url: {
+          url: `data:image/png;base64,${params.imageBase64}`,
+        },
+      },
+      {
+        type: 'text' as const,
+        text: `Données du patient actuel (Markdown):\n${params.userContent.trim()}`,
+      },
+    ];
+
+    if (params.rawNotes && params.rawNotes.trim().length > 0) {
+      content.push({
+        type: 'text' as const,
+        text: `Notes brutes importées:\n${params.rawNotes.trim()}`,
+      });
+    }
+
+    msgs.push({ role: 'user', content });
+  } else {
+    // Message texte classique
+    msgs.push({ role: 'user', content: `Données du patient actuel (Markdown):\n${params.userContent.trim()}` });
+
+    if (params.rawNotes && params.rawNotes.trim().length > 0) {
+      msgs.push({
+        role: 'user',
+        content: `Notes brutes importées:\n${params.rawNotes.trim()}`,
+      });
+    }
   }
 
 

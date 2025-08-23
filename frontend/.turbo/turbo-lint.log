@@ -1,5 +1,4 @@
 
-
 > frontend@1.0.0 lint /Users/mossuz/Documents/Documents personnels/super-umbrella/frontend
 > eslint . --ext .ts,.tsx,.js,.jsx --fix
 

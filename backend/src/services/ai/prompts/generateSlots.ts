@@ -156,6 +156,9 @@ function normalizeToArray(data: unknown): Array<{ id: string; value: unknown }> 
 }
 
 export async function callModel(ids: string[], spec: Record<string, SlotSpec>, notes: Notes, style?: string) {
+  // Extract imageBase64 from notes if present
+  const { _imageBase64, ...cleanNotes } = notes as Notes & { _imageBase64?: string };
+  const imageBase64 = _imageBase64;
   console.log('[DEBUG] callModel - STARTED', {
     idsCount: ids.length,
     ids: ids,
@@ -188,14 +191,32 @@ export async function callModel(ids: string[], spec: Record<string, SlotSpec>, n
       batchIds: batch,
     });
 
-    const prompt = buildPrompt(batch, spec, notes, style);
+    const prompt = buildPrompt(batch, spec, cleanNotes, style);
     console.log(`[DEBUG] callModel - Batch ${batchIndex + 1} prompt built:`, {
       promptLength: prompt.length,
       promptPreview: prompt.slice(0, 300) + '...',
     });
 
     promptsForHash.push(prompt);
-    const messages = [{ role: 'user', content: prompt }];
+
+    // Create multimodal message if image is present
+    const messages = imageBase64
+      ? [{
+          role: 'user' as const,
+          content: [
+            {
+              type: 'image_url' as const,
+              image_url: {
+                url: `data:image/png;base64,${imageBase64}`,
+              },
+            },
+            {
+              type: 'text' as const,
+              text: prompt,
+            },
+          ],
+        }]
+      : [{ role: 'user' as const, content: prompt }];
 
     console.log(`[DEBUG] callModel - Batch ${batchIndex + 1} calling OpenAI...`);
     const raw = await openaiProvider.chat({ messages } as unknown as import('openai/resources/index').ChatCompletionCreateParams);
