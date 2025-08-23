@@ -5,9 +5,11 @@ import type {
   RepeatSpec,
 } from '../types/template';
 import { FIELD_PRESETS } from '../types/template';
-import SlotDetails from './SlotDetails';
+import SlotEditor from './SlotEditor';
 import { Button } from './ui/button';
 import { Card, CardHeader, CardContent } from './ui/card';
+import { Input } from './ui/input';
+import { ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 
 interface Props {
@@ -148,6 +150,12 @@ export default function SlotSidebar({
     }
   };
 
+  const editLabel = (index: number, newLabel: string) => {
+    const slot = slots[index] as any;
+    updateSlot(index, { ...slot, label: newLabel });
+    onUpdateSlot?.(slot.id, newLabel);
+  };
+
   return (
     <aside className="w-120 border-l h-screen">
       <div className="flex gap-1 flex-wrap sticky top-0 bg-white">
@@ -176,37 +184,42 @@ export default function SlotSidebar({
                 return (
                   <div
                     key={(slot as any).id || `${(slot as any).kind}-${idx}`}
-                    className="flex justify-between items-center border rounded p-2 cursor-pointer"
-                    onClick={() => setSelectedIndex(idx)}
+                    className="flex justify-between items-center gap-2 border rounded p-2"
                   >
-                    <div className="flex flex-col text-sm">
-                      <span>{label}</span>
+                    <div className="flex flex-col flex-1">
+                      <Input
+                        value={label}
+                        onChange={(e) => editLabel(idx, e.target.value)}
+                        className="h-7 text-sm"
+                      />
                       {preset && (
                         <span className="text-xs text-muted-foreground">
                           {preset}
                         </span>
                       )}
                     </div>
-                    <div className="flex gap-1">
+                    <div className="flex gap-1 items-center">
                       <Button
                         size="xs"
                         variant="outline"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          insertSlot(slot);
-                        }}
+                        onClick={() => insertSlot(slot)}
                       >
                         Insérer
                       </Button>
                       <Button
                         size="xs"
                         variant="ghost"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeSlot((slot as any).id);
-                        }}
+                        onClick={() => removeSlot((slot as any).id)}
                       >
                         ×
+                      </Button>
+                      <Button
+                        size="xs"
+                        variant="ghost"
+                        aria-label="Détails"
+                        onClick={() => setSelectedIndex(idx)}
+                      >
+                        <ChevronRight className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>
@@ -216,14 +229,22 @@ export default function SlotSidebar({
           </CardContent>
         </Card>
       ) : (
-        <SlotDetails
-          slot={slots[selectedIndex]}
-          onChange={(updated) => updateSlot(selectedIndex, updated)}
-          onRemove={() => removeSlot((slots[selectedIndex] as any).id)}
-          onAddSlot={onAddSlot}
-          onUpdateSlot={onUpdateSlot}
-          onBack={() => setSelectedIndex(null)}
-        />
+        <div className="space-y-2">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setSelectedIndex(null)}
+          >
+            Retour
+          </Button>
+          <SlotEditor
+            slot={slots[selectedIndex]}
+            onChange={(updated) => updateSlot(selectedIndex, updated)}
+            onRemove={() => removeSlot((slots[selectedIndex] as any).id)}
+            onAddSlot={onAddSlot}
+            onUpdateSlot={onUpdateSlot}
+          />
+        </div>
       )}
     </aside>
   );
