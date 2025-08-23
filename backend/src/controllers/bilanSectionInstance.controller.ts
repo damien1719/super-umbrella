@@ -63,8 +63,8 @@ export const BilanSectionInstanceController = {
 
   async generateFromTemplate(req: Request, res: Response, next: NextFunction) {
     try {
-      const { instanceId, trameId, answers, stylePrompt, rawNotes, contentNotes, userSlots } = req.body as {
-        instanceId: string; trameId: string; answers: string[]; stylePrompt?: string; rawNotes?: string; contentNotes?: Record<string, unknown>; userSlots?: Record<string, unknown>;
+      const { instanceId, trameId, answers, stylePrompt, rawNotes, contentNotes, userSlots, imageBase64 } = req.body as {
+        instanceId: string; trameId: string; answers: string[]; stylePrompt?: string; rawNotes?: string; contentNotes?: Record<string, unknown>; userSlots?: Record<string, unknown>; imageBase64?: string;
       };
       if (!instanceId || !trameId) {
         res.status(400).json({ error: 'instanceId and trameId are required' });
@@ -82,6 +82,7 @@ export const BilanSectionInstanceController = {
       console.log('rawNotes', rawNotes);
       console.log('contentNotes', contentNotes);
       console.log('userSlots', userSlots);
+      console.log('imageBase64', imageBase64 ? '[PRESENT]' : '[ABSENT]');
       console.log('stylePrompt', stylePrompt);
 
       // Recompose notes context from chunks + raw notes + optional structured answers (contentNotes)
@@ -91,7 +92,7 @@ export const BilanSectionInstanceController = {
         _rawNotes: rawNotes,
       };
 
-      const result = await generateFromTemplateSvc(sectionTemplateId, aggregatedNotes, { instanceId, userSlots, stylePrompt });
+      const result = await generateFromTemplateSvc(sectionTemplateId, aggregatedNotes, { instanceId, userSlots, stylePrompt, imageBase64 });
       res.json(result);
     } catch (e) {
       next(e);

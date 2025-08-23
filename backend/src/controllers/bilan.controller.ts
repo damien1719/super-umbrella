@@ -61,6 +61,7 @@ export const BilanController = {
       const rawNotes = typeof req.body.rawNotes === 'string' ? req.body.rawNotes : undefined;
       const stylePrompt = typeof req.body.stylePrompt === 'string' ? req.body.stylePrompt : undefined;
       const examples = Array.isArray(req.body.examples) ? req.body.examples : [];
+      const imageBase64 = typeof req.body.imageBase64 === 'string' ? req.body.imageBase64 : undefined;
       const cfg = promptConfigs[section];
       if (!cfg) {
         res.status(400).json({ error: 'invalid section' });
@@ -93,6 +94,7 @@ export const BilanController = {
         examples,
         stylePrompt,
         rawNotes,
+        imageBase64,
         job,
       });
       // Post-traitement: réinjecte le nom du patient si connu, sinon renvoie tel quel

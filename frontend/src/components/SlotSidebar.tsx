@@ -136,7 +136,18 @@ export default function SlotSidebar({
   };
 
   return (
-    <aside className="w-120 border-l">
+    <aside className="w-120 border-l h-screen">
+      <div className="flex gap-1 flex-wrap sticky top-0 bg-white">
+        <Button size="sm" variant="outline" onClick={addField}>
+          + Champ
+        </Button>
+        <Button size="sm" variant="outline" onClick={addGroup}>
+          + Groupe
+        </Button>
+        <Button size="sm" variant="outline" onClick={addRepeat}>
+          + Répéteur
+        </Button>
+      </div>
       <Card className="border-0 shadow-none">
         <CardHeader className="pb-2">
           <div className="flex justify-between items-center">
@@ -144,17 +155,7 @@ export default function SlotSidebar({
           </div>
         </CardHeader>
         <CardContent className="space-y-2 pt-2">
-          <div className="flex gap-1 flex-wrap">
-            <Button size="sm" variant="outline" onClick={addField}>
-              + Champ
-            </Button>
-            <Button size="sm" variant="outline" onClick={addGroup}>
-              + Groupe
-            </Button>
-            <Button size="sm" variant="outline" onClick={addRepeat}>
-              + Répéteur
-            </Button>
-          </div>
+
           <div className="space-y-1">
             {(slots || []).map((slot, idx) => (
               <SlotEditor

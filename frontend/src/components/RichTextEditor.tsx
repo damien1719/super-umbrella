@@ -200,7 +200,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
 
 
   const editorRef = useRef<HTMLElement>(null as unknown as HTMLElement);
-  //useVirtualSelection(editorRef);
+  useVirtualSelection(editorRef);
  
   // helper: valide (très simple) pour un état Lexical sérialisé
   function isLexicalStateLike(obj: any): boolean {
@@ -271,44 +271,6 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
      return JSON.stringify(DEFAULT_EMPTY_STATE);
    }
  }, [initialStateJson]);
-  // Apply template once when templateKey changes (no remount)
-/*   function TemplateLoaderPlugin({ templateKey, stateJson }: { templateKey?: string; stateJson?: unknown }) {
-    const [editor] = useLexicalComposerContext();
-    const appliedKeyRef = useRef<string | undefined>(undefined);
-
-    useEffect(() => {
-      if (!templateKey) return;
-      if (appliedKeyRef.current === templateKey) return;
-      appliedKeyRef.current = templateKey;
-
-      editor.update(() => {
-        try {
-          let serialized: string | null = null;
-          try {
-            if (typeof stateJson === 'string') {
-              const probe = JSON.parse(stateJson);
-              if (isLexicalStateLike(probe)) serialized = stateJson;
-            } else if (isLexicalStateLike(stateJson)) {
-              serialized = JSON.stringify(stateJson);
-            }
-          } catch {
-            // ignore parse errors, will fallback below
-          }
-
-          if (!serialized) {
-            serialized = JSON.stringify(DEFAULT_EMPTY_STATE);
-          }
-
-          const next = editor.parseEditorState(serialized);
-          editor.setEditorState(next);
-        } catch (e) {
-          console.warn('[Lexical] Ignoring invalid template state:', e);
-        }
-      });
-      try { editor.focus(); } catch {}
-    }, [editor, templateKey, stateJson]);
-    return null;
-  } */
 
   return (
     <LexicalComposer

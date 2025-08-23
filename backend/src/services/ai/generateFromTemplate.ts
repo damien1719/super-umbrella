@@ -148,7 +148,7 @@ function computeComputed(ids: string[], spec: Record<string, FieldSpec>, notes: 
 export async function generateFromTemplate(
   sectionTemplateId: string,
   contentNotes: Notes,
-  opts: { instanceId: string; userSlots?: Record<string, unknown>; stylePrompt?: string; model?: string },
+  opts: { instanceId: string; userSlots?: Record<string, unknown>; stylePrompt?: string; model?: string; imageBase64?: string },
 ) {
 
   const template = await SectionTemplateService.get(sectionTemplateId);
@@ -175,10 +175,16 @@ export async function generateFromTemplate(
   console.log('[DEBUG] generateFromTemplate - About to call LLM with:');
   console.log('[DEBUG] generateFromTemplate - LLM slots to generate:', parts.llm);
   console.log('[DEBUG] generateFromTemplate - LLM slotsSpec preview:', JSON.stringify(slotsSpec, null, 2));
-  console.log('[DEBUG] generateFromTemplate - LLM contentNotes preview:', JSON.stringify(contentNotes, null, 2));
-  console.log('[DEBUG] generateFromTemplate - LLM stylePrompt:', opts.stylePrompt);
+  // Add imageBase64 to contentNotes if present
+  const enrichedContentNotes = opts.imageBase64
+    ? { ...contentNotes, _imageBase64: opts.imageBase64 }
+    : contentNotes;
 
-  const llm = await callModel(parts.llm, slotsSpec, contentNotes, opts.stylePrompt);
+  console.log('[DEBUG] generateFromTemplate - LLM contentNotes preview:', JSON.stringify(enrichedContentNotes, null, 2));
+  console.log('[DEBUG] generateFromTemplate - LLM stylePrompt:', opts.stylePrompt);
+  console.log('[DEBUG] generateFromTemplate - LLM imageBase64 present:', !!opts.imageBase64);
+
+  const llm = await callModel(parts.llm, slotsSpec, enrichedContentNotes, opts.stylePrompt);
 
   console.log('[DEBUG] generateFromTemplate - LLM response received:');
   console.log('[DEBUG] generateFromTemplate - LLM slots generated:', Object.keys(llm.slots || {}));
