@@ -11,7 +11,10 @@ interface ImportNotesProps {
   onImageChange?: (imageBase64: string | undefined) => void;
 }
 
-export default function ImportNotes({ onChange, onImageChange }: ImportNotesProps) {
+export default function ImportNotes({
+  onChange,
+  onImageChange,
+}: ImportNotesProps) {
   const [mode, setMode] = useState<'text' | 'excel' | 'image'>('text');
   const [text, setText] = useState('');
   const [file, setFile] = useState<File | null>(null);
@@ -50,7 +53,7 @@ export default function ImportNotes({ onChange, onImageChange }: ImportNotesProp
         console.log('[DEBUG] ImportNotes - onImageChange called with base64:', {
           hasBase64: !!base64,
           base64Length: base64.length,
-          preview: base64.substring(0, 100) + '...'
+          preview: base64.substring(0, 100) + '...',
         });
         onImageChange?.(base64);
 

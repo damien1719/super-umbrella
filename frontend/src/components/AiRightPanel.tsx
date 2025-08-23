@@ -211,7 +211,7 @@ export default function AiRightPanel({
       hasNewAnswers: !!newAnswers,
       hasRawNotes: !!rawNotes,
       hasImageBase64: !!imageBase64,
-      imageBase64Length: imageBase64?.length || 0
+      imageBase64Length: imageBase64?.length || 0,
     });
 
     await generateSection({
@@ -245,14 +245,17 @@ export default function AiRightPanel({
     instId?: string,
     imageBase64?: string,
   ) => {
-    console.log('[DEBUG] AiRightPanel - handleGenerateFromTemplate called with:', {
-      sectionId: section.id,
-      hasNewAnswers: !!newAnswers,
-      hasRawNotes: !!rawNotes,
-      instId,
-      hasImageBase64: !!imageBase64,
-      imageBase64Length: imageBase64?.length || 0
-    });
+    console.log(
+      '[DEBUG] AiRightPanel - handleGenerateFromTemplate called with:',
+      {
+        sectionId: section.id,
+        hasNewAnswers: !!newAnswers,
+        hasRawNotes: !!rawNotes,
+        instId,
+        hasImageBase64: !!imageBase64,
+        imageBase64Length: imageBase64?.length || 0,
+      },
+    );
 
     console.log('[AiRightPanel] handleGenerateFromTemplate - STARTED', {
       sectionId: section.id,
@@ -644,9 +647,19 @@ export default function AiRightPanel({
                               setAnswers({ ...answers, [section.id]: a })
                             }
                             onGenerate={async (latest, notes, imageBase64) =>
-                              await handleGenerate(section, latest, notes, imageBase64)
+                              await handleGenerate(
+                                section,
+                                latest,
+                                notes,
+                                imageBase64,
+                              )
                             }
-                            onGenerateFromTemplate={async (latest, notes, id, imageBase64) =>
+                            onGenerateFromTemplate={async (
+                              latest,
+                              notes,
+                              id,
+                              imageBase64,
+                            ) =>
                               await handleGenerateFromTemplate(
                                 section,
                                 latest,
@@ -737,7 +750,14 @@ export default function AiRightPanel({
                       onAnswersChange={(a) =>
                         setAnswers({ ...answers, [section.id]: a })
                       }
-                      onGenerate={async (latest, notes, imageBase64) => await handleGenerate(section, latest, notes, imageBase64)}
+                      onGenerate={async (latest, notes, imageBase64) =>
+                        await handleGenerate(
+                          section,
+                          latest,
+                          notes,
+                          imageBase64,
+                        )
+                      }
                       isGenerating={
                         isGenerating && selectedSection === section.id
                       }

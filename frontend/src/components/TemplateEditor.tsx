@@ -90,8 +90,7 @@ export default function TemplateEditor({
                 }
               });
             }
-          }
-        }
+          }}
         />
       </div>
     </div>

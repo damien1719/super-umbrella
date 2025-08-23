@@ -39,7 +39,11 @@ interface WizardAIRightPanelProps {
   questions: Question[];
   answers: Answers;
   onAnswersChange: (a: Answers) => void;
-  onGenerate: (latest?: Answers, rawNotes?: string, imageBase64?: string) => void;
+  onGenerate: (
+    latest?: Answers,
+    rawNotes?: string,
+    imageBase64?: string,
+  ) => void;
   onGenerateFromTemplate?: (
     latest?: Answers,
     rawNotes?: string,
@@ -88,7 +92,7 @@ export default function WizardAIRightPanel({
     console.log('[DEBUG] WizardAIRightPanel - imageBase64 state changed:', {
       hasImage: !!imageBase64,
       imageLength: imageBase64?.length || 0,
-      preview: imageBase64?.substring(0, 100) + '...' || 'none'
+      preview: imageBase64?.substring(0, 100) + '...' || 'none',
     });
   }, [imageBase64]);
 
@@ -442,24 +446,27 @@ export default function WizardAIRightPanel({
               </Button>
             ) : (
               <div className="flex gap-2">
-                                  <Button
-                    onClick={async () => {
-                      console.log('[DEBUG] WizardAIRightPanel - Generate button clicked:', {
+                <Button
+                  onClick={async () => {
+                    console.log(
+                      '[DEBUG] WizardAIRightPanel - Generate button clicked:',
+                      {
                         notesMode,
                         hasRawNotes: !!rawNotes,
                         hasImageBase64: !!imageBase64,
-                        imageBase64Length: imageBase64?.length || 0
-                      });
+                        imageBase64Length: imageBase64?.length || 0,
+                      },
+                    );
 
-                      const data =
-                        notesMode === 'manual'
-                          ? (dataEntryRef.current?.save() as Answers | undefined)
-                          : undefined;
-                      if (notesMode === 'manual') {
-                        await saveNotes(data);
-                      }
-                      onGenerate(data, rawNotes, imageBase64);
-                    }}
+                    const data =
+                      notesMode === 'manual'
+                        ? (dataEntryRef.current?.save() as Answers | undefined)
+                        : undefined;
+                    if (notesMode === 'manual') {
+                      await saveNotes(data);
+                    }
+                    onGenerate(data, rawNotes, imageBase64);
+                  }}
                   disabled={isGenerating}
                   type="button"
                 >
@@ -478,13 +485,16 @@ export default function WizardAIRightPanel({
                 {onGenerateFromTemplate && (
                   <Button
                     onClick={async () => {
-                      console.log('[DEBUG] WizardAIRightPanel - GenerateFromTemplate button clicked:', {
-                        notesMode,
-                        hasRawNotes: !!rawNotes,
-                        hasImageBase64: !!imageBase64,
-                        imageBase64Length: imageBase64?.length || 0,
-                        instanceId
-                      });
+                      console.log(
+                        '[DEBUG] WizardAIRightPanel - GenerateFromTemplate button clicked:',
+                        {
+                          notesMode,
+                          hasRawNotes: !!rawNotes,
+                          hasImageBase64: !!imageBase64,
+                          imageBase64Length: imageBase64?.length || 0,
+                          instanceId,
+                        },
+                      );
 
                       const data =
                         notesMode === 'manual'
@@ -496,7 +506,12 @@ export default function WizardAIRightPanel({
                       if (notesMode === 'manual') {
                         id = await saveNotes(data);
                       }
-                      onGenerateFromTemplate(data, rawNotes, id || undefined, imageBase64);
+                      onGenerateFromTemplate(
+                        data,
+                        rawNotes,
+                        id || undefined,
+                        imageBase64,
+                      );
                       onCancel();
                     }}
                     disabled={isGenerating}

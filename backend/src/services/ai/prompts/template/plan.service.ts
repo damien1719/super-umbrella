@@ -201,7 +201,6 @@ async function callLLM_SystemUser(system: string, user: string, responseFormat?:
       { role: 'system', content: system },
       { role: 'user', content: user },
     ],
-    temperature: 0.1,
   };
 
   if (responseFormat) {

@@ -155,7 +155,6 @@ export default function SlotSidebar({
           </div>
         </CardHeader>
         <CardContent className="space-y-2 pt-2">
-
           <div className="space-y-1">
             {(slots || []).map((slot, idx) => (
               <SlotEditor

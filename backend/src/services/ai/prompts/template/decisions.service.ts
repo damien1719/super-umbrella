@@ -306,7 +306,6 @@ async function generateSequenceWithLLM(sourceText: string, plan: PlanResolved): 
 
   const raw = await openaiProvider.chat({
     model: IMPORT_MAGIQUE_MODEL,
-    temperature: 0.1,
     messages: [
       { role: 'system', content: SYSTEM_SEQUENCER },
       { role: 'user', content: user },

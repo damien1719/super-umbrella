@@ -1,4 +1,10 @@
-import React, { useMemo, useEffect, useImperativeHandle, useRef, forwardRef } from 'react';
+import React, {
+  useMemo,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  forwardRef,
+} from 'react';
 
 // Debug React import
 console.log('[RichTextEditor] React import:', React);
@@ -69,7 +75,8 @@ interface Props {
 
 // Removed HtmlPlugin and StateJsonPlugin: initial AST is provided via initialConfig.editorState and remount key
 
-const ImperativeHandlePlugin = forwardRef<RichTextEditorHandle, object>(function ImperativeHandlePlugin(_, ref) {
+const ImperativeHandlePlugin = forwardRef<RichTextEditorHandle, object>(
+  function ImperativeHandlePlugin(_, ref) {
     const [editor] = useLexicalComposerContext();
 
     useImperativeHandle(
@@ -78,7 +85,10 @@ const ImperativeHandlePlugin = forwardRef<RichTextEditorHandle, object>(function
         importHtml(html: string) {
           editor.update(() => {
             const parser = new DOMParser();
-            const dom = parser.parseFromString(`<div>${html}</div>`, 'text/html');
+            const dom = parser.parseFromString(
+              `<div>${html}</div>`,
+              'text/html',
+            );
 
             const nodes = $generateNodesFromDOM(editor, dom);
 
@@ -98,7 +108,10 @@ const ImperativeHandlePlugin = forwardRef<RichTextEditorHandle, object>(function
           editor.update(() => {
             const parser = new DOMParser();
             const mdHtml = marked.parse(html);
-            const dom = parser.parseFromString(`<div>${mdHtml}</div>`, 'text/html');
+            const dom = parser.parseFromString(
+              `<div>${mdHtml}</div>`,
+              'text/html',
+            );
             const nodes = $generateNodesFromDOM(editor, dom);
             const selection = $getSelection();
             if (selection) {
@@ -110,13 +123,14 @@ const ImperativeHandlePlugin = forwardRef<RichTextEditorHandle, object>(function
           });
         },
         setEditorStateJson(state: unknown) {
-             try {
-               const stateString = typeof state === 'string' ? state.trim() : JSON.stringify(state);
-               const next = editor.parseEditorState(stateString);
-               editor.setEditorState(next); // pas besoin de editor.update()
-             } catch (e) {
-               console.error('[Lexical] Failed to set editor state JSON:', e);
-             }
+          try {
+            const stateString =
+              typeof state === 'string' ? state.trim() : JSON.stringify(state);
+            const next = editor.parseEditorState(stateString);
+            editor.setEditorState(next); // pas besoin de editor.update()
+          } catch (e) {
+            console.error('[Lexical] Failed to set editor state JSON:', e);
+          }
         },
         insertSlot(slotId: string, slotLabel: string, slotType: SlotType) {
           editor.update(() => {
@@ -174,13 +188,12 @@ const ImperativeHandlePlugin = forwardRef<RichTextEditorHandle, object>(function
   },
 );
 
-
 const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
   function RichTextEditor(rawProps, ref) {
     // 1) props par défaut robustes
-    const defaultProps: Required<Pick<Props,
-      'readOnly' | 'onChange' | 'exportFileName'
-    >> = {
+    const defaultProps: Required<
+      Pick<Props, 'readOnly' | 'onChange' | 'exportFileName'>
+    > = {
       readOnly: false,
       onChange: () => {},
       exportFileName: '',
@@ -198,137 +211,143 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
       exportFileName,
     } = props;
 
+    const editorRef = useRef<HTMLElement>(null as unknown as HTMLElement);
+    useVirtualSelection(editorRef);
 
-  const editorRef = useRef<HTMLElement>(null as unknown as HTMLElement);
-  useVirtualSelection(editorRef);
- 
-  // helper: valide (très simple) pour un état Lexical sérialisé
-  function isLexicalStateLike(obj: any): boolean {
-    return !!obj && typeof obj === 'object' && obj.root && obj.root.type === 'root';
-  }
+    // helper: valide (très simple) pour un état Lexical sérialisé
+    function isLexicalStateLike(obj: any): boolean {
+      return (
+        !!obj && typeof obj === 'object' && obj.root && obj.root.type === 'root'
+      );
+    }
 
-  const serialized = useMemo(() => {
-    if (!initialStateJson) return null;
-    try {
-      // prends la version string si déjà string, sinon stringify
-      const str =
-        typeof initialStateJson === 'string'
-          ? initialStateJson
-          : JSON.stringify(initialStateJson);
+    const serialized = useMemo(() => {
+      if (!initialStateJson) return null;
+      try {
+        // prends la version string si déjà string, sinon stringify
+        const str =
+          typeof initialStateJson === 'string'
+            ? initialStateJson
+            : JSON.stringify(initialStateJson);
 
-      // on valide la forme (si c'est un string on parse juste pour checker)
-      const probe =
-        typeof initialStateJson === 'string' ? JSON.parse(str) : initialStateJson;
+        // on valide la forme (si c'est un string on parse juste pour checker)
+        const probe =
+          typeof initialStateJson === 'string'
+            ? JSON.parse(str)
+            : initialStateJson;
 
-      return isLexicalStateLike(probe) ? str : null;
-    } catch {
-      return null;
+        return isLexicalStateLike(probe) ? str : null;
+      } catch {
+        return null;
       }
-  }, [initialStateJson]);
+    }, [initialStateJson]);
 
-  const initialConfig = {
-    namespace: 'rte',
-    editable: !readOnly,
-    onError: console.error,
-    theme: {
-      paragraph: 'mb-2',
-      heading: {
-        h1: 'text-2xl font-bold mb-4',
-        h2: 'text-xl font-semibold mb-3',
-        h3: 'text-lg font-medium mb-2',
+    const initialConfig = {
+      namespace: 'rte',
+      editable: !readOnly,
+      onError: console.error,
+      theme: {
+        paragraph: 'mb-2',
+        heading: {
+          h1: 'text-2xl font-bold mb-4',
+          h2: 'text-xl font-semibold mb-3',
+          h3: 'text-lg font-medium mb-2',
+        },
+        text: {
+          underline: 'underline',
+          italic: 'italic',
+          bold: 'font-bold',
+        },
+        root: 'Calibri',
       },
-      text: {
-        underline: 'underline',
-        italic: 'italic',
-        bold: 'font-bold',
-      },
-    },
-    nodes: [
-      ListNode,
-      ListItemNode,
-      LinkNode,
-      HeadingNode,
-      QuoteNode,
-      TableNode,
-      TableRowNode,
-      TableCellNode,
-      SlotNode,
-    ],
-  };
+      nodes: [
+        ListNode,
+        ListItemNode,
+        LinkNode,
+        HeadingNode,
+        QuoteNode,
+        TableNode,
+        TableRowNode,
+        TableCellNode,
+        SlotNode,
+      ],
+    };
 
-// stringify propre de l’état initial
- const initialEditorState = useMemo(() => {
-   try {
-     if (!initialStateJson) return JSON.stringify(DEFAULT_EMPTY_STATE);
-     if (typeof initialStateJson === 'string') {
-       const probe = JSON.parse(initialStateJson);
-       return (probe?.root?.type === 'root') ? initialStateJson : JSON.stringify(DEFAULT_EMPTY_STATE);
-     }
-     return (initialStateJson as any)?.root?.type === 'root'
-       ? JSON.stringify(initialStateJson)
-      : JSON.stringify(DEFAULT_EMPTY_STATE);
-   } catch {
-     return JSON.stringify(DEFAULT_EMPTY_STATE);
-   }
- }, [initialStateJson]);
+    // stringify propre de l’état initial
+    const initialEditorState = useMemo(() => {
+      try {
+        if (!initialStateJson) return JSON.stringify(DEFAULT_EMPTY_STATE);
+        if (typeof initialStateJson === 'string') {
+          const probe = JSON.parse(initialStateJson);
+          return probe?.root?.type === 'root'
+            ? initialStateJson
+            : JSON.stringify(DEFAULT_EMPTY_STATE);
+        }
+        return (initialStateJson as any)?.root?.type === 'root'
+          ? JSON.stringify(initialStateJson)
+          : JSON.stringify(DEFAULT_EMPTY_STATE);
+      } catch {
+        return JSON.stringify(DEFAULT_EMPTY_STATE);
+      }
+    }, [initialStateJson]);
 
-  return (
-    <LexicalComposer
-      key={templateKey}
-      initialConfig={{
-       ...initialConfig,
-       editorState: initialEditorState, // ← état initial sans plugin ni update()
-     }}
-    >
-    {!readOnly && (
-        <ToolbarPlugin onSave={onSave} exportFileName={exportFileName} />
-    )}
-      <div className="relative h-full">
-        <div
-          ref={editorRef as unknown as React.RefObject<HTMLDivElement>}
-          className="h-full bg-wood-100 p-8 overflow-auto"
-        >
-          <div className="flex justify-center">
-            <div className="bg-paper-50 border border-gray-300 rounded shadow p-16 w-full max-w-3xl min-h-[100vh] flex flex-col">
-              <RichTextPlugin
-                contentEditable={
-                  <ContentEditable className="outline-none flex-1 editor-content" />
-                }
-                placeholder={<div className="text-gray-400">…</div>}
-                ErrorBoundary={LexicalErrorBoundary}
-              />
-              <HistoryPlugin />
-              <ListPlugin />
-              <LinkPlugin />
-              <TablePlugin hasCellMerge hasCellBackgroundColor />
-              <OnChangePlugin
-                onChange={(state, editor) => {
-                  state.read(() => {
-                    const html = DOMPurify.sanitize(
-                      $generateHtmlFromNodes(editor),
-                    );
-                    onChange?.(html);
-                  });
-                  try {
-                    const json = state.toJSON();
-                    onChangeStateJson?.(json as unknown);
-                  } catch (e) {
-                    console.warn(
-                      '[Lexical] Failed to serialize editor state to JSON',
-                      e,
-                    );
+    return (
+      <LexicalComposer
+        key={templateKey}
+        initialConfig={{
+          ...initialConfig,
+          editorState: initialEditorState, // ← état initial sans plugin ni update()
+        }}
+      >
+        {!readOnly && (
+          <ToolbarPlugin onSave={onSave} exportFileName={exportFileName} />
+        )}
+        <div className="relative h-full">
+          <div
+            ref={editorRef as unknown as React.RefObject<HTMLDivElement>}
+            className="h-full bg-wood-100 p-8 overflow-auto"
+          >
+            <div className="flex justify-center">
+              <div className="bg-paper-50 border border-gray-300 rounded shadow p-16 w-full max-w-3xl min-h-[100vh] flex flex-col">
+                <RichTextPlugin
+                  contentEditable={
+                    <ContentEditable className="outline-none flex-1 editor-content" />
                   }
-                }}
-              />
-              <ImperativeHandlePlugin ref={ref as any} />
+                  placeholder={<div className="text-gray-400">…</div>}
+                  ErrorBoundary={LexicalErrorBoundary}
+                />
+                <HistoryPlugin />
+                <ListPlugin />
+                <LinkPlugin />
+                <TablePlugin hasCellMerge hasCellBackgroundColor />
+                <OnChangePlugin
+                  onChange={(state, editor) => {
+                    state.read(() => {
+                      const html = DOMPurify.sanitize(
+                        $generateHtmlFromNodes(editor),
+                      );
+                      onChange?.(html);
+                    });
+                    try {
+                      const json = state.toJSON();
+                      onChangeStateJson?.(json as unknown);
+                    } catch (e) {
+                      console.warn(
+                        '[Lexical] Failed to serialize editor state to JSON',
+                        e,
+                      );
+                    }
+                  }}
+                />
+                <ImperativeHandlePlugin ref={ref as any} />
+              </div>
             </div>
           </div>
+          {/* <SelectionOverlay editorRef={editorRef} /> */}
         </div>
-        {/* <SelectionOverlay editorRef={editorRef} /> */}
-      </div>
-    </LexicalComposer>
-  );
-}
+      </LexicalComposer>
+    );
+  },
 );
 
 export default RichTextEditor;

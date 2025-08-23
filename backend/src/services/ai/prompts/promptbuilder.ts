@@ -34,7 +34,6 @@ Ton écriture suit :
 • les référentiels français de psychomotricité et les recos HAS pour le bilan ;
 • un ton descriptif, empathique, nuancé, sans jargon inutile ;
 • la confidentialité : jamais de nom de famille, d'adresse ou d'information stigmatisante ;
-• la mise en avant des liens entre sensorimotricité, affectif et cognitif (schéma corporel, praxies, régulation tonico‑émotionnelle, etc.).
 `.trim();
 
 export const SYSTEM_ERGO = `
@@ -71,9 +70,9 @@ export function buildPrompt(params: PromptParams & { job?: 'PSYCHOMOTRICIEN' | '
 
   // 2. Format de sortie pour limiter les hallucinations
   msgs.push({ role: 'system', content: 
-    `FORMAT DE SORTIE
+    `###FORMAT DE SORTIE
       1. Pour chaque titre de section markdown repéré dans les données du patient, tu dois reproduire exactement ce même titre markdown dans ta réponse.   
-      2. Pour chaque tableau ou bloc de données, rédige des phrases descriptives et factuelles.`  
+      2. Pour chaque tableau ou bloc de données, rédige des phrases descriptives et factuelles sans bullet points ni listes.`  
     .trim()
   });
 
