@@ -13,6 +13,12 @@ export const createBilanSectionInstanceSchema = z.object({
 
 export const updateBilanSectionInstanceSchema = createBilanSectionInstanceSchema.partial();
 
+export const upsertBilanSectionInstanceSchema = z.object({
+  bilanId: z.string().uuid(),
+  sectionId: z.string().uuid(),
+  contentNotes: z.any(),
+});
+
 export const bilanSectionInstanceIdParam = z.object({
   bilanSectionInstanceId: z.string().uuid(),
 });

@@ -61,6 +61,18 @@ export const BilanSectionInstanceController = {
     }
   },
 
+  async upsert(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await BilanSectionInstanceService.upsert(
+        req.user.id,
+        req.body,
+      );
+      res.json(result);
+    } catch (e) {
+      next(e);
+    }
+  },
+
   async generateFromTemplate(req: Request, res: Response, next: NextFunction) {
     try {
       const { instanceId, trameId, answers, stylePrompt, rawNotes, contentNotes, userSlots, imageBase64 } = req.body as {
