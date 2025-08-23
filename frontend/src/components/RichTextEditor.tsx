@@ -1,4 +1,10 @@
-import React, { useMemo, useImperativeHandle, useRef, forwardRef } from 'react';
+import React, {
+  useMemo,
+  useImperativeHandle,
+  useRef,
+  forwardRef,
+  useEffect,
+} from 'react';
 
 // Debug React import
 console.log('[RichTextEditor] React import:', React);
@@ -16,6 +22,9 @@ import {
   $getRoot,
   $getSelection,
   $insertNodes,
+  KEY_BACKSPACE_COMMAND,
+  KEY_DELETE_COMMAND,
+  COMMAND_PRIORITY_LOW,
   type LexicalNode,
 } from 'lexical';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
@@ -26,7 +35,12 @@ import { ListNode, ListItemNode } from '@lexical/list';
 import DOMPurify from 'dompurify';
 import { marked } from 'marked';
 import { HeadingNode, QuoteNode } from '@lexical/rich-text';
-import { TableNode, TableRowNode, TableCellNode } from '@lexical/table';
+import {
+  TableNode,
+  TableRowNode,
+  TableCellNode,
+  $isTableNode,
+} from '@lexical/table';
 import { TablePlugin } from '@lexical/react/LexicalTablePlugin';
 import { useVirtualSelection } from '../hooks/useVirtualSelection';
 import { SlotNode, $createSlotNode } from '../nodes/SlotNode';
@@ -192,6 +206,39 @@ const ImperativeHandlePlugin = forwardRef<RichTextEditorHandle, object>(
   },
 );
 
+function TableDeletePlugin() {
+  const [editor] = useLexicalComposerContext();
+  useEffect(() => {
+    const removeTable = () => {
+      const selection = $getSelection();
+      const nodes = selection ? selection.getNodes() : [];
+      let removed = false;
+      nodes.forEach((node) => {
+        if ($isTableNode(node)) {
+          node.remove();
+          removed = true;
+        }
+      });
+      return removed;
+    };
+    const unregisterDelete = editor.registerCommand(
+      KEY_DELETE_COMMAND,
+      removeTable,
+      COMMAND_PRIORITY_LOW,
+    );
+    const unregisterBackspace = editor.registerCommand(
+      KEY_BACKSPACE_COMMAND,
+      removeTable,
+      COMMAND_PRIORITY_LOW,
+    );
+    return () => {
+      unregisterDelete();
+      unregisterBackspace();
+    };
+  }, [editor]);
+  return null;
+}
+
 const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
   function RichTextEditor(rawProps, ref) {
     // 1) props par défaut robustes
@@ -304,6 +351,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
                 <ListPlugin />
                 <LinkPlugin />
                 <TablePlugin hasCellMerge hasCellBackgroundColor />
+                <TableDeletePlugin />
                 <OnChangePlugin
                   onChange={(state, editor) => {
                     state.read(() => {
