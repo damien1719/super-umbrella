@@ -2,6 +2,20 @@ export type SlotType = 'text' | 'number' | 'list' | 'table';
 
 export type SlotMode = 'user' | 'computed' | 'llm';
 
+export type FieldPreset = 'description' | 'score' | 'conclusion';
+
+export const FIELD_PRESETS: Record<FieldPreset, { prompt: string }> = {
+  description: {
+    prompt: 'description factuelle simple',
+  },
+  score: {
+    prompt: '',
+  },
+  conclusion: {
+    prompt: '',
+  },
+};
+
 export interface SectionTemplate {
   id: string;
   label: string;
@@ -26,6 +40,7 @@ export type FieldSpec = {
   prompt?: string;
   template?: string; // optional moustache for rendering
   optional?: boolean; // <- AJOUTÉ pour cohérence avec backend
+  preset?: FieldPreset;
 };
 
 // 2) Groups (organization only)

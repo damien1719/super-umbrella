@@ -4,6 +4,7 @@ import type {
   GroupSpec,
   RepeatSpec,
 } from '../types/template';
+import { FIELD_PRESETS } from '../types/template';
 import SlotEditor from './SlotEditor';
 import { Button } from './ui/button';
 import { Card, CardHeader, CardContent } from './ui/card';
@@ -63,9 +64,10 @@ export default function SlotSidebar({
       type: 'text',
       mode: 'llm',
       label: 'Nouveau champ',
-      prompt: '',
+      prompt: FIELD_PRESETS.description.prompt,
       pattern: '',
       deps: [],
+      preset: 'description',
     };
     onChange([...(slots || []), slot]);
     onAddSlot?.(slot);
@@ -79,9 +81,10 @@ export default function SlotSidebar({
       type: 'text',
       mode: 'llm',
       label: 'Champ',
-      prompt: '',
+      prompt: FIELD_PRESETS.description.prompt,
       pattern: '',
       deps: [],
+      preset: 'description',
     };
     const group: GroupSpec = {
       kind: 'group',
@@ -108,6 +111,8 @@ export default function SlotSidebar({
           type: 'text',
           mode: 'llm',
           label: 'Champ_1',
+          prompt: FIELD_PRESETS.description.prompt,
+          preset: 'description',
         },
       ],
     };
