@@ -14,40 +14,51 @@ export function buildPrompt(ids: string[], spec: Record<string, SlotSpec>, notes
   const schema: Record<string, string> = {};
   const prompts: Record<string, string> = {};
 
+
+  const fieldInfos: { id: string; label: string; prompt?: string }[] = [];
+
+
   ids.forEach((id) => {
     const slotSpec = spec[id];
     schema[id] = (slotSpec && isFieldSpec(slotSpec)) ? slotSpec.type : 'text';
-    const slotPrompt = (notes as any)?.[`${id}_prompt`] || (slotSpec && isFieldSpec(slotSpec) ? slotSpec.prompt : '') || '';
-    if (slotPrompt) prompts[id] = slotPrompt;
+    if (slotSpec && isFieldSpec(slotSpec)) {
+      fieldInfos.push({
+        id,
+        label: slotSpec.label || id,   // on prend le label si dispo
+        prompt: slotSpec.prompt || '', // petit prompt associé (facultatif)
+      });
+    } else {
+      fieldInfos.push({ id, label: id });
+    }
   });
+
+  console.log("slotSpec", spec);
 
   let promptText = `Réponds UNIQUEMENT avec un JSON de la forme :
 [
   { "id": "slotId", "value": ... }
 ]
-
-Liste des ids à remplir : ${ids.join(', ')}
-
-Schéma des types par id (OBLIGATOIRE) : ${JSON.stringify(schema, null, 2)}
-
-Règles STRICTES :
-- Si le type est "number" : renvoie un **nombre JSON brut** (sans guillemets), **sans unité**, ni texte autour. Utilise "." pour le séparateur décimal.
-- Si la valeur est inconnue pour un "number", renvoie null (pas de string "N/A"). 
-- Ne renvoie JAMAIS de listes à puces ni de texte hors du JSON demandé.
 `;
-
-  if (Object.keys(prompts).length > 0) {
-    promptText += `\nInstructions spécifiques par champ:\n${Object.entries(prompts).map(([id, p]) => `- ${id}: ${p}`).join('\n')}`;
+/* Liste des ids à remplir : ${ids.join(', ')}
+ */
+  if (fieldInfos.length > 0) {
+    promptText += `\nChamps à remplir (id, label, prompt optionnel):\n` +
+      fieldInfos.map(f => 
+        `"id": "${f.id}", "label": "${f.label}", "prompt": "${f.prompt}"`
+      ).join('\n');
   }
+
   if (style) promptText += `\n\nStyle à respecter: ${style}`;
-  if (Object.keys(notes).length > 0) promptText += `\n\nNotes contextuelles: ${JSON.stringify(notes)}`;
+  if (Object.keys(notes).length > 0) promptText += `\n\nContexte: ${JSON.stringify(notes)}`;
 
   // Garde les contraintes de style pour les champs rédigés
-  promptText += `\n\nContraintes de style (valable pour tous les champs rédigés) :
-- Écrire sous forme de phrases complètes.
-- Pas de listes à puces.
-- Pas de phrases télégraphiques.
-- Faire comme dans un compte rendu professionnel.
+  promptText += `\n\nRègles :
+- Pour chaque champ, extraire du Contexte ce qui correspond au label (synonymes/variantes acceptés).
+- Rend compte de toutes les informations brutes présentes dans le Contexte.
+- Si un "prompt" est présent, respecter son intention (ex: "description factuelle simple").
+- Si le Contexte ne fournit rien, écrire 1–2 phrases neutres, sans spéculation.
+- Style : phrases complètes, ton descriptif et professionnel, pas de listes.
+- Ne renvoie STRICTEMENT que le JSON demandé.
 `;
 
   return promptText;
