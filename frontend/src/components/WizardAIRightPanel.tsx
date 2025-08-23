@@ -313,25 +313,20 @@ export default function WizardAIRightPanel({
     notes: Answers | undefined,
   ): Promise<string | null> => {
     if (!selectedTrame) return null;
-    const body = instanceId
-      ? { contentNotes: notes }
-      : {
+    const res = await apiFetch<{ id: string }>(
+      `/api/v1/bilan-section-instances/upsert`,
+      {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
           bilanId,
           sectionId: selectedTrame.value,
-          order: 0,
           contentNotes: notes,
-        };
-    const path = instanceId
-      ? `/api/v1/bilan-section-instances/${instanceId}`
-      : '/api/v1/bilan-section-instances';
-    const method = instanceId ? 'PUT' : 'POST';
-    const res = await apiFetch<{ id: string }>(path, {
-      method,
-      headers: { Authorization: `Bearer ${token}` },
-      body: JSON.stringify(body),
-    });
-    if (!instanceId) setInstanceId(res.id);
-    return instanceId || res.id || null;
+        }),
+      },
+    );
+    setInstanceId(res.id);
+    return res.id;
   };
 
   // Autosave on answers change (debounced) while on step 2

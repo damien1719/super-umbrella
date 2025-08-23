@@ -60,8 +60,11 @@ export const BilanSectionInstanceService = {
 
   async update(userId: string, id: string, data: Partial<BilanSectionInstanceData>) {
     const updateData = { ...data } as Partial<BilanSectionInstanceData>;
-    if (Object.prototype.hasOwnProperty.call(updateData, 'contentNotes') && (updateData as any).contentNotes == null) {
-      (updateData as any).contentNotes = {};
+    if (
+      Object.prototype.hasOwnProperty.call(updateData, 'contentNotes') &&
+      (updateData as { contentNotes?: unknown }).contentNotes == null
+    ) {
+      (updateData as { contentNotes?: unknown }).contentNotes = {};
     }
     const { count } = await db.bilanSectionInstance.updateMany({
       where: { id, bilan: { patient: { profile: { userId } } } },
@@ -69,6 +72,34 @@ export const BilanSectionInstanceService = {
     });
     if (count === 0) throw new NotFoundError();
     return db.bilanSectionInstance.findUnique({ where: { id } });
+  },
+
+  async upsert(
+    userId: string,
+    data: { bilanId: string; sectionId: string; contentNotes: unknown },
+  ) {
+    const existing = await db.bilanSectionInstance.findFirst({
+      where: {
+        bilanId: data.bilanId,
+        sectionId: data.sectionId,
+        bilan: { patient: { profile: { userId } } },
+      },
+      orderBy: { notesUpdatedAt: 'desc' },
+    });
+    if (existing) {
+      await db.bilanSectionInstance.update({
+        where: { id: existing.id },
+        data: { contentNotes: data.contentNotes ?? {} },
+      });
+      return { id: existing.id };
+    }
+    const created = await this.create(userId, {
+      bilanId: data.bilanId,
+      sectionId: data.sectionId,
+      order: 0,
+      contentNotes: data.contentNotes,
+    });
+    return { id: created.id };
   },
 
   async remove(userId: string, id: string) {

@@ -120,7 +120,7 @@ test('saves notes when generating from template', async () => {
 
   await waitFor(() => expect(mockedApiFetch).toHaveBeenCalled());
   expect(mockedApiFetch).toHaveBeenCalledWith(
-    '/api/v1/bilan-section-instances',
+    '/api/v1/bilan-section-instances/upsert',
     expect.objectContaining({ method: 'POST' }),
   );
   expect(onGenerateFromTemplate).toHaveBeenCalled();

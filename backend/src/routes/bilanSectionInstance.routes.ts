@@ -6,6 +6,7 @@ import {
   updateBilanSectionInstanceSchema,
   bilanSectionInstanceIdParam,
   bilanSectionInstanceListQuery,
+  upsertBilanSectionInstanceSchema,
 } from '../schemas/bilanSectionInstance.schema';
 import { generateFromTemplateSchema } from '../schemas/bilanSectionInstance.schema';
 
@@ -21,6 +22,12 @@ bilanSectionInstanceRouter
     validateQuery(bilanSectionInstanceListQuery),
     BilanSectionInstanceController.list,
   );
+
+bilanSectionInstanceRouter.post(
+  '/upsert',
+  validateBody(upsertBilanSectionInstanceSchema),
+  BilanSectionInstanceController.upsert,
+);
 
 bilanSectionInstanceRouter
   .route('/:bilanSectionInstanceId')
