@@ -379,7 +379,7 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
               onMouseDown={(e) => e.preventDefault()}
               variant="editor"
             >
-              +Insert
+              +Tableau
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
