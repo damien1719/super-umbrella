@@ -9,8 +9,14 @@ import SlotEditor from './SlotEditor';
 import { Button } from './ui/button';
 import { Card, CardHeader, CardContent } from './ui/card';
 import { Input } from './ui/input';
-import { ChevronRight, Plus, Trash2, Settings } from 'lucide-react';
+import { ChevronRight, Plus, Trash2, Settings, MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 
 interface Props {
   slots: SlotSpec[];
@@ -18,6 +24,7 @@ interface Props {
   onAddSlot?: (slot: FieldSpec) => void;
   onUpdateSlot?: (slotId: string, slotLabel: string) => void;
   onTransformToQuestions?: () => void;
+  isTransforming?: boolean;
 }
 
 export default function SlotSidebar({
@@ -26,6 +33,7 @@ export default function SlotSidebar({
   onAddSlot,
   onUpdateSlot,
   onTransformToQuestions,
+  isTransforming = false,
 }: Props) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
@@ -162,43 +170,59 @@ export default function SlotSidebar({
     <aside className="w-120 border-l border-gray-200 bg-gray-50/30 h-screen">
       {/* Header avec boutons d'action */}
       <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 shadow-sm">
-        <div className="flex justify-between items-start flex-wrap gap-2">
-          <div className="flex gap-2 flex-wrap">
+        <div className="flex justify-between items-center gap-3">
+          <div className="flex items-center gap-2">
+            {/* Bouton primary pour + Champ */}
             <Button
               size="sm"
-              variant="outline"
+              variant="primary"
               onClick={addField}
-              className="flex items-center gap-2 hover:bg-blue-50 hover:border-blue-200 transition-colors"
+              className="flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
               Champ
             </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={addGroup}
-              className="flex items-center gap-2 hover:bg-green-50 hover:border-green-200 transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Groupe
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={addRepeat}
-              className="flex items-center gap-2 hover:bg-purple-50 hover:border-purple-200 transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Répéteur
-            </Button>
+            
+            {/* Meatball menu pour + Groupe et + Répéteur */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 w-8 p-0 border-gray-300 hover:bg-gray-50"
+                >
+                  <MoreHorizontal className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48">
+                <DropdownMenuItem
+                  onClick={addGroup}
+                  className="flex items-center gap-2 cursor-pointer hover:bg-green-50"
+                >
+                  <Plus className="w-4 h-4 text-green-600" />
+                  <span className="text-green-700">Groupe</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={addRepeat}
+                  className="flex items-center gap-2 cursor-pointer hover:bg-purple-50"
+                >
+                  <Plus className="w-4 h-4 text-purple-600" />
+                  <span className="text-purple-700">Répéteur</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
+          
+          {/* Bouton Transformer en Questions à droite */}
           {onTransformToQuestions && (
             <Button
               size="sm"
+              variant="outline"
               onClick={onTransformToQuestions}
-              className="ml-auto"
+              className="ml-auto border-gray-300 hover:bg-gray-50"
+              disabled={isTransforming}
             >
-              Transformer en Questions
+              {isTransforming ? 'Transforming...' : 'Transformer en Questions'}
             </Button>
           )}
         </div>

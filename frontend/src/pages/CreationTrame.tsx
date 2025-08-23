@@ -71,6 +71,10 @@ export default function CreationTrame() {
 
   const transformTemplateToQuestions = async (content: string) => {
     try {
+      console.log('[DEBUG] transformTemplateToQuestions - Received content:', content);
+      console.log('[DEBUG] transformTemplateToQuestions - Content length:', content.length);
+      console.log('[DEBUG] transformTemplateToQuestions - Content type:', typeof content);
+      
       const res = await apiFetch<{ result: Question[] }>(
         '/api/v1/import/transform',
         {
@@ -82,10 +86,24 @@ export default function CreationTrame() {
           body: JSON.stringify({ content }),
         },
       );
-      if (res.result.length > 0) {
+      console.log('[DEBUG] transformTemplateToQuestions - API response:', res);
+      console.log('[DEBUG] transformTemplateToQuestions - res.result:', res.result);
+      console.log('[DEBUG] transformTemplateToQuestions - res.result.length:', res.result?.length);
+      console.log('[DEBUG] transformTemplateToQuestions - res.result type:', typeof res.result);
+      console.log('[DEBUG] transformTemplateToQuestions - res.result[0]:', res.result?.[0]);
+      
+      if (res.result && Array.isArray(res.result) && res.result.length > 0) {
+        console.log('[DEBUG] transformTemplateToQuestions - Setting questions:', res.result);
+        console.log('[DEBUG] transformTemplateToQuestions - Current questions before update:', questions);
+        
         setQuestions(res.result);
         setSelectedId(res.result[0].id);
         setTab('preview');
+        
+        console.log('[DEBUG] transformTemplateToQuestions - Should switch to preview tab');
+      } else {
+        console.warn('[DEBUG] transformTemplateToQuestions - No valid result received');
+        console.warn('[DEBUG] transformTemplateToQuestions - res.result is:', res.result);
       }
     } catch (e) {
       console.error('Failed to transform template', e);
@@ -132,6 +150,14 @@ export default function CreationTrame() {
       if (loaded.length > 0) setSelectedId(loaded[0].id);
     });
   }, [sectionId, fetchOne, getTemplate]);
+
+  // Debug useEffect to log questions state changes
+  useEffect(() => {
+    console.log('[DEBUG] Questions state changed:', questions);
+    console.log('[DEBUG] Questions count:', questions.length);
+    console.log('[DEBUG] Current tab:', tab);
+    console.log('[DEBUG] Selected ID:', selectedId);
+  }, [questions, tab, selectedId]);
 
   const onPatch = (id: string, partial: Partial<Question>) => {
     setQuestions((qs: Question[]) =>
@@ -224,111 +250,120 @@ export default function CreationTrame() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="w-full mx-auto">
-        <TrameHeader
-          title={nomTrame}
-          category={categorie ?? ''}
-          isPublic={isPublic}
-          categories={categories}
-          onTitleChange={setNomTrame}
-          onCategoryChange={(v: string) => setCategorie(v as CategoryId)}
-          onPublicChange={setIsPublic}
-          onSave={save}
-          onImport={() => setShowImport(true)}
-          onBack={() => setShowConfirm(true)}
-          onAdminImport={() => setShowAdminImport(true)}
-          showAdminImport={SHOW_ADMIN_IMPORT}
-        />
-
-        <div className="border-b mb-4">
-          <nav className="flex gap-4">
-            <button
-              className={`pb-2 px-1 border-b-2 ${
-                tab === 'questions'
-                  ? 'border-primary-600'
-                  : 'border-transparent'
-              }`}
-              onClick={() => setTab('questions')}
-            >
-              Questions
-            </button>
-            <button
-              className={`pb-2 px-1 border-b-2 ${
-                tab === 'preview' ? 'border-primary-600' : 'border-transparent'
-              }`}
-              onClick={() => setTab('preview')}
-            >
-              Pré-visualisation
-            </button>
-            <button
-              className={`pb-2 px-1 border-b-2 ${
-                tab === 'examples' ? 'border-primary-600' : 'border-transparent'
-              }`}
-              onClick={() => setTab('examples')}
-            >
-              Exemples
-            </button>
-            <button
-              className={`pb-2 px-1 border-b-2 ${
-                tab === 'template' ? 'border-primary-600' : 'border-transparent'
-              }`}
-              onClick={() => setTab('template')}
-            >
-              Template
-            </button>
-          </nav>
-        </div>
-
-        {tab === 'questions' && (
-          <QuestionList
-            questions={questions}
-            selectedId={selectedId}
-            onSelect={setSelectedId}
-            onPatch={onPatch}
-            onReorder={onReorder}
-            onDuplicate={onDuplicate}
-            onDelete={onDelete}
-            onAddAfter={onAddAfter}
+    <div className="flex h-dvh w-full flex-col overflow-hidden bg-gray-50">
+      {/* Header + actions */}
+      <div className="shrink-0 px-6 pt-6">
+        <div className="w-full mx-auto">
+          <TrameHeader
+            title={nomTrame}
+            category={categorie ?? ''}
+            isPublic={isPublic}
+            categories={categories}
+            onTitleChange={setNomTrame}
+            onCategoryChange={(v: string) => setCategorie(v as CategoryId)}
+            onPublicChange={setIsPublic}
+            onSave={save}
+            onImport={() => setShowImport(true)}
+            onBack={() => setShowConfirm(true)}
+            onAdminImport={() => setShowAdminImport(true)}
+            showAdminImport={SHOW_ADMIN_IMPORT}
           />
-        )}
 
-        {tab === 'preview' && (
-          <DataEntry
-            inline
-            questions={questions}
-            answers={previewAnswers}
-            onChange={setPreviewAnswers}
-          />
-        )}
-
-        {tab === 'examples' && (
-          <SaisieExempleTrame
-            examples={newExamples}
-            onAdd={(c) => setNewExamples((p) => [...p, c])}
-          />
-        )}
-
-        {tab === 'template' && (
-          <div>
-            {loadingTemplate && (
-              <div className="bg-blue-50 border border-blue-200 rounded p-4 mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                  <span className="text-blue-800">
-                    Chargement du template...
-                  </span>
-                </div>
-              </div>
-            )}
-            <TemplateEditor
-              template={template}
-              onChange={setTemplate}
-              onTransformToQuestions={transformTemplateToQuestions}
-            />
+          <div className="border-b mb-4">
+            <nav className="flex gap-4">
+              <button
+                className={`pb-2 px-1 border-b-2 ${
+                  tab === 'questions'
+                    ? 'border-primary-600'
+                    : 'border-transparent'
+                }`}
+                onClick={() => setTab('questions')}
+              >
+                Questions
+              </button>
+              <button
+                className={`pb-2 px-1 border-b-2 ${
+                  tab === 'preview' ? 'border-primary-600' : 'border-transparent'
+                }`}
+                onClick={() => setTab('preview')}
+              >
+                Pré-visualisation
+              </button>
+              <button
+                className={`pb-2 px-1 border-b-2 ${
+                  tab === 'examples' ? 'border-primary-600' : 'border-transparent'
+                }`}
+                onClick={() => setTab('examples')}
+              >
+                Exemples
+              </button>
+              <button
+                className={`pb-2 px-1 border-b-2 ${
+                  tab === 'template' ? 'border-primary-600' : 'border-transparent'
+                }`}
+                onClick={() => setTab('template')}
+              >
+                Template
+              </button>
+            </nav>
           </div>
-        )}
+        </div>
       </div>
+      {/* Zone scrollable des onglets */}
+      <div className="flex-1 min-h-0 px-6 pb-6">
+        <div className="h-full overflow-auto">
+          {tab === 'questions' && (
+            <QuestionList
+              questions={questions}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+              onPatch={onPatch}
+              onReorder={onReorder}
+              onDuplicate={onDuplicate}
+              onDelete={onDelete}
+              onAddAfter={onAddAfter}
+            />
+          )}
+
+          {tab === 'preview' && (
+            <DataEntry
+              inline
+              questions={questions}
+              answers={previewAnswers}
+              onChange={setPreviewAnswers}
+            />
+          )}
+
+          {tab === 'examples' && (
+            <SaisieExempleTrame
+              examples={newExamples}
+              onAdd={(c) => setNewExamples((p) => [...p, c])}
+            />
+          )}
+
+          {tab === 'template' && (
+            <div>
+              {loadingTemplate && (
+                <div className="bg-blue-50 border border-blue-200 rounded p-4 mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                    <span className="text-blue-800">
+                      Chargement du template...
+                    </span>
+                  </div>
+                </div>
+              )}              
+              <TemplateEditor
+                template={template}
+                onChange={setTemplate}
+                onTransformToQuestions={transformTemplateToQuestions}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Dialogs (portail) */}
       <Dialog open={showImport} onOpenChange={setShowImport}>
         <DialogContent>
           <ImportMagique

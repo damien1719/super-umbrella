@@ -18,6 +18,7 @@ export default function TemplateEditor({
 }: Props) {
   const editorRef = React.useRef<RichTextEditorHandle>(null);
   const [, forceUpdate] = React.useState(0);
+  const [isTransforming, setIsTransforming] = React.useState(false);
   /* 
   // Force re-render when AST changes
   React.useEffect(() => {
@@ -28,28 +29,31 @@ export default function TemplateEditor({
  */
 
   return (
-    <div className="flex w-full gap-4">
-      <div className="basis-3/4 min-w-0">
-        <RichTextEditor
-          ref={editorRef}
-          templateKey={`${template.id}:${template.updatedAt || ''}`}
-          initialStateJson={template.content}
-          onChangeStateJson={(ast) => {
-            onChange({ ...template, content: ast });
-          }}
-        />
-        <div className="mt-4">
-          <label className="block text-sm font-medium mb-1">Style prompt</label>
-          <textarea
-            className="w-full border rounded p-2"
-            value={template.stylePrompt ?? ''}
-            onChange={(e) =>
-              onChange({ ...template, stylePrompt: e.target.value })
-            }
+    <div className="flex w-full h-screen gap-4 overflow-hidden">
+      <div className="basis-3/4 min-w-0 min-h-0">
+        <div className="h-full overflow-auto overscroll-contain">
+          <RichTextEditor
+            ref={editorRef}
+            templateKey={`${template.id}:${template.updatedAt || ''}`}
+            initialStateJson={template.content}
+            onChangeStateJson={(ast) => {
+              onChange({ ...template, content: ast });
+            }}
           />
+  {/*         <div className="mt-4">
+            <label className="block text-sm font-medium mb-1">Style prompt</label>
+            <textarea
+              className="w-full border rounded p-2"
+              value={template.stylePrompt ?? ''}
+              onChange={(e) =>
+                onChange({ ...template, stylePrompt: e.target.value })
+              }
+            />
+          </div> */}
         </div>
       </div>
-      <div className="basis-1/4 shrink-0">
+      <div className="basis-1/4 shrink-0 min-h-0">
+      <div className="h-full overflow-auto overscroll-contain">
         <SlotSidebar
           slots={template.slotsSpec}
           onChange={(slots) => onChange({ ...template, slotsSpec: slots })}
@@ -94,20 +98,29 @@ export default function TemplateEditor({
             }
           }}
           onTransformToQuestions={() => {
-            const state = editorRef.current?.getEditorStateJson?.();
-            const extract = (node: any): string => {
-              if (!node) return '';
-              if (typeof node.text === 'string') return node.text;
-              if (node.type === 'slot')
-                return node.slotLabel || node.slotId || '';
-              if (Array.isArray(node.children))
-                return node.children.map(extract).join(' ');
-              return '';
+            const handleTransform = async () => {
+              const text = editorRef.current?.getPlainText?.() ?? '';
+              if (!text.trim()) {
+                console.warn('[Transform] contenu vide');
+                return;
+              }
+              
+              setIsTransforming(true);
+              try {
+                // Optionnel: log court pour debug
+                console.debug('[Transform] len=', text.length, 'preview=', text.slice(0, 120));
+                
+                await onTransformToQuestions?.(text);
+              } finally {
+                setIsTransforming(false);
+              }
             };
-            const content = extract(state);
-            onTransformToQuestions?.(content);
+            
+            handleTransform();
           }}
+          isTransforming={isTransforming}
         />
+        </div>
       </div>
     </div>
   );

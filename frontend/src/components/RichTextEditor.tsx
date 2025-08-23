@@ -43,7 +43,7 @@ import {
 } from '@lexical/table';
 import { TablePlugin } from '@lexical/react/LexicalTablePlugin';
 import { useVirtualSelection } from '../hooks/useVirtualSelection';
-import { SlotNode, $createSlotNode } from '../nodes/SlotNode';
+import { SlotNode, $createSlotNode, $isSlotNode } from '../nodes/SlotNode';
 import type { SlotType } from '../types/template';
 
 export interface RichTextEditorHandle {
@@ -51,6 +51,7 @@ export interface RichTextEditorHandle {
   insertHtml: (html: string) => void;
   setEditorStateJson: (state: unknown) => void;
   getEditorStateJson?: () => unknown;
+  getPlainText?: () => string;
   insertSlot?: (slotId: string, slotLabel: string, slotType: SlotType) => void;
   updateSlot?: (slotId: string, slotLabel: string) => void;
 }
@@ -196,6 +197,29 @@ const ImperativeHandlePlugin = forwardRef<RichTextEditorHandle, object>(
           } catch (e) {
             console.error('[Lexical] Failed to get editor state JSON:', e);
             return null;
+          }
+        },
+        getPlainText() {
+          try {
+            const state = editor.getEditorState();
+            return state.read(() => {
+              const root = $getRoot();
+              const extractText = (node: LexicalNode): string => {
+                if ($isSlotNode(node)) {
+                  return (node as SlotNode).exportText();
+                }
+                if (node.getType() === 'text') {
+                  return (node as any).getTextContent();
+                }
+                // For other nodes, recursively extract text from children
+                const children = (node as any).getChildren?.() || [];
+                return children.map(extractText).join('');
+              };
+              return extractText(root);
+            });
+          } catch (e) {
+            console.error('[Lexical] Failed to get plain text:', e);
+            return '';
           }
         },
       }),
