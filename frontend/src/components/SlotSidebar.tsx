@@ -9,7 +9,7 @@ import SlotEditor from './SlotEditor';
 import { Button } from './ui/button';
 import { Card, CardHeader, CardContent } from './ui/card';
 import { Input } from './ui/input';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Plus, Trash2, Settings } from 'lucide-react';
 import { useState } from 'react';
 
 interface Props {
@@ -157,85 +157,147 @@ export default function SlotSidebar({
   };
 
   return (
-    <aside className="w-120 border-l h-screen">
-      <div className="flex gap-1 flex-wrap sticky top-0 bg-white">
-        <Button size="sm" variant="outline" onClick={addField}>
-          + Champ
-        </Button>
-        <Button size="sm" variant="outline" onClick={addGroup}>
-          + Groupe
-        </Button>
-        <Button size="sm" variant="outline" onClick={addRepeat}>
-          + Répéteur
-        </Button>
+    <aside className="w-120 border-l border-gray-200 bg-gray-50/30 h-screen">
+      {/* Header avec boutons d'action */}
+      <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 shadow-sm">
+        <div className="flex gap-2 flex-wrap">
+          <Button 
+            size="sm" 
+            variant="outline" 
+            onClick={addField}
+            className="flex items-center gap-2 hover:bg-blue-50 hover:border-blue-200 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Champ
+          </Button>
+          <Button 
+            size="sm" 
+            variant="outline" 
+            onClick={addGroup}
+            className="flex items-center gap-2 hover:bg-green-50 hover:border-green-200 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Groupe
+          </Button>
+          <Button 
+            size="sm" 
+            variant="outline" 
+            onClick={addRepeat}
+            className="flex items-center gap-2 hover:bg-purple-50 hover:border-purple-200 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Répéteur
+          </Button>
+        </div>
       </div>
+
       {selectedIndex == null ? (
-        <Card className="border-0 shadow-none">
-          <CardHeader className="pb-2">
-            <div className="flex justify-between items-center">
-              <h3 className="font-semibold text-sm">Slots</h3>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-2 pt-2">
-            <div className="space-y-1">
-              {(slots || []).map((slot, idx) => {
-                const label = (slot as any).label ?? (slot as any).id;
-                const preset = slot.kind === 'field' ? slot.preset : undefined;
-                return (
-                  <div
-                    key={(slot as any).id || `${(slot as any).kind}-${idx}`}
-                    className="flex justify-between items-center gap-2 border rounded p-2"
-                  >
-                    <div className="flex flex-col flex-1">
-                      <Input
-                        value={label}
-                        onChange={(e) => editLabel(idx, e.target.value)}
-                        className="h-7 text-sm"
-                      />
-                      {preset && (
-                        <span className="text-xs text-muted-foreground">
-                          {preset}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex gap-1 items-center">
-                      <Button
-                        size="xs"
-                        variant="outline"
-                        onClick={() => insertSlot(slot)}
-                      >
-                        Insérer
-                      </Button>
-                      <Button
-                        size="xs"
-                        variant="ghost"
-                        onClick={() => removeSlot((slot as any).id)}
-                      >
-                        ×
-                      </Button>
-                      <Button
-                        size="xs"
-                        variant="ghost"
-                        aria-label="Détails"
-                        onClick={() => setSelectedIndex(idx)}
-                      >
-                        <ChevronRight className="w-4 h-4" />
-                      </Button>
-                    </div>
+        <div className="p-4">
+          <Card className="border-0 shadow-none bg-transparent">
+            <CardHeader className="pb-3 px-0">
+              <div className="flex justify-between items-center">
+                <h3 className="font-semibold text-lg text-gray-900">Slots</h3>
+                <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                  {slots?.length || 0}
+                </span>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3 pt-0 px-0">
+              {(slots || []).length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <div className="w-12 h-12 mx-auto mb-3 bg-gray-100 rounded-full flex items-center justify-center">
+                    <Plus className="w-6 h-6 text-gray-400" />
                   </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+                  <p className="text-sm">Aucun slot créé</p>
+                  <p className="text-xs text-gray-400">Commencez par ajouter un champ, groupe ou répéteur</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {(slots || []).map((slot, idx) => {
+                    const label = (slot as any).label ?? (slot as any).id;
+                    const preset = slot.kind === 'field' ? slot.preset : undefined;
+                    const slotType = slot.kind === 'field' ? 'Champ' : slot.kind === 'group' ? 'Groupe' : 'Répéteur';
+                    
+                    return (
+                      <div
+                        key={(slot as any).id || `${(slot as any).kind}-${idx}`}
+                        className="group bg-white border border-gray-200 rounded-lg p-3 hover:border-gray-300 hover:shadow-sm transition-all duration-200"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          {/* Type et preset */}
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
+                              slot.kind === 'field' ? 'bg-blue-100 text-blue-700' :
+                              slot.kind === 'group' ? 'bg-green-100 text-green-700' :
+                              'bg-purple-100 text-purple-700'
+                            }`}>
+                              {}
+                            </span>
+
+                          </div>
+
+                          {/* Input du label */}
+                          <div className="flex-1 min-w-0">
+                            <Input
+                              value={label}
+                              onChange={(e) => editLabel(idx, e.target.value)}
+                              className="h-8 text-sm border-gray-200 focus:border-blue-300 focus:ring-blue-200"
+                              placeholder="Nom du slot..."
+                            />
+                          </div>
+                          {preset && (
+                              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded flex-shrink-0">
+                                {preset}
+                              </span>
+                            )}
+
+                          {/* Actions */}
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => insertSlot(slot)}
+                              className="h-7 px-2 text-xs hover:bg-green-50 hover:border-green-200"
+                            >
+                              Insérer
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => removeSlot((slot as any).id)}
+                              className="h-7 w-7 p-0 hover:bg-red-50 hover:text-red-600"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              aria-label="Détails"
+                              onClick={() => setSelectedIndex(idx)}
+                              className="h-7 w-7 p-0 hover:bg-gray-100"
+                            >
+                              <Settings className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       ) : (
-        <div className="space-y-2">
+        <div className="p-4 space-y-4">
           <Button
             size="sm"
             variant="ghost"
             onClick={() => setSelectedIndex(null)}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
           >
-            Retour
+            <ChevronRight className="w-4 h-4 rotate-180" />
+            Retour aux slots
           </Button>
           <SlotEditor
             slot={slots[selectedIndex]}
