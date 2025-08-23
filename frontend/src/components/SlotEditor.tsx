@@ -4,7 +4,9 @@ import type {
   GroupSpec,
   RepeatSpec,
   SlotType,
+  FieldPreset,
 } from '../types/template';
+import { FIELD_PRESETS } from '../types/template';
 import { Card, CardHeader, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -27,6 +29,7 @@ interface Props {
 }
 
 const types: SlotType[] = ['text', 'number', 'list', 'table'];
+const presets: FieldPreset[] = ['description', 'score', 'conclusion'];
 
 export default function SlotEditor({
   slot,
@@ -92,6 +95,37 @@ export default function SlotEditor({
               {types.map((t) => (
                 <SelectItem key={t} value={t}>
                   {t}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label htmlFor={`preset-${field.id}`} className="text-xs">
+            Préset
+          </Label>
+          <Select
+            value={field.preset}
+            onValueChange={(value) => {
+              const preset = value as FieldPreset;
+              onChange({
+                ...field,
+                preset,
+                prompt: FIELD_PRESETS[preset].prompt,
+              });
+            }}
+          >
+            <SelectTrigger
+              id={`preset-${field.id}`}
+              className="mt-0.5 h-8 text-sm"
+            >
+              <SelectValue placeholder="Sélectionner" />
+            </SelectTrigger>
+            <SelectContent>
+              {presets.map((p) => (
+                <SelectItem key={p} value={p}>
+                  {p}
                 </SelectItem>
               ))}
             </SelectContent>
