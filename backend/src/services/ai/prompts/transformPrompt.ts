@@ -101,10 +101,20 @@ const schemaObject = {
   additionalProperties: false,
 }
 
+  // Convertir les messages en format compatible OpenAI
+  const openaiMessages = messages.map(msg => {
+    if (msg.role === 'system') {
+      return { role: 'system' as const, content: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content) };
+    } else if (msg.role === 'user') {
+      return { role: 'user' as const, content: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content) };
+    } else {
+      return { role: 'assistant' as const, content: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content) };
+    }
+  });
 
   const response = await openai.chat.completions.create({
     model: 'gpt-4.1-2025-04-14', // ou gpt-4o-mini
-    messages,
+    messages: openaiMessages,
     response_format: {
       type: 'json_schema',
       json_schema: {

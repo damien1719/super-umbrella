@@ -146,7 +146,7 @@ function expandInstances(plan: PlanResolved): SlotInstance[] {
         const slotId = `${rep.id}.${it.key}.${s.id}`;
         out.push({
           slotId,
-          label: s.label,
+          label: s.label || '',
           item: it.label,
           type: s.type,
           placeholder: s.prompt,
@@ -158,7 +158,7 @@ function expandInstances(plan: PlanResolved): SlotInstance[] {
   for (const s of plan.slots ?? []) {
     out.push({
       slotId: s.id,
-      label: s.label,
+      label: s.label || '',
       item: '',
       type: s.type,
       placeholder: s.prompt,
@@ -255,10 +255,10 @@ function buildSequencerPrompt(sourceText: string, plan: PlanResolved): string {
 
   // Slots simples
   plan.slots.forEach(slot => {
-    allSlots.push({
-      slotId: slot.id,
-      label: slot.label
-    });
+            allSlots.push({
+          slotId: slot.id,
+          label: slot.label || ''
+        });
   });
 
   // Slots de répéteurs
@@ -268,7 +268,7 @@ function buildSequencerPrompt(sourceText: string, plan: PlanResolved): string {
         const slotId = `${repeater.id}.${item.key}.${slot.id}`;
         allSlots.push({
           slotId,
-          label: slot.label,
+          label: slot.label || '',
           repeater: item.label
         });
       });
@@ -401,7 +401,7 @@ function buildAstFromSequence(plan: PlanResolved, sequence: SequencePayload): Le
         slotId: item.slotId,
         slotLabel: slotInfo.label,
         slotType: slotInfo.type || 'text',
-        optional: slotInfo.optional || false,
+        optional: 'optional' in slotInfo ? slotInfo.optional || false : false,
         placeholder: slotInfo.prompt || `Saisissez ${slotInfo.label}`,
         version: 1,
       });
@@ -516,4 +516,32 @@ export async function generateTemplateFromPlanAndText({
   ];
 
   return { content: ast, slotsSpec: slotsSpec, label: planResolved.label };
+}
+
+// Export des fonctions et constantes manquantes
+export const DECISIONS_SCHEMA = SEQUENCE_SCHEMA;
+
+// Contrôleur Express pour planToTemplate
+export async function planToTemplateController(req: Request, res: Response) {
+  try {
+    const { planResolved, originalText } = req.body as { planResolved: PlanResolved; originalText: string };
+    
+    if (!planResolved || !originalText) {
+      res.status(400).json({ error: 'Missing planResolved or originalText' });
+      return;
+    }
+
+    const template = await generateTemplateFromPlanAndText({
+      planResolved,
+      sourceText: originalText
+    });
+
+    res.json({
+      ok: true,
+      template
+    });
+  } catch (error) {
+    console.error('Error in planToTemplateController:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 }
