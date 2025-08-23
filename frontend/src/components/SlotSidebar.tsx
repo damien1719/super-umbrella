@@ -5,9 +5,10 @@ import type {
   RepeatSpec,
 } from '../types/template';
 import { FIELD_PRESETS } from '../types/template';
-import SlotEditor from './SlotEditor';
+import SlotDetails from './SlotDetails';
 import { Button } from './ui/button';
 import { Card, CardHeader, CardContent } from './ui/card';
+import { useState } from 'react';
 
 interface Props {
   slots: SlotSpec[];
@@ -22,34 +23,7 @@ export default function SlotSidebar({
   onAddSlot,
   onUpdateSlot,
 }: Props) {
-  // Debug logs
-  console.log('[DEBUG] SlotSidebar - Props received:', {
-    slotsCount: slots?.length || 0,
-    slotsType: typeof slots,
-    isArray: Array.isArray(slots),
-    slotsContent: JSON.stringify(slots, null, 2),
-  });
-
-  if (slots && slots.length > 0) {
-    console.log('[DEBUG] SlotSidebar - First few slots structure:');
-    slots.slice(0, 3).forEach((slot, idx) => {
-      console.log(`[DEBUG] SlotSidebar - Slot ${idx}:`, {
-        kind: (slot as any).kind,
-        id: (slot as any).id,
-        label: (slot as any).label,
-        type: (slot as any).type,
-        fullSlot: slot,
-      });
-    });
-  }
-
-  const simpleTpl = (input: string, ctx: Record<string, unknown>) =>
-    String(input || '').replace(/\{\{\s*([\w\.]+)\s*\}\}/g, (_, key) => {
-      const parts = String(key).split('.');
-      let cur: any = ctx;
-      for (const p of parts) cur = cur?.[p];
-      return cur == null ? '' : String(cur);
-    });
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   const updateSlot = (index: number, updated: SlotSpec) => {
     const next = [...(slots || [])];
@@ -138,6 +112,40 @@ export default function SlotSidebar({
 
   const removeSlot = (id: string) => {
     onChange((slots || []).filter((s) => (s as any).id !== id));
+    if (selectedIndex != null && (slots[selectedIndex] as any).id === id) {
+      setSelectedIndex(null);
+    }
+  };
+
+  const insertSlot = (slot: SlotSpec) => {
+    if (slot.kind === 'field') {
+      onAddSlot?.(slot);
+      return;
+    }
+    if (slot.kind === 'group') {
+      slot.slots.forEach((child) => {
+        if (child.kind === 'field') onAddSlot?.(child);
+      });
+      return;
+    }
+    if (slot.kind === 'repeat') {
+      const repId = slot.id;
+      if ('enum' in slot.from && slot.slots.length > 0) {
+        for (const it of slot.from.enum) {
+          for (const child of slot.slots) {
+            if (child.kind === 'field') {
+              const stableId = `${repId}.${it.key}.${child.id}`;
+              const fieldIndex = slot.slots.indexOf(child) + 1;
+              const cleanLabel = it.label
+                .replace(/^value_?/, '')
+                .replace(/_/g, '');
+              const displayLabel = `${cleanLabel}_slot${fieldIndex}`;
+              onAddSlot?.({ ...child, id: stableId, label: displayLabel });
+            }
+          }
+        }
+      }
+    }
   };
 
   return (
@@ -153,27 +161,70 @@ export default function SlotSidebar({
           + Répéteur
         </Button>
       </div>
-      <Card className="border-0 shadow-none">
-        <CardHeader className="pb-2">
-          <div className="flex justify-between items-center">
-            <h3 className="font-semibold text-sm">Slots</h3>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-2 pt-2">
-          <div className="space-y-1">
-            {(slots || []).map((slot, idx) => (
-              <SlotEditor
-                key={(slot as any).id || `${(slot as any).kind}-${idx}`}
-                slot={slot}
-                onChange={(updated) => updateSlot(idx, updated)}
-                onRemove={() => removeSlot((slot as any).id)}
-                onAddSlot={onAddSlot}
-                onUpdateSlot={onUpdateSlot}
-              />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      {selectedIndex == null ? (
+        <Card className="border-0 shadow-none">
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-center">
+              <h3 className="font-semibold text-sm">Slots</h3>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-2 pt-2">
+            <div className="space-y-1">
+              {(slots || []).map((slot, idx) => {
+                const label = (slot as any).label ?? (slot as any).id;
+                const preset = slot.kind === 'field' ? slot.preset : undefined;
+                return (
+                  <div
+                    key={(slot as any).id || `${(slot as any).kind}-${idx}`}
+                    className="flex justify-between items-center border rounded p-2 cursor-pointer"
+                    onClick={() => setSelectedIndex(idx)}
+                  >
+                    <div className="flex flex-col text-sm">
+                      <span>{label}</span>
+                      {preset && (
+                        <span className="text-xs text-muted-foreground">
+                          {preset}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex gap-1">
+                      <Button
+                        size="xs"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          insertSlot(slot);
+                        }}
+                      >
+                        Insérer
+                      </Button>
+                      <Button
+                        size="xs"
+                        variant="ghost"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeSlot((slot as any).id);
+                        }}
+                      >
+                        ×
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <SlotDetails
+          slot={slots[selectedIndex]}
+          onChange={(updated) => updateSlot(selectedIndex, updated)}
+          onRemove={() => removeSlot((slots[selectedIndex] as any).id)}
+          onAddSlot={onAddSlot}
+          onUpdateSlot={onUpdateSlot}
+          onBack={() => setSelectedIndex(null)}
+        />
+      )}
     </aside>
   );
 }
