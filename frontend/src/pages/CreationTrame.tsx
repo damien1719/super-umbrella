@@ -21,6 +21,8 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import TemplateEditor from '@/components/TemplateEditor';
 import { useSectionTemplateStore } from '../store/sectionTemplates';
 import type { SectionTemplate } from '../types/template';
+import { apiFetch } from '@/utils/api';
+import { useAuth } from '@/store/auth';
 
 interface ImportResponse {
   result: Question[][];
@@ -65,10 +67,34 @@ export default function CreationTrame() {
     updatedAt: new Date().toISOString(),
   });
   const [loadingTemplate, setLoadingTemplate] = useState(false);
+  const token = useAuth((s) => s.token);
+
+  const transformTemplateToQuestions = async (content: string) => {
+    try {
+      const res = await apiFetch<{ result: Question[] }>(
+        '/api/v1/import/transform',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ content }),
+        },
+      );
+      if (res.result.length > 0) {
+        setQuestions(res.result);
+        setSelectedId(res.result[0].id);
+        setTab('preview');
+      }
+    } catch (e) {
+      console.error('Failed to transform template', e);
+    }
+  };
 
   const SHOW_ADMIN_IMPORT =
     import.meta.env.VITE_DISPLAY_IMPORT_BUTTON === 'true';
-    
+
   const createDefaultNote = (): Question => ({
     id: Date.now().toString(),
     type: 'notes',
@@ -295,7 +321,11 @@ export default function CreationTrame() {
                 </div>
               </div>
             )}
-            <TemplateEditor template={template} onChange={setTemplate} />
+            <TemplateEditor
+              template={template}
+              onChange={setTemplate}
+              onTransformToQuestions={transformTemplateToQuestions}
+            />
           </div>
         )}
       </div>
