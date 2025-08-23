@@ -226,7 +226,7 @@ function safeJsonParse<T>(raw: string): T {
 
 // POST /api/importMagique/plan
 // body: { source: string }
-/* export async function buildPlanController(req: Request, res: Response) {
+export async function buildPlanController(req: Request, res: Response) {
   const { source } = req.body as { source?: string };
   if (!source || source.trim().length === 0) {
     res.status(400).json({ error: 'Missing "source"' });
@@ -247,7 +247,7 @@ function safeJsonParse<T>(raw: string): T {
     planDraft: parsed,
     planResolved: plan,
   });
-} */
+}
 
 
 // Fonction utilitaire pour générer un plan depuis du texte
@@ -278,3 +278,6 @@ export async function generatePlanWithSlotsSpec(sourceText: string): Promise<{
   const slotsSpec = planToCanonicalSlotsSpec(planResolved);
   return { planResolved, slotsSpec };
 }
+
+// Export des types et fonctions nécessaires
+export type { SlotSpec, RepeatSpec };

@@ -13,7 +13,7 @@ import {
   type TemplatePayload,
   type LexicalAST,
   type SlotSpec,
-  type RepeaterSpec
+  type RepeatSpec
 } from './template/index';
 
 // Re-export des types pour compatibilité
@@ -22,7 +22,7 @@ export type {
   TemplatePayload,
   LexicalAST,
   SlotSpec,
-  RepeaterSpec
+  RepeatSpec
 };
 
 /* =========================
@@ -38,7 +38,7 @@ export async function buildPlanController(req: Request, res: Response) {
 // POST /api/importMagique/toTemplate
 // body: { planResolved: PlanResolved, originalText: string }
 export async function planToTemplateController(req: Request, res: Response, next: NextFunction) {
-  return originalPlanToTemplateController(req, res, next);
+  return originalPlanToTemplateController(req, res);
 }
 
 /* =========================

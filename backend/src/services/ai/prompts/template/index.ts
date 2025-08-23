@@ -5,14 +5,13 @@
 export type {
     PlanResolved,
     SlotSpec,
-    RepeaterSpec
+    RepeatSpec
   } from './plan.service';
   
   // Export des types du service decisions
   export type {
     TemplatePayload,
     LexicalAST,
-    SlotType,
     SlotInstance,
     Decision,
     DecisionsPayload
