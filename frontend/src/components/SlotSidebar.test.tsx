@@ -55,3 +55,18 @@ test('inline label edit updates slot and calls onUpdateSlot', () => {
   expect(onChange).toHaveBeenCalled();
   expect(onChange.mock.calls[0][0][0].label).toBe('new label');
 });
+
+test('transform button calls onTransformToQuestions', () => {
+  const onTransform = vi.fn();
+  render(
+    <SlotSidebar
+      slots={[]}
+      onChange={vi.fn()}
+      onTransformToQuestions={onTransform}
+    />,
+  );
+  fireEvent.click(
+    screen.getByRole('button', { name: /Transformer en Questions/i }),
+  );
+  expect(onTransform).toHaveBeenCalled();
+});

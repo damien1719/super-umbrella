@@ -17,6 +17,7 @@ interface Props {
   onChange: (slots: SlotSpec[]) => void;
   onAddSlot?: (slot: FieldSpec) => void;
   onUpdateSlot?: (slotId: string, slotLabel: string) => void;
+  onTransformToQuestions?: () => void;
 }
 
 export default function SlotSidebar({
@@ -24,6 +25,7 @@ export default function SlotSidebar({
   onChange,
   onAddSlot,
   onUpdateSlot,
+  onTransformToQuestions,
 }: Props) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
@@ -160,34 +162,45 @@ export default function SlotSidebar({
     <aside className="w-120 border-l border-gray-200 bg-gray-50/30 h-screen">
       {/* Header avec boutons d'action */}
       <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 shadow-sm">
-        <div className="flex gap-2 flex-wrap">
-          <Button 
-            size="sm" 
-            variant="outline" 
-            onClick={addField}
-            className="flex items-center gap-2 hover:bg-blue-50 hover:border-blue-200 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Champ
-          </Button>
-          <Button 
-            size="sm" 
-            variant="outline" 
-            onClick={addGroup}
-            className="flex items-center gap-2 hover:bg-green-50 hover:border-green-200 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Groupe
-          </Button>
-          <Button 
-            size="sm" 
-            variant="outline" 
-            onClick={addRepeat}
-            className="flex items-center gap-2 hover:bg-purple-50 hover:border-purple-200 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Répéteur
-          </Button>
+        <div className="flex justify-between items-start flex-wrap gap-2">
+          <div className="flex gap-2 flex-wrap">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={addField}
+              className="flex items-center gap-2 hover:bg-blue-50 hover:border-blue-200 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Champ
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={addGroup}
+              className="flex items-center gap-2 hover:bg-green-50 hover:border-green-200 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Groupe
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={addRepeat}
+              className="flex items-center gap-2 hover:bg-purple-50 hover:border-purple-200 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Répéteur
+            </Button>
+          </div>
+          {onTransformToQuestions && (
+            <Button
+              size="sm"
+              onClick={onTransformToQuestions}
+              className="ml-auto"
+            >
+              Transformer en Questions
+            </Button>
+          )}
         </div>
       </div>
 
@@ -209,15 +222,23 @@ export default function SlotSidebar({
                     <Plus className="w-6 h-6 text-gray-400" />
                   </div>
                   <p className="text-sm">Aucun slot créé</p>
-                  <p className="text-xs text-gray-400">Commencez par ajouter un champ, groupe ou répéteur</p>
+                  <p className="text-xs text-gray-400">
+                    Commencez par ajouter un champ, groupe ou répéteur
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-2">
                   {(slots || []).map((slot, idx) => {
                     const label = (slot as any).label ?? (slot as any).id;
-                    const preset = slot.kind === 'field' ? slot.preset : undefined;
-                    const slotType = slot.kind === 'field' ? 'Champ' : slot.kind === 'group' ? 'Groupe' : 'Répéteur';
-                    
+                    const preset =
+                      slot.kind === 'field' ? slot.preset : undefined;
+                    const slotType =
+                      slot.kind === 'field'
+                        ? 'Champ'
+                        : slot.kind === 'group'
+                          ? 'Groupe'
+                          : 'Répéteur';
+
                     return (
                       <div
                         key={(slot as any).id || `${(slot as any).kind}-${idx}`}
@@ -226,14 +247,17 @@ export default function SlotSidebar({
                         <div className="flex items-center justify-between gap-3">
                           {/* Type et preset */}
                           <div className="flex items-center gap-2 min-w-0">
-                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
-                              slot.kind === 'field' ? 'bg-blue-100 text-blue-700' :
-                              slot.kind === 'group' ? 'bg-green-100 text-green-700' :
-                              'bg-purple-100 text-purple-700'
-                            }`}>
+                            <span
+                              className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
+                                slot.kind === 'field'
+                                  ? 'bg-blue-100 text-blue-700'
+                                  : slot.kind === 'group'
+                                    ? 'bg-green-100 text-green-700'
+                                    : 'bg-purple-100 text-purple-700'
+                              }`}
+                            >
                               {}
                             </span>
-
                           </div>
 
                           {/* Input du label */}
@@ -246,10 +270,10 @@ export default function SlotSidebar({
                             />
                           </div>
                           {preset && (
-                              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded flex-shrink-0">
-                                {preset}
-                              </span>
-                            )}
+                            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded flex-shrink-0">
+                              {preset}
+                            </span>
+                          )}
 
                           {/* Actions */}
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
