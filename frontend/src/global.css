@@ -75,6 +75,10 @@ html, body, #root {
 }
 
 /* styles globaux (ex: index.css) */
+.editor-content {
+  font-family: Calibri, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 11pt;
+}
 .editor-content u,
 .editor-content [style*="text-decoration: underline"] {
   text-decoration: underline;
