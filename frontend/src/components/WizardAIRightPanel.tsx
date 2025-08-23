@@ -78,7 +78,9 @@ export default function WizardAIRightPanel({
   const [showConfirm, setShowConfirm] = useState(false);
   const { profile, fetchProfile } = useUserProfileStore();
   const profileId = useMemo(
-    () => profile?.id ?? (profile as any)?.id ?? null,
+    () =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      profile?.id ?? (profile as any)?.id ?? null,
     [profile],
   );
   const OFFICIAL_AUTHOR_ID = import.meta.env.VITE_OFFICIAL_AUTHOR_ID;
@@ -131,9 +133,9 @@ export default function WizardAIRightPanel({
     );
   };
 
-  // Preload latest notes when section/trame changes
+  // Preload latest notes when entering step 2
   useEffect(() => {
-    if (!selectedTrame) return;
+    if (step !== 2 || !selectedTrame) return;
     (async () => {
       try {
         const res = await apiFetch<
@@ -156,7 +158,7 @@ export default function WizardAIRightPanel({
         console.error('Failed to load latest section instance', e);
       }
     })();
-  }, [selectedTrame, bilanId, token]);
+  }, [step, selectedTrame, bilanId, token]);
 
   const next = () => setStep((s) => Math.min(total, s + 1));
   const prev = () => setStep((s) => Math.max(1, s - 1));
@@ -458,14 +460,16 @@ export default function WizardAIRightPanel({
                       },
                     );
 
-                    const data =
+                    const data: Answers =
                       notesMode === 'manual'
-                        ? (dataEntryRef.current?.save() as Answers | undefined)
-                        : undefined;
-                    if (notesMode === 'manual') {
-                      await saveNotes(data);
-                    }
-                    onGenerate(data, rawNotes, imageBase64);
+                        ? (dataEntryRef.current?.save() as Answers) || {}
+                        : {};
+                    await saveNotes(data);
+                    onGenerate(
+                      notesMode === 'manual' ? data : undefined,
+                      rawNotes,
+                      imageBase64,
+                    );
                   }}
                   disabled={isGenerating}
                   type="button"
@@ -496,18 +500,13 @@ export default function WizardAIRightPanel({
                         },
                       );
 
-                      const data =
+                      const data: Answers =
                         notesMode === 'manual'
-                          ? (dataEntryRef.current?.save() as
-                              | Answers
-                              | undefined)
-                          : undefined;
-                      let id: string | null = instanceId;
-                      if (notesMode === 'manual') {
-                        id = await saveNotes(data);
-                      }
+                          ? (dataEntryRef.current?.save() as Answers) || {}
+                          : {};
+                      const id = await saveNotes(data);
                       onGenerateFromTemplate(
-                        data,
+                        notesMode === 'manual' ? data : undefined,
                         rawNotes,
                         id || undefined,
                         imageBase64,
