@@ -189,6 +189,7 @@ model BilanSectionInstance {
   id                String  @id @default(uuid())
   bilanId           String
   sectionId         String
+  test              String?
   order             Int
   contentNotes      Json
   notesCreatedAt    DateTime @default(now())

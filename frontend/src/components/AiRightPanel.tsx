@@ -206,13 +206,6 @@ export default function AiRightPanel({
     rawNotes?: string,
     imageBase64?: string,
   ) => {
-    console.log('[DEBUG] AiRightPanel - handleGenerate called with:', {
-      sectionId: section.id,
-      hasNewAnswers: !!newAnswers,
-      hasRawNotes: !!rawNotes,
-      hasImageBase64: !!imageBase64,
-      imageBase64Length: imageBase64?.length || 0,
-    });
 
     await generateSection({
       mode: 'direct',

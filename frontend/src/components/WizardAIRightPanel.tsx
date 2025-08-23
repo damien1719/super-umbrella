@@ -309,30 +309,46 @@ export default function WizardAIRightPanel({
     );
   }
 
+  const [isManualSaving, setIsManualSaving] = useState(false);
+
+
   const saveNotes = async (
     notes: Answers | undefined,
   ): Promise<string | null> => {
     if (!selectedTrame) return null;
-    const res = await apiFetch<{ id: string }>(
-      `/api/v1/bilan-section-instances/upsert`,
-      {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          bilanId,
-          sectionId: selectedTrame.value,
-          contentNotes: notes,
-        }),
-      },
-    );
-    setInstanceId(res.id);
-    return res.id;
+
+    // Debug: trace d'où vient l'appel upsert
+    console.trace('[DEBUG] saveNotes called - Stack trace:');
+    console.log('[DEBUG] saveNotes - notes:', notes);
+    console.log('[DEBUG] saveNotes - selectedTrame:', selectedTrame.value);
+    console.log('[DEBUG] saveNotes - isManualSaving:', isManualSaving);
+
+    setIsManualSaving(true);
+    try {
+      const res = await apiFetch<{ id: string }>(
+        `/api/v1/bilan-section-instances/upsert`,
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: JSON.stringify({
+            bilanId,
+            sectionId: selectedTrame.value,
+            contentNotes: notes,
+          }),
+        },
+      );
+      setInstanceId(res.id);
+      return res.id;
+    } finally {
+      // Délai pour éviter que l'autosave se déclenche immédiatement après
+      setTimeout(() => setIsManualSaving(false), 1500);
+    }
   };
 
   // Autosave on answers change (debounced) while on step 2
   const lastSavedRef = useRef<string>('');
   useEffect(() => {
-    if (step !== 2) return;
+    if (step !== 2 || isManualSaving) return;
     const payload = JSON.stringify(answers ?? {});
     if (payload === lastSavedRef.current) return;
     const t = setTimeout(() => {
@@ -346,10 +362,24 @@ export default function WizardAIRightPanel({
       })();
     }, 1000);
     return () => clearTimeout(t);
-  }, [answers, step]);
+  }, [answers, step, isManualSaving]);
+
+  useEffect(() => {
+    if (step !== 2 || isManualSaving) return;
+    const interval = setInterval(() => {
+      const data = dataEntryRef.current?.save() as Answers | undefined;
+      if (data) {
+        saveNotes(data).catch(() => {
+          /* ignore error */
+        });
+      }
+    }, 20000); // 20s
+  
+    return () => clearInterval(interval);
+  }, [step, selectedTrame, isManualSaving]);
 
   // Autosave on unmount (including ESC close via Dialog)
-  useEffect(() => {
+/*   useEffect(() => {
     return () => {
       try {
         const data = dataEntryRef.current?.save() as Answers | undefined;
@@ -359,11 +389,11 @@ export default function WizardAIRightPanel({
         // ignore
       }
     };
-  }, []);
+  }, []); */
 
   // Save immediately when user presses ESC (best-effort before Dialog closes)
-  useEffect(() => {
-    if (step !== 2) return;
+/*   useEffect(() => {
+    if (step !== 2 || isManualSaving) return;
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         try {
@@ -374,19 +404,19 @@ export default function WizardAIRightPanel({
     };
     window.addEventListener('keydown', onKeyDown, true);
     return () => window.removeEventListener('keydown', onKeyDown, true);
-  }, [step]);
+  }, [step]); */
 
   const handleClose = async () => {
-    if (step === 2 && selectedTrame) {
+    if (step === 2 && selectedTrame && !isManualSaving) {
       const data = dataEntryRef.current?.save() as Answers | undefined;
       try {
-        await saveNotes(data);
-      } catch {
-        /* ignore/option: toast */
+/*         await saveNotes(data);
+ */      } catch {
+          /* ignore/option: toast */
       }
-    }
-    onCancel();
-  };
+    } 
+    onCancel(); 
+  }; 
 
   return (
     <div className="h-full flex flex-col overflow-hidden relative">
