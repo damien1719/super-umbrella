@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { render, waitFor } from '@testing-library/react';
+import { render, waitFor, fireEvent, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import RichTextEditor, { type RichTextEditorHandle } from './RichTextEditor';
 import { setFontFamily, setFontSize } from './RichTextToolbar';
@@ -118,5 +118,27 @@ describe('RichTextEditor', () => {
     await waitFor(() => expect(textbox).toBeTruthy());
     expect(textbox.style.fontFamily).toContain('Calibri');
     expect(textbox.style.fontSize).toBe('11pt');
+  });
+
+  it('inserts a table with chosen dimensions', async () => {
+    const { container } = render(<RichTextEditor onChange={() => {}} />);
+
+    fireEvent.click(screen.getByText('+Insert'));
+    fireEvent.click(screen.getByText('Tableau'));
+
+    const rowsInput = screen.getByLabelText('Lignes');
+    const colsInput = screen.getByLabelText('Colonnes');
+    fireEvent.change(rowsInput, { target: { value: '2' } });
+    fireEvent.change(colsInput, { target: { value: '3' } });
+
+    fireEvent.click(screen.getByText('Insérer'));
+
+    await waitFor(() => {
+      const table = container.querySelector('table');
+      expect(table).not.toBeNull();
+      const rows = table!.querySelectorAll('tr');
+      expect(rows.length).toBe(2);
+      expect(rows[0].querySelectorAll('td').length).toBe(3);
+    });
   });
 });
