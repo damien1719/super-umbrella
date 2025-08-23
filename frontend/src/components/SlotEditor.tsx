@@ -4,7 +4,13 @@ import type {
   GroupSpec,
   RepeatSpec,
   SlotType,
+  FieldPresetKey,
 } from '../types/template';
+import {
+  FIELD_PRESETS,
+  makeFieldFromPreset,
+  isLockedByPreset,
+} from '../templates/fieldPresets';
 import { Card, CardHeader, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -40,17 +46,80 @@ export default function SlotEditor({
   const isRepeat = (s: SlotSpec): s is RepeatSpec =>
     (s as any).kind === 'repeat';
 
+  function applyPreset(field: FieldSpec, key: FieldPresetKey): FieldSpec {
+    const next = makeFieldFromPreset(key, { id: field.id, label: field.label });
+    return next;
+  }
+
+  function detachPreset(field: FieldSpec): FieldSpec {
+    if (!field.preset) return field;
+    return { ...field, preset: { ...field.preset, detached: true } };
+  }
+
+  function resetToPreset(field: FieldSpec): FieldSpec {
+    if (!field.preset?.key) return field;
+    return makeFieldFromPreset(field.preset.key, {
+      id: field.id,
+      label: field.label,
+    });
+  }
+
   const renderField = (field: FieldSpec) => (
     <Card className="mb-2">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
           <span className="text-xs font-medium">Champ</span>
-          <div className="flex gap-1">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onAddSlot?.(field)}
-            >
+
+          <div className="flex items-center gap-2">
+            {/* Preset picker */}
+            <div className="flex items-center gap-1">
+              <Label className="text-[11px] opacity-70">Preset</Label>
+              <Select
+                value={field.preset?.key ?? ''}
+                onValueChange={(v) => {
+                  if (!v) {
+                    onChange(detachPreset(field));
+                    return;
+                  }
+                  const key = v as FieldPresetKey;
+                  onChange(applyPreset(field, key));
+                }}
+              >
+                <SelectTrigger className="h-7 w-[160px] text-xs">
+                  <SelectValue placeholder="(aucun)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">(aucun)</SelectItem>
+                  {Object.entries(FIELD_PRESETS).map(([k, cfg]) => (
+                    <SelectItem key={k} value={k}>
+                      {cfg.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Actions preset */}
+            {field.preset && !field.preset.detached && (
+              <>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => onChange(resetToPreset(field))}
+                >
+                  Reset
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onChange(detachPreset(field))}
+                >
+                  Détacher
+                </Button>
+              </>
+            )}
+
+            <Button size="sm" variant="outline" onClick={() => onAddSlot?.(field)}>
               Insérer
             </Button>
             <Button size="sm" variant="destructive" onClick={onRemove}>
@@ -81,6 +150,7 @@ export default function SlotEditor({
             onValueChange={(value) =>
               onChange({ ...field, type: value as SlotType })
             }
+            disabled={isLockedByPreset(field, 'type' as any)}
           >
             <SelectTrigger
               id={`type-${field.id}`}
@@ -112,6 +182,7 @@ export default function SlotEditor({
                 }
                 placeholder="ex: {firstName} {lastName}"
                 className="mt-1"
+                disabled={isLockedByPreset(field, 'pattern' as any)}
               />
             </div>
             <div>
@@ -132,6 +203,7 @@ export default function SlotEditor({
                 }
                 placeholder="ex: firstName, lastName"
                 className="mt-1"
+                disabled={isLockedByPreset(field, 'deps' as any)}
               />
             </div>
           </>
@@ -149,6 +221,50 @@ export default function SlotEditor({
             placeholder="Instructions pour l'IA..."
           />
         </div>
+
+        {/* Default value selon type */}
+        {field.type === 'text' && (
+          <div>
+            <Label htmlFor={`defval-${field.id}`} className="text-xs">
+              Valeur par défaut
+            </Label>
+            <Textarea
+              id={`defval-${field.id}`}
+              value={(field.defaultValue as string) ?? ''}
+              onChange={(e) =>
+                onChange({ ...field, defaultValue: e.target.value })
+              }
+              className="mt-0.5 min-h-[40px] text-sm"
+              placeholder="(optionnel)"
+            />
+          </div>
+        )}
+
+        {field.type === 'number' && (
+          <div>
+            <Label htmlFor={`defval-${field.id}`} className="text-xs">
+              Valeur par défaut
+            </Label>
+            <Input
+              id={`defval-${field.id}`}
+              type="number"
+              value={
+                typeof field.defaultValue === 'number' || field.defaultValue === 0
+                  ? (field.defaultValue as number)
+                  : ''
+              }
+              onChange={(e) =>
+                onChange({
+                  ...field,
+                  defaultValue:
+                    e.target.value === '' ? null : Number(e.target.value),
+                })
+              }
+              className="mt-0.5 h-8 text-sm"
+              placeholder="ex: 0"
+            />
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -159,17 +275,10 @@ export default function SlotEditor({
       next[i] = updated;
       onChange({ ...group, slots: next });
     };
-    const addFieldInGroup = () => {
-      const f: FieldSpec = {
-        kind: 'field',
+    const addFieldInGroup = (preset: FieldPresetKey = 'desc_facts') => {
+      const f = makeFieldFromPreset(preset, {
         id: `field-${Date.now()}`,
-        label: 'slot',
-        mode: 'llm',
-        type: 'text',
-        deps: [],
-        pattern: '',
-        prompt: '',
-      };
+      });
       onChange({ ...group, slots: [...group.slots, f] });
       onAddSlot?.(f);
     };
@@ -216,9 +325,28 @@ export default function SlotEditor({
             />
           </div>
           <div className="flex gap-1 flex-wrap">
-            <Button size="sm" variant="outline" onClick={addFieldInGroup}>
-              + Slot
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => addFieldInGroup('desc_facts')}
+            >
+              + Champ (Desc. factuelle)
             </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => addFieldInGroup('score')}
+            >
+              + Champ (Score)
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => addFieldInGroup('conclusion')}
+            >
+              + Champ (Conclusion)
+            </Button>
+
             <Button size="sm" variant="outline" onClick={addGroupInGroup}>
               + Groupe
             </Button>
