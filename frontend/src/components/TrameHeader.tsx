@@ -22,6 +22,8 @@ interface Props {
   onSave: () => void;
   onImport: () => void;
   onBack: () => void;
+  onAdminImport?: () => void;
+  showAdminImport?: boolean;
 }
 
 export default function TrameHeader(p?: Partial<Props>) {
@@ -36,6 +38,8 @@ export default function TrameHeader(p?: Partial<Props>) {
     onSave = () => {},
     onImport = () => {},
     onBack = () => {},
+    onAdminImport = () => {},
+    showAdminImport = false,
   } = p ?? {};
   return (
     <div className="flex flex-wrap items-center gap-4 mb-6">
@@ -78,6 +82,11 @@ export default function TrameHeader(p?: Partial<Props>) {
       <Button variant="outline" onClick={onImport}>
         Import Magique
       </Button>
+      {showAdminImport && (
+        <Button variant="outline" onClick={onAdminImport}>
+          Admin Import
+        </Button>
+      )}
     </div>
   );
 }
