@@ -1,10 +1,4 @@
-import React, {
-  useMemo,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  forwardRef,
-} from 'react';
+import React, { useMemo, useImperativeHandle, useRef, forwardRef } from 'react';
 
 // Debug React import
 console.log('[RichTextEditor] React import:', React);
@@ -18,7 +12,12 @@ import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { ListPlugin } from '@lexical/react/LexicalListPlugin';
 import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from '@lexical/html';
-import { $getRoot, $getSelection, $insertNodes } from 'lexical';
+import {
+  $getRoot,
+  $getSelection,
+  $insertNodes,
+  type LexicalNode,
+} from 'lexical';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { ToolbarPlugin } from './RichTextToolbar';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
@@ -153,17 +152,22 @@ const ImperativeHandlePlugin = forwardRef<RichTextEditorHandle, object>(
         updateSlot(slotId: string, slotLabel: string) {
           editor.update(() => {
             const root = $getRoot();
-            const visit = (node: any): boolean => {
+            const visit = (node: LexicalNode): boolean => {
+              const slotCandidate = node as unknown as {
+                getSlotId?: () => string;
+                setLabel?: (label: string) => void;
+                getChildren?: () => LexicalNode[];
+              };
               if (
-                typeof node?.getSlotId === 'function' &&
-                node.getSlotId() === slotId
+                typeof slotCandidate.getSlotId === 'function' &&
+                slotCandidate.getSlotId() === slotId
               ) {
                 // Safe mutation using node API
-                node.setLabel?.(slotLabel);
+                slotCandidate.setLabel?.(slotLabel);
                 return true;
               }
-              if (typeof node?.getChildren === 'function') {
-                for (const child of node.getChildren()) {
+              if (typeof slotCandidate.getChildren === 'function') {
+                for (const child of slotCandidate.getChildren()) {
                   if (visit(child)) return true;
                 }
               }
@@ -214,34 +218,6 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
     const editorRef = useRef<HTMLElement>(null as unknown as HTMLElement);
     useVirtualSelection(editorRef);
 
-    // helper: valide (très simple) pour un état Lexical sérialisé
-    function isLexicalStateLike(obj: any): boolean {
-      return (
-        !!obj && typeof obj === 'object' && obj.root && obj.root.type === 'root'
-      );
-    }
-
-    const serialized = useMemo(() => {
-      if (!initialStateJson) return null;
-      try {
-        // prends la version string si déjà string, sinon stringify
-        const str =
-          typeof initialStateJson === 'string'
-            ? initialStateJson
-            : JSON.stringify(initialStateJson);
-
-        // on valide la forme (si c'est un string on parse juste pour checker)
-        const probe =
-          typeof initialStateJson === 'string'
-            ? JSON.parse(str)
-            : initialStateJson;
-
-        return isLexicalStateLike(probe) ? str : null;
-      } catch {
-        return null;
-      }
-    }, [initialStateJson]);
-
     const initialConfig = {
       namespace: 'rte',
       editable: !readOnly,
@@ -258,7 +234,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
           italic: 'italic',
           bold: 'font-bold',
         },
-        root: 'Calibri',
+        root: 'editor-content',
       },
       nodes: [
         ListNode,
@@ -283,7 +259,8 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
             ? initialStateJson
             : JSON.stringify(DEFAULT_EMPTY_STATE);
         }
-        return (initialStateJson as any)?.root?.type === 'root'
+        return (initialStateJson as { root?: { type?: string } })?.root
+          ?.type === 'root'
           ? JSON.stringify(initialStateJson)
           : JSON.stringify(DEFAULT_EMPTY_STATE);
       } catch {
@@ -311,7 +288,14 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
               <div className="bg-paper-50 border border-gray-300 rounded shadow p-16 w-full max-w-3xl min-h-[100vh] flex flex-col">
                 <RichTextPlugin
                   contentEditable={
-                    <ContentEditable className="outline-none flex-1 editor-content" />
+                    <ContentEditable
+                      className="outline-none flex-1 editor-content"
+                      style={{
+                        fontFamily:
+                          "Calibri, 'Helvetica Neue', Arial, sans-serif",
+                        fontSize: '11pt',
+                      }}
+                    />
                   }
                   placeholder={<div className="text-gray-400">…</div>}
                   ErrorBoundary={LexicalErrorBoundary}
@@ -339,7 +323,9 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
                     }
                   }}
                 />
-                <ImperativeHandlePlugin ref={ref as any} />
+                <ImperativeHandlePlugin
+                  ref={ref as React.Ref<RichTextEditorHandle>}
+                />
               </div>
             </div>
           </div>

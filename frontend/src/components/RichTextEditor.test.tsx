@@ -37,7 +37,7 @@ describe('RichTextEditor', () => {
         version: 1,
       },
     };
-    const { container } = render(
+    render(
       <RichTextEditor
         ref={ref}
         initialStateJson={initialState}
@@ -108,5 +108,15 @@ describe('RichTextEditor', () => {
       expect(span?.getAttribute('style')).toContain('font-size: 24px');
       expect(span?.getAttribute('style')).toContain('font-family: Arial');
     });
+  });
+
+  it('applies Calibri 11 as default font', async () => {
+    const { container } = render(<RichTextEditor onChange={() => {}} />);
+    const textbox = container.querySelector(
+      '[contenteditable="true"]',
+    ) as HTMLElement;
+    await waitFor(() => expect(textbox).toBeTruthy());
+    expect(textbox.style.fontFamily).toContain('Calibri');
+    expect(textbox.style.fontSize).toBe('11pt');
   });
 });
