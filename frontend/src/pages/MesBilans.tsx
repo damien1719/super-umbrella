@@ -14,8 +14,7 @@ import EmptyState from '@/components/bilans/EmptyState';
 import GenericTable, { BilanItem } from '@/components/bilans/GenericTable';
 import PaginationControls from '@/components/bilans/PaginationControls';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { usePatientStore } from '../store/patients'; 
-
+import { usePatientStore } from '../store/patients';
 
 export default function Component() {
   const [bilans, setBilans] = useState<BilanItem[]>([]);
@@ -41,7 +40,7 @@ export default function Component() {
     }
   }, [token, fetchPatients]);
 
-  const hasPatients = patients.length > 0; 
+  const hasPatients = patients.length > 0;
 
   useEffect(() => {
     if (!token) return;

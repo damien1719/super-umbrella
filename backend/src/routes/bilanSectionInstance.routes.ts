@@ -6,7 +6,9 @@ import {
   updateBilanSectionInstanceSchema,
   bilanSectionInstanceIdParam,
   bilanSectionInstanceListQuery,
+  upsertBilanSectionInstanceSchema,
 } from '../schemas/bilanSectionInstance.schema';
+import { generateFromTemplateSchema } from '../schemas/bilanSectionInstance.schema';
 
 export const bilanSectionInstanceRouter = Router();
 
@@ -20,6 +22,12 @@ bilanSectionInstanceRouter
     validateQuery(bilanSectionInstanceListQuery),
     BilanSectionInstanceController.list,
   );
+
+bilanSectionInstanceRouter.post(
+  '/upsert',
+  validateBody(upsertBilanSectionInstanceSchema),
+  BilanSectionInstanceController.upsert,
+);
 
 bilanSectionInstanceRouter
   .route('/:bilanSectionInstanceId')
@@ -36,4 +44,11 @@ bilanSectionInstanceRouter
     validateParams(bilanSectionInstanceIdParam),
     BilanSectionInstanceController.remove,
   );
+
+// Generation from template
+bilanSectionInstanceRouter.post(
+  '/generate-from-template',
+  validateBody(generateFromTemplateSchema),
+  BilanSectionInstanceController.generateFromTemplate,
+);
 

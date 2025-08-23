@@ -11,11 +11,25 @@ import {
   INSERT_UNORDERED_LIST_COMMAND,
   INSERT_ORDERED_LIST_COMMAND,
 } from '@lexical/list';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { $patchStyleText, $setBlocksType } from '@lexical/selection';
-import { $insertNodes } from 'lexical';
 import { Save, FileDown } from 'lucide-react';
 import { Button } from './ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from './ui/dialog';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
 import {
   Select,
   SelectContent,
@@ -24,7 +38,12 @@ import {
   SelectValue,
 } from './ui/select';
 import { useEditorUi } from '@/store/editorUi';
-import { $createHeadingNode, $createQuoteNode, $isHeadingNode } from '@lexical/rich-text';
+import {
+  $createHeadingNode,
+  $createQuoteNode,
+  $isHeadingNode,
+} from '@lexical/rich-text';
+import { INSERT_TABLE_COMMAND } from '@lexical/table';
 import { $generateHtmlFromNodes } from '@lexical/html';
 import DOMPurify from 'dompurify';
 import { toDocxBlob } from '@/lib/htmlDocx';
@@ -90,7 +109,10 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
     { label: 'Cambria', value: "Cambria, Georgia, 'Times New Roman', serif" },
     { label: 'Times New Roman', value: "'Times New Roman', Times, serif" },
     { label: 'Georgia', value: "Georgia, 'Times New Roman', Times, serif" },
-    { label: 'Garamond', value: "Garamond, 'Apple Garamond', 'URW Garamond', serif" },
+    {
+      label: 'Garamond',
+      value: "Garamond, 'Apple Garamond', 'URW Garamond', serif",
+    },
     { label: 'Arial', value: 'Arial, Helvetica, sans-serif' },
     { label: 'Verdana', value: 'Verdana, Geneva, Tahoma, sans-serif' },
     { label: 'Tahoma', value: 'Tahoma, Verdana, Segoe, sans-serif' },
@@ -118,7 +140,6 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
         setLineHeight(editor, lineHeight);
       } catch {}
     }, 0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const selectionSnapshot = useEditorUi((s) => s.selection);
 
@@ -126,7 +147,9 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
   const [isBold, setIsBold] = useState(false);
   const [isItalic, setIsItalic] = useState(false);
   const [isUnderline, setIsUnderline] = useState(false);
-  const [blockType, setBlockType] = useState<'paragraph' | 'h1' | 'h2' | 'h3' | 'quote'>('paragraph');
+  const [blockType, setBlockType] = useState<
+    'paragraph' | 'h1' | 'h2' | 'h3' | 'quote'
+  >('paragraph');
 
   useEffect(() => {
     const unregister = editor.registerUpdateListener(({ editorState }) => {
@@ -173,8 +196,7 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
               $setBlocksType(selection, () => $createParagraphNode());
             else if (next === 'quote')
               $setBlocksType(selection, () => $createQuoteNode());
-            else
-              $setBlocksType(selection, () => $createHeadingNode(next));
+            else $setBlocksType(selection, () => $createHeadingNode(next));
           }
         });
       }, 0);
@@ -243,138 +265,167 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
     [editor],
   );
 
-  // Tableau retiré temporairement (cause d'instabilité de certaines versions Lexical)
+  const [showTableDialog, setShowTableDialog] = useState(false);
+  const [tableRows, setTableRows] = useState('3');
+  const [tableCols, setTableCols] = useState('3');
+  const insertTable = useCallback(() => {
+    editor.dispatchCommand(INSERT_TABLE_COMMAND, {
+      columns: parseInt(tableCols, 10),
+      rows: parseInt(tableRows, 10),
+    });
+    setShowTableDialog(false);
+  }, [editor, tableCols, tableRows]);
 
   return (
-    <div className="sticky top-0 z-10 flex space-x-2 bg-wood-50 border-b border-wood-200 p-2">
-      <Select
-        value={blockType}
-        onValueChange={(v) => applyBlockType(v as any)}
-        onOpenChange={(open) => !open && handleSelectClosed()}
-      >
-        <SelectTrigger data-testid="block-type" className="w-40">
-          <SelectValue placeholder="Style" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="paragraph">Paragraphe</SelectItem>
-          <SelectItem value="h1">Titre 1</SelectItem>
-          <SelectItem value="h2">Titre 2</SelectItem>
-          <SelectItem value="h3">Titre 3</SelectItem>
-          <SelectItem value="quote">Citation</SelectItem>
-        </SelectContent>
-      </Select>
-      <Select
-        value={fontSize}
-        onValueChange={changeFontSize}
-        onOpenChange={(open) => !open && handleSelectClosed()}
-      >
-        <SelectTrigger data-testid="font-size" className="w-24">
-          <SelectValue placeholder="Taille" />
-        </SelectTrigger>
-        <SelectContent>
-          {WORD_FONT_SIZES.map((s) => (
-            <SelectItem key={s} value={s}>{s}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Select
-        value={fontFamily}
-        onValueChange={changeFontFamily}
-        onOpenChange={(open) => !open && handleSelectClosed()}
-      >
-        <SelectTrigger data-testid="font-family" className="w-44">
-          <SelectValue placeholder="Police" />
-        </SelectTrigger>
-        <SelectContent>
-          {FONT_FAMILIES.map((f) => (
-            <SelectItem key={f.label} value={f.value}>
-              {f.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Select
-        value={lineHeight}
-        onValueChange={changeLineHeight}
-        onOpenChange={(open) => !open && handleSelectClosed()}
-      >
-        <SelectTrigger data-testid="line-height" className="w-40">
-          <SelectValue placeholder="Interligne" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="1">Simple (1.0)</SelectItem>
-          <SelectItem value="1.15">1.15</SelectItem>
-          <SelectItem value="1.5">1.5</SelectItem>
-          <SelectItem value="2">Double (2.0)</SelectItem>
-        </SelectContent>
-      </Select>
-      <Button
-        type="button"
-        onMouseDown={(e) => e.preventDefault()}
-        onClick={() => format('bold')}
-        variant="editor"
-        active={isBold}
-      >
-        B
-      </Button>
-      <Button
-        type="button"
-        onMouseDown={(e) => e.preventDefault()}
-        onClick={() => format('italic')}
-        variant="editor"
-        active={isItalic}
-      >
-        I
-      </Button>
-      <Button
-        type="button"
-        onMouseDown={(e) => e.preventDefault()}
-        onClick={() => format('underline')}
-        variant="editor"
-        active={isUnderline}
-      >
-        <span style={{ textDecoration: 'underline' }}>U</span>
-      </Button>
-      <div className="w-px self-stretch bg-wood-200 mx-1" />
-      {/* Bouton tableau retiré temporairement */}
-      
-      <Button
-        type="button"
-        onMouseDown={(e) => e.preventDefault()}
-        onClick={() => insertList(false)}
-        variant="editor"
-      >
-        •
-      </Button>
-      <Button
-        type="button"
-        onMouseDown={(e) => e.preventDefault()}
-        onClick={() => insertList(true)}
-        variant="editor"
-      >
-        1.
-      </Button>
-      <div className="w-px self-stretch bg-wood-200 mx-1" />
-      {onSave && (
+    <>
+      <div className="sticky top-0 z-10 flex space-x-2 bg-wood-50 border-b border-wood-200 p-2">
+        <Select
+          value={blockType}
+          onValueChange={(v) =>
+            applyBlockType(v as 'paragraph' | 'h1' | 'h2' | 'h3' | 'quote')
+          }
+          onOpenChange={(open) => !open && handleSelectClosed()}
+        >
+          <SelectTrigger data-testid="block-type" className="w-40">
+            <SelectValue placeholder="Style" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="paragraph">Paragraphe</SelectItem>
+            <SelectItem value="h1">Titre 1</SelectItem>
+            <SelectItem value="h2">Titre 2</SelectItem>
+            <SelectItem value="h3">Titre 3</SelectItem>
+            <SelectItem value="quote">Citation</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select
+          value={fontSize}
+          onValueChange={changeFontSize}
+          onOpenChange={(open) => !open && handleSelectClosed()}
+        >
+          <SelectTrigger data-testid="font-size" className="w-24">
+            <SelectValue placeholder="Taille" />
+          </SelectTrigger>
+          <SelectContent>
+            {WORD_FONT_SIZES.map((s) => (
+              <SelectItem key={s} value={s}>
+                {s}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={fontFamily}
+          onValueChange={changeFontFamily}
+          onOpenChange={(open) => !open && handleSelectClosed()}
+        >
+          <SelectTrigger data-testid="font-family" className="w-44">
+            <SelectValue placeholder="Police" />
+          </SelectTrigger>
+          <SelectContent>
+            {FONT_FAMILIES.map((f) => (
+              <SelectItem key={f.label} value={f.value}>
+                {f.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={lineHeight}
+          onValueChange={changeLineHeight}
+          onOpenChange={(open) => !open && handleSelectClosed()}
+        >
+          <SelectTrigger data-testid="line-height" className="w-40">
+            <SelectValue placeholder="Interligne" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="1">Simple (1.0)</SelectItem>
+            <SelectItem value="1.15">1.15</SelectItem>
+            <SelectItem value="1.5">1.5</SelectItem>
+            <SelectItem value="2">Double (2.0)</SelectItem>
+          </SelectContent>
+        </Select>
         <Button
           type="button"
-          onClick={onSave}
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => format('bold')}
           variant="editor"
-          aria-label="Save"
+          active={isBold}
         >
-          <Save className="w-4 h-4" />
+          B
         </Button>
-      )}
-      <Button
-        type="button"
-        onClick={async () => {
-          let html = '';
-          try {
-            editor.getEditorState().read(() => {
-              html = DOMPurify.sanitize($generateHtmlFromNodes(editor));
-            });
-          } catch {}
-          const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="ie=edge"/><style>
+        <Button
+          type="button"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => format('italic')}
+          variant="editor"
+          active={isItalic}
+        >
+          I
+        </Button>
+        <Button
+          type="button"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => format('underline')}
+          variant="editor"
+          active={isUnderline}
+        >
+          <span style={{ textDecoration: 'underline' }}>U</span>
+        </Button>
+        <div className="w-px self-stretch bg-wood-200 mx-1" />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              variant="editor"
+            >
+              +Tableau
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={() => setShowTableDialog(true)}>
+              Tableau
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <Button
+          type="button"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => insertList(false)}
+          variant="editor"
+        >
+          •
+        </Button>
+        <Button
+          type="button"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => insertList(true)}
+          variant="editor"
+        >
+          1.
+        </Button>
+        <div className="w-px self-stretch bg-wood-200 mx-1" />
+        {onSave && (
+          <Button
+            type="button"
+            onClick={onSave}
+            variant="editor"
+            aria-label="Save"
+          >
+            <Save className="w-4 h-4" />
+          </Button>
+        )}
+        <Button
+          type="button"
+          onClick={async () => {
+            let html = '';
+            try {
+              editor.getEditorState().read(() => {
+                html = DOMPurify.sanitize($generateHtmlFromNodes(editor));
+              });
+            } catch {}
+            const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="ie=edge"/><style>
             body { font-family: ${fontFamily}; font-size: ${fontSize}pt; line-height: ${lineHeight}; }
             p { margin: 0 0 8px 0; }
             h1 { font-size: 24pt; margin: 16pt 0 8pt; }
@@ -383,26 +434,61 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
             ul, ol { margin: 0 0 8px 24px; }
             li { margin: 4px 0; }
           </style></head><body>${html}</body></html>`;
-          try {
-            const blob = await toDocxBlob(fullHtml);
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${(exportFileName || 'Bilan')}.docx`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            URL.revokeObjectURL(url);
-          } catch (e) {
-            // ignore for now
-          }
-        }}
-        variant="editor"
-        aria-label="Exporter Word"
-        title="Exporter en Word (.docx)"
-      >
-        <FileDown className="w-4 h-4" />
-      </Button>
-    </div>
+            try {
+              const blob = await toDocxBlob(fullHtml);
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `${exportFileName || 'Bilan'}.docx`;
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+              URL.revokeObjectURL(url);
+            } catch {
+              // ignore for now
+            }
+          }}
+          variant="editor"
+          aria-label="Exporter Word"
+          title="Exporter en Word (.docx)"
+        >
+          <FileDown className="w-4 h-4" />
+        </Button>
+      </div>
+      <Dialog open={showTableDialog} onOpenChange={setShowTableDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Insérer un tableau</DialogTitle>
+          </DialogHeader>
+          <div className="flex space-x-4 py-4">
+            <div className="flex flex-col space-y-2">
+              <Label htmlFor="table-rows">Lignes</Label>
+              <Input
+                id="table-rows"
+                type="number"
+                min="1"
+                value={tableRows}
+                onChange={(e) => setTableRows(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col space-y-2">
+              <Label htmlFor="table-cols">Colonnes</Label>
+              <Input
+                id="table-cols"
+                type="number"
+                min="1"
+                value={tableCols}
+                onChange={(e) => setTableCols(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" onClick={insertTable}>
+              Insérer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

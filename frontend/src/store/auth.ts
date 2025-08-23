@@ -3,8 +3,9 @@ import { auth } from '../lib/auth';
 import { apiFetch } from '../utils/api';
 import type { User, Session } from '@supabase/supabase-js';
 
-const provider = (import.meta.env.VITE_AUTH_PROVIDER || 'supabase').toLowerCase();
-
+const provider = (
+  import.meta.env.VITE_AUTH_PROVIDER || 'supabase'
+).toLowerCase();
 
 export interface AuthState {
   user: User | null;
@@ -72,7 +73,6 @@ export const useAuth = create<AuthState>((set) => {
     signIn: async (email?: string, password?: string) => {
       set({ loading: true, error: null });
 
-
       if (provider === 'keycloak') {
         // 🔁 Redirige vers Keycloak (via ton provider KC)
         // NB: après redirection, ce code ne continue pas.
@@ -101,7 +101,12 @@ export const useAuth = create<AuthState>((set) => {
       });
     },
 
-    signUp: async (email?: string, password?: string, firstName?: string, lastName?: string) => {
+    signUp: async (
+      email?: string,
+      password?: string,
+      firstName?: string,
+      lastName?: string,
+    ) => {
       set({ loading: true, error: null });
 
       if (provider === 'keycloak') {
@@ -112,7 +117,6 @@ export const useAuth = create<AuthState>((set) => {
       }
 
       // --- SUPABASE (comme avant) ---
-
 
       const { data, error } = await (
         auth as {

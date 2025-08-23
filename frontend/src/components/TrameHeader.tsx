@@ -24,18 +24,19 @@ interface Props {
   onBack: () => void;
 }
 
-export default function TrameHeader({
-  title,
-  category,
-  isPublic,
-  categories,
-  onTitleChange,
-  onCategoryChange,
-  onPublicChange,
-  onSave,
-  onImport,
-  onBack,
-}: Props) {
+export default function TrameHeader(p?: Partial<Props>) {
+  const {
+    title = '',
+    category,
+    isPublic = false,
+    categories = [],
+    onTitleChange = () => {},
+    onCategoryChange = () => {},
+    onPublicChange = () => {},
+    onSave = () => {},
+    onImport = () => {},
+    onBack = () => {},
+  } = p ?? {};
   return (
     <div className="flex flex-wrap items-center gap-4 mb-6">
       <Button variant="outline" onClick={onBack}>

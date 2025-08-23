@@ -1,5 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { BilanSectionInstanceService } from '../services/bilanSectionInstance.service';
+import { generateFromTemplate as generateFromTemplateSvc } from '../services/ai/generateFromTemplate';
+import { prisma } from '../prisma';
 
 export const BilanSectionInstanceController = {
   async create(req: Request, res: Response, next: NextFunction) {
@@ -54,6 +56,56 @@ export const BilanSectionInstanceController = {
         req.body,
       );
       res.json(instance);
+    } catch (e) {
+      next(e);
+    }
+  },
+
+  async upsert(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await BilanSectionInstanceService.upsert(
+        req.user.id,
+        req.body,
+      );
+      res.json(result);
+    } catch (e) {
+      next(e);
+    }
+  },
+
+  async generateFromTemplate(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { instanceId, trameId, answers, stylePrompt, rawNotes, contentNotes, userSlots, imageBase64 } = req.body as {
+        instanceId: string; trameId: string; answers: string[]; stylePrompt?: string; rawNotes?: string; contentNotes?: Record<string, unknown>; userSlots?: Record<string, unknown>; imageBase64?: string;
+      };
+      if (!instanceId || !trameId) {
+        res.status(400).json({ error: 'instanceId and trameId are required' });
+        return;
+      }
+      // Resolve Section.templateRef.id from trameId (Section.id)
+      const section = await (prisma as any).section.findUnique({ where: { id: trameId }, include: { templateRef: true } });
+      const sectionTemplateId = section?.templateRefId || section?.templateRef?.id;
+      if (!sectionTemplateId) {
+        res.status(400).json({ error: 'Section has no associated templateRef' });
+        return;
+      }
+      console.log('sectionTemplateId', sectionTemplateId);
+      console.log('answers', answers);
+      console.log('rawNotes', rawNotes);
+      console.log('contentNotes', contentNotes);
+      console.log('userSlots', userSlots);
+      console.log('imageBase64', imageBase64 ? '[PRESENT]' : '[ABSENT]');
+      console.log('stylePrompt', stylePrompt);
+
+      // Recompose notes context from chunks + raw notes + optional structured answers (contentNotes)
+      const aggregatedNotes: Record<string, unknown> = {
+        ...(contentNotes || {}),
+        _chunks: answers,
+        _rawNotes: rawNotes,
+      };
+
+      const result = await generateFromTemplateSvc(sectionTemplateId, aggregatedNotes, { instanceId, userSlots, stylePrompt, imageBase64 });
+      res.json(result);
     } catch (e) {
       next(e);
     }

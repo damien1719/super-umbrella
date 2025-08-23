@@ -31,9 +31,10 @@ describe('POST /api/v1/sections/:id/duplicate', () => {
       title: 'Sec copy',
     } as SectionStub);
 
-    const res = await request(app).post('/api/v1/sections/1/duplicate');
+    const id = '11111111-1111-1111-1111-111111111111';
+    const res = await request(app).post(`/api/v1/sections/${id}/duplicate`);
     expect(res.status).toBe(201);
     expect(res.body.id).toBe('2');
-    expect(mockedService.duplicate).toHaveBeenCalledWith('demo-user', '1');
+    expect(mockedService.duplicate).toHaveBeenCalledWith('demo-user', id);
   });
 });

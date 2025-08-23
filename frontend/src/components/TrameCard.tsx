@@ -47,7 +47,7 @@ export default function TrameCard({
     >
       {(showDuplicate || showDelete) && (
         <div className="absolute bottom-2 right-2 flex gap-1 z-10">
-{/*           {showDuplicate && onDuplicate && (
+          {/*           {showDuplicate && onDuplicate && (
             <Button
               size="icon"
               variant="ghost"
@@ -59,7 +59,7 @@ export default function TrameCard({
               <Copy className="w-4 h-4" />
             </Button>
           )} */}
-{/*           {showDelete && onDelete && (
+          {/*           {showDelete && onDelete && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -98,8 +98,10 @@ export default function TrameCard({
       </CardHeader>
       <CardContent className="space-y-1">
         <p className="text-sm text-gray-600">{trame.description}</p>
-       {/* Barre d’actions (tout en bas, dans le CardContent) */}
-        {(showLink || (showDuplicate && onDuplicate) || (showDelete && onDelete)) && (
+        {/* Barre d’actions (tout en bas, dans le CardContent) */}
+        {(showLink ||
+          (showDuplicate && onDuplicate) ||
+          (showDelete && onDelete)) && (
           <div className="pt-2 flex items-center justify-end gap-1">
             {showLink && (
               <a

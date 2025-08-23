@@ -133,7 +133,11 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
     }));
 
     const inlineForm = (
-      <div id="dataentry-scroll-root" ref={containerRef} className="h-[80vh] flex-1 overflow-y-auto overscroll-contain px-4">
+      <div
+        id="dataentry-scroll-root"
+        ref={containerRef}
+        className="h-[80vh] flex-1 overflow-y-auto overscroll-contain px-4"
+      >
         {groups.map((group, i) => (
           <div
             key={group.id}
@@ -146,7 +150,7 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
                 <span className="block h-1.5 w-1.5 rounded-full bg-primary-500" />
               </span>
               <h3 className="text-xl font-bold">{group.title}</h3>
-            </div>  
+            </div>
             {group.items.map((q) => (
               <div key={q.id} className="space-y-2 p-2 rounded-md">
                 <Label className="block text-sm font-medium text-gray-800 mb-1">
@@ -177,7 +181,7 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
             onPrev={goPrev}
             onNext={goNext}
           />
-    
+
           {/* Form droit */}
           {inlineForm}
         </div>
@@ -189,60 +193,62 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
         <div className="flex items-center justify-between mb-2">
           <Label className="text-xs font-medium text-gray-700">Réponses</Label>
         </div>
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button
-                size="sm"
-                variant="outline"
-                className="w-full text-xs border-2 border-dashed border-gray-300 text-gray-600 hover:border-primary-300 hover:text-primary-600 hover:bg-primary-50"
-              >
-                <Plus className="h-3 w-3 mr-2" /> Ajouter
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full text-xs border-2 border-dashed border-gray-300 text-gray-600 hover:border-primary-300 hover:text-primary-600 hover:bg-primary-50"
+            >
+              <Plus className="h-3 w-3 mr-2" /> Ajouter
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                Répondre
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              {questions.map((q) => (
+                <div
+                  key={q.id}
+                  className={`space-y-2 p-2 rounded-md border ${
+                    q.type === 'notes' ? 'focus-within:bg-wood-200/50' : ''
+                  }`}
+                >
+                  {q.type === 'titre' ? (
+                    <div className="relative z-10 mt-8 border-t border-gray-200 pt-4 flex items-center gap-2">
+                      <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-100">
+                        <span className="block h-1.5 w-1.5 rounded-full bg-blue-700" />
+                      </span>
+                      <h3 className="text-xl font-bold">{q.titre}</h3>
+                    </div>
+                  ) : (
+                    <>
+                      <Label className="block text-sm font-medium text-gray-800 mb-1">
+                        {q.titre}
+                      </Label>
+                      <QuestionRenderer
+                        question={q}
+                        value={local[q.id]}
+                        onChange={(v) => setLocal({ ...local, [q.id]: v })}
+                        error={errors[q.id]}
+                        setError={(msg) =>
+                          setErrors((p) => ({ ...p, [q.id]: msg }))
+                        }
+                      />
+                    </>
+                  )}
+                </div>
+              ))}
+              <Button onClick={save} className="w-full mt-4">
+                Sauvegarder
               </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  Répondre
-                </DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                {questions.map((q) => (
-                  <div
-                    key={q.id}
-                    className={`space-y-2 p-2 rounded-md border ${
-                      q.type === 'notes' ? 'focus-within:bg-wood-200/50' : ''
-                    }`}
-                  >
-                    {q.type === 'titre' ? (
-                      <div className="relative z-10 mt-8 border-t border-gray-200 pt-4 flex items-center gap-2">
-                        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-100">
-                          <span className="block h-1.5 w-1.5 rounded-full bg-blue-700" />
-                        </span>
-                        <h3 className="text-xl font-bold">{q.titre}</h3>
-                      </div>
-                    ) : (
-                      <>
-                        <Label className="block text-sm font-medium text-gray-800 mb-1">{q.titre}</Label>
-                        <QuestionRenderer
-                          question={q}
-                          value={local[q.id]}
-                          onChange={(v) => setLocal({ ...local, [q.id]: v })}
-                          error={errors[q.id]}
-                          setError={(msg) =>
-                            setErrors((p) => ({ ...p, [q.id]: msg }))
-                          }
-                        />
-                      </>
-                    )}
-                  </div>
-                ))}
-                <Button onClick={save} className="w-full mt-4">
-                  Sauvegarder
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-{/*         ) : (
+            </div>
+          </DialogContent>
+        </Dialog>
+        {/*         ) : (
           <div className="space-y-2">
             <div className="p-3 bg-gray-50 rounded-lg border">
               <div className="text-xs text-gray-600 mb-2">

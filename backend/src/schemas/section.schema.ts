@@ -10,6 +10,9 @@ export const createSectionSchema = z.object({
   schema: z.any().optional(),
   defaultContent: z.any().optional(),
   isPublic: z.boolean().optional(),
+  templateRefId: z.string().optional(),
+  templateOptions: z.any().optional(),
+  version: z.number().int().optional(),
 });
 
 export const updateSectionSchema = createSectionSchema.partial();

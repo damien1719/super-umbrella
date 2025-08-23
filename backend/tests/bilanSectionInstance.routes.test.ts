@@ -31,3 +31,25 @@ describe('GET /api/v1/bilan-section-instances', () => {
   });
 });
 
+describe('POST /api/v1/bilan-section-instances/upsert', () => {
+  it('delegates to service and returns id', async () => {
+    mockedService.upsert.mockResolvedValueOnce({ id: 'abc' } as InstanceStub);
+
+    const res = await request(app)
+      .post('/api/v1/bilan-section-instances/upsert')
+      .send({
+        bilanId: '00000000-0000-0000-0000-000000000001',
+        sectionId: '00000000-0000-0000-0000-000000000002',
+        contentNotes: {},
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ id: 'abc' });
+    expect(mockedService.upsert).toHaveBeenCalledWith('demo-user', {
+      bilanId: '00000000-0000-0000-0000-000000000001',
+      sectionId: '00000000-0000-0000-0000-000000000002',
+      contentNotes: {},
+    });
+  });
+});
+

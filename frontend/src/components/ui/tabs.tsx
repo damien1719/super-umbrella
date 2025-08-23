@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 export type TabItem = {
@@ -58,5 +58,3 @@ export function Tabs({
     </div>
   );
 }
-
-

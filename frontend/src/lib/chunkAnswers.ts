@@ -128,5 +128,3 @@ export function splitBlocksIntoStringChunks(
   pushAcc();
   return chunks;
 }
-
-

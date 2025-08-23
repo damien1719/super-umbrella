@@ -17,7 +17,6 @@ export default function Login() {
   const { user, initialized } = useAuth();
   const autoRef = useRef(false);
 
-
   useEffect(() => {
     if (initialized && user) navigate('/');
   }, [initialized, user, navigate]);
@@ -67,9 +66,9 @@ export default function Login() {
 
   useEffect(() => {
     if (provider !== 'keycloak') return;
-    if (!initialized) return;           // attendre l'init du store
-    if (user) return;                   // déjà connecté
-    if (autoRef.current) return;        // éviter doubles appels/HMR
+    if (!initialized) return; // attendre l'init du store
+    if (user) return; // déjà connecté
+    if (autoRef.current) return; // éviter doubles appels/HMR
     autoRef.current = true;
     void handleSSOLogin();
   }, [initialized, user]);

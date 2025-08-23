@@ -1,27 +1,86 @@
-import { render, waitFor } from '@testing-library/react';
+import * as React from 'react';
+import { render, waitFor, fireEvent, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import React from 'react';
 import RichTextEditor, { type RichTextEditorHandle } from './RichTextEditor';
 import { setFontFamily, setFontSize } from './RichTextToolbar';
 import { $getRoot, TextNode, type LexicalEditor } from 'lexical';
 
 describe('RichTextEditor', () => {
-  it('converts markdown to HTML when inserting', async () => {
+  it('loads and exposes JSON editor state', async () => {
     const ref = React.createRef<RichTextEditorHandle>();
-    const { container } = render(
-      <RichTextEditor ref={ref} initialHtml="" onChange={() => {}} />,
+    const initialState = {
+      root: {
+        children: [
+          {
+            children: [
+              {
+                detail: 0,
+                format: 0,
+                mode: 'normal',
+                style: '',
+                text: 'Hello',
+                type: 'text',
+                version: 1,
+              },
+            ],
+            direction: null,
+            format: '',
+            indent: 0,
+            type: 'paragraph',
+            version: 1,
+          },
+        ],
+        direction: null,
+        format: '',
+        indent: 0,
+        type: 'root',
+        version: 1,
+      },
+    };
+    render(
+      <RichTextEditor
+        ref={ref}
+        initialStateJson={initialState}
+        onChange={() => {}}
+      />,
     );
     await waitFor(() => expect(ref.current).not.toBeNull());
-    ref.current!.insertHtml('**bold**');
-    await waitFor(() => {
-      const textbox = container.querySelector('[contenteditable="true"]');
-      expect(textbox?.innerHTML).toMatch(/<strong[^>]*>bold<\/strong>/);
-    });
+    const state = ref.current!.getEditorStateJson();
+    expect(state).toBeTruthy();
   });
 
   it('changes font size and family on selection', async () => {
+    const initialState = {
+      root: {
+        children: [
+          {
+            children: [
+              {
+                detail: 0,
+                format: 0,
+                mode: 'normal',
+                style: '',
+                text: 'Hello',
+                type: 'text',
+                version: 1,
+              },
+            ],
+            direction: null,
+            format: '',
+            indent: 0,
+            type: 'paragraph',
+            version: 1,
+          },
+        ],
+        direction: null,
+        format: '',
+        indent: 0,
+        type: 'root',
+        version: 1,
+      },
+    };
     const { container } = render(
-      <RichTextEditor initialHtml="<p>Hello</p>" onChange={() => {}} />,
+      <RichTextEditor initialStateJson={initialState} onChange={() => {}} />,
     );
     const textbox = container.querySelector(
       '[contenteditable="true"]',
@@ -48,6 +107,38 @@ describe('RichTextEditor', () => {
       expect(span).not.toBeNull();
       expect(span?.getAttribute('style')).toContain('font-size: 24px');
       expect(span?.getAttribute('style')).toContain('font-family: Arial');
+    });
+  });
+
+  it('applies Calibri 11 as default font', async () => {
+    const { container } = render(<RichTextEditor onChange={() => {}} />);
+    const textbox = container.querySelector(
+      '[contenteditable="true"]',
+    ) as HTMLElement;
+    await waitFor(() => expect(textbox).toBeTruthy());
+    expect(textbox.style.fontFamily).toContain('Calibri');
+    expect(textbox.style.fontSize).toBe('11pt');
+  });
+
+  it('inserts a table with chosen dimensions', async () => {
+    const { container } = render(<RichTextEditor onChange={() => {}} />);
+
+    fireEvent.click(screen.getByText('+Insert'));
+    fireEvent.click(screen.getByText('Tableau'));
+
+    const rowsInput = screen.getByLabelText('Lignes');
+    const colsInput = screen.getByLabelText('Colonnes');
+    fireEvent.change(rowsInput, { target: { value: '2' } });
+    fireEvent.change(colsInput, { target: { value: '3' } });
+
+    fireEvent.click(screen.getByText('Insérer'));
+
+    await waitFor(() => {
+      const table = container.querySelector('table');
+      expect(table).not.toBeNull();
+      const rows = table!.querySelectorAll('tr');
+      expect(rows.length).toBe(2);
+      expect(rows[0].querySelectorAll('td').length).toBe(3);
     });
   });
 });
