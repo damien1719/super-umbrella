@@ -15,6 +15,7 @@ import QuestionList from '@/components/QuestionList';
 import { DataEntry } from '@/components/bilan/DataEntry';
 import SaisieExempleTrame from '@/components/SaisieExempleTrame';
 import ImportMagique from '@/components/ImportMagique';
+import AdminImport from '@/components/AdminImport';
 import ExitConfirmation from '@/components/ExitConfirmation';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import TemplateEditor from '@/components/TemplateEditor';
@@ -46,6 +47,7 @@ export default function CreationTrame() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showImport, setShowImport] = useState(false);
+  const [showAdminImport, setShowAdminImport] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const createTemplate = useSectionTemplateStore((s) => s.create);
   const getTemplate = useSectionTemplateStore((s) => s.get);
@@ -63,6 +65,9 @@ export default function CreationTrame() {
     updatedAt: new Date().toISOString(),
   });
   const [loadingTemplate, setLoadingTemplate] = useState(false);
+
+  const SHOW_ADMIN_IMPORT =
+    import.meta.env.VITE_DISPLAY_IMPORT_BUTTON === 'true';
 
   const createDefaultNote = (): Question => ({
     id: Date.now().toString(),
@@ -206,6 +211,8 @@ export default function CreationTrame() {
           onSave={save}
           onImport={() => setShowImport(true)}
           onBack={() => setShowConfirm(true)}
+          onAdminImport={() => setShowAdminImport(true)}
+          showAdminImport={SHOW_ADMIN_IMPORT}
         />
 
         <div className="border-b mb-4">
@@ -387,6 +394,22 @@ export default function CreationTrame() {
                 );
                 setLoadingTemplate(false);
               }
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+      <Dialog open={showAdminImport} onOpenChange={setShowAdminImport}>
+        <DialogContent>
+          <AdminImport
+            sectionId={sectionId ?? ''}
+            onClose={() => setShowAdminImport(false)}
+            onSchemaImported={(schema) => {
+              setQuestions(schema);
+              setSelectedId(schema[0]?.id ?? null);
+            }}
+            onTemplateImported={(tpl) => {
+              setTemplate(tpl);
+              setTemplateRefId(tpl.id);
             }}
           />
         </DialogContent>

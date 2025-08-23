@@ -14,7 +14,14 @@ const tplCreate = vi.fn().mockResolvedValue({
   stylePrompt: '',
 });
 
+const originalDisplay = import.meta.env.VITE_DISPLAY_IMPORT_BUTTON;
+
+afterEach(() => {
+  import.meta.env.VITE_DISPLAY_IMPORT_BUTTON = originalDisplay;
+});
+
 it('shows navigation tabs', async () => {
+  import.meta.env.VITE_DISPLAY_IMPORT_BUTTON = 'false';
   useSectionStore.setState({
     fetchOne: vi.fn().mockResolvedValue({ title: '', kind: '', schema: [] }),
     update: vi.fn(),
@@ -44,6 +51,7 @@ it('shows navigation tabs', async () => {
 });
 
 it('shows table specific options', async () => {
+  import.meta.env.VITE_DISPLAY_IMPORT_BUTTON = 'false';
   useSectionStore.setState({
     fetchOne: vi.fn().mockResolvedValue({
       title: '',
@@ -81,6 +89,7 @@ it('shows table specific options', async () => {
 });
 
 it('prompts to save when leaving and saves on confirm', async () => {
+  import.meta.env.VITE_DISPLAY_IMPORT_BUTTON = 'false';
   const update = vi.fn().mockResolvedValue(undefined);
   useSectionStore.setState({
     fetchOne: vi.fn().mockResolvedValue({ title: '', kind: '', schema: [] }),
@@ -111,4 +120,23 @@ it('prompts to save when leaving and saves on confirm', async () => {
 
   await waitFor(() => expect(update).toHaveBeenCalled());
   expect(tplCreate).toHaveBeenCalled();
+});
+
+it('shows admin import button when enabled', async () => {
+  import.meta.env.VITE_DISPLAY_IMPORT_BUTTON = 'true';
+  useSectionStore.setState({
+    fetchOne: vi.fn().mockResolvedValue({ title: '', kind: '', schema: [] }),
+    update: vi.fn(),
+  });
+  useSectionTemplateStore.setState({ create: tplCreate });
+  render(
+    <MemoryRouter initialEntries={['/creation-trame/1']}>
+      <Routes>
+        <Route path="/creation-trame/:sectionId" element={<CreationTrame />} />
+      </Routes>
+    </MemoryRouter>,
+  );
+  expect(
+    screen.getByRole('button', { name: /admin import/i }),
+  ).toBeInTheDocument();
 });
