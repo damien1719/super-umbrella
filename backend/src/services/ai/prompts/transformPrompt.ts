@@ -10,27 +10,20 @@ export interface TransformPromptParams {
 }
 
 const ITEM_SCHEMA = {
-    type: 'array',
-    additionalProperties: false,
-    items: {
-      type: 'object',
-      additionalProperties: false,
-      properties: {
-        id: { type: 'string' },
-        type: {
-          type: 'string',
-          enum: ['notes', 'choix-multiple', 'echelle', 'titre'],
-        },
-        titre: { type: 'string' },
-        contenu: { type: 'string' },
-        options: {
-          type: 'array',
-          items: { type: 'string' },
-        },
-      },
-      required: ['id','type','titre','contenu','options']
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    id:    { type: 'string' },
+    type:  { type: 'string', enum: ['notes', 'choix-multiple', 'echelle', 'titre'] },
+    titre: { type: 'string' },
+    contenu: { type: 'string' },
+    options: {
+      type: 'array',
+      items: { type: 'string' },
     },
-  }
+  },
+  required: ['id', 'type', 'titre', 'contenu', 'options'],
+};
 
 const DEFAULT_SCHEMA = {
     type: 'object',
@@ -119,6 +112,8 @@ const schemaObject = {
   if (!content) {
     throw new Error('No content in response from OpenAI API')
   }
+
+  console.log('[DEBUG] generateStructuredJSON - Response content:', content);
   
   return JSON.parse(content)
 }

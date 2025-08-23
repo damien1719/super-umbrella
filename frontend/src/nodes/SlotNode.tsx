@@ -121,6 +121,11 @@ export class SlotNode extends DecoratorNode<React.ReactNode> {
     writable.__slotLabel = newLabel;
   }
 
+  // Export slot as readable text format for LLM processing
+  exportText(): string {
+    return `[[slot:${this.__slotId}|${this.__slotLabel}]]`;
+  }
+
   decorate(): React.ReactNode {
     return (
       <span
