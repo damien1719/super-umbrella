@@ -83,7 +83,7 @@ export default function TrameHeader(p?: Partial<Props>) {
         Import Magique
       </Button>
       {showAdminImport && (
-        <Button variant="outline" onClick={onAdminImport}>
+        <Button variant="primary" onClick={onAdminImport}>
           Admin Import
         </Button>
       )}

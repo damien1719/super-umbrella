@@ -82,6 +82,7 @@ export default function AdminImport({
               value={schemaText}
               onChange={(e) => setSchemaText(e.target.value)}
               placeholder="Collez le sch\u00e9ma JSON de la section"
+              className="h-40"
             />
           </div>
           <div className="flex justify-end">
@@ -99,6 +100,7 @@ export default function AdminImport({
               value={jsonText}
               onChange={(e) => setJsonText(e.target.value)}
               placeholder="Collez le template JSON"
+              className="h-40"
             />
           </div>
           <div>
@@ -108,6 +110,7 @@ export default function AdminImport({
               value={slotsText}
               onChange={(e) => setSlotsText(e.target.value)}
               placeholder="Collez les SlotSpecs"
+              className="h-40"
             />
           </div>
           <div className="flex justify-end">

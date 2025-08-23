@@ -68,7 +68,7 @@ export default function CreationTrame() {
 
   const SHOW_ADMIN_IMPORT =
     import.meta.env.VITE_DISPLAY_IMPORT_BUTTON === 'true';
-
+    
   const createDefaultNote = (): Question => ({
     id: Date.now().toString(),
     type: 'notes',
