@@ -45,7 +45,7 @@ import {
 import { TablePlugin } from '@lexical/react/LexicalTablePlugin';
 import { useVirtualSelection } from '../hooks/useVirtualSelection';
 import { SlotNode, $createSlotNode, $isSlotNode } from '../nodes/SlotNode';
-import type { SlotType } from '../types/template';
+import type { SlotType, FieldSpec } from '../types/template';
 import { scanAndInsertSlots as runScanAndInsertSlots } from '../utils/scanAndInsertSlots';
 
 export interface RichTextEditorHandle {
@@ -56,7 +56,7 @@ export interface RichTextEditorHandle {
   getPlainText?: () => string;
   insertSlot?: (slotId: string, slotLabel: string, slotType: SlotType) => void;
   updateSlot?: (slotId: string, slotLabel: string) => void;
-  scanAndInsertSlots?: () => void;
+  scanAndInsertSlots?: (onSlotCreated?: (slot: FieldSpec) => void) => void;
 }
 
 // Safe default Lexical state with a non-empty root
@@ -225,8 +225,8 @@ const ImperativeHandlePlugin = forwardRef<RichTextEditorHandle, object>(
             return '';
           }
         },
-        scanAndInsertSlots() {
-          runScanAndInsertSlots(editor);
+        scanAndInsertSlots(onSlotCreated?: (slot: FieldSpec) => void) {
+          runScanAndInsertSlots(editor, onSlotCreated);
         },
       }),
       [editor],

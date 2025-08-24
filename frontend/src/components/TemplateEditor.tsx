@@ -124,7 +124,23 @@ export default function TemplateEditor({
               handleTransform();
             }}
             onMagicTemplating={() => {
-              editorRef.current?.scanAndInsertSlots?.();
+              console.log('[DEBUG] MagicTemplating clicked');
+              console.log('[DEBUG] editorRef.current:', editorRef.current);
+              console.log('[DEBUG] scanAndInsertSlots available:', !!editorRef.current?.scanAndInsertSlots);
+              
+              if (editorRef.current?.scanAndInsertSlots) {
+                console.log('[DEBUG] Calling scanAndInsertSlots...');
+                editorRef.current.scanAndInsertSlots((slot) => {
+                  console.log('[DEBUG] Slot created, adding to template:', slot);
+                  // Ajouter le slot au slotsSpec du template
+                  const updatedSlots = [...(template.slotsSpec || []), slot];
+                  onChange({ ...template, slotsSpec: updatedSlots });
+                  console.log('[DEBUG] Template updated with new slot');
+                });
+                console.log('[DEBUG] scanAndInsertSlots called successfully');
+              } else {
+                console.error('[DEBUG] scanAndInsertSlots not available on editorRef.current');
+              }
             }}
             isTransforming={isTransforming}
           />
