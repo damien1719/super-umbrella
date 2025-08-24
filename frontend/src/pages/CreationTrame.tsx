@@ -92,17 +92,20 @@ export default function CreationTrame() {
       console.log('[DEBUG] transformTemplateToQuestions - res.result type:', typeof res.result);
       console.log('[DEBUG] transformTemplateToQuestions - res.result[0]:', res.result?.[0]);
       
-      if (res.result && Array.isArray(res.result) && res.result.length > 0) {
-        console.log('[DEBUG] transformTemplateToQuestions - Setting questions:', res.result);
+      const questionsArray = res.result?.result || res.result;
+    
+      if (questionsArray && Array.isArray(questionsArray) && questionsArray.length > 0) {
+        console.log('[DEBUG] transformTemplateToQuestions - Setting questions:', questionsArray);
         console.log('[DEBUG] transformTemplateToQuestions - Current questions before update:', questions);
         
-        setQuestions(res.result);
-        setSelectedId(res.result[0].id);
+        setQuestions(questionsArray);
+        setSelectedId(questionsArray[0].id);
         setTab('preview');
         
         console.log('[DEBUG] transformTemplateToQuestions - Should switch to preview tab');
       } else {
         console.warn('[DEBUG] transformTemplateToQuestions - No valid result received');
+        console.warn('[DEBUG] transformTemplateToQuestions - questionsArray is:', questionsArray);
         console.warn('[DEBUG] transformTemplateToQuestions - res.result is:', res.result);
       }
     } catch (e) {

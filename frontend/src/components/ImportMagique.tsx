@@ -83,6 +83,7 @@ export default function ImportMagique({
     setLoading(true);
     try {
       if (mode === 'liste') {
+        console.log('[DEBUG] ImportMagique - Starting liste transformation');
         const res = await apiFetch<{ result: Question[] }>(
           '/api/v1/import/transform',
           {
@@ -94,6 +95,7 @@ export default function ImportMagique({
             body: JSON.stringify({ content: text }),
           },
         );
+        console.log("res", res);
         onDone(res.result);
       } else if (tableImportType === 'excel' && file) {
         const data = await new Promise<ArrayBuffer>((resolve, reject) => {
