@@ -12,6 +12,66 @@ import type { FieldSpec } from '../types/template';
 import { normalize } from './textNormalization';
 
 /**
+ * Check if a node is part of a table structure
+ */
+function isTableNode(node: LexicalNode): boolean {
+  const type = node.getType();
+  return type === 'table' || type === 'table-row' || type === 'table-cell';
+}
+
+/**
+ * Check if a node is inside a table structure by traversing up the tree
+ */
+function isInsideTable(node: LexicalNode): boolean {
+  let current: LexicalNode | null = node;
+  while (current) {
+    if (isTableNode(current)) {
+      return true;
+    }
+    // @ts-ignore: ElementNode has getParent
+    current = (current as any).getParent ? (current as any).getParent() : null;
+  }
+  return false;
+}
+
+/**
+ * Find a safe insertion point after the current node, ensuring we don't break table structure
+ */
+function findSafeInsertionPoint(node: LexicalNode): LexicalNode | null {
+  // If we're inside a table, we need to find a safe place outside
+  if (isInsideTable(node)) {
+    let current: LexicalNode | null = node;
+    
+    // Traverse up until we find the table node
+    while (current && !isTableNode(current)) {
+      // @ts-ignore: ElementNode has getParent
+      current = (current as any).getParent ? (current as any).getParent() : null;
+    }
+    
+    // If we found a table, try to insert after it
+    if (current) {
+      // @ts-ignore: ElementNode has getNextSibling
+      const nextSibling = (current as any).getNextSibling ? (current as any).getNextSibling() : null;
+      if (nextSibling) {
+        return nextSibling;
+      }
+      // If no next sibling, try to insert after the parent of the table
+      // @ts-ignore: ElementNode has getParent
+      const tableParent = (current as any).getParent ? (current as any).getParent() : null;
+      if (tableParent) {
+        return tableParent;
+      }
+    }
+    
+    // If we can't find a safe place, return null
+    return null;
+  }
+  
+  // If we're not in a table, we can insert after the current node
+  return node;
+}
+
+/**
  * Compute format flags for a node by recursively scanning its text children
  */
 function computeFormatFlags(node: LexicalNode): { hasBold: boolean; hasUnderline: boolean } {
@@ -69,6 +129,12 @@ export function scanAndInsertSlots(
 
         const node = children[i];
 
+        // Skip table nodes entirely - don't process them
+        if (isTableNode(node)) {
+          console.log('[DEBUG] Skipping table node:', node.getType());
+          continue;
+        }
+
         if ($isTextNode(node)) {
           continue;
         }
@@ -118,10 +184,17 @@ export function scanAndInsertSlots(
             const slotId = slug || `slot_${Date.now()}`;
             console.log('[DEBUG] Creating slot:', { slotId, label });
             
+            // Find a safe insertion point that won't break table structure
+            const safeInsertionPoint = findSafeInsertionPoint(node);
+            if (!safeInsertionPoint) {
+              console.log('[DEBUG] Could not find safe insertion point, skipping slot creation');
+              continue;
+            }
+            
             // Créer le slot visuellement dans l'éditeur
             const slot = $createSlotNode(slotId, label || slotId, 'text');
-            node.insertAfter(slot);
-            console.log('[DEBUG] Slot inserted after node');
+            safeInsertionPoint.insertAfter(slot);
+            console.log('[DEBUG] Slot inserted after safe insertion point');
             
             // Créer le slot dans le slotsSpec si le callback est fourni
             if (onSlotCreated) {
@@ -143,7 +216,10 @@ export function scanAndInsertSlots(
           }
         }
 
-        visit(node);
+        // Only visit children if this node is not a table node
+        if (!isTableNode(node)) {
+          visit(node);
+        }
       }
     };
 

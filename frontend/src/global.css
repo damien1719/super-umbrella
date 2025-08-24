@@ -93,14 +93,23 @@ html, body, #root {
 .editor-content ol { list-style: decimal; padding-left: 1.25rem; }
 .editor-content li { margin-left: 0.25rem; }
 
-/* Tableau avec bordures noires par défaut */
 .editor-content table {
   border-collapse: collapse;
   border: 1px solid black;
+  /* table-layout: auto (par défaut) => colonnes s’adaptent au contenu */
 }
 
 .editor-content th,
 .editor-content td {
   border: 1px solid black;
+  padding: 6px;               /* donne une largeur minimale même si vide */
+  vertical-align: top;
+  overflow-wrap: anywhere;     /* casse les mots très longs si besoin */
+}
+
+/* Empêche les cellules vides de s’écraser à 0 */
+.editor-content th:empty::before,
+.editor-content td:empty::before {
+  content: '\00a0';            /* NBSP, occupe un tout petit espace */
 }
 
