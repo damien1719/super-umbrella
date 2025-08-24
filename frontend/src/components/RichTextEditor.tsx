@@ -41,6 +41,8 @@ import {
   TableRowNode,
   TableCellNode,
   $isTableNode,
+  $isTableSelection,
+  $findTableNode,
 } from '@lexical/table';
 import { TablePlugin } from '@lexical/react/LexicalTablePlugin';
 import { useVirtualSelection } from '../hooks/useVirtualSelection';
@@ -242,6 +244,22 @@ function TableDeletePlugin() {
   useEffect(() => {
     const removeTable = () => {
       const selection = $getSelection();
+      if ($isTableSelection(selection)) {
+        const nodes = selection.getNodes();
+        if (nodes.length > 0) {
+          const tableNode = $findTableNode(nodes[0]);
+          if (tableNode) {
+            const totalCells = tableNode
+              .getChildren()
+              .reduce((sum, row) => sum + row.getChildren().length, 0);
+            if (nodes.length === totalCells) {
+              tableNode.remove();
+              return true;
+            }
+          }
+        }
+        return false;
+      }
       const nodes = selection ? selection.getNodes() : [];
       let removed = false;
       nodes.forEach((node) => {

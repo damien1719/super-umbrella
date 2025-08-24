@@ -3,8 +3,19 @@ import { render, waitFor, fireEvent, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import RichTextEditor, { type RichTextEditorHandle } from './RichTextEditor';
 import { setFontFamily, setFontSize } from './RichTextToolbar';
-import { $getRoot, TextNode, type LexicalEditor } from 'lexical';
-import { $createTableNodeWithDimensions } from '@lexical/table';
+import {
+  $getRoot,
+  TextNode,
+  type LexicalEditor,
+  $setSelection,
+  KEY_BACKSPACE_COMMAND,
+} from 'lexical';
+import {
+  $createTableNodeWithDimensions,
+  $createTableSelectionFrom,
+  TableCellNode,
+  TableRowNode,
+} from '@lexical/table';
 
 describe('RichTextEditor', () => {
   it('loads and exposes JSON editor state', async () => {
@@ -140,6 +151,39 @@ describe('RichTextEditor', () => {
       const rows = table!.querySelectorAll('tr');
       expect(rows.length).toBe(2);
       expect(rows[0].querySelectorAll('td').length).toBe(3);
+    });
+  });
+
+  it('deletes a table when fully selected and backspace is pressed', async () => {
+    const { container } = render(<RichTextEditor onChange={() => {}} />);
+    const textbox = container.querySelector(
+      '[contenteditable="true"]',
+    ) as HTMLElement & { __lexicalEditor: LexicalEditor };
+    const editor = textbox.__lexicalEditor;
+    await waitFor(() => expect(editor).toBeTruthy());
+
+    await new Promise<void>((resolve) => {
+      editor.update(() => {
+        const tableNode = $createTableNodeWithDimensions(2, 2);
+        $getRoot().append(tableNode);
+        const firstRow = tableNode.getFirstChild() as TableRowNode;
+        const firstCell = firstRow.getFirstChild() as TableCellNode;
+        const lastRow = tableNode.getLastChild() as TableRowNode;
+        const lastCell = lastRow.getLastChild() as TableCellNode;
+        const selection = $createTableSelectionFrom(
+          tableNode,
+          firstCell,
+          lastCell,
+        );
+        $setSelection(selection);
+        resolve();
+      });
+    });
+
+    editor.dispatchCommand(KEY_BACKSPACE_COMMAND, null);
+
+    await waitFor(() => {
+      expect(container.querySelector('table')).toBeNull();
     });
   });
 
