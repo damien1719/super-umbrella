@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, {
   useMemo,
   useImperativeHandle,
@@ -47,6 +47,7 @@ import { useVirtualSelection } from '../hooks/useVirtualSelection';
 import { SlotNode, $createSlotNode, $isSlotNode } from '../nodes/SlotNode';
 import type { SlotType, FieldSpec } from '../types/template';
 import { scanAndInsertSlots as runScanAndInsertSlots } from '../utils/scanAndInsertSlots';
+import TableContextMenuPlugin from './TableContextMenuPlugin';
 
 export interface RichTextEditorHandle {
   importHtml: (html: string) => void;
@@ -382,6 +383,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
                 <LinkPlugin />
                 <TablePlugin hasCellMerge hasCellBackgroundColor />
                 <TableDeletePlugin />
+                <TableContextMenuPlugin />
                 <OnChangePlugin
                   onChange={(state, editor) => {
                     state.read(() => {

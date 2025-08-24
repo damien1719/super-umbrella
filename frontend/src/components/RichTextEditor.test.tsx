@@ -4,6 +4,7 @@ import { describe, it, expect } from 'vitest';
 import RichTextEditor, { type RichTextEditorHandle } from './RichTextEditor';
 import { setFontFamily, setFontSize } from './RichTextToolbar';
 import { $getRoot, TextNode, type LexicalEditor } from 'lexical';
+import { $createTableNodeWithDimensions } from '@lexical/table';
 
 describe('RichTextEditor', () => {
   it('loads and exposes JSON editor state', async () => {
@@ -140,5 +141,56 @@ describe('RichTextEditor', () => {
       expect(rows.length).toBe(2);
       expect(rows[0].querySelectorAll('td').length).toBe(3);
     });
+  });
+
+  it.skip('manipulates table via context menu', async () => {
+    const { container } = render(<RichTextEditor onChange={() => {}} />);
+    const textbox = container.querySelector(
+      '[contenteditable="true"]',
+    ) as HTMLElement & { __lexicalEditor: LexicalEditor };
+    const editor = textbox.__lexicalEditor;
+    await waitFor(() => expect(editor).toBeTruthy());
+
+    editor.update(() => {
+      const tableNode = $createTableNodeWithDimensions(2, 2);
+      $getRoot().append(tableNode);
+    });
+
+    await waitFor(() => {
+      const table = container.querySelector('table');
+      expect(table).not.toBeNull();
+    });
+
+    const getCounts = () => {
+      const table = container.querySelector('table')!;
+      const rows = table.querySelectorAll('tr').length;
+      const cols = table.querySelector('tr')!.querySelectorAll('td').length;
+      return { table, rows, cols };
+    };
+
+    let { table } = getCounts();
+    let cell = table.querySelector('td') as HTMLElement;
+
+    fireEvent.contextMenu(cell);
+    fireEvent.click(await screen.findByText('Ajouter ligne'));
+    await waitFor(() => expect(getCounts().rows).toBe(3));
+
+    table = getCounts().table;
+    cell = table.querySelector('td') as HTMLElement;
+    fireEvent.contextMenu(cell);
+    fireEvent.click(await screen.findByText('Ajouter colonne'));
+    await waitFor(() => expect(getCounts().cols).toBe(3));
+
+    table = getCounts().table;
+    cell = table.querySelector('td') as HTMLElement;
+    fireEvent.contextMenu(cell);
+    fireEvent.click(await screen.findByText('Supprimer ligne'));
+    await waitFor(() => expect(getCounts().rows).toBe(2));
+
+    table = getCounts().table;
+    cell = table.querySelector('td') as HTMLElement;
+    fireEvent.contextMenu(cell);
+    fireEvent.click(await screen.findByText('Supprimer colonne'));
+    await waitFor(() => expect(getCounts().cols).toBe(2));
   });
 });
