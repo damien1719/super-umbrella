@@ -60,12 +60,15 @@ function expandSlotsSpec(slots: SlotSpec[]): Record<string, FieldSpec> {
 
         const finalId = segments.filter(Boolean).join('.');
 
+        const baseLabel = node.label ?? node.id;
+        const finalLabel = [...ctx.repeatLabels, baseLabel].join(' · ');
+
         const field: FieldSpec = {
           kind: 'field',
           id: finalId,
           type: node.type,
           mode: node.mode,
-          label: node.label,
+          label: finalLabel,
           pattern: node.pattern,
           deps: node.deps,     // laissé tel quel (pas de templating)
           prompt: node.prompt, // laissé tel quel
@@ -97,6 +100,7 @@ function expandSlotsSpec(slots: SlotSpec[]): Record<string, FieldSpec> {
             groupPath: ctx.groupPath,
             // Par défaut: on ajoute "<repeatId>.<item.key>" dans le chemin
             repeatParts: [...ctx.repeatParts, node.id, it.key],
+            repeatLabels: [...ctx.repeatLabels, it.label], 
           };
           node.slots.forEach((child, j) =>
             visit(child, rctx, `${trace}/repeat(${node.id})[${it.key}]#${j}`),
@@ -116,7 +120,7 @@ function expandSlotsSpec(slots: SlotSpec[]): Record<string, FieldSpec> {
     }
   };
 
-  const rootCtx = { groupPath: [], repeatParts: [] as string[] };
+  const rootCtx = { groupPath: [], repeatParts: [] as string[], repeatLabels: [] as string[] };
   slots.forEach((n, i) => visit(n, rootCtx, `root#${i}`));
   return out;
 }
@@ -158,32 +162,21 @@ export async function generateFromTemplate(
 
   const ast = template.content;
   
-  console.log("template.slotsSpec", template.slotsSpec);  
-
   const slotsSpec = expandSlotsSpec(template.slotsSpec);
 
-  console.log("slotsSpec", slotsSpec);
 
   const parts = partitionSlots(slotsSpec);
 
-  console.log("parts", parts);
-
+  
   const computed = computeComputed(parts.computed, slotsSpec, contentNotes);
 
-  console.log("computed", computed);
-
-  console.log('[DEBUG] generateFromTemplate - About to call LLM with:');
-  console.log('[DEBUG] generateFromTemplate - LLM slots to generate:', parts.llm);
-  console.log('[DEBUG] generateFromTemplate - LLM slotsSpec preview:', JSON.stringify(slotsSpec, null, 2));
+  
   // Add imageBase64 to contentNotes if present
   const enrichedContentNotes = opts.imageBase64
     ? { ...contentNotes, _imageBase64: opts.imageBase64 }
     : contentNotes;
 
-  console.log('[DEBUG] generateFromTemplate - LLM contentNotes preview:', JSON.stringify(enrichedContentNotes, null, 2));
-  console.log('[DEBUG] generateFromTemplate - LLM stylePrompt:', opts.stylePrompt);
-  console.log('[DEBUG] generateFromTemplate - LLM imageBase64 present:', !!opts.imageBase64);
-
+  
   const llm = await callModel(parts.llm, slotsSpec, enrichedContentNotes, opts.stylePrompt);
 
   console.log('[DEBUG] generateFromTemplate - LLM response received:');

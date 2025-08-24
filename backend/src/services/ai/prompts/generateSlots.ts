@@ -52,12 +52,12 @@ export function buildPrompt(ids: string[], spec: Record<string, SlotSpec>, notes
   if (Object.keys(notes).length > 0) promptText += `\n\nContexte: ${JSON.stringify(notes)}`;
 
   // Garde les contraintes de style pour les champs rédigés
-  promptText += `\n\nRègles :
+  promptText += `\n\nRègles importantes :
 - Pour chaque champ, extraire du Contexte ce qui correspond au label (synonymes/variantes acceptés).
 - Rend compte de toutes les informations brutes présentes dans le Contexte.
 - Si un "prompt" est présent, respecter son intention (ex: "description factuelle simple").
-- Si le Contexte ne fournit rien, écrire 1–2 phrases neutres, sans spéculation.
-- Style : phrases complètes, ton descriptif et professionnel, pas de listes.
+- Si le Contexte ne fournit rien, n'écris rien.
+- Ecris des phrases complètes, ton descriptif et professionnel, pas de listes.
 - Ne renvoie STRICTEMENT que le JSON demandé.
 `;
 
