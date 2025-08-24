@@ -20,9 +20,9 @@ function createField(id: string): FieldSpec {
 test('add field button calls onChange with new field', () => {
   const onChange = vi.fn();
   render(<SlotSidebar slots={[]} onChange={onChange} />);
-  
+
   fireEvent.click(screen.getByRole('button', { name: /champ/i }));
-  
+
   expect(onChange).toHaveBeenCalled();
   const newSlots = onChange.mock.calls[0][0];
   expect(newSlots).toHaveLength(1);
@@ -31,11 +31,11 @@ test('add field button calls onChange with new field', () => {
 
 test('meatball menu opens and contains group and repeat options', async () => {
   render(<SlotSidebar slots={[]} onChange={vi.fn()} />);
-  
+
   // Click on meatball menu (MoreHorizontal button)
   const meatballButton = screen.getByRole('button', { name: '' }); // MoreHorizontal has no accessible name
   fireEvent.click(meatballButton);
-  
+
   // Wait for menu to open and check that menu items are visible
   await waitFor(() => {
     expect(screen.getByText('Groupe')).toBeInTheDocument();
@@ -46,17 +46,17 @@ test('meatball menu opens and contains group and repeat options', async () => {
 test('add group from meatball menu calls onChange with new group', async () => {
   const onChange = vi.fn();
   render(<SlotSidebar slots={[]} onChange={onChange} />);
-  
+
   // Open meatball menu
   const meatballButton = screen.getByRole('button', { name: '' });
   fireEvent.click(meatballButton);
-  
+
   // Wait for menu to open and click on Groupe option
   await waitFor(() => {
     expect(screen.getByText('Groupe')).toBeInTheDocument();
   });
   fireEvent.click(screen.getByText('Groupe'));
-  
+
   expect(onChange).toHaveBeenCalled();
   const newSlots = onChange.mock.calls[0][0];
   expect(newSlots).toHaveLength(1);
@@ -66,17 +66,17 @@ test('add group from meatball menu calls onChange with new group', async () => {
 test('add repeat from meatball menu calls onChange with new repeat', async () => {
   const onChange = vi.fn();
   render(<SlotSidebar slots={[]} onChange={onChange} />);
-  
+
   // Open meatball menu
   const meatballButton = screen.getByRole('button', { name: '' });
   fireEvent.click(meatballButton);
-  
+
   // Wait for menu to open and click on Répéteur option
   await waitFor(() => {
     expect(screen.getByText('Répéteur')).toBeInTheDocument();
   });
   fireEvent.click(screen.getByText('Répéteur'));
-  
+
   expect(onChange).toHaveBeenCalled();
   const newSlots = onChange.mock.calls[0][0];
   expect(newSlots).toHaveLength(1);
@@ -135,4 +135,13 @@ test('transform button calls onTransformToQuestions', () => {
     screen.getByRole('button', { name: /Transformer en Questions/i }),
   );
   expect(onTransform).toHaveBeenCalled();
+});
+
+test('magic templating button calls onMagicTemplating', () => {
+  const onMagic = vi.fn();
+  render(
+    <SlotSidebar slots={[]} onChange={vi.fn()} onMagicTemplating={onMagic} />,
+  );
+  fireEvent.click(screen.getByRole('button', { name: /MagicTemplating/i }));
+  expect(onMagic).toHaveBeenCalled();
 });

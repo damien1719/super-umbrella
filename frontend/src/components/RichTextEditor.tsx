@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 import React, {
   useMemo,
   useImperativeHandle,
@@ -45,6 +46,7 @@ import { TablePlugin } from '@lexical/react/LexicalTablePlugin';
 import { useVirtualSelection } from '../hooks/useVirtualSelection';
 import { SlotNode, $createSlotNode, $isSlotNode } from '../nodes/SlotNode';
 import type { SlotType } from '../types/template';
+import { scanAndInsertSlots as runScanAndInsertSlots } from '../utils/scanAndInsertSlots';
 
 export interface RichTextEditorHandle {
   importHtml: (html: string) => void;
@@ -54,6 +56,7 @@ export interface RichTextEditorHandle {
   getPlainText?: () => string;
   insertSlot?: (slotId: string, slotLabel: string, slotType: SlotType) => void;
   updateSlot?: (slotId: string, slotLabel: string) => void;
+  scanAndInsertSlots?: () => void;
 }
 
 // Safe default Lexical state with a non-empty root
@@ -221,6 +224,9 @@ const ImperativeHandlePlugin = forwardRef<RichTextEditorHandle, object>(
             console.error('[Lexical] Failed to get plain text:', e);
             return '';
           }
+        },
+        scanAndInsertSlots() {
+          runScanAndInsertSlots(editor);
         },
       }),
       [editor],

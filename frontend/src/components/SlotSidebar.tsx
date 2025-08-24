@@ -9,7 +9,13 @@ import SlotEditor from './SlotEditor';
 import { Button } from './ui/button';
 import { Card, CardHeader, CardContent } from './ui/card';
 import { Input } from './ui/input';
-import { ChevronRight, Plus, Trash2, Settings, MoreHorizontal } from 'lucide-react';
+import {
+  ChevronRight,
+  Plus,
+  Trash2,
+  Settings,
+  MoreHorizontal,
+} from 'lucide-react';
 import { useState } from 'react';
 import {
   DropdownMenu,
@@ -24,6 +30,7 @@ interface Props {
   onAddSlot?: (slot: FieldSpec) => void;
   onUpdateSlot?: (slotId: string, slotLabel: string) => void;
   onTransformToQuestions?: () => void;
+  onMagicTemplating?: () => void;
   isTransforming?: boolean;
 }
 
@@ -33,6 +40,7 @@ export default function SlotSidebar({
   onAddSlot,
   onUpdateSlot,
   onTransformToQuestions,
+  onMagicTemplating,
   isTransforming = false,
 }: Props) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -182,7 +190,7 @@ export default function SlotSidebar({
               <Plus className="w-4 h-4" />
               Champ
             </Button>
-            
+
             {/* Meatball menu pour + Groupe et + Répéteur */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -212,19 +220,32 @@ export default function SlotSidebar({
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          
-          {/* Bouton Transformer en Questions à droite */}
-          {onTransformToQuestions && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={onTransformToQuestions}
-              className="ml-auto border-gray-300 hover:bg-gray-50"
-              disabled={isTransforming}
-            >
-              {isTransforming ? 'Transforming...' : 'Transformer en Questions'}
-            </Button>
-          )}
+
+          <div className="flex items-center gap-2 ml-auto">
+            {onMagicTemplating && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onMagicTemplating}
+                className="border-gray-300 hover:bg-gray-50"
+              >
+                MagicTemplating
+              </Button>
+            )}
+            {onTransformToQuestions && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onTransformToQuestions}
+                className="border-gray-300 hover:bg-gray-50"
+                disabled={isTransforming}
+              >
+                {isTransforming
+                  ? 'Transforming...'
+                  : 'Transformer en Questions'}
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
