@@ -9,6 +9,7 @@ import { $isHeadingNode } from '@lexical/rich-text';
 import { $createSlotNode, $isSlotNode } from '../nodes/SlotNode';
 import { isHeadingCandidate } from './headingHeuristics';
 import type { FieldSpec } from '../types/template';
+import { normalize } from './textNormalization';
 
 /**
  * Compute format flags for a node by recursively scanning its text children
@@ -41,6 +42,17 @@ export function scanAndInsertSlots(
 ): void {
   console.log('[DEBUG] scanAndInsertSlots called');
   
+  // Normaliser le texte de l'éditeur avant traitement
+  const plainText = editor.getEditorState().read(() => {
+    const root = $getRoot();
+    return root.getTextContent();
+  });
+  
+  const normalizedText = normalize(plainText);
+  console.log('[DEBUG] Original text length:', plainText.length);
+  console.log('[DEBUG] Normalized text length:', normalizedText.length);
+  console.log('[DEBUG] Normalized text preview:', normalizedText.slice(0, 200));
+  
   editor.update(() => {
     console.log('[DEBUG] Inside editor.update');
     const root = $getRoot();
@@ -54,7 +66,13 @@ export function scanAndInsertSlots(
       console.log('[DEBUG] Visiting node with', children.length, 'children');
       
       for (let i = 0; i < children.length; i++) {
+
         const node = children[i];
+
+        if ($isTextNode(node)) {
+          continue;
+        }
+
         const text = node.getTextContent();
         const isHeadingNode = $isHeadingNode(node);
         const next = children[i + 1];
@@ -86,6 +104,13 @@ export function scanAndInsertSlots(
             // Already followed by a SlotNode, skip
           } else {
             const label = text.replace(/[:\s]*$/, '').trim();
+            
+            // Validation supplémentaire: Ne pas créer de slot si le label est vide ou uniquement des espaces
+            if (!label || label.length === 0 || /^\s*$/.test(label)) {
+              console.log('[DEBUG] Skipping slot creation - empty or whitespace-only label:', JSON.stringify(label));
+              continue;
+            }
+            
             const slug = label
               .toLowerCase()
               .replace(/[^a-z0-9]+/g, '_')

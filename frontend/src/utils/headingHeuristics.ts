@@ -13,6 +13,7 @@ interface HeadingCandidateParams {
  * - Text ends with ':' and is short (<= 120 chars)
  * - Text is mostly uppercase and next line is empty
  * - Text is short and has bold/underline formatting
+ * - Text is not empty or only whitespace
  */
 export function isHeadingCandidate({
   text,
@@ -26,6 +27,12 @@ export function isHeadingCandidate({
   }
 
   const trimmed = text.trim();
+
+  // Validation: Ne pas créer de slot si le texte est vide ou uniquement des espaces
+  if (!trimmed || trimmed.length === 0) {
+    return false;
+  }
+
 
   // Règle 1: Texte se terminant par ':' et court
   if (trimmed.endsWith(':') && trimmed.length <= 120) {
