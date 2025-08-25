@@ -357,7 +357,6 @@ export default function CreationTrame() {
       </div>
       {/* Zone scrollable des onglets */}
       <div className="flex-1 min-h-0 px-6 pb-6">
-        <div className="h-full overflow-auto">
           {tab === 'questions' && (
             <QuestionList
               questions={questions}
@@ -427,7 +426,6 @@ export default function CreationTrame() {
               )}
             </div>
           )}
-        </div>
       </div>
 
       {/* Dialogs (portail) */}
