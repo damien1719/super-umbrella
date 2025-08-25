@@ -9,7 +9,7 @@ export const FIELD_PRESETS: Record<FieldPreset, { prompt: string }> = {
     prompt: 'description factuelle simple',
   },
   score: {
-    prompt: '',
+    prompt: 'Le chiffre uniquement',
   },
   conclusion: {
     prompt: '',
