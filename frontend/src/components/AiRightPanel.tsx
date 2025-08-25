@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from './ui/textarea';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import GeneratingModal from '@/components/ui/generating-modal';
 import type { TrameOption, TrameExample } from './bilan/TrameSelector';
 import type { Answers, Question } from '@/types/question';
 import {
@@ -206,7 +207,6 @@ export default function AiRightPanel({
     rawNotes?: string,
     imageBase64?: string,
   ) => {
-
     await generateSection({
       mode: 'direct',
       section,
@@ -449,6 +449,7 @@ export default function AiRightPanel({
 
   return (
     <div className="w-full max-w-md bg-wood-50 rounded-lg shadow-lg">
+      <GeneratingModal open={isGenerating} />
       <div className="flex flex-col h-full">
         {/*         {selection?.text && (
           <div className="bg-blue-50 text-blue-800 text-sm p-2 border-b border-blue-100">
