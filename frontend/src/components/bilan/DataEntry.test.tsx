@@ -77,6 +77,23 @@ const tableSelectQuestion: Question = {
   },
 };
 
+const tableMultiQuestion: Question = {
+  id: '9',
+  type: 'tableau',
+  titre: 'Table',
+  tableau: {
+    columns: [
+      {
+        id: 'c1',
+        label: 'C1',
+        valueType: 'multi-choice',
+        options: ['A', 'B'],
+      },
+    ],
+    sections: [{ id: 's1', title: '', rows: [{ id: 'r1', label: 'L1' }] }],
+  },
+};
+
 const tableCheckQuestion: Question = {
   id: '8',
   type: 'tableau',
@@ -203,6 +220,18 @@ describe('DataEntry', () => {
       />,
     );
     expect(screen.getByRole('combobox')).toBeInTheDocument();
+  });
+
+  it('renders chips for multi choice column type', () => {
+    render(
+      <DataEntry
+        questions={[tableMultiQuestion]}
+        answers={{}}
+        onChange={noop}
+        inline
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'A' })).toBeInTheDocument();
   });
 
   it('renders checkbox for case a cocher type', () => {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 import { apiFetch } from '@/utils/api';
 import { splitBlocksIntoStringChunks } from '@/lib/chunkAnswers';
 import type { Question, Answers } from '@/types/question';
@@ -30,20 +31,27 @@ function markdownifyTable(q: Question, ansTable: TableAnswers): string {
   const columns = q.tableau.columns;
   const allRows = q.tableau.rowsGroups?.flatMap((rg) => rg.rows) || [];
 
-  console.log("columns", columns);
-  console.log("allRows", allRows);
-
+  console.log('columns', columns);
+  console.log('allRows', allRows);
 
   const isNonEmpty = (v: unknown, col?: { valueType?: string }) => {
     if (col?.valueType === 'bool') return v === true || v === false;
+    if (col?.valueType === 'multi-choice')
+      return Array.isArray(v) && v.length > 0;
     if (typeof v === 'number') return true;
     if (typeof v === 'string') return (v as string).trim() !== '';
     if (typeof v === 'boolean') return v === true;
     return false;
   };
 
-  const formatCell = (v: unknown, col?: { valueType?: string, label?: string }) => {
-    if (col?.valueType === 'bool') return v === true ? (col.label ?? 'true') : '';
+  const formatCell = (
+    v: unknown,
+    col?: { valueType?: string; label?: string },
+  ) => {
+    if (col?.valueType === 'bool')
+      return v === true ? (col.label ?? 'true') : '';
+    if (col?.valueType === 'multi-choice')
+      return Array.isArray(v) ? (v as string[]).join(', ') : '';
     if (v == null) return '';
     if (typeof v === 'string') return (v as string).trim();
     if (typeof v === 'number') return String(v);
@@ -66,24 +74,24 @@ function markdownifyTable(q: Question, ansTable: TableAnswers): string {
     const headerLine = `| ${['Ligne', ...keptColumns.map((c) => c.label)].join(' | ')} |`;
     const sepLine = `| ${['---', ...keptColumns.map(() => '---')].join(' | ')} |`;
     const bodyLines = allRows
-    .filter((row) => {
-      const rowData = ansTable[row.id] as Record<string, unknown> | undefined;
-      // garde la ligne si au moins UNE cellule est non vide
-      return keptColumns.some((col) => isNonEmpty(rowData?.[col.id], col));
-    })
-    .map((row) => {
-      const rowData = ansTable[row.id] as Record<string, unknown> | undefined;
-      const cells = keptColumns.map((col) =>
-        formatCell(rowData?.[col.id], col),
-      );
-      console.log("cells", cells);
-      return `| ${[row.label, ...cells].join(' | ')} |`;
-    })
-    .join('\n');
+      .filter((row) => {
+        const rowData = ansTable[row.id] as Record<string, unknown> | undefined;
+        // garde la ligne si au moins UNE cellule est non vide
+        return keptColumns.some((col) => isNonEmpty(rowData?.[col.id], col));
+      })
+      .map((row) => {
+        const rowData = ansTable[row.id] as Record<string, unknown> | undefined;
+        const cells = keptColumns.map((col) =>
+          formatCell(rowData?.[col.id], col),
+        );
+        console.log('cells', cells);
+        return `| ${[row.label, ...cells].join(' | ')} |`;
+      })
+      .join('\n');
     tablePart = `${headerLine}\n${sepLine}\n${bodyLines}`;
   }
 
-  console.log("tablePart", tablePart);
+  console.log('tablePart', tablePart);
 
   const commentVal = ansTable.commentaire;
   const comment =

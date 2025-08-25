@@ -20,7 +20,13 @@ export type ScaleQuestion = {
   echelle: { min: number; max: number; labels?: { min: string; max: string } };
 };
 
-export type ValueType = 'bool' | 'number' | 'text' | 'choice' | 'image';
+export type ValueType =
+  | 'bool'
+  | 'number'
+  | 'text'
+  | 'choice'
+  | 'multi-choice'
+  | 'image';
 
 export type ColumnDef = {
   id: string;

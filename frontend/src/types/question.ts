@@ -1,4 +1,10 @@
-export type ValueType = 'bool' | 'number' | 'text' | 'choice' | 'image';
+export type ValueType =
+  | 'bool'
+  | 'number'
+  | 'text'
+  | 'choice'
+  | 'multi-choice'
+  | 'image';
 
 export interface ColumnDef {
   id: string;
