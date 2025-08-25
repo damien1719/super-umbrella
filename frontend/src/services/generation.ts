@@ -36,7 +36,10 @@ function markdownifyTable(q: Question, ansTable: TableAnswers): string {
 
   const isNonEmpty = (v: unknown, col?: { valueType?: string }) => {
     if (col?.valueType === 'bool') return v === true || v === false;
-    if (col?.valueType === 'multi-choice')
+    if (
+      col?.valueType === 'multi-choice' ||
+      col?.valueType === 'multi-choice-row'
+    )
       return Array.isArray(v) && v.length > 0;
     if (typeof v === 'number') return true;
     if (typeof v === 'string') return (v as string).trim() !== '';
@@ -50,7 +53,10 @@ function markdownifyTable(q: Question, ansTable: TableAnswers): string {
   ) => {
     if (col?.valueType === 'bool')
       return v === true ? (col.label ?? 'true') : '';
-    if (col?.valueType === 'multi-choice')
+    if (
+      col?.valueType === 'multi-choice' ||
+      col?.valueType === 'multi-choice-row'
+    )
       return Array.isArray(v) ? (v as string[]).join(', ') : '';
     if (v == null) return '';
     if (typeof v === 'string') return (v as string).trim();

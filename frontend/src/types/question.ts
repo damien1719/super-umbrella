@@ -4,6 +4,7 @@ export type ValueType =
   | 'text'
   | 'choice'
   | 'multi-choice'
+  | 'multi-choice-row'
   | 'image';
 
 export interface ColumnDef {
@@ -11,6 +12,7 @@ export interface ColumnDef {
   label: string;
   valueType: ValueType;
   options?: string[];
+  rowOptions?: Record<string, string[]>;
 }
 
 export interface Row {

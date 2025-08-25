@@ -26,6 +26,7 @@ export type ValueType =
   | 'text'
   | 'choice'
   | 'multi-choice'
+  | 'multi-choice-row'
   | 'image';
 
 export type ColumnDef = {
@@ -34,6 +35,7 @@ export type ColumnDef = {
   valueType: ValueType;
   /** Facultatif: enum pour 'choice' */
   options?: string[];
+  rowOptions?: Record<string, string[]>;
 };
 
 export type Row = {
