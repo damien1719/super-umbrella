@@ -69,7 +69,9 @@ export default function ChoixTypeDeValeurTableau({
                 setLocal({
                   ...local,
                   valueType: v as ValueType,
-                  options: v === 'choice' ? local.options || [] : undefined,
+                  options: ['choice', 'multi-choice'].includes(v)
+                    ? local.options || []
+                    : undefined,
                 })
               }
             >
@@ -80,12 +82,14 @@ export default function ChoixTypeDeValeurTableau({
                 <SelectItem value="text">Texte</SelectItem>
                 <SelectItem value="number">Nombre</SelectItem>
                 <SelectItem value="bool">Case à cocher</SelectItem>
-                <SelectItem value="choice">Choix multiples</SelectItem>
+                <SelectItem value="choice">Liste déroulante</SelectItem>
+                <SelectItem value="multi-choice">Choix multiples</SelectItem>
                 <SelectItem value="image">Image</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          {local.valueType === 'choice' && (
+          {(local.valueType === 'choice' ||
+            local.valueType === 'multi-choice') && (
             <div className="space-y-2">
               {local.options?.map((opt, idx) => (
                 <div key={idx} className="flex items-center gap-2">
