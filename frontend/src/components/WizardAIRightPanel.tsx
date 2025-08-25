@@ -311,7 +311,6 @@ export default function WizardAIRightPanel({
 
   const [isManualSaving, setIsManualSaving] = useState(false);
 
-
   const saveNotes = async (
     notes: Answers | undefined,
   ): Promise<string | null> => {
@@ -374,12 +373,12 @@ export default function WizardAIRightPanel({
         });
       }
     }, 20000); // 20s
-  
+
     return () => clearInterval(interval);
   }, [step, selectedTrame, isManualSaving]);
 
   // Autosave on unmount (including ESC close via Dialog)
-/*   useEffect(() => {
+  /*   useEffect(() => {
     return () => {
       try {
         const data = dataEntryRef.current?.save() as Answers | undefined;
@@ -392,7 +391,7 @@ export default function WizardAIRightPanel({
   }, []); */
 
   // Save immediately when user presses ESC (best-effort before Dialog closes)
-/*   useEffect(() => {
+  /*   useEffect(() => {
     if (step !== 2 || isManualSaving) return;
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -410,13 +409,14 @@ export default function WizardAIRightPanel({
     if (step === 2 && selectedTrame && !isManualSaving) {
       const data = dataEntryRef.current?.save() as Answers | undefined;
       try {
-/*         await saveNotes(data);
- */      } catch {
-          /* ignore/option: toast */
+        /*         await saveNotes(data);
+         */
+      } catch {
+        /* ignore/option: toast */
       }
-    } 
-    onCancel(); 
-  }; 
+    }
+    onCancel();
+  };
 
   return (
     <div className="h-full flex flex-col overflow-hidden relative">
@@ -482,6 +482,8 @@ export default function WizardAIRightPanel({
                         hasRawNotes: !!rawNotes,
                         hasImageBase64: !!imageBase64,
                         imageBase64Length: imageBase64?.length || 0,
+                        templateRefId: selectedTrame?.templateRefId,
+                        instanceId,
                       },
                     );
 
@@ -489,12 +491,26 @@ export default function WizardAIRightPanel({
                       notesMode === 'manual'
                         ? (dataEntryRef.current?.save() as Answers) || {}
                         : {};
-                    await saveNotes(data);
-                    onGenerate(
-                      notesMode === 'manual' ? data : undefined,
-                      rawNotes,
-                      imageBase64,
-                    );
+                    if (
+                      selectedTrame?.templateRefId &&
+                      onGenerateFromTemplate
+                    ) {
+                      const id = await saveNotes(data);
+                      onGenerateFromTemplate(
+                        notesMode === 'manual' ? data : undefined,
+                        rawNotes,
+                        id || undefined,
+                        imageBase64,
+                      );
+                      onCancel();
+                    } else {
+                      await saveNotes(data);
+                      onGenerate(
+                        notesMode === 'manual' ? data : undefined,
+                        rawNotes,
+                        imageBase64,
+                      );
+                    }
                   }}
                   disabled={isGenerating}
                   type="button"
@@ -511,46 +527,6 @@ export default function WizardAIRightPanel({
                     </>
                   )}
                 </Button>
-                {onGenerateFromTemplate && (
-                  <Button
-                    onClick={async () => {
-                      console.log(
-                        '[DEBUG] WizardAIRightPanel - GenerateFromTemplate button clicked:',
-                        {
-                          notesMode,
-                          hasRawNotes: !!rawNotes,
-                          hasImageBase64: !!imageBase64,
-                          imageBase64Length: imageBase64?.length || 0,
-                          instanceId,
-                        },
-                      );
-
-                      const data: Answers =
-                        notesMode === 'manual'
-                          ? (dataEntryRef.current?.save() as Answers) || {}
-                          : {};
-                      const id = await saveNotes(data);
-                      onGenerateFromTemplate(
-                        notesMode === 'manual' ? data : undefined,
-                        rawNotes,
-                        id || undefined,
-                        imageBase64,
-                      );
-                      onCancel();
-                    }}
-                    disabled={isGenerating}
-                    type="button"
-                  >
-                    {isGenerating ? (
-                      <>
-                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                        Génération...
-                      </>
-                    ) : (
-                      <>Generate from template</>
-                    )}
-                  </Button>
-                )}
               </div>
             )}
           </div>

@@ -51,6 +51,12 @@ const mockedApiFetch = apiFetch as unknown as vi.Mock;
 
 const sectionInfo = { id: 's1', title: 'Section 1' } as any;
 const trame = { value: 't1', label: 'Trame 1' } as any;
+const trameWithTemplate = {
+  value: 't1',
+  label: 'Trame 1',
+  templateRefId: 'tpl1',
+} as any;
+const trameWithoutTemplate = { value: 't2', label: 'Trame 2' } as any;
 
 test('fetches latest notes on entering step 2', async () => {
   mockedApiFetch.mockResolvedValueOnce([{ id: 'i1', contentNotes: { a: 1 } }]);
@@ -85,7 +91,7 @@ test('fetches latest notes on entering step 2', async () => {
   );
 });
 
-test('saves notes when generating from template', async () => {
+test('saves notes when generating with template', async () => {
   mockedApiFetch.mockResolvedValueOnce([]); // initial fetch
 
   const onGenerateFromTemplate = vi.fn();
@@ -93,8 +99,8 @@ test('saves notes when generating from template', async () => {
   render(
     <WizardAIRightPanel
       sectionInfo={sectionInfo}
-      trameOptions={[trame]}
-      selectedTrame={trame}
+      trameOptions={[trameWithTemplate]}
+      selectedTrame={trameWithTemplate}
       onTrameChange={() => {}}
       examples={[]}
       onAddExample={() => {}}
@@ -116,7 +122,7 @@ test('saves notes when generating from template', async () => {
   mockedApiFetch.mockClear();
   mockedApiFetch.mockResolvedValueOnce({ id: 'inst1' });
 
-  fireEvent.click(screen.getByText('Generate from template'));
+  fireEvent.click(screen.getByText('Générer'));
 
   await waitFor(() => expect(mockedApiFetch).toHaveBeenCalled());
   expect(mockedApiFetch).toHaveBeenCalledWith(
@@ -124,4 +130,39 @@ test('saves notes when generating from template', async () => {
     expect.objectContaining({ method: 'POST' }),
   );
   expect(onGenerateFromTemplate).toHaveBeenCalled();
+});
+
+test('calls direct generate when no template', async () => {
+  mockedApiFetch.mockResolvedValueOnce([]); // initial fetch
+  const onGenerate = vi.fn();
+  render(
+    <WizardAIRightPanel
+      sectionInfo={sectionInfo}
+      trameOptions={[trameWithoutTemplate]}
+      selectedTrame={trameWithoutTemplate}
+      onTrameChange={() => {}}
+      examples={[]}
+      onAddExample={() => {}}
+      onRemoveExample={() => {}}
+      questions={[]}
+      answers={{}}
+      onAnswersChange={() => {}}
+      onGenerate={onGenerate}
+      onGenerateFromTemplate={() => {}}
+      isGenerating={false}
+      bilanId="b1"
+      onCancel={() => {}}
+    />,
+  );
+
+  fireEvent.click(screen.getByText('Étape suivante'));
+  await waitFor(() => expect(mockedApiFetch).toHaveBeenCalled());
+
+  mockedApiFetch.mockClear();
+  mockedApiFetch.mockResolvedValueOnce({ id: 'inst2' });
+
+  fireEvent.click(screen.getByText('Générer'));
+
+  await waitFor(() => expect(mockedApiFetch).toHaveBeenCalled());
+  expect(onGenerate).toHaveBeenCalled();
 });
