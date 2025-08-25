@@ -1,84 +1,48 @@
 
+
 > backend@1.0.0 lint /Users/mossuz/Documents/Documents personnels/super-umbrella/backend
 > eslint . --ext .ts
 
-
-/Users/mossuz/Documents/Documents personnels/super-umbrella/backend/src/controllers/bilanSectionInstance.controller.ts
-  74:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/mossuz/Documents/Documents personnels/super-umbrella/backend/src/controllers/import.controller.ts
-  109:42  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  128:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  141:34  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/mossuz/Documents/Documents personnels/super-umbrella/backend/src/services/ai/generateFromTemplate.ts
-    1:26  error    'GroupSpec' is defined but never used                                          @typescript-eslint/no-unused-vars
-    1:37  error    'RepeatSpec' is defined but never used                                         @typescript-eslint/no-unused-vars
-    1:49  error    'UseKitSpec' is defined but never used                                         @typescript-eslint/no-unused-vars
-   16:12  error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-   16:25  error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-   24:10  error    'ensureArray' is defined but never used                                        @typescript-eslint/no-unused-vars
-   30:10  error    'simpleTpl' is defined but never used                                          @typescript-eslint/no-unused-vars
-  113:15  error    '_never' is assigned a value but never used                                    @typescript-eslint/no-unused-vars
-  199:9   error    'provided' is assigned a value but never used                                  @typescript-eslint/no-unused-vars
-  202:5   warning  Unused eslint-disable directive (no problems were reported from 'no-console')
-  224:37  error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  224:43  error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  236:42  error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  236:48  error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  244:25  error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  248:35  error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  248:41  error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  259:40  error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  259:46  error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  260:20  error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  263:36  error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  349:29  error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-
-/Users/mossuz/Documents/Documents personnels/super-umbrella/backend/src/services/ai/prompts/generateSlots.ts
-   20:34  error  Unexpected any. Specify a different type                                 @typescript-eslint/no-explicit-any
-   56:26  error  'ids' is defined but never used. Allowed unused args must match /^_/u    @typescript-eslint/no-unused-vars
-   56:41  error  'spec' is defined but never used. Allowed unused args must match /^_/u   @typescript-eslint/no-unused-vars
-  142:19  error  Unexpected any. Specify a different type                                 @typescript-eslint/no-explicit-any
-  142:24  error  'index' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
-  144:40  error  Unexpected any. Specify a different type                                 @typescript-eslint/no-explicit-any
-  144:66  error  Unexpected any. Specify a different type                                 @typescript-eslint/no-explicit-any
-
-/Users/mossuz/Documents/Documents personnels/super-umbrella/backend/src/services/ai/prompts/importMagiqueToTemplate.ts
-  8:3  error  'generatePlanFromText' is defined but never used  @typescript-eslint/no-unused-vars
-
-/Users/mossuz/Documents/Documents personnels/super-umbrella/backend/src/services/ai/prompts/template/decisions.service.ts
-    4:15  error  'Request' is defined but never used                           @typescript-eslint/no-unused-vars
-    4:24  error  'Response' is defined but never used                          @typescript-eslint/no-unused-vars
-    4:34  error  'NextFunction' is defined but never used                      @typescript-eslint/no-unused-vars
-  105:10  error  'slugify' is defined but never used                           @typescript-eslint/no-unused-vars
-  140:10  error  'expandInstances' is defined but never used                   @typescript-eslint/no-unused-vars
-  461:10  error  'buildLexicalFromTextAndDecisions' is defined but never used  @typescript-eslint/no-unused-vars
-
-/Users/mossuz/Documents/Documents personnels/super-umbrella/backend/src/services/ai/prompts/template/plan.service.ts
-    6:15  error  'Request' is defined but never used       @typescript-eslint/no-unused-vars
-    6:24  error  'Response' is defined but never used      @typescript-eslint/no-unused-vars
-  197:82  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  198:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  219:12  error  'e' is defined but never used             @typescript-eslint/no-unused-vars
-
-/Users/mossuz/Documents/Documents personnels/super-umbrella/backend/src/services/ai/providers/openai.provider.ts
-  15:5  error  'model' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
-
-/Users/mossuz/Documents/Documents personnels/super-umbrella/backend/src/services/ai/templates/hydrate.ts
-   1:25  error  'SlotType' is defined but never used      @typescript-eslint/no-unused-vars
-  37:24  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  37:30  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  76:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/mossuz/Documents/Documents personnels/super-umbrella/backend/src/services/bilanSectionInstance.service.ts
-  63:92  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  64:22  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/mossuz/Documents/Documents personnels/super-umbrella/backend/tests/generateFromTemplate.service.test.ts
-  31:32  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-✖ 53 problems (52 errors, 1 warning)
-  0 errors and 1 warning potentially fixable with the `--fix` option.
-
- ELIFECYCLE  Command failed with exit code 1.
+[0m[0m
+[0m[4m/Users/mossuz/Documents/Documents personnels/super-umbrella/backend/src/controllers/bilanSectionInstance.controller.ts[24m[0m
+[0m  [2m86:40[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4m/Users/mossuz/Documents/Documents personnels/super-umbrella/backend/src/controllers/import.controller.ts[24m[0m
+[0m  [2m109:42[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m128:36[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m141:34[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4m/Users/mossuz/Documents/Documents personnels/super-umbrella/backend/src/services/ai/generateFromTemplate.ts[24m[0m
+[0m  [2m195:37[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m195:43[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m207:42[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m207:48[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m215:25[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m219:35[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m219:41[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m230:40[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m230:46[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m231:20[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m234:36[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m320:29[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4m/Users/mossuz/Documents/Documents personnels/super-umbrella/backend/src/services/ai/prompts/generateSlots.ts[24m[0m
+[0m  [2m153:19[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m155:40[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m155:66[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4m/Users/mossuz/Documents/Documents personnels/super-umbrella/backend/src/services/ai/prompts/template/plan.service.ts[24m[0m
+[0m  [2m197:82[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m198:21[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4m/Users/mossuz/Documents/Documents personnels/super-umbrella/backend/src/services/ai/templates/hydrate.ts[24m[0m
+[0m  [2m37:24[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m37:30[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m76:18[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4m/Users/mossuz/Documents/Documents personnels/super-umbrella/backend/tests/generateFromTemplate.service.test.ts[24m[0m
+[0m  [2m31:32[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[31m[1m✖ 25 problems (25 errors, 0 warnings)[22m[39m[0m
+[0m[31m[1m[22m[39m[0m
+[41m[30m ELIFECYCLE [39m[49m [31mCommand failed with exit code 1.[39m

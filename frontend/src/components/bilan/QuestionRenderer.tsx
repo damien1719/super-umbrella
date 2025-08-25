@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+
 import { Chip } from './Chip';
 import { TableQuestion } from './TableQuestion';
 import type { Question } from '@/types/question';
@@ -12,8 +12,8 @@ const FIELD_DENSE = 'h-9 px-3';
 
 interface QuestionRendererProps {
   question: Question;
-  value: any;
-  onChange: (value: any) => void;
+  value: unknown;
+  onChange: (value: unknown) => void;
   error?: string;
   setError: (msg: string) => void;
 }
@@ -38,15 +38,17 @@ export function QuestionRenderer({
     case 'choix-multiple':
       const selected =
         typeof value === 'object' && value !== null
-          ? Array.isArray((value as any).options)
-            ? ((value as any).options as string[])
-            : (value as any).option
-              ? [String((value as any).option)]
+          ? Array.isArray(
+              (value as { options?: string[]; option?: string }).options,
+            )
+            ? (value as { options: string[] }).options
+            : (value as { option?: string }).option
+              ? [String((value as { option: string }).option)]
               : []
           : [];
       const comment =
         typeof value === 'object' && value !== null
-          ? (value as any).commentaire || ''
+          ? (value as { commentaire?: string }).commentaire || ''
           : '';
       return (
         <div className="space-y-2">

@@ -8,6 +8,7 @@ interface Props {
   onChange: (t: SectionTemplate) => void;
   onUpdateSlot?: (slotId: string, slotLabel: string) => void;
   onTransformToQuestions?: (content: string) => void;
+  onDeleteTemplate?: () => void;
 }
 
 export default function TemplateEditor({
@@ -15,6 +16,7 @@ export default function TemplateEditor({
   onChange,
   onUpdateSlot,
   onTransformToQuestions,
+  onDeleteTemplate,
 }: Props) {
   const editorRef = React.useRef<RichTextEditorHandle>(null);
   const [isTransforming, setIsTransforming] = React.useState(false);
@@ -28,9 +30,9 @@ export default function TemplateEditor({
  */
 
   return (
-    <div className="flex w-full h-screen overflow-hidden">
+    <div className="flex w-full h-full overflow-hidden">
       <div className="basis-3/4 min-w-0 min-h-0">
-        <div className="h-full overflow-auto overscroll-contain">
+        <div className="h-full overflow-y-auto overscroll-contain">
           <div className="pb-24">
             <RichTextEditor
               ref={editorRef}
@@ -54,7 +56,7 @@ export default function TemplateEditor({
         </div>
       </div>
       <div className="basis-1/4 shrink-0 min-h-0">
-        <div className="h-full overflow-auto overscroll-contain">
+        <div className="h-full overflow-y-auto overscroll-contain">
           <SlotSidebar
             slots={template.slotsSpec}
             onChange={(slots) => onChange({ ...template, slotsSpec: slots })}
@@ -128,32 +130,45 @@ export default function TemplateEditor({
             onMagicTemplating={() => {
               console.log('[DEBUG] MagicTemplating clicked');
               console.log('[DEBUG] editorRef.current:', editorRef.current);
-              console.log('[DEBUG] scanAndInsertSlots available:', !!editorRef.current?.scanAndInsertSlots);
-              
+              console.log(
+                '[DEBUG] scanAndInsertSlots available:',
+                !!editorRef.current?.scanAndInsertSlots,
+              );
+
               if (editorRef.current?.scanAndInsertSlots) {
                 console.log('[DEBUG] Calling scanAndInsertSlots...');
-                
+
                 // Collecter tous les slots créés
                 const newSlots: FieldSpec[] = [];
-                
+
                 editorRef.current.scanAndInsertSlots((slot) => {
                   console.log('[DEBUG] Slot created:', slot);
                   newSlots.push(slot);
                 });
-                
+
                 // Ajouter tous les nouveaux slots au template en une seule fois
                 if (newSlots.length > 0) {
-                  console.log('[DEBUG] Adding', newSlots.length, 'new slots to template');
-                  const updatedSlots = [...(template.slotsSpec || []), ...newSlots];
+                  console.log(
+                    '[DEBUG] Adding',
+                    newSlots.length,
+                    'new slots to template',
+                  );
+                  const updatedSlots = [
+                    ...(template.slotsSpec || []),
+                    ...newSlots,
+                  ];
                   onChange({ ...template, slotsSpec: updatedSlots });
                   console.log('[DEBUG] Template updated with all new slots');
                 }
-                
+
                 console.log('[DEBUG] scanAndInsertSlots called successfully');
               } else {
-                console.error('[DEBUG] scanAndInsertSlots not available on editorRef.current');
+                console.error(
+                  '[DEBUG] scanAndInsertSlots not available on editorRef.current',
+                );
               }
             }}
+            onDeleteTemplate={onDeleteTemplate}
             isTransforming={isTransforming}
           />
         </div>

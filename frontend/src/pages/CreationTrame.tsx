@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useSectionStore } from '../store/sections';
 import { useSectionExampleStore } from '../store/sectionExamples';
-import type { Question } from '../types/Typequestion';
+import type { Question, TableQuestion } from '../types/Typequestion';
 // Narrow the answers type to satisfy DataEntry
 type Answers = Record<
   string,
@@ -21,9 +21,10 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import TemplateEditor from '@/components/TemplateEditor';
 import EmptyTemplateState from '@/components/EmptyTemplateState';
 import { useSectionTemplateStore } from '../store/sectionTemplates';
-import type { SectionTemplate } from '../types/template';
+import type { SectionTemplate, SlotSpec } from '../types/template';
 import { apiFetch } from '@/utils/api';
 import { useAuth } from '@/store/auth';
+import { Job } from '../types/job';
 
 interface ImportResponse {
   result: Question[][];
@@ -52,6 +53,7 @@ export default function CreationTrame() {
   const [showImport, setShowImport] = useState(false);
   const [showAdminImport, setShowAdminImport] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [job, setJob] = useState<Job[]>([Job.PSYCHOMOTRICIEN]);
   const createTemplate = useSectionTemplateStore((s) => s.create);
   const getTemplate = useSectionTemplateStore((s) => s.get);
   const updateTemplate = useSectionTemplateStore((s) => s.update);
@@ -114,7 +116,7 @@ export default function CreationTrame() {
         res.result?.[0],
       );
 
-      const questionsArray = res.result?.result || res.result;
+      const questionsArray = res.result;
 
       if (
         questionsArray &&
@@ -171,6 +173,7 @@ export default function CreationTrame() {
       setNomTrame(section.title);
       setCategorie(section.kind);
       setIsPublic(section.isPublic ?? false);
+      setJob(section.job || [Job.PSYCHOMOTRICIEN]);
       setTemplateRefId(section.templateRefId ?? null);
       if (section.templateRefId) {
         getTemplate(section.templateRefId).then((tpl) => setTemplate(tpl));
@@ -208,17 +211,28 @@ export default function CreationTrame() {
     setQuestions((qs: Question[]) =>
       qs.map((q: Question) => {
         if (q.id !== id) return q;
-        const merged: any = { ...q, ...partial };
+        let merged = { ...q, ...partial } as Question;
+
+        // Handle tableau property specifically for TableQuestion type
         if (
-          (partial as any).tableau !== undefined &&
-          (q as any).tableau !== undefined
+          q.type === 'tableau' &&
+          partial.type === 'tableau' &&
+          partial.tableau
         ) {
-          merged.tableau = {
-            ...(q as any).tableau,
-            ...(partial as any).tableau,
-          };
+          const tableQ = q as TableQuestion;
+          const partialTable = partial as Partial<TableQuestion>;
+          if (partialTable.tableau) {
+            merged = {
+              ...merged,
+              tableau: {
+                ...tableQ.tableau,
+                ...partialTable.tableau,
+              },
+            } as Question;
+          }
         }
-        return merged as Question;
+
+        return merged;
       }),
     );
   };
@@ -236,11 +250,11 @@ export default function CreationTrame() {
     const idx = questions.findIndex((q) => q.id === id);
     if (idx === -1) return;
     const original = questions[idx];
-    const clone: Question = {
+    const clone = {
       ...(JSON.parse(JSON.stringify(original)) as Question),
       id: Date.now().toString(),
       titre: 'Question sans titre',
-    };
+    } as Question;
     setQuestions((qs) => {
       const before = qs.slice(0, idx + 1);
       const after = qs.slice(idx + 1);
@@ -269,13 +283,30 @@ export default function CreationTrame() {
     if (templateRefId) {
       await updateTemplate(templateRefId, { ...template, label: nomTrame });
     }
-    await updateSection(sectionId, {
+
+    // Préparer les données de mise à jour en excluant les champs null
+    const updateData: {
+      title: string;
+      kind: CategoryId | undefined;
+      job: Job[];
+      schema: Question[];
+      isPublic: boolean;
+      templateRefId?: string;
+    } = {
       title: nomTrame,
       kind: categorie,
+      job,
       schema: questions,
       isPublic,
-      templateRefId,
-    });
+    };
+
+    // N'ajouter templateRefId que s'il n'est pas null
+    if (templateRefId) {
+      updateData.templateRefId = templateRefId;
+    }
+
+    await updateSection(sectionId, updateData);
+
     for (const content of newExamples) {
       await createExample({ sectionId, content });
     }
@@ -290,17 +321,19 @@ export default function CreationTrame() {
   };
 
   return (
-    <div className="flex h-dvh w-full flex-col overflow-hidden bg-gray-50">
-      {/* Header + actions */}
-      <div className="shrink-0 px-6 pt-6">
+    <div className="flex h-dvh w-full flex-col bg-gray-50">
+      {/* Header + actions - Fixed */}
+      <div className="shrink-0 px-6 pt-6 bg-gray-50">
         <div className="w-full mx-auto">
           <TrameHeader
             title={nomTrame}
             category={categorie ?? ''}
             isPublic={isPublic}
             categories={categories}
+            jobs={job}
             onTitleChange={setNomTrame}
             onCategoryChange={(v: string) => setCategorie(v as CategoryId)}
+            onJobsChange={setJob}
             onPublicChange={setIsPublic}
             onSave={save}
             onImport={() => setShowImport(true)}
@@ -309,7 +342,7 @@ export default function CreationTrame() {
             showAdminImport={SHOW_ADMIN_IMPORT}
           />
 
-          <div className="border-b mb-4">
+          <div className="border-b border-wood-400 mb-4">
             <nav className="flex gap-4">
               <button
                 className={`pb-2 px-1 border-b-2 ${
@@ -355,9 +388,12 @@ export default function CreationTrame() {
           </div>
         </div>
       </div>
-      {/* Zone scrollable des onglets */}
+
+      {/* Zone des onglets avec scroll personnalisé selon le tab */}
       <div className="flex-1 min-h-0 px-6 pb-6">
-          {tab === 'questions' && (
+        {tab === 'questions' && (
+          // Questions: Scroll vertical simple avec auto-scroll vers la question sélectionnée
+          <div className="h-full overflow-y-auto">
             <QuestionList
               questions={questions}
               selectedId={selectedId}
@@ -368,50 +404,162 @@ export default function CreationTrame() {
               onDelete={onDelete}
               onAddAfter={onAddAfter}
             />
-          )}
+          </div>
+        )}
 
-          {tab === 'preview' && (
-            <DataEntry
-              inline
-              questions={questions}
-              answers={previewAnswers}
-              onChange={setPreviewAnswers}
-            />
-          )}
+        {tab === 'preview' && (
+          // Pré-visualisation: Scroll avec navigation latérale fixe
+          <div className="h-full flex gap-6">
+            {/* Contenu principal scrollable */}
+            <div className="flex-1 overflow-y-auto">
+              <DataEntry
+                inline
+                questions={questions}
+                answers={previewAnswers}
+                onChange={setPreviewAnswers}
+              />
+            </div>
+          </div>
+        )}
 
-          {tab === 'examples' && (
+        {tab === 'examples' && (
+          // Exemples: Scroll simple
+          <div className="h-full overflow-y-auto">
             <SaisieExempleTrame
               examples={newExamples}
               onAdd={(c) => setNewExamples((p) => [...p, c])}
             />
-          )}
+          </div>
+        )}
 
-          {tab === 'template' && (
-            <div>
-              {loadingTemplate && (
-                <div className="bg-blue-50 border border-blue-200 rounded p-4 mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                    <span className="text-blue-800">
-                      Chargement du template...
-                    </span>
-                  </div>
+        {tab === 'template' && (
+          // Template: Layout spécial avec sidebar fixe et éditeur scrollable
+          <div className="h-full">
+            {loadingTemplate && (
+              <div className="bg-blue-50 border border-blue-200 rounded p-4 mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                  <span className="text-blue-800">
+                    Chargement du template...
+                  </span>
                 </div>
-              )}
-              {templateRefId ? (
+              </div>
+            )}
+            {templateRefId ? (
+              <div className="h-full">
                 <TemplateEditor
                   template={template}
                   onChange={setTemplate}
                   onTransformToQuestions={transformTemplateToQuestions}
+                  onDeleteTemplate={async () => {
+                    if (templateRefId && sectionId) {
+                      try {
+                        // Supprimer le template de la base de données
+                        const deleteTemplate =
+                          useSectionTemplateStore.getState().delete;
+                        await deleteTemplate(templateRefId);
+
+                        // Supprimer la référence du template de la section
+                        await updateSection(sectionId, {
+                          title: nomTrame,
+                          kind: categorie,
+                          schema: questions,
+                          isPublic,
+                          // Ne pas inclure templateRefId pour le supprimer
+                        });
+
+                        // Réinitialiser l'état local
+                        setTemplateRefId(null);
+                        setTemplate({
+                          id: Date.now().toString(),
+                          label: nomTrame,
+                          version: 1,
+                          content: null,
+                          slotsSpec: [],
+                          stylePrompt: '',
+                          isDeprecated: false,
+                          createdAt: new Date().toISOString(),
+                          updatedAt: new Date().toISOString(),
+                        });
+                        setTab('questions'); // Retourner à l'onglet questions
+                      } catch (error) {
+                        console.error('Failed to delete template:', error);
+                        // Optionnel: afficher un message d'erreur à l'utilisateur
+                      }
+                    }
+                  }}
                 />
-              ) : (
+              </div>
+            ) : (
+              <div className="h-full overflow-y-auto">
                 <EmptyTemplateState
                   onAdd={async () => {
                     if (!sectionId) return;
-                    const created = await createTemplate({
+
+                    // Créer un template par défaut non vide
+                    const defaultTemplate = {
                       ...template,
                       label: nomTrame,
-                    });
+                      content: {
+                        root: {
+                          type: 'root',
+                          children: [
+                            {
+                              type: 'paragraph',
+                              children: [
+                                {
+                                  type: 'text',
+                                  text: '## Introduction\n\n',
+                                  format: 0,
+                                  style: '',
+                                  version: 1,
+                                },
+                              ],
+                              direction: 'ltr',
+                              format: '',
+                              indent: 0,
+                              version: 1,
+                            },
+                            {
+                              type: 'paragraph',
+                              children: [
+                                {
+                                  type: 'text',
+                                  text: 'Contexte de la demande.',
+                                  format: 0,
+                                  style: '',
+                                  version: 1,
+                                },
+                              ],
+                              direction: 'ltr',
+                              format: '',
+                              indent: 0,
+                              version: 1,
+                            },
+                          ],
+                          direction: 'ltr',
+                          format: '',
+                          indent: 0,
+                          version: 1,
+                        },
+                      },
+                      slotsSpec: [
+                        {
+                          kind: 'field' as const,
+                          id: 'Contexte de la demande',
+                          type: 'text' as const,
+                          label: 'Description',
+                          prompt:
+                            'Description factuelle du contexte de la demande',
+                          mode: 'llm' as const,
+                        },
+                      ],
+                      stylePrompt:
+                        'Style professionnel et descriptif, sans jargon excessif.',
+                      mode: 'questionnaire',
+                    };
+
+                    const created = await createTemplate(defaultTemplate);
                     setTemplate(created);
                     setTemplateRefId(created.id);
                     await updateSection(sectionId, {
@@ -423,9 +571,10 @@ export default function CreationTrame() {
                     });
                   }}
                 />
-              )}
-            </div>
-          )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Dialogs (portail) */}

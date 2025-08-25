@@ -42,8 +42,4 @@ bilanRouter.post(
   BilanController.conclude,
 );
 
-bilanRouter.post(
-  '/:bilanId/comment-test-results',
-  validateParams(bilanIdParam),
-  BilanController.commentTestResults,
-);
+

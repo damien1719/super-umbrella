@@ -20,10 +20,10 @@ describe('generateFromTemplate', () => {
         { type: 'slot', id: 'computedSlot' },
         { type: 'slot', id: 'llmSlot' },
       ],
-      slotsSpec: {
-        computedSlot: { mode: 'computed', type: 'text', pattern: '{first} {last}', deps: ['first', 'last'] },
-        llmSlot: { mode: 'llm', type: 'text' },
-      },
+      slotsSpec: [
+        { kind: 'field', id: 'computedSlot', mode: 'computed', type: 'text', pattern: '{first} {last}', deps: ['first', 'last'] },
+        { kind: 'field', id: 'llmSlot', mode: 'llm', type: 'text' },
+      ],
     });
 
     await generateFromTemplate('tpl1', { first: 'John', last: 'Doe' }, { instanceId: 'inst1' });

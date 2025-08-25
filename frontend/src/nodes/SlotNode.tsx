@@ -70,7 +70,7 @@ export class SlotNode extends DecoratorNode<React.ReactNode> {
   }
 
   // Ensure custom node is exported to HTML when using $generateHtmlFromNodes
-  exportDOM(_editor: LexicalEditor): DOMExportOutput {
+  exportDOM(): DOMExportOutput {
     const span = document.createElement('span');
     span.textContent = this.__slotLabel;
     span.setAttribute('data-slot-id', this.__slotId);

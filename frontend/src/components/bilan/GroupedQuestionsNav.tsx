@@ -1,7 +1,6 @@
 // GroupedQuestionsNav.tsx
 import * as React from 'react';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+
 import { cn } from '@/lib/utils';
 
 interface QuestionGroup {
@@ -17,13 +16,7 @@ interface Props {
   onNext: () => void;
 }
 
-export function GroupedQuestionsNav({
-  groups,
-  active,
-  onNavigate,
-  onPrev,
-  onNext,
-}: Props) {
+export function GroupedQuestionsNav({ groups, active, onNavigate }: Props) {
   return (
     <aside className="hidden md:flex w-60 shrink-0 border-r border-wood-200 bg-white sticky top-0 h-[calc(100vh-120px)]">
       <div className="flex flex-col w-full">

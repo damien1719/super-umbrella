@@ -117,6 +117,7 @@ export default function Bilan() {
                     );
                     editorRef.current?.setEditorStateJson(st);
                   }}
+                  onSave={save}
                   initialWizardSection={state?.wizardSection}
                   initialTrameId={state?.trameId}
                 />

@@ -14,14 +14,7 @@ import { apiFetch } from '@/utils/api';
 import { useAuth } from '@/store/auth';
 import { Tabs } from '@/components/ui/tabs';
 import { useUserProfileStore } from '@/store/userProfile';
-
-const kindMap: Record<string, string> = {
-  anamnese: 'anamnese',
-  'profil-sensoriel': 'profil_sensoriel',
-  'observations-cliniques': 'observations',
-  'tests-mabc': 'tests_standards',
-  conclusion: 'conclusion',
-};
+import { kindMap } from '@/types/trame';
 import type { TrameOption, TrameExample } from './bilan/TrameSelector';
 import { DataEntry, type DataEntryHandle } from './bilan/DataEntry';
 import ImportNotes from './ImportNotes';
@@ -407,7 +400,7 @@ export default function WizardAIRightPanel({
 
   const handleClose = async () => {
     if (step === 2 && selectedTrame && !isManualSaving) {
-      const data = dataEntryRef.current?.save() as Answers | undefined;
+      //const data = dataEntryRef.current?.save() as Answers | undefined;
       try {
         /*         await saveNotes(data);
          */

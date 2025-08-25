@@ -29,7 +29,13 @@ interface Props {
 }
 
 const types: SlotType[] = ['text', 'number', 'list', 'table'];
-const presets: FieldPreset[] = ['description', 'score', 'classification', 'conclusion', 'custom'];
+const presets: FieldPreset[] = [
+  'description',
+  'score',
+  'classification',
+  'conclusion',
+  'custom',
+];
 
 export default function SlotEditor({
   slot,
@@ -266,7 +272,7 @@ export default function SlotEditor({
                 key={
                   isField(child)
                     ? child.id
-                    : `${(child as GroupSpec | RepeatSpec | UseKitSpec).kind}-${i}`
+                    : `${(child as GroupSpec | RepeatSpec).kind}-${i}`
                 }
                 slot={child}
                 onChange={(u) => updateChild(i, u)}
@@ -489,18 +495,20 @@ export default function SlotEditor({
                         // Insert all fields for this specific item
 
                         for (const child of currentRep.slots) {
-                          const stableId = `${currentRep.id}.${it.key}.${child.id}`; // id interne stable
-                          const fieldIndex =
-                            currentRep.slots.indexOf(child) + 1;
-                          const cleanLabel = it.label
-                            .replace(/^value_?/, '')
-                            .replace(/_/g, '');
-                          const displayLabel = `${cleanLabel}_slot${fieldIndex}`; // pour l'UI
-                          onAddSlot?.({
-                            ...child,
-                            id: stableId,
-                            label: displayLabel,
-                          });
+                          if (isField(child)) {
+                            const stableId = `${currentRep.id}.${it.key}.${child.id}`; // id interne stable
+                            const fieldIndex =
+                              currentRep.slots.indexOf(child) + 1;
+                            const cleanLabel = it.label
+                              .replace(/^value_?/, '')
+                              .replace(/_/g, '');
+                            const displayLabel = `${cleanLabel}_slot${fieldIndex}`; // pour l'UI
+                            onAddSlot?.({
+                              ...child,
+                              id: stableId,
+                              label: displayLabel,
+                            });
+                          }
                         }
                       }}
                     >

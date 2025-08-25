@@ -215,7 +215,7 @@ async function callLLM_SystemUser(system: string, user: string, responseFormat?:
 function safeJsonParse<T>(raw: string): T {
   try {
     return JSON.parse(raw) as T;
-  } catch (e) {
+  } catch {
     throw new Error('Réponse LLM non-JSON ou invalide.');
   }
 }

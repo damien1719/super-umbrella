@@ -4,13 +4,15 @@ import { BilanService } from "../src/services/bilan.service";
 import { generateText } from "../src/services/ai/generate.service";
 import { promptConfigs } from "../src/services/ai/prompts/promptconfig";
 import { refineSelection } from "../src/services/ai/refineSelection.service";
-import { commentTestResults } from "../src/services/ai/commentTestResults.service";
+import { concludeBilan } from "../src/services/ai/conclude.service";
+
 import { ProfileService } from "../src/services/profile.service";
 
 jest.mock("../src/services/bilan.service");
 jest.mock("../src/services/ai/generate.service");
 jest.mock("../src/services/ai/refineSelection.service");
-jest.mock("../src/services/ai/commentTestResults.service");
+jest.mock("../src/services/ai/conclude.service");
+
 jest.mock("../src/services/profile.service", () => ({
   ProfileService: { list: jest.fn() },
 }));
@@ -33,7 +35,8 @@ interface BilanStub {
 const mockedService = BilanService as jest.Mocked<typeof BilanService>;
 const mockedGenerate = generateText as jest.MockedFunction<typeof generateText>;
 const mockedRefine = refineSelection as jest.MockedFunction<typeof refineSelection>;
-const mockedComment = commentTestResults as jest.MockedFunction<typeof commentTestResults>;
+const mockedConclude = concludeBilan as jest.MockedFunction<typeof concludeBilan>;
+
 const mockedProfile = ProfileService as unknown as { list: jest.Mock };
 
 describe("GET /api/v1/bilans", () => {
@@ -117,16 +120,45 @@ describe("POST /api/v1/bilans/:id/refine", () => {
   });
 });
 
-describe("POST /api/v1/bilans/:id/comment-test-results", () => {
-  it("calls comment service with file content", async () => {
-    mockedComment.mockResolvedValueOnce("comment");
+describe("POST /api/v1/bilans/:id/conclude", () => {
+  it("calls conclude service with markdown content", async () => {
+    mockedConclude.mockResolvedValueOnce("conclusion générée");
+    
     const id = "11111111-1111-1111-1111-111111111111";
-    const body = { html: "<p>data</p>" };
+    
+    // Mock du bilan avec descriptionJson
+    (mockedService.get as jest.Mock).mockResolvedValueOnce({
+      id: "1",
+      descriptionJson: {
+        root: {
+          children: [
+            {
+              type: 'paragraph',
+              children: [
+                {
+                  type: 'text',
+                  text: 'Observation du patient',
+                  format: 0,
+                  version: 1,
+                },
+              ],
+              version: 1,
+            },
+          ],
+          version: 1,
+        },
+      },
+    });
+
     const res = await request(app)
-      .post(`/api/v1/bilans/${id}/comment-test-results`)
-      .send(body);
+      .post(`/api/v1/bilans/${id}/conclude`);
+
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({ text: "comment" });
-    expect(mockedComment).toHaveBeenCalledWith("<p>data</p>");
+    expect(res.body).toEqual({ text: "conclusion générée" });
+    
+    // Vérifier que concludeBilan a été appelé avec du markdown
+    expect(mockedConclude).toHaveBeenCalledWith("Observation du patient\n");
   });
 });
+
+

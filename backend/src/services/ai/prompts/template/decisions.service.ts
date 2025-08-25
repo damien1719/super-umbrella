@@ -1,7 +1,7 @@
 // src/services/ai/prompts/template/decisions.service.ts
 // === APPEL 2 :  Construction AST ===
 import { openaiProvider } from '../../providers/openai.provider';
-import type { Request, Response, NextFunction } from 'express';
+import type { Request, Response } from 'express';
 import type { PlanResolved } from './plan.service';
 import type { SlotSpec, SlotType } from '../../../../types/template';
 
@@ -102,72 +102,17 @@ function safeJsonParse<T>(raw: string): T {
   }
   
 
-function slugify(input: string): string {
-  return input
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9._\s-]/g, ' ')
-    .replace(/[\s_-]+/g, '_')
-    .replace(/^_+|_+$/g, '');
-}
 
-function splitLines(text: string): string[] {
-  return text.split('\n');
-}
 
-function clamp(n: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, n));
-}
 
-// Créateurs Lexical
-function textNode(text: string): LexicalText {
-  return { type: 'text', text, detail: 0, format: 0, mode: 'normal', style: '', version: 1 };
-}
 
-function slotNode(spec: { slotId: string; slotLabel?: string; slotType?: SlotType; placeholder?: string; optional?: boolean; }): LexicalSlot {
-  return {
-    type: 'slot',
-    slotId: spec.slotId,
-    slotLabel: spec.slotLabel ?? spec.slotId,
-    slotType: spec.slotType ?? 'text',
-    optional: spec.optional ?? false,
-    placeholder: spec.placeholder ?? '',
-    version: 1,
-  };
-}
 
-function expandInstances(plan: PlanResolved): SlotInstance[] {
 
-  const out: SlotInstance[] = [];
-  for (const rep of plan.repeaters ?? []) {
-    for (const it of rep.items ?? []) {
-      for (const s of rep.slots ?? []) {
-        const slotId = `${rep.id}.${it.key}.${s.id}`;
-        out.push({
-          slotId,
-          label: s.label || '',
-          item: it.label,
-          type: s.type,
-          placeholder: s.prompt,
-          optional: s.optional,
-        });
-      }
-    }
-  }
-  for (const s of plan.slots ?? []) {
-    out.push({
-      slotId: s.id,
-      label: s.label || '',
-      item: '',
-      type: s.type,
-      placeholder: s.prompt,
-      optional: s.optional,
-    });
-  }
 
-  return out;
-}
+
+
+
+
 
 /* =========================
  * 3) SCHÉMA & PROMPTS APPEL 2
@@ -439,54 +384,9 @@ function buildAstFromSequence(plan: PlanResolved, sequence: SequencePayload): Le
  * 5) CONSTRUCTION LEXICAL AST
  * ========================= */
 
-function buildParagraphWithInserts(line: string, inserts: Array<{ slot: LexicalSlot; off: number }>): LexicalParagraph {
-  const parts: Array<LexicalText | LexicalSlot> = [];
-  let cursor = 0;
-  const ordered = inserts.sort((a, b) => b.off - a.off);
-  for (const ins of ordered) {
-    const off = clamp(ins.off, 0, line.length);
-    if (off < cursor) continue;
-    const before = line.slice(cursor, off);
-    if (before) parts.push(textNode(before));
-    parts.push(ins.slot);
-    cursor = off;
-  }
-  const tail = line.slice(cursor);
-  if (tail) parts.push(textNode(tail));
-  if (!parts.length) parts.push(textNode(line));
-  return { type: 'paragraph', children: parts, direction: null, format: '', indent: 0, version: 1 };
-}
 
-function buildLexicalFromTextAndDecisions(
-  text: string,
-  decisions: Decision[],
-  meta: Record<string, { slotLabel?: string; slotType?: SlotType; placeholder?: string; optional?: boolean }>
-): LexicalAST {
-  const lines = splitLines(text);
-  const byLine = new Map<number, Array<{ slot: LexicalSlot; off: number }>>();
-  for (const d of decisions) {
-    const m = meta[d.slotId] ?? {};
-    const s = slotNode({
-      slotId: d.slotId,
-      slotLabel: m.slotLabel,
-      slotType: m.slotType ?? 'text',
-      placeholder: m.placeholder ?? '',
-      optional: m.optional ?? false,
-    });
-    const lineText = lines[d.lineIndex] ?? '';
-    const off = clamp(d.charOffset, 0, lineText.length);
-    const arr = byLine.get(d.lineIndex) ?? [];
-    arr.push({ slot: s, off });
-    byLine.set(d.lineIndex, arr);
-  }
-  const paragraphs: LexicalParagraph[] = [];
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i] ?? '';
-    const inserts = byLine.get(i) ?? [];
-    paragraphs.push(buildParagraphWithInserts(line, inserts));
-  }
-  return { root: { type: 'root', children: paragraphs, direction: null, format: '', indent: 0, version: 1 } };
-}
+
+
 
 /* =========================
  * 6) FONCTIONS PRINCIPALES

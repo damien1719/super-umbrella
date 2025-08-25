@@ -7,7 +7,7 @@ import { Anonymization } from "../services/ai/anonymize.service";
 import { promptConfigs } from "../services/ai/prompts/promptconfig";
 import { refineSelection } from "../services/ai/refineSelection.service";
 import { concludeBilan } from "../services/ai/conclude.service";
-import { commentTestResults as commentTestResultsService } from "../services/ai/commentTestResults.service";
+
 
 export const BilanController = {
   async create(req: Request, res: Response, next: NextFunction) {
@@ -149,25 +149,18 @@ export const BilanController = {
         res.status(404).json({ error: 'bilan not found' });
         return;
       }
-      // The export/renderer will render from JSON state; for conclude, send plain text for now
-      const text = await concludeBilan(JSON.stringify(bilan.descriptionJson));
+      
+      // Convertir le JSON du bilan en markdown lisible pour le LLM
+      const { bilanJsonToMarkdown } = await import('../utils/jsonToMarkdown');
+      const markdownContent = bilanJsonToMarkdown(bilan.descriptionJson);
+      
+      // Envoyer le markdown au service de conclusion
+      const text = await concludeBilan(markdownContent);
       res.json({ text });
     } catch (e) {
       next(e);
     }
   },
 
-  async commentTestResults(req: Request, res: Response, next: NextFunction) {
-    try {
-      const html = req.body.html;
-      if (typeof html !== 'string') {
-        res.status(400).json({ error: 'html required' });
-        return;
-      }
-      const text = await commentTestResultsService(html);
-      res.json({ text });
-    } catch (e) {
-      next(e);
-    }
-  },
+
 };

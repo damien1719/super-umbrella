@@ -33,7 +33,6 @@ export function isHeadingCandidate({
     return false;
   }
 
-
   // Règle 1: Texte se terminant par ':' et court
   if (trimmed.endsWith(':') && trimmed.length <= 120) {
     return true;

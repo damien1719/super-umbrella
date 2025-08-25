@@ -1,11 +1,4 @@
-import {
-  Routes,
-  Route,
-  Navigate,
-  Outlet,
-  useNavigate,
-  useLocation,
-} from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from './store/auth';
 import { useRequireAuth } from './hooks/useRequireAuth';
 import { useEffect, useRef } from 'react';
@@ -71,7 +64,7 @@ function ProtectedLayout() {
   const { user } = useAuth();
   const { profileId, fetchProfile, profile } = useUserProfileStore();
   const loading = useInitAuth();
-  const navigate = useNavigate();
+
   const location = useLocation();
   useRequireAuth();
 

@@ -76,8 +76,42 @@ export default function Bibliotheque() {
     );
   };
 
-  const matchesJobFilter = (s: Section) =>
-    jobFilter === 'ALL' || s.job === jobFilter;
+  const matchesJobFilter = (s: Section) => {
+    if (jobFilter === 'ALL') return true;
+    // Vérifier que s.job existe et est un tableau, puis vérifier si le métier filtré est inclus
+    return Array.isArray(s.job) && s.job.includes(jobFilter as Job);
+  };
+
+  // Debug: logger les informations sur le filtrage des métiers
+  useEffect(() => {
+    if (!isLoading && items.length > 0) {
+      console.log('=== DEBUG FILTRAGE MÉTIERS ===');
+      console.log('Job filter actuel:', jobFilter);
+      console.log(
+        'Toutes les sections:',
+        items.map((s) => ({
+          title: s.title,
+          job: s.job,
+          kind: s.kind,
+        })),
+      );
+
+      if (jobFilter !== 'ALL') {
+        const filteredItems = items
+          .filter(matchesActiveFilter)
+          .filter(matchesJobFilter);
+        console.log(
+          'Sections filtrées par métier:',
+          filteredItems.map((s) => ({
+            title: s.title,
+            job: s.job,
+          })),
+        );
+        console.log('Nombre total de sections filtrées:', filteredItems.length);
+      }
+      console.log('==============================');
+    }
+  }, [isLoading, items, jobFilter, matchesActiveFilter, matchesJobFilter]);
 
   return (
     <div className="min-h-screen bg-wood-50 p-6">
@@ -151,6 +185,19 @@ export default function Bibliotheque() {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Indicateur du filtre actuel */}
+            {jobFilter !== 'ALL' && (
+              <div className="text-sm text-gray-600">
+                Filtre actuel :{' '}
+                {jobOptions.find((j) => j.id === jobFilter)?.label} (
+                {
+                  items.filter(matchesActiveFilter).filter(matchesJobFilter)
+                    .length
+                }{' '}
+                trames)
+              </div>
+            )}
           </div>
         </div>
         {isLoading ? (

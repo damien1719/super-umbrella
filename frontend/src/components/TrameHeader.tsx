@@ -10,14 +10,18 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import type { Category } from '@/types/trame';
+import type { Job } from '@/types/job';
+import { jobOptions } from '@/types/job';
 
 interface Props {
   title: string;
   category: string;
   isPublic: boolean;
   categories: Category[];
+  jobs: Job[];
   onTitleChange: (v: string) => void;
   onCategoryChange: (v: string) => void;
+  onJobsChange: (jobs: Job[]) => void;
   onPublicChange: (v: boolean) => void;
   onSave: () => void;
   onImport: () => void;
@@ -32,8 +36,10 @@ export default function TrameHeader(p?: Partial<Props>) {
     category,
     isPublic = false,
     categories = [],
+    jobs = [],
     onTitleChange = () => {},
     onCategoryChange = () => {},
+    onJobsChange = () => {},
     onPublicChange = () => {},
     onSave = () => {},
     onImport = () => {},
@@ -41,6 +47,7 @@ export default function TrameHeader(p?: Partial<Props>) {
     onAdminImport = () => {},
     showAdminImport = false,
   } = p ?? {};
+
   return (
     <div className="flex flex-wrap items-center gap-4 mb-6">
       <Button variant="outline" onClick={onBack}>
@@ -62,6 +69,23 @@ export default function TrameHeader(p?: Partial<Props>) {
             {categories.map((cat) => (
               <SelectItem key={cat.id} value={cat.id}>
                 {cat.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="w-48 flex-shrink-0">
+        <Select
+          value={jobs.length > 0 ? jobs[0] : ''}
+          onValueChange={(value) => onJobsChange([value as Job])}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Métiers" />
+          </SelectTrigger>
+          <SelectContent>
+            {jobOptions.map((job) => (
+              <SelectItem key={job.id} value={job.id}>
+                {job.label}
               </SelectItem>
             ))}
           </SelectContent>
