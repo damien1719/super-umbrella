@@ -183,7 +183,6 @@ export default function AiRightPanel({
       setSelectedSection,
       setWizardSection,
       setGenerated,
-      setRegenSection,
       setRegenPrompt,
       onInsertText,
       onSetEditorStateJson,

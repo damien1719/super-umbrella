@@ -420,8 +420,8 @@ export async function generateSection(opts: {
       const header = `## ${section.title}\n\n`;
       onInsertText?.(header + result.text);
       setGenerated?.((g) => ({ ...g, [section.id]: true }));
-      setRegenSection?.(section.id);
-      setRegenPrompt?.('');
+      //setRegenSection?.(section.id);
+      //setRegenPrompt?.('');
       return;
     } else if (result.type === 'lexical') {
       console.log(
