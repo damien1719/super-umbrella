@@ -70,7 +70,7 @@ export default function QuestionList({
   }, [selectedId]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-y-auto h-full">
       {questions.map((question, index) => {
         const Editor = EDITORS[question.type];
         return (
