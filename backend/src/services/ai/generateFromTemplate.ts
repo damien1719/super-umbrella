@@ -47,7 +47,7 @@ function expandSlotsSpec(slots: SlotSpec[]): Record<string, FieldSpec> {
 
   const visit = (
     node: SlotSpec,
-    ctx: { groupPath: string[]; repeatParts: string[] },
+    ctx: { groupPath: string[]; repeatParts: string[]; repeatLabels: string[] },
     trace: string,
   ) => {
     switch (node.kind) {
@@ -83,6 +83,7 @@ function expandSlotsSpec(slots: SlotSpec[]): Record<string, FieldSpec> {
         const gctx = {
           groupPath: [...ctx.groupPath, node.id],
           repeatParts: ctx.repeatParts,
+          repeatLabels: ctx.repeatLabels,
         };
         node.slots.forEach((child, i) =>
           visit(child, gctx, `${trace}/group(${node.id})#${i}`),
