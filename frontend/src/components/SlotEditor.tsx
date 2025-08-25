@@ -468,6 +468,12 @@ export default function SlotEditor({
                     <Input
                       value={it.label}
                       onChange={(e) => updateItem(i, { label: e.target.value })}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          addItem();
+                        }
+                      }}
                       placeholder="Label de l'item"
                       className="text-xs h-7"
                     />
