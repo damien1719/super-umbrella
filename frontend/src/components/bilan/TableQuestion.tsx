@@ -75,12 +75,17 @@ export function TableQuestion({
           </Select>
         );
       case 'multi-choice':
+      case 'multi-choice-row':
         const selected = Array.isArray(cellValue)
           ? (cellValue as string[])
           : [];
+        const opts =
+          col.valueType === 'multi-choice-row'
+            ? col.rowOptions?.[rowId] || []
+            : col.options || [];
         return (
           <div className="flex flex-wrap gap-2">
-            {col.options?.map((opt) => {
+            {opts.map((opt) => {
               const isSelected = selected.includes(opt);
               return (
                 <Chip

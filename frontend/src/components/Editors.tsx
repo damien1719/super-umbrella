@@ -198,13 +198,29 @@ export function TableEditor({ q, onPatch }: EditorProps) {
   };
 
   const removeLine = (groupId: string, idx: number) => {
+    const group = tableau.rowsGroups.find((g) => g.id === groupId);
+    const rowId = group?.rows[idx]?.id;
+    const updatedRowsGroups = tableau.rowsGroups.map((g) =>
+      g.id === groupId ? { ...g, rows: g.rows.filter((_, i) => i !== idx) } : g,
+    );
+    const updatedCols = rowId
+      ? tableau.columns.map((c) =>
+          c.valueType === 'multi-choice-row'
+            ? {
+                ...c,
+                rowOptions: Object.fromEntries(
+                  Object.entries(c.rowOptions || {}).filter(
+                    ([rid]) => rid !== rowId,
+                  ),
+                ),
+              }
+            : c,
+        )
+      : tableau.columns;
     setTable({
       ...tableau,
-      rowsGroups: tableau.rowsGroups.map((g) =>
-        g.id === groupId
-          ? { ...g, rows: g.rows.filter((_, i) => i !== idx) }
-          : g,
-      ),
+      rowsGroups: updatedRowsGroups,
+      columns: updatedCols,
     });
   };
 
@@ -542,6 +558,7 @@ export function TableEditor({ q, onPatch }: EditorProps) {
           column={
             editingColIdx !== null ? tableau.columns[editingColIdx] : null
           }
+          rows={tableau.rowsGroups.flatMap((g) => g.rows)}
           onClose={() => setEditingColIdx(null)}
           onChange={handleColumnTypeChange}
         />
