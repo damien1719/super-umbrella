@@ -1,5 +1,9 @@
 import type { SingleMessage } from './promptbuilder';
 import { openaiProvider } from '../providers/openai.provider';
+import {
+  ChatCompletionCreateParams,
+  ChatCompletionMessageParam,
+} from 'openai/resources/index';
 
 export interface ExtractStyleParams {
   texts: string[]; // 1..n exemples de texte
@@ -37,8 +41,9 @@ export function buildExtractStylePrompt(params: ExtractStyleParams): readonly Si
 }
 
 export async function extractStyle(params: ExtractStyleParams): Promise<string> {
-  const messages = buildExtractStylePrompt(params) as any;
-  const res = await openaiProvider.chat({ messages } as any);
+  const messages =
+    buildExtractStylePrompt(params) as unknown as ChatCompletionMessageParam[];
+  const res = await openaiProvider.chat({ messages } as ChatCompletionCreateParams);
   return (res || '').toString();
 }
 

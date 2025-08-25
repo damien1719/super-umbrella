@@ -1,5 +1,8 @@
 /** Message OpenAI unique */
-export type SingleMessage = { role: 'system' | 'user' | 'assistant'; content: string };
+export type SingleMessage = {
+  role: 'system' | 'user' | 'assistant';
+  content: string | Array<{ type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }>
+};
 
 /** Paramètres génériques pour tout type de prompt */
 export interface PromptParams {
@@ -15,6 +18,12 @@ export interface PromptParams {
   examples?: string[];
   /** Un guide de style compact (extrait des exemples) */
   stylePrompt?: string;
+  /** Notes brutes importées */
+  rawNotes?: string;
+  /** Override du modèle OpenAI par défaut */
+  model?: string;
+  /** Image importée en base64 (optionnel) */
+  imageBase64?: string;
 }
 
 /** Valeur par défaut pour ton system prompt */
@@ -25,7 +34,6 @@ Ton écriture suit :
 • les référentiels français de psychomotricité et les recos HAS pour le bilan ;
 • un ton descriptif, empathique, nuancé, sans jargon inutile ;
 • la confidentialité : jamais de nom de famille, d'adresse ou d'information stigmatisante ;
-• la mise en avant des liens entre sensorimotricité, affectif et cognitif (schéma corporel, praxies, régulation tonico‑émotionnelle, etc.).
 `.trim();
 
 export const SYSTEM_ERGO = `
@@ -42,10 +50,16 @@ Les réponses doivent être conformes aux recommandations de bonnes pratiques fr
 Format attendu : structuré, avec distinction claire entre données objectives, analyses et conclusions cliniques.
 `.trim();
 
+/** Résultat de buildPrompt avec les messages et le modèle */
+export type PromptResult = {
+  messages: readonly SingleMessage[];
+  model?: string;
+};
+
 /**
  * Construit les messages pour l'API OpenAI en structurant le prompt en plusieurs parties
  */
-export function buildPrompt(params: PromptParams & { job?: 'PSYCHOMOTRICIEN' | 'ERGOTHERAPEUTE' | 'NEUROPSYCHOLOGUE' }): readonly SingleMessage[] {
+export function buildPrompt(params: PromptParams & { job?: 'PSYCHOMOTRICIEN' | 'ERGOTHERAPEUTE' | 'NEUROPSYCHOLOGUE' }): PromptResult {
   const msgs: SingleMessage[] = [];
 
   // 1. System prompt global
@@ -56,9 +70,9 @@ export function buildPrompt(params: PromptParams & { job?: 'PSYCHOMOTRICIEN' | '
 
   // 2. Format de sortie pour limiter les hallucinations
   msgs.push({ role: 'system', content: 
-    `FORMAT DE SORTIE
+    `###FORMAT DE SORTIE
       1. Pour chaque titre de section markdown repéré dans les données du patient, tu dois reproduire exactement ce même titre markdown dans ta réponse.   
-      2. Pour chaque tableau ou bloc de données, rédige des phrases descriptives et factuelles.`  
+      2. Pour chaque tableau ou bloc de données, rédige des phrases descriptives et factuelles sans bullet points ni listes.`  
     .trim()
   });
 
@@ -85,12 +99,49 @@ export function buildPrompt(params: PromptParams & { job?: 'PSYCHOMOTRICIEN' | '
     });
   }
 
+  console.log('[DEBUG] buildPrompt - imageBase64:', params.imageBase64);
+
   // 6. Données utilisateur
-  msgs.push({ role: 'user', content: `Données du patient actuel (Markdown):\n${params.userContent.trim()}` });
+  if (params.imageBase64) {
+    // Si on a une image, on utilise un message multimodal
+    const content = [
+      {
+        type: 'image_url' as const,
+        image_url: {
+          url: `data:image/png;base64,${params.imageBase64}`,
+        },
+      },
+      {
+        type: 'text' as const,
+        text: `Données du patient actuel (Markdown):\n${params.userContent.trim()}`,
+      },
+    ];
+
+    if (params.rawNotes && params.rawNotes.trim().length > 0) {
+      content.push({
+        type: 'text' as const,
+        text: `Notes brutes importées:\n${params.rawNotes.trim()}`,
+      });
+    }
+
+    msgs.push({ role: 'user', content });
+  } else {
+    // Message texte classique
+    msgs.push({ role: 'user', content: `Données du patient actuel (Markdown):\n${params.userContent.trim()}` });
+
+    if (params.rawNotes && params.rawNotes.trim().length > 0) {
+      msgs.push({
+        role: 'user',
+        content: `Notes brutes importées:\n${params.rawNotes.trim()}`,
+      });
+    }
+  }
 
 
-  return msgs ;
+  return { messages: msgs, model: params.model };
 }
 
 // Alias pour la rétrocompatibilité
 export const buildSinglePrompt = buildPrompt;
+
+

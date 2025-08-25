@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus} from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSectionStore } from '@/store/sections';
 import { categories, type CategoryId } from '@/types/trame';
@@ -37,8 +37,9 @@ export default function CreerTrameModal({
 }: CreerTrameModalProps = {}) {
   const [open, setOpen] = useState(false);
   const [nomTrame, setNomTrame] = useState('');
-  const [categorieSelectionnee, setCategorieSelectionnee] =
-    useState<CategoryId | ''>('');
+  const [categorieSelectionnee, setCategorieSelectionnee] = useState<
+    CategoryId | ''
+  >('');
   const navigate = useNavigate();
   const createSection = useSectionStore((s) => s.create);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -113,39 +114,46 @@ export default function CreerTrameModal({
         </div>
 
         <div className="space-y-2">
-            <Label htmlFor="job">Métiers concernés</Label>
-            <div className="border rounded p-2">
-              <div className="flex flex-wrap gap-2 mb-2">
-                {jobs.map((j) => (
-                  <span key={j} className="px-2 py-1 text-xs bg-primary-100 text-primary-700 rounded">
-                    {jobOptions.find((o) => o.id === j)?.label}
-                    <button
-                      type="button"
-                      className="ml-1 text-primary-700"
-                      onClick={() => setJobs((prev) => prev.filter((x) => x !== j))}
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-              </div>
-              <Select onValueChange={(v) => {
+          <Label htmlFor="job">Métiers concernés</Label>
+          <div className="border rounded p-2">
+            <div className="flex flex-wrap gap-2 mb-2">
+              {jobs.map((j) => (
+                <span
+                  key={j}
+                  className="px-2 py-1 text-xs bg-primary-100 text-primary-700 rounded"
+                >
+                  {jobOptions.find((o) => o.id === j)?.label}
+                  <button
+                    type="button"
+                    className="ml-1 text-primary-700"
+                    onClick={() =>
+                      setJobs((prev) => prev.filter((x) => x !== j))
+                    }
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+            <Select
+              onValueChange={(v) => {
                 const val = v as Job;
                 setJobs((prev) => (prev.includes(val) ? prev : [...prev, val]));
-              }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Ajouter un métier" />
-                </SelectTrigger>
-                <SelectContent>
-                  {jobOptions.map((j) => (
-                    <SelectItem key={j.id} value={j.id}>
-                      {j.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Ajouter un métier" />
+              </SelectTrigger>
+              <SelectContent>
+                {jobOptions.map((j) => (
+                  <SelectItem key={j.id} value={j.id}>
+                    {j.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
+        </div>
 
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={() => setOpen(false)}>

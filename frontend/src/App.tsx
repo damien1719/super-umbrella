@@ -1,4 +1,11 @@
-import { Routes, Route, Navigate, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import {
+  Routes,
+  Route,
+  Navigate,
+  Outlet,
+  useNavigate,
+  useLocation,
+} from 'react-router-dom';
 import { useAuth } from './store/auth';
 import { useRequireAuth } from './hooks/useRequireAuth';
 import { useEffect, useRef } from 'react';
@@ -16,7 +23,6 @@ import { usePageStore } from './store/pageContext';
 import { useUserProfileStore } from './store/userProfile';
 import { AppSidebar } from './components/AppSidebar';
 import Onboarding from './pages/Onboarding';
-
 
 /* function useInitAuth() {
   const { loading, initialize } = useAuth();
@@ -77,7 +83,7 @@ function ProtectedLayout() {
     }
   }, [user, profileId, fetchProfile]);
 
-/*   useEffect(() => {
+  /*   useEffect(() => {
     if (user) {
       const atRoot = location.pathname === '/' || location.pathname === '';
       if (!atRoot) navigate('/', { replace: true });
@@ -96,7 +102,11 @@ function ProtectedLayout() {
   }
 
   // Redirection onboarding
-  if (profile && profile.onboardingDone === false && location.pathname !== '/onboarding') {
+  if (
+    profile &&
+    profile.onboardingDone === false &&
+    location.pathname !== '/onboarding'
+  ) {
     return <Navigate to="/onboarding" replace />;
   }
 
@@ -169,7 +179,6 @@ function BilanLayout() {
   );
 }
 
-
 function SSOLoginRedirect() {
   const signIn = useAuth((s) => s.signIn);
   const calledRef = useRef(false);
@@ -187,10 +196,9 @@ function SSOLoginRedirect() {
   return <div>Redirection vers l’espace sécurisé…</div>;
 }
 
-const provider = (import.meta.env.VITE_AUTH_PROVIDER || 'supabase').toLowerCase();
-
-
-
+const provider = (
+  import.meta.env.VITE_AUTH_PROVIDER || 'supabase'
+).toLowerCase();
 
 export default function App() {
   return (
@@ -202,13 +210,13 @@ export default function App() {
       <Route element={<BilanLayout />}>
         <Route path="/bilan/:bilanId" element={<Bilan />} />
         <Route path="/onboarding" element={<Onboarding />} />
+        <Route path="/creation-trame/:sectionId" element={<CreationTrame />} />
       </Route>
       <Route element={<ProtectedLayout />}>
         <Route path="/" element={<BilanV2 />} />
         <Route path="/patients" element={<Patients />} />
         <Route path="/agenda" element={<Agenda />} />
         <Route path="/bibliotheque" element={<Bibliotheque />} />
-        <Route path="/creation-trame/:sectionId" element={<CreationTrame />} />
         <Route path="/abonnement" element={<Abonnement />} />
         <Route path="/compte" element={<MonCompteV2 />} />
       </Route>

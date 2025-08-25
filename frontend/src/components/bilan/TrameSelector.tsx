@@ -28,6 +28,7 @@ export interface TrameOption {
   isPublic?: boolean;
   authorId?: string | null;
   author?: { prenom?: string | null } | null;
+  templateRefId?: string | null;
 }
 
 export interface TrameExample {

@@ -10,27 +10,20 @@ export interface TransformPromptParams {
 }
 
 const ITEM_SCHEMA = {
-    type: 'array',
-    additionalProperties: false,
-    items: {
-      type: 'object',
-      additionalProperties: false,
-      properties: {
-        id: { type: 'string' },
-        type: {
-          type: 'string',
-          enum: ['notes', 'choix-multiple', 'echelle', 'titre'],
-        },
-        titre: { type: 'string' },
-        contenu: { type: 'string' },
-        options: {
-          type: 'array',
-          items: { type: 'string' },
-        },
-      },
-      required: ['id','type','titre','contenu','options']
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    id:    { type: 'string' },
+    type:  { type: 'string', enum: ['notes', 'choix-multiple', 'echelle', 'titre'] },
+    titre: { type: 'string' },
+    contenu: { type: 'string' },
+    options: {
+      type: 'array',
+      items: { type: 'string' },
     },
-  }
+  },
+  required: ['id', 'type', 'titre', 'contenu', 'options'],
+};
 
 const DEFAULT_SCHEMA = {
     type: 'object',
@@ -101,10 +94,20 @@ const schemaObject = {
   additionalProperties: false,
 }
 
+  // Convertir les messages en format compatible OpenAI
+  const openaiMessages = messages.map(msg => {
+    if (msg.role === 'system') {
+      return { role: 'system' as const, content: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content) };
+    } else if (msg.role === 'user') {
+      return { role: 'user' as const, content: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content) };
+    } else {
+      return { role: 'assistant' as const, content: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content) };
+    }
+  });
 
   const response = await openai.chat.completions.create({
     model: 'gpt-4.1-2025-04-14', // ou gpt-4o-mini
-    messages,
+    messages: openaiMessages,
     response_format: {
       type: 'json_schema',
       json_schema: {
@@ -119,6 +122,8 @@ const schemaObject = {
   if (!content) {
     throw new Error('No content in response from OpenAI API')
   }
+
+  console.log('[DEBUG] generateStructuredJSON - Response content:', content);
   
   return JSON.parse(content)
 }

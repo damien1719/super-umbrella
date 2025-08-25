@@ -13,13 +13,17 @@ import { Loader2 } from 'lucide-react';
 interface ImportMagiqueProps {
   onDone: (questions: Question[]) => void;
   onCancel: () => void;
+  sectionId?: string;
+  onTemplateCreated?: (templateId: string) => void;
 }
 
 export default function ImportMagique({
   onDone,
   onCancel,
+  sectionId = '',
+  onTemplateCreated,
 }: ImportMagiqueProps) {
-  const [mode, setMode] = useState<'liste' | 'tableau'>('liste');
+  const [mode, setMode] = useState<'liste' | 'tableau' | 'template'>('liste');
   const [text, setText] = useState('');
   const [tableImportType, setTableImportType] = useState<
     'text' | 'image' | 'excel'
@@ -79,6 +83,7 @@ export default function ImportMagique({
     setLoading(true);
     try {
       if (mode === 'liste') {
+        console.log('[DEBUG] ImportMagique - Starting liste transformation');
         const res = await apiFetch<{ result: Question[] }>(
           '/api/v1/import/transform',
           {
@@ -90,6 +95,7 @@ export default function ImportMagique({
             body: JSON.stringify({ content: text }),
           },
         );
+        console.log("res", res);
         onDone(res.result);
       } else if (tableImportType === 'excel' && file) {
         const data = await new Promise<ArrayBuffer>((resolve, reject) => {
@@ -107,7 +113,10 @@ export default function ImportMagique({
             '/api/v1/import/transform-excel-table',
             {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
               body: JSON.stringify({ sheetName: name, html }),
             },
           );
@@ -195,6 +204,23 @@ export default function ImportMagique({
           >
             Tableau
           </button>
+          <button
+            className={cn(
+              'px-4 py-2 text-sm font-medium',
+              mode === 'template'
+                ? 'border-b-2 border-primary text-primary'
+                : 'text-muted-foreground',
+            )}
+            onClick={() => {
+              setMode('template');
+              setText('');
+              setHtml('');
+              setFile(null);
+              setImage(null);
+            }}
+          >
+            NEW Template
+          </button>
         </div>
 
         <div className="space-y-4">
@@ -215,7 +241,7 @@ export default function ImportMagique({
                 placeholder="Collez votre texte ici..."
               />
             </div>
-          ) : (
+          ) : mode === 'tableau' ? (
             <>
               <RadioGroup
                 value={tableImportType}
@@ -344,6 +370,102 @@ export default function ImportMagique({
                 </div>
               )}
             </>
+          ) : (
+            <div className="space-y-3">
+              <div className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded p-3">
+                Attention: cette opération va écraser le template existant de
+                cette section s'il existe déjà.
+              </div>
+              <Textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                className="min-h-[200px] max-h-[50vh] w-full overflow-y-auto resize-none"
+                placeholder="Collez votre texte source pour générer un Template..."
+              />
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  disabled={!text.trim() || !sectionId.trim()}
+                  onClick={async () => {
+                    console.log(
+                      '[DEBUG] ImportMagique - Starting template generation',
+                    );
+                    console.log(
+                      '[DEBUG] ImportMagique - sectionId:',
+                      sectionId,
+                    );
+                    console.log(
+                      '[DEBUG] ImportMagique - sourceText length:',
+                      text.length,
+                    );
+                    console.log(
+                      '[DEBUG] ImportMagique - token present:',
+                      !!token,
+                    );
+
+                    if (!sectionId) {
+                      console.error(
+                        '[DEBUG] ImportMagique - No sectionId provided',
+                      );
+                      return;
+                    }
+                    setLoading(true);
+                    try {
+                      console.log('[DEBUG] ImportMagique - Making API call...');
+                      const tpl = await apiFetch<{ template: { id: string } }>(
+                        '/api/v1/import/importMagiqueToTemplate',
+                        {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${token}`,
+                          },
+                          body: JSON.stringify({ sectionId, sourceText: text }),
+                        },
+                      );
+                      console.log(
+                        '[DEBUG] ImportMagique - API response received:',
+                        tpl,
+                      );
+                      console.log(
+                        '[DEBUG] ImportMagique - API response structure:',
+                        {
+                          hasTemplate: !!tpl?.template,
+                          templateId: tpl?.template?.id,
+                          templateType: typeof tpl?.template,
+                          fullResponse: JSON.stringify(tpl, null, 2),
+                        },
+                      );
+                      if (tpl?.template?.id) {
+                        console.log(
+                          '[DEBUG] ImportMagique - Calling onTemplateCreated with ID:',
+                          tpl.template.id,
+                        );
+                        onTemplateCreated?.(tpl.template.id);
+                      } else {
+                        console.error(
+                          '[DEBUG] ImportMagique - No template ID found in response:',
+                          tpl,
+                        );
+                      }
+                      onCancel();
+                    } catch (error) {
+                      console.error(
+                        '[DEBUG] ImportMagique - API call failed:',
+                        error,
+                      );
+                      alert(
+                        'Erreur lors de la génération du template. Vérifiez la console pour plus de détails.',
+                      );
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                >
+                  Générer le template
+                </Button>
+              </div>
+            </div>
           )}
         </div>
         <div className="px-6 py-4 bg-muted/20">

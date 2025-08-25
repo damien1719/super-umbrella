@@ -32,47 +32,52 @@ export default function Bibliotheque() {
   const { items, fetchAll, remove, duplicate } = useSectionStore();
   const [toDelete, setToDelete] = useState<Section | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { profile, fetchProfile, loading: profileLoading } = useUserProfileStore();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { profile, fetchProfile } = useUserProfileStore();
   const [jobFilter, setJobFilter] = useState<Job | 'ALL'>('ALL');
 
-  const profileId = useMemo(
-    () => profile?.id ?? (profile as any)?.id ?? null,
-    [profile]
-  );
+  const profileId = useMemo(() => profile?.id ?? null, [profile]);
 
   const OFFICIAL_AUTHOR_ID = import.meta.env.VITE_OFFICIAL_AUTHOR_ID;
 
   useEffect(() => {
     // Charge en parallèle les sections + le profil
-    Promise.allSettled([fetchAll(), fetchProfile()])
-      .finally(() => setIsLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    Promise.allSettled([fetchAll(), fetchProfile()]).finally(() =>
+      setIsLoading(false),
+    );
   }, []);
-
-  console.log("OFFICIAL_AUTHOR_ID", OFFICIAL_AUTHOR_ID);
-  console.log("profileId", profileId);
 
   const myTrames = items.filter((s) => !!profileId && s.authorId === profileId);
   const officialTrames = items.filter(
-    (s) => !!OFFICIAL_AUTHOR_ID && s.isPublic && s.authorId === OFFICIAL_AUTHOR_ID,
+    (s) =>
+      !!OFFICIAL_AUTHOR_ID && s.isPublic && s.authorId === OFFICIAL_AUTHOR_ID,
   );
   const communityTrames = items.filter(
-    (s) => s.isPublic && (!OFFICIAL_AUTHOR_ID || s.authorId !== OFFICIAL_AUTHOR_ID),
+    (s) =>
+      s.isPublic && (!OFFICIAL_AUTHOR_ID || s.authorId !== OFFICIAL_AUTHOR_ID),
   );
 
   const [activeTab, setActiveTab] = useState<'mine' | 'official' | 'community'>(
-    myTrames.length > 0 ? 'mine' : officialTrames.length > 0 ? 'official' : 'community'
+    myTrames.length > 0
+      ? 'mine'
+      : officialTrames.length > 0
+        ? 'official'
+        : 'community',
   );
 
   const matchesActiveFilter = (s: Section) => {
     if (activeTab === 'mine') return !!profileId && s.authorId === profileId;
     if (activeTab === 'official')
-      return !!OFFICIAL_AUTHOR_ID && s.isPublic && s.authorId === OFFICIAL_AUTHOR_ID;
-    return s.isPublic && (!OFFICIAL_AUTHOR_ID || s.authorId !== OFFICIAL_AUTHOR_ID);
+      return (
+        !!OFFICIAL_AUTHOR_ID && s.isPublic && s.authorId === OFFICIAL_AUTHOR_ID
+      );
+    return (
+      s.isPublic && (!OFFICIAL_AUTHOR_ID || s.authorId !== OFFICIAL_AUTHOR_ID)
+    );
   };
 
   const matchesJobFilter = (s: Section) =>
-    jobFilter === 'ALL' || s.job === jobFilter
+    jobFilter === 'ALL' || s.job === jobFilter;
 
   return (
     <div className="min-h-screen bg-wood-50 p-6">
@@ -93,15 +98,30 @@ export default function Bibliotheque() {
         <div className="mt-4">
           <Tabs
             active={activeTab}
-            onChange={(k) => setActiveTab(k as 'mine' | 'official' | 'community')}
+            onChange={(k) =>
+              setActiveTab(k as 'mine' | 'official' | 'community')
+            }
             tabs={[
-              { key: 'mine', label: 'Mes trames', count: myTrames.length, hidden: myTrames.length === 0 },
-              { key: 'official', label: 'Trames Bilan Plume', count: officialTrames.length },
-              { key: 'community', label: 'Trames de la communauté', count: communityTrames.length },
+              {
+                key: 'mine',
+                label: 'Mes trames',
+                count: myTrames.length,
+                hidden: myTrames.length === 0,
+              },
+              {
+                key: 'official',
+                label: 'Trames Bilan Plume',
+                count: officialTrames.length,
+              },
+              {
+                key: 'community',
+                label: 'Trames de la communauté',
+                count: communityTrames.length,
+              },
             ]}
           />
           <div className="mt-2 mb-2 flex flex-wrap items-center gap-3">
-{/*             <div className="flex-1 min-w-[200px]">
+            {/*             <div className="flex-1 min-w-[200px]">
               <input
                 type="search"
                 value={searchTerm}
@@ -195,20 +215,35 @@ export default function Bibliotheque() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Supprimer cette trame ?</AlertDialogTitle>
+            <p className="text-sm text-gray-600 mt-2">
+              Cette action est irréversible. La trame &ldquo;{toDelete?.title}
+              &rdquo; sera définitivement supprimée.
+            </p>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>Annuler</AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-600 hover:bg-red-700"
+              disabled={isDeleting}
               onClick={async () => {
-                if (toDelete) {
-                  await remove(toDelete.id);
-                  await fetchAll().catch(() => {});
-                  setToDelete(null);
+                if (toDelete && !isDeleting) {
+                  setIsDeleting(true);
+                  try {
+                    await remove(toDelete.id);
+                    // La fonction remove() met déjà à jour l'état local,
+                    // pas besoin de fetchAll()
+                    setToDelete(null);
+                  } catch (error) {
+                    console.error('Erreur lors de la suppression:', error);
+                    // Ici on pourrait afficher une notification d'erreur
+                    alert('Erreur lors de la suppression. Veuillez réessayer.');
+                  } finally {
+                    setIsDeleting(false);
+                  }
                 }
               }}
             >
-              Supprimer
+              {isDeleting ? 'Suppression...' : 'Supprimer'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -1,4 +1,4 @@
-import { FileText, ClipboardList, Eye, Brain } from "lucide-react";
+import { FileText, ClipboardList, Eye, Brain } from 'lucide-react';
 
 export type CategoryId =
   | 'anamnese'
@@ -9,7 +9,7 @@ export type CategoryId =
   | 'conclusion';
 
 export interface Category {
-  id: CategoryId; 
+  id: CategoryId;
   title: string;
   icon: React.ComponentType<{ className?: string }>;
 }

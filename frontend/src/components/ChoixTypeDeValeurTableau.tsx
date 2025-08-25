@@ -16,16 +16,18 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { X } from 'lucide-react';
-import type { ColumnDef, ValueType } from '@/types/question';
+import type { ColumnDef, ValueType, Row } from '@/types/question';
 
 interface Props {
   column: ColumnDef | null;
+  rows: Row[];
   onClose: () => void;
   onChange: (col: ColumnDef) => void;
 }
 
 export default function ChoixTypeDeValeurTableau({
   column,
+  rows,
   onClose,
   onChange,
 }: Props) {
@@ -69,7 +71,13 @@ export default function ChoixTypeDeValeurTableau({
                 setLocal({
                   ...local,
                   valueType: v as ValueType,
-                  options: v === 'choice' ? local.options || [] : undefined,
+                  options: ['choice', 'multi-choice'].includes(v)
+                    ? local.options || []
+                    : undefined,
+                  rowOptions:
+                    v === 'multi-choice-row'
+                      ? local.rowOptions || {}
+                      : undefined,
                 })
               }
             >
@@ -80,12 +88,17 @@ export default function ChoixTypeDeValeurTableau({
                 <SelectItem value="text">Texte</SelectItem>
                 <SelectItem value="number">Nombre</SelectItem>
                 <SelectItem value="bool">Case à cocher</SelectItem>
-                <SelectItem value="choice">Choix multiples</SelectItem>
+                <SelectItem value="choice">Liste déroulante</SelectItem>
+                <SelectItem value="multi-choice">Choix multiples</SelectItem>
+                <SelectItem value="multi-choice-row">
+                  Choix multiples par ligne
+                </SelectItem>
                 <SelectItem value="image">Image</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          {local.valueType === 'choice' && (
+          {(local.valueType === 'choice' ||
+            local.valueType === 'multi-choice') && (
             <div className="space-y-2">
               {local.options?.map((opt, idx) => (
                 <div key={idx} className="flex items-center gap-2">
@@ -115,6 +128,86 @@ export default function ChoixTypeDeValeurTableau({
                   e.currentTarget.value = '';
                 }}
               />
+            </div>
+          )}
+          {local.valueType === 'multi-choice-row' && (
+            <div className="space-y-4">
+              {rows.map((row) => (
+                <div key={row.id} className="space-y-2">
+                  <Label>{row.label}</Label>
+                  {(local.rowOptions?.[row.id] || []).map((opt, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <Input
+                        value={opt}
+                        onChange={(e) => {
+                          const current = local.rowOptions?.[row.id] || [];
+                          const updated = [...current];
+                          updated[idx] = e.target.value;
+                          setLocal({
+                            ...local,
+                            rowOptions: {
+                              ...(local.rowOptions || {}),
+                              [row.id]: updated,
+                            },
+                          });
+                        }}
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const current = local.rowOptions?.[row.id] || [];
+                          const updated = current.filter((_, i) => i !== idx);
+                          const newRowOptions = {
+                            ...(local.rowOptions || {}),
+                          };
+                          if (updated.length > 0) {
+                            newRowOptions[row.id] = updated;
+                          } else {
+                            delete newRowOptions[row.id];
+                          }
+                          setLocal({ ...local, rowOptions: newRowOptions });
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  <Input
+                    placeholder="Ajouter une option"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const val = e.currentTarget.value.trim();
+                        if (val) {
+                          const current = local.rowOptions?.[row.id] || [];
+                          setLocal({
+                            ...local,
+                            rowOptions: {
+                              ...(local.rowOptions || {}),
+                              [row.id]: [...current, val],
+                            },
+                          });
+                        }
+                        e.currentTarget.value = '';
+                      }
+                    }}
+                    onBlur={(e) => {
+                      const val = e.currentTarget.value.trim();
+                      if (val) {
+                        const current = local.rowOptions?.[row.id] || [];
+                        setLocal({
+                          ...local,
+                          rowOptions: {
+                            ...(local.rowOptions || {}),
+                            [row.id]: [...current, val],
+                          },
+                        });
+                      }
+                      e.currentTarget.value = '';
+                    }}
+                  />
+                </div>
+              ))}
             </div>
           )}
           <div className="flex justify-end">

@@ -21,7 +21,11 @@ function Card({
   );
 }
 
-function CardHeader({ className, ...props }: React.ComponentProps<'div'>) {
+type DivProps = React.ComponentProps<'div'>;
+
+function CardHeader(p?: DivProps) {
+  const { className, ...props } = (p ?? {}) as DivProps;
+
   return (
     <div
       data-slot="card-header"

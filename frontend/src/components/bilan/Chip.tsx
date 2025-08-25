@@ -1,5 +1,5 @@
 import { Check } from 'lucide-react';
-import React from 'react';
+import * as React from 'react';
 
 interface ChipProps {
   selected: boolean;

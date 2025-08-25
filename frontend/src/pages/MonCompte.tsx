@@ -4,7 +4,12 @@ import type { UserProfile } from '../../../shared/src/types/UserProfile';
 import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
 import { useUserProfileStore } from '../store/userProfile';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../components/ui/dropdown-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../components/ui/dropdown-menu';
 import { Job, jobOptions, jobLabels } from '../types/job';
 import { Pencil } from 'lucide-react';
 
@@ -20,13 +25,13 @@ export default function MonCompteV2() {
   } = useUserProfileStore();
 
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState<Pick<UserProfile, 'nom' | 'prenom'> & { job?: Job }>(
-    {
-      nom: '',
-      prenom: '',
-      job: undefined,
-    },
-  );
+  const [form, setForm] = useState<
+    Pick<UserProfile, 'nom' | 'prenom'> & { job?: Job }
+  >({
+    nom: '',
+    prenom: '',
+    job: undefined,
+  });
 
   useEffect(() => {
     fetchProfile();
@@ -34,7 +39,11 @@ export default function MonCompteV2() {
 
   useEffect(() => {
     if (profile)
-      setForm({ nom: profile.nom ?? '', prenom: profile.prenom ?? '', job: profile.job as Job | undefined });
+      setForm({
+        nom: profile.nom ?? '',
+        prenom: profile.prenom ?? '',
+        job: profile.job as Job | undefined,
+      });
   }, [profile]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -115,7 +124,10 @@ export default function MonCompteV2() {
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               {jobOptions.map(({ id, label }) => (
-                <DropdownMenuItem key={id} onClick={() => setForm((f) => ({ ...f, job: id }))}>
+                <DropdownMenuItem
+                  key={id}
+                  onClick={() => setForm((f) => ({ ...f, job: id }))}
+                >
                   {label}
                 </DropdownMenuItem>
               ))}

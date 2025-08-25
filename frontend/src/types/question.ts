@@ -1,10 +1,18 @@
-export type ValueType = 'bool' | 'number' | 'text' | 'choice' | 'image';
+export type ValueType =
+  | 'bool'
+  | 'number'
+  | 'text'
+  | 'choice'
+  | 'multi-choice'
+  | 'multi-choice-row'
+  | 'image';
 
 export interface ColumnDef {
   id: string;
   label: string;
   valueType: ValueType;
   options?: string[];
+  rowOptions?: Record<string, string[]>;
 }
 
 export interface Row {

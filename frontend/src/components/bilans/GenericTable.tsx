@@ -56,8 +56,8 @@ export function GenericTable({
                 {variant === 'bilan' ? (
                   <>
                     <TableHead className="w-32">Date</TableHead>
-                    <TableHead>Patient</TableHead>
                     <TableHead>Titre du bilan</TableHead>
+                    <TableHead>Patient</TableHead>
                     <TableHead className="w-10" />
                   </>
                 ) : (
@@ -80,12 +80,12 @@ export function GenericTable({
                     <TableCell className="font-medium">
                       {formatDate ? formatDate((item as BilanItem).date) : ''}
                     </TableCell>
+                    <TableCell>{(item as BilanItem).title}</TableCell>
                     <TableCell>
                       {(item as BilanItem).patient
                         ? `${(item as BilanItem).patient!.firstName} ${(item as BilanItem).patient!.lastName}`
                         : ''}
                     </TableCell>
-                    <TableCell>{(item as BilanItem).title}</TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <Button
                         size="icon"

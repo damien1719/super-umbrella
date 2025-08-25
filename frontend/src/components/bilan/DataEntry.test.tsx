@@ -1,6 +1,6 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import React from 'react';
+import * as React from 'react';
 import { DataEntry, type DataEntryHandle } from './DataEntry';
 import type { Question } from '@/types/question';
 
@@ -77,6 +77,49 @@ const tableSelectQuestion: Question = {
   },
 };
 
+const tableMultiQuestion: Question = {
+  id: '9',
+  type: 'tableau',
+  titre: 'Table',
+  tableau: {
+    columns: [
+      {
+        id: 'c1',
+        label: 'C1',
+        valueType: 'multi-choice',
+        options: ['A', 'B'],
+      },
+    ],
+    sections: [{ id: 's1', title: '', rows: [{ id: 'r1', label: 'L1' }] }],
+  },
+};
+
+const tableMultiRowQuestion: Question = {
+  id: '10',
+  type: 'tableau',
+  titre: 'Table',
+  tableau: {
+    columns: [
+      {
+        id: 'c1',
+        label: 'C1',
+        valueType: 'multi-choice-row',
+        rowOptions: { r1: ['A', 'B'], r2: ['C'] },
+      },
+    ],
+    sections: [
+      {
+        id: 's1',
+        title: '',
+        rows: [
+          { id: 'r1', label: 'L1' },
+          { id: 'r2', label: 'L2' },
+        ],
+      },
+    ],
+  },
+};
+
 const tableCheckQuestion: Question = {
   id: '8',
   type: 'tableau',
@@ -99,6 +142,22 @@ describe('DataEntry', () => {
     fireEvent.click(screen.getByText(/ajouter/i));
     expect(screen.getByRole('button', { name: 'Opt1' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Opt2' })).toBeInTheDocument();
+  });
+
+  it('renders per-row multiple choice options', () => {
+    render(
+      <DataEntry
+        questions={[tableMultiRowQuestion]}
+        answers={{}}
+        onChange={noop}
+      />,
+    );
+    fireEvent.click(screen.getByText(/ajouter/i));
+    const row1 = screen.getByText('L1').closest('tr')!;
+    expect(within(row1).getByRole('button', { name: 'A' })).toBeInTheDocument();
+    expect(within(row1).getByRole('button', { name: 'B' })).toBeInTheDocument();
+    const row2 = screen.getByText('L2').closest('tr')!;
+    expect(within(row2).getByRole('button', { name: 'C' })).toBeInTheDocument();
   });
 
   it('validates scale input', () => {
@@ -203,6 +262,18 @@ describe('DataEntry', () => {
       />,
     );
     expect(screen.getByRole('combobox')).toBeInTheDocument();
+  });
+
+  it('renders chips for multi choice column type', () => {
+    render(
+      <DataEntry
+        questions={[tableMultiQuestion]}
+        answers={{}}
+        onChange={noop}
+        inline
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'A' })).toBeInTheDocument();
   });
 
   it('renders checkbox for case a cocher type', () => {

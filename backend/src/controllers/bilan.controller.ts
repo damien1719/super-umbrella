@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import { BilanService } from "../services/bilan.service";
 import { ProfileService } from "../services/profile.service";
-import { sanitizeHtml } from "../utils/sanitize";
+// No HTML sanitization needed for JSON editor state
 import { generateText } from "../services/ai/generate.service";
 import { Anonymization } from "../services/ai/anonymize.service";
 import { promptConfigs } from "../services/ai/prompts/promptconfig";
@@ -43,9 +43,6 @@ export const BilanController = {
 
   async update(req: Request, res: Response, next: NextFunction) {
     try {
-      if (req.body.descriptionHtml) {
-        req.body.descriptionHtml = sanitizeHtml(req.body.descriptionHtml);
-      }
       const bilan = await BilanService.update(
         req.user.id,
         req.params.bilanId,
@@ -61,8 +58,10 @@ export const BilanController = {
     try {
       const section = req.body.section as keyof typeof promptConfigs;
       const answers = req.body.answers ?? {};
+      const rawNotes = typeof req.body.rawNotes === 'string' ? req.body.rawNotes : undefined;
       const stylePrompt = typeof req.body.stylePrompt === 'string' ? req.body.stylePrompt : undefined;
       const examples = Array.isArray(req.body.examples) ? req.body.examples : [];
+      const imageBase64 = typeof req.body.imageBase64 === 'string' ? req.body.imageBase64 : undefined;
       const cfg = promptConfigs[section];
       if (!cfg) {
         res.status(400).json({ error: 'invalid section' });
@@ -77,8 +76,13 @@ export const BilanController = {
       const patient = await BilanService.get(req.user.id, req.params.bilanId);
       let userContent = JSON.stringify(answers);
       if (patient && typeof patient === 'object') {
-        const firstName = (patient as any).firstName || (patient as any)?.patient?.firstName;
-        const lastName = (patient as any).lastName || (patient as any)?.patient?.lastName;
+        const p = patient as {
+          firstName?: string;
+          lastName?: string;
+          patient?: { firstName?: string; lastName?: string };
+        };
+        const firstName = p.firstName || p.patient?.firstName;
+        const lastName = p.lastName || p.patient?.lastName;
         if (firstName || lastName) {
           userContent = Anonymization.anonymizeText(userContent, { firstName, lastName });
         }
@@ -89,13 +93,20 @@ export const BilanController = {
         userContent,
         examples,
         stylePrompt,
+        rawNotes,
+        imageBase64,
         job,
       });
       // Post-traitement: réinjecte le nom du patient si connu, sinon renvoie tel quel
       let postText = text as string;
       if (patient && typeof patient === 'object') {
-        const firstName = (patient as any).firstName || (patient as any)?.patient?.firstName;
-        const lastName = (patient as any).lastName || (patient as any)?.patient?.lastName;
+        const p = patient as {
+          firstName?: string;
+          lastName?: string;
+          patient?: { firstName?: string; lastName?: string };
+        };
+        const firstName = p.firstName || p.patient?.firstName;
+        const lastName = p.lastName || p.patient?.lastName;
         if (firstName || lastName) {
           postText = Anonymization.deanonymizeText(postText, { firstName, lastName });
         }
@@ -134,11 +145,12 @@ export const BilanController = {
   async conclude(req: Request, res: Response, next: NextFunction) {
     try {
       const bilan = await BilanService.get(req.user.id, req.params.bilanId);
-      if (!bilan || !bilan.descriptionHtml) {
+      if (!bilan || !bilan.descriptionJson) {
         res.status(404).json({ error: 'bilan not found' });
         return;
       }
-      const text = await concludeBilan(bilan.descriptionHtml);
+      // The export/renderer will render from JSON state; for conclude, send plain text for now
+      const text = await concludeBilan(JSON.stringify(bilan.descriptionJson));
       res.json({ text });
     } catch (e) {
       next(e);

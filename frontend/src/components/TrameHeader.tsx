@@ -22,20 +22,25 @@ interface Props {
   onSave: () => void;
   onImport: () => void;
   onBack: () => void;
+  onAdminImport?: () => void;
+  showAdminImport?: boolean;
 }
 
-export default function TrameHeader({
-  title,
-  category,
-  isPublic,
-  categories,
-  onTitleChange,
-  onCategoryChange,
-  onPublicChange,
-  onSave,
-  onImport,
-  onBack,
-}: Props) {
+export default function TrameHeader(p?: Partial<Props>) {
+  const {
+    title = '',
+    category,
+    isPublic = false,
+    categories = [],
+    onTitleChange = () => {},
+    onCategoryChange = () => {},
+    onPublicChange = () => {},
+    onSave = () => {},
+    onImport = () => {},
+    onBack = () => {},
+    onAdminImport = () => {},
+    showAdminImport = false,
+  } = p ?? {};
   return (
     <div className="flex flex-wrap items-center gap-4 mb-6">
       <Button variant="outline" onClick={onBack}>
@@ -77,6 +82,11 @@ export default function TrameHeader({
       <Button variant="outline" onClick={onImport}>
         Import Magique
       </Button>
+      {showAdminImport && (
+        <Button variant="primary" onClick={onAdminImport}>
+          Admin Import
+        </Button>
+      )}
     </div>
   );
 }

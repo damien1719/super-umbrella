@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -10,6 +10,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import type { Question, ColumnDef } from '@/types/question';
+import { Chip } from './Chip';
 
 const FIELD_BASE =
   'rounded-lg border border-gray-300 bg-white shadow-sm focus-visible:ring-2 focus-visible:ring-primary-500/40 focus-visible:outline-none';
@@ -72,6 +73,36 @@ export function TableQuestion({
               ))}
             </SelectContent>
           </Select>
+        );
+      case 'multi-choice':
+      case 'multi-choice-row':
+        const selected = Array.isArray(cellValue)
+          ? (cellValue as string[])
+          : [];
+        const opts =
+          col.valueType === 'multi-choice-row'
+            ? col.rowOptions?.[rowId] || []
+            : col.options || [];
+        return (
+          <div className="flex flex-wrap gap-2">
+            {opts.map((opt) => {
+              const isSelected = selected.includes(opt);
+              return (
+                <Chip
+                  key={opt}
+                  selected={isSelected}
+                  onClick={() => {
+                    const newSelected = isSelected
+                      ? selected.filter((o) => o !== opt)
+                      : [...selected, opt];
+                    update(newSelected);
+                  }}
+                >
+                  {opt}
+                </Chip>
+              );
+            })}
+          </div>
         );
       case 'bool':
         return (

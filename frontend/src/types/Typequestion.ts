@@ -20,7 +20,14 @@ export type ScaleQuestion = {
   echelle: { min: number; max: number; labels?: { min: string; max: string } };
 };
 
-export type ValueType = 'bool' | 'number' | 'text' | 'choice' | 'image';
+export type ValueType =
+  | 'bool'
+  | 'number'
+  | 'text'
+  | 'choice'
+  | 'multi-choice'
+  | 'multi-choice-row'
+  | 'image';
 
 export type ColumnDef = {
   id: string;
@@ -28,6 +35,7 @@ export type ColumnDef = {
   valueType: ValueType;
   /** Facultatif: enum pour 'choice' */
   options?: string[];
+  rowOptions?: Record<string, string[]>;
 };
 
 export type Row = {

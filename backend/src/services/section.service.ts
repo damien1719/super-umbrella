@@ -18,6 +18,9 @@ export type SectionData = {
   schema?: unknown;
   defaultContent?: unknown;
   isPublic?: boolean;
+  templateRefId?: string | null;
+  templateOptions?: unknown;
+  version?: number;
 };
 
 
@@ -25,7 +28,10 @@ export const SectionService = {
   async create(userId: string, data: SectionData) {
     const profile = await db.profile.findUnique({ where: { userId } });
     if (!profile) throw new Error('Profile not found for user');
-    return db.section.create({ data: { ...data, authorId: profile.id } });
+    return db.section.create({
+      data: { ...data, authorId: profile.id },
+      include: { templateRef: true },
+    });
   },
 
   list(userId: string) {
@@ -37,7 +43,7 @@ export const SectionService = {
         ],
       },
       orderBy: { createdAt: 'desc' },
-      include: { author: { select: { prenom: true } } },
+      include: { author: { select: { prenom: true } }, templateRef: true },
     });
   },
 
@@ -50,7 +56,7 @@ export const SectionService = {
           { author: { userId } },
         ],
       },
-      include: { author: { select: { prenom: true } } },
+      include: { author: { select: { prenom: true } }, templateRef: true },
     });
   },
 
@@ -77,7 +83,11 @@ export const SectionService = {
         defaultContent: section.defaultContent,
         isPublic: false,
         authorId: profile.id,
+        templateRefId: section.templateRefId,
+        templateOptions: section.templateOptions,
+        version: section.version,
       },
+      include: { templateRef: true },
     });
   },
 
@@ -87,10 +97,16 @@ export const SectionService = {
       data,
     });
     if (count === 0) throw new NotFoundError();
-    return db.section.findUnique({ where: { id } });
+    return db.section.findUnique({ where: { id }, include: { templateRef: true } });
   },
 
   async remove(userId: string, id: string) {
+    // Vérifier que la section existe et appartient à l'utilisateur
+    const section = await db.section.findFirst({
+      where: { id, author: { userId } },
+    });
+    if (!section) throw new NotFoundError();
+
     const { count } = await db.section.deleteMany({
       where: { id, author: { userId } },
     });

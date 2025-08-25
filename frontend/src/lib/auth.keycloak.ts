@@ -15,16 +15,14 @@ function setPostLogin(path: string) {
 }
 
 async function ensureInit() {
-    // check-sso va parser le callback après login et peupler kc.token/kc.tokenParsed
-    await initKeycloak({
-      onLoad: 'check-sso',
-      pkceMethod: 'S256',
-      checkLoginIframe: false,
-    });
-    setAuthTokenGetter(() => kc.token || undefined);
-  }
-
-
+  // check-sso va parser le callback après login et peupler kc.token/kc.tokenParsed
+  await initKeycloak({
+    onLoad: 'check-sso',
+    pkceMethod: 'S256',
+    checkLoginIframe: false,
+  });
+  setAuthTokenGetter(() => kc.token || undefined);
+}
 
 export function consumePostLogin(): string | null {
   const v = sessionStorage.getItem('postLogin');
@@ -47,13 +45,14 @@ export function createAuthProvider() {
     },
 
     async getSession(): Promise<{ data: { session: Session | null } }> {
-      await ensureInit();                  // 👈 essentiel après le redirect
+      await ensureInit(); // 👈 essentiel après le redirect
       if (kc.authenticated) {
-        try { await kc.updateToken(30); } catch {}
+        try {
+          await kc.updateToken(30);
+        } catch {}
       }
       // @ts-expect-error adapter au type Session attendu par ton store
       return { data: { session: currentSession() as Session } };
-    
     },
 
     onAuthStateChange(

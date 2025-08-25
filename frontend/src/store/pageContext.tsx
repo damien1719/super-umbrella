@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { createStore } from 'zustand';
 import { StoreApi, useStore } from 'zustand';
 

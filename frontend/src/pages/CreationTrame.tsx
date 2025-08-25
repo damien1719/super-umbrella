@@ -1,18 +1,29 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useSectionStore } from '../store/sections';
 import { useSectionExampleStore } from '../store/sectionExamples';
 import type { Question } from '../types/Typequestion';
-import { categories } from '../types/trame';
+// Narrow the answers type to satisfy DataEntry
+type Answers = Record<
+  string,
+  string | number | boolean | string[] | Record<string, unknown>
+>;
+import { categories, type CategoryId } from '../types/trame';
 import TrameHeader from '@/components/TrameHeader';
 import QuestionList from '@/components/QuestionList';
 import { DataEntry } from '@/components/bilan/DataEntry';
 import SaisieExempleTrame from '@/components/SaisieExempleTrame';
 import ImportMagique from '@/components/ImportMagique';
+import AdminImport from '@/components/AdminImport';
 import ExitConfirmation from '@/components/ExitConfirmation';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import TemplateEditor from '@/components/TemplateEditor';
+import EmptyTemplateState from '@/components/EmptyTemplateState';
+import { useSectionTemplateStore } from '../store/sectionTemplates';
+import type { SectionTemplate } from '../types/template';
+import { apiFetch } from '@/utils/api';
+import { useAuth } from '@/store/auth';
 
 interface ImportResponse {
   result: Question[][];
@@ -28,20 +39,124 @@ export default function CreationTrame() {
   const updateSection = useSectionStore((s) => s.update);
   const createExample = useSectionExampleStore((s) => s.create);
 
-  const [tab, setTab] = useState<'questions' | 'preview' | 'examples'>(
-    'questions',
-  );
-  const [previewAnswers, setPreviewAnswers] = useState<Record<string, unknown>>(
-    {},
-  );
+  const [tab, setTab] = useState<
+    'questions' | 'preview' | 'examples' | 'template'
+  >('questions');
+  const [previewAnswers, setPreviewAnswers] = useState<Answers>({});
   const [newExamples, setNewExamples] = useState<string[]>([]);
   const [nomTrame, setNomTrame] = useState('');
-  const [categorie, setCategorie] = useState('');
+  const [categorie, setCategorie] = useState<CategoryId | undefined>(undefined);
   const [isPublic, setIsPublic] = useState(false);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showImport, setShowImport] = useState(false);
+  const [showAdminImport, setShowAdminImport] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const createTemplate = useSectionTemplateStore((s) => s.create);
+  const getTemplate = useSectionTemplateStore((s) => s.get);
+  const updateTemplate = useSectionTemplateStore((s) => s.update);
+  const [templateRefId, setTemplateRefId] = useState<string | null>(null);
+  const [template, setTemplate] = useState<SectionTemplate>({
+    id: Date.now().toString(),
+    label: '',
+    version: 1,
+    content: null,
+    slotsSpec: [],
+    stylePrompt: '',
+    isDeprecated: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  });
+  const [loadingTemplate, setLoadingTemplate] = useState(false);
+  const token = useAuth((s) => s.token);
+
+  const transformTemplateToQuestions = async (content: string) => {
+    try {
+      console.log(
+        '[DEBUG] transformTemplateToQuestions - Received content:',
+        content,
+      );
+      console.log(
+        '[DEBUG] transformTemplateToQuestions - Content length:',
+        content.length,
+      );
+      console.log(
+        '[DEBUG] transformTemplateToQuestions - Content type:',
+        typeof content,
+      );
+
+      const res = await apiFetch<{ result: Question[] }>(
+        '/api/v1/import/transform',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ content }),
+        },
+      );
+      console.log('[DEBUG] transformTemplateToQuestions - API response:', res);
+      console.log(
+        '[DEBUG] transformTemplateToQuestions - res.result:',
+        res.result,
+      );
+      console.log(
+        '[DEBUG] transformTemplateToQuestions - res.result.length:',
+        res.result?.length,
+      );
+      console.log(
+        '[DEBUG] transformTemplateToQuestions - res.result type:',
+        typeof res.result,
+      );
+      console.log(
+        '[DEBUG] transformTemplateToQuestions - res.result[0]:',
+        res.result?.[0],
+      );
+
+      const questionsArray = res.result?.result || res.result;
+
+      if (
+        questionsArray &&
+        Array.isArray(questionsArray) &&
+        questionsArray.length > 0
+      ) {
+        console.log(
+          '[DEBUG] transformTemplateToQuestions - Setting questions:',
+          questionsArray,
+        );
+        console.log(
+          '[DEBUG] transformTemplateToQuestions - Current questions before update:',
+          questions,
+        );
+
+        setQuestions(questionsArray);
+        setSelectedId(questionsArray[0].id);
+        setTab('preview');
+
+        console.log(
+          '[DEBUG] transformTemplateToQuestions - Should switch to preview tab',
+        );
+      } else {
+        console.warn(
+          '[DEBUG] transformTemplateToQuestions - No valid result received',
+        );
+        console.warn(
+          '[DEBUG] transformTemplateToQuestions - questionsArray is:',
+          questionsArray,
+        );
+        console.warn(
+          '[DEBUG] transformTemplateToQuestions - res.result is:',
+          res.result,
+        );
+      }
+    } catch (e) {
+      console.error('Failed to transform template', e);
+    }
+  };
+
+  const SHOW_ADMIN_IMPORT =
+    import.meta.env.VITE_DISPLAY_IMPORT_BUTTON === 'true';
 
   const createDefaultNote = (): Question => ({
     id: Date.now().toString(),
@@ -56,6 +171,22 @@ export default function CreationTrame() {
       setNomTrame(section.title);
       setCategorie(section.kind);
       setIsPublic(section.isPublic ?? false);
+      setTemplateRefId(section.templateRefId ?? null);
+      if (section.templateRefId) {
+        getTemplate(section.templateRefId).then((tpl) => setTemplate(tpl));
+      } else {
+        setTemplate({
+          id: Date.now().toString(),
+          label: section.title,
+          version: 1,
+          content: null,
+          slotsSpec: [],
+          stylePrompt: '',
+          isDeprecated: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
+      }
       const loaded: Question[] =
         Array.isArray(section.schema) && section.schema.length > 0
           ? (section.schema as Question[])
@@ -63,32 +194,38 @@ export default function CreationTrame() {
       setQuestions(loaded);
       if (loaded.length > 0) setSelectedId(loaded[0].id);
     });
-  }, [sectionId, fetchOne]);
+  }, [sectionId, fetchOne, getTemplate]);
+
+  // Debug useEffect to log questions state changes
+  useEffect(() => {
+    console.log('[DEBUG] Questions state changed:', questions);
+    console.log('[DEBUG] Questions count:', questions.length);
+    console.log('[DEBUG] Current tab:', tab);
+    console.log('[DEBUG] Selected ID:', selectedId);
+  }, [questions, tab, selectedId]);
 
   const onPatch = (id: string, partial: Partial<Question>) => {
-    setQuestions((qs) =>
-      qs.map((q) =>
-        q.id === id
-          ? {
-              ...q,
-              ...partial,
-              tableau: partial.tableau
-                ? {
-                    ...('tableau' in q && q.tableau ? q.tableau : {}),
-                    ...partial.tableau,
-                  }
-                : 'tableau' in q
-                  ? q.tableau
-                  : undefined,
-            }
-          : q,
-      ),
+    setQuestions((qs: Question[]) =>
+      qs.map((q: Question) => {
+        if (q.id !== id) return q;
+        const merged: any = { ...q, ...partial };
+        if (
+          (partial as any).tableau !== undefined &&
+          (q as any).tableau !== undefined
+        ) {
+          merged.tableau = {
+            ...(q as any).tableau,
+            ...(partial as any).tableau,
+          };
+        }
+        return merged as Question;
+      }),
     );
   };
 
   const onReorder = (from: number, to: number) => {
-    setQuestions((qs) => {
-      const updated = [...qs];
+    setQuestions((qs: Question[]) => {
+      const updated: Question[] = [...qs];
       const [moved] = updated.splice(from, 1);
       updated.splice(to, 0, moved);
       return updated;
@@ -129,11 +266,15 @@ export default function CreationTrame() {
 
   const save = async () => {
     if (!sectionId) return;
+    if (templateRefId) {
+      await updateTemplate(templateRefId, { ...template, label: nomTrame });
+    }
     await updateSection(sectionId, {
       title: nomTrame,
       kind: categorie,
       schema: questions,
       isPublic,
+      templateRefId,
     });
     for (const content of newExamples) {
       await createExample({ sectionId, content });
@@ -149,81 +290,145 @@ export default function CreationTrame() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="w-full mx-auto">
-        <TrameHeader
-          title={nomTrame}
-          category={categorie}
-          isPublic={isPublic}
-          categories={categories}
-          onTitleChange={setNomTrame}
-          onCategoryChange={setCategorie}
-          onPublicChange={setIsPublic}
-          onSave={save}
-          onImport={() => setShowImport(true)}
-          onBack={() => setShowConfirm(true)}
-        />
+    <div className="flex h-dvh w-full flex-col overflow-hidden bg-gray-50">
+      {/* Header + actions */}
+      <div className="shrink-0 px-6 pt-6">
+        <div className="w-full mx-auto">
+          <TrameHeader
+            title={nomTrame}
+            category={categorie ?? ''}
+            isPublic={isPublic}
+            categories={categories}
+            onTitleChange={setNomTrame}
+            onCategoryChange={(v: string) => setCategorie(v as CategoryId)}
+            onPublicChange={setIsPublic}
+            onSave={save}
+            onImport={() => setShowImport(true)}
+            onBack={() => setShowConfirm(true)}
+            onAdminImport={() => setShowAdminImport(true)}
+            showAdminImport={SHOW_ADMIN_IMPORT}
+          />
 
-        <div className="border-b mb-4">
-          <nav className="flex gap-4">
-            <button
-              className={`pb-2 px-1 border-b-2 ${
-                tab === 'questions'
-                  ? 'border-primary-600'
-                  : 'border-transparent'
-              }`}
-              onClick={() => setTab('questions')}
-            >
-              Questions
-            </button>
-            <button
-              className={`pb-2 px-1 border-b-2 ${
-                tab === 'preview' ? 'border-primary-600' : 'border-transparent'
-              }`}
-              onClick={() => setTab('preview')}
-            >
-              Pré-visualisation
-            </button>
-            <button
-              className={`pb-2 px-1 border-b-2 ${
-                tab === 'examples' ? 'border-primary-600' : 'border-transparent'
-              }`}
-              onClick={() => setTab('examples')}
-            >
-              Exemples
-            </button>
-          </nav>
+          <div className="border-b mb-4">
+            <nav className="flex gap-4">
+              <button
+                className={`pb-2 px-1 border-b-2 ${
+                  tab === 'questions'
+                    ? 'border-primary-600'
+                    : 'border-transparent'
+                }`}
+                onClick={() => setTab('questions')}
+              >
+                Questions
+              </button>
+              <button
+                className={`pb-2 px-1 border-b-2 ${
+                  tab === 'preview'
+                    ? 'border-primary-600'
+                    : 'border-transparent'
+                }`}
+                onClick={() => setTab('preview')}
+              >
+                Pré-visualisation
+              </button>
+              <button
+                className={`pb-2 px-1 border-b-2 ${
+                  tab === 'examples'
+                    ? 'border-primary-600'
+                    : 'border-transparent'
+                }`}
+                onClick={() => setTab('examples')}
+              >
+                Exemples
+              </button>
+              <button
+                className={`pb-2 px-1 border-b-2 ${
+                  tab === 'template'
+                    ? 'border-primary-600'
+                    : 'border-transparent'
+                }`}
+                onClick={() => setTab('template')}
+              >
+                Template
+              </button>
+            </nav>
+          </div>
         </div>
-
-        {tab === 'questions' && (
-          <QuestionList
-            questions={questions}
-            selectedId={selectedId}
-            onSelect={setSelectedId}
-            onPatch={onPatch}
-            onReorder={onReorder}
-            onDuplicate={onDuplicate}
-            onDelete={onDelete}
-            onAddAfter={onAddAfter}
-          />
-        )}
-
-        {tab === 'preview' && (
-          <DataEntry
-            inline
-            questions={questions}
-            answers={previewAnswers}
-            onChange={setPreviewAnswers}
-          />
-        )}
-
-        {tab === 'examples' && (
-          <SaisieExempleTrame
-            examples={newExamples}
-            onAdd={(c) => setNewExamples((p) => [...p, c])}
-          />
-        )}
       </div>
+      {/* Zone scrollable des onglets */}
+      <div className="flex-1 min-h-0 px-6 pb-6">
+          {tab === 'questions' && (
+            <QuestionList
+              questions={questions}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+              onPatch={onPatch}
+              onReorder={onReorder}
+              onDuplicate={onDuplicate}
+              onDelete={onDelete}
+              onAddAfter={onAddAfter}
+            />
+          )}
+
+          {tab === 'preview' && (
+            <DataEntry
+              inline
+              questions={questions}
+              answers={previewAnswers}
+              onChange={setPreviewAnswers}
+            />
+          )}
+
+          {tab === 'examples' && (
+            <SaisieExempleTrame
+              examples={newExamples}
+              onAdd={(c) => setNewExamples((p) => [...p, c])}
+            />
+          )}
+
+          {tab === 'template' && (
+            <div>
+              {loadingTemplate && (
+                <div className="bg-blue-50 border border-blue-200 rounded p-4 mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                    <span className="text-blue-800">
+                      Chargement du template...
+                    </span>
+                  </div>
+                </div>
+              )}
+              {templateRefId ? (
+                <TemplateEditor
+                  template={template}
+                  onChange={setTemplate}
+                  onTransformToQuestions={transformTemplateToQuestions}
+                />
+              ) : (
+                <EmptyTemplateState
+                  onAdd={async () => {
+                    if (!sectionId) return;
+                    const created = await createTemplate({
+                      ...template,
+                      label: nomTrame,
+                    });
+                    setTemplate(created);
+                    setTemplateRefId(created.id);
+                    await updateSection(sectionId, {
+                      title: nomTrame,
+                      kind: categorie,
+                      schema: questions,
+                      isPublic,
+                      templateRefId: created.id,
+                    });
+                  }}
+                />
+              )}
+            </div>
+          )}
+      </div>
+
+      {/* Dialogs (portail) */}
       <Dialog open={showImport} onOpenChange={setShowImport}>
         <DialogContent>
           <ImportMagique
@@ -242,6 +447,100 @@ export default function CreationTrame() {
               }
             }}
             onCancel={() => setShowImport(false)}
+            sectionId={sectionId}
+            onTemplateCreated={async (id) => {
+              console.log(
+                '[DEBUG] CreationTrame - onTemplateCreated called with ID:',
+                id,
+              );
+              console.log('[DEBUG] CreationTrame - ID type:', typeof id);
+              console.log(
+                '[DEBUG] CreationTrame - ID is empty?',
+                !id || id.trim() === '',
+              );
+
+              setShowImport(false);
+              setLoadingTemplate(true);
+
+              if (id && id.trim() !== '') {
+                try {
+                  console.log(
+                    '[DEBUG] CreationTrame - Loading template from DB with ID:',
+                    id,
+                  );
+                  console.log(
+                    '[DEBUG] CreationTrame - getTemplate function available:',
+                    !!getTemplate,
+                  );
+
+                  const tpl = await getTemplate(id);
+                  console.log(
+                    '[DEBUG] CreationTrame - Template loaded from DB:',
+                    {
+                      id: tpl.id,
+                      label: tpl.label,
+                      hasContent: !!tpl.content,
+                      contentType: typeof tpl.content,
+                      slotsCount: tpl.slotsSpec?.length || 0,
+                      slotsType: typeof tpl.slotsSpec,
+                      stylePrompt: tpl.stylePrompt,
+                      fullTemplate: JSON.stringify(tpl, null, 2),
+                    },
+                  );
+
+                  console.log(
+                    '[DEBUG] CreationTrame - Setting template state...',
+                  );
+                  setTemplate(tpl);
+                  setTemplateRefId(id);
+
+                  // Only switch to template tab after template is loaded
+                  console.log(
+                    '[DEBUG] CreationTrame - Switching to template tab',
+                  );
+                  setTab('template');
+
+                  console.log(
+                    '[DEBUG] CreationTrame - Template setup completed successfully',
+                  );
+                } catch (error) {
+                  console.error(
+                    '[DEBUG] CreationTrame - Error loading template:',
+                    error,
+                  );
+                  console.error('[DEBUG] CreationTrame - Error details:', {
+                    error: error,
+                    message:
+                      error instanceof Error ? error.message : 'Unknown error',
+                    stack: error instanceof Error ? error.stack : 'No stack',
+                  });
+                } finally {
+                  setLoadingTemplate(false);
+                }
+              } else {
+                console.error(
+                  '[DEBUG] CreationTrame - Invalid or empty template ID:',
+                  id,
+                );
+                setLoadingTemplate(false);
+              }
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+      <Dialog open={showAdminImport} onOpenChange={setShowAdminImport}>
+        <DialogContent>
+          <AdminImport
+            sectionId={sectionId ?? ''}
+            onClose={() => setShowAdminImport(false)}
+            onSchemaImported={(schema) => {
+              setQuestions(schema);
+              setSelectedId(schema[0]?.id ?? null);
+            }}
+            onTemplateImported={(tpl) => {
+              setTemplate(tpl);
+              setTemplateRefId(tpl.id);
+            }}
           />
         </DialogContent>
       </Dialog>

@@ -10,12 +10,23 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from './ui/textarea';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import GeneratingModal from '@/components/ui/generating-modal';
 import type { TrameOption, TrameExample } from './bilan/TrameSelector';
 import type { Answers, Question } from '@/types/question';
-import { FileText, Eye, Brain, Activity, Flag, PlusIcon, ArrowRight, ArrowRightCircle, Wand2 } from 'lucide-react';
+import {
+  FileText,
+  Eye,
+  Brain,
+  Activity,
+  Flag,
+  PlusIcon,
+  ArrowRight,
+  ArrowRightCircle,
+  Wand2,
+} from 'lucide-react';
 import { apiFetch } from '@/utils/api';
+import { generateSection } from '@/services/generation';
 import { useAuth } from '@/store/auth';
-import { splitBlocksIntoStringChunks } from '@/lib/chunkAnswers';
 
 const kindMap: Record<string, string> = {
   anamnese: 'anamnese',
@@ -84,6 +95,7 @@ const useTrames = () => {
           isPublic: s.isPublic,
           authorId: s.authorId,
           author: s.author,
+          templateRefId: s.templateRefId,
         }));
     });
     return res;
@@ -93,6 +105,7 @@ const useTrames = () => {
 interface AiRightPanelProps {
   bilanId: string;
   onInsertText: (text: string) => void;
+  onSetEditorStateJson?: (state: unknown) => void;
   initialWizardSection?: string;
   initialTrameId?: string;
 }
@@ -100,6 +113,7 @@ interface AiRightPanelProps {
 export default function AiRightPanel({
   bilanId,
   onInsertText,
+  onSetEditorStateJson,
   initialWizardSection,
   initialTrameId,
 }: AiRightPanelProps) {
@@ -185,176 +199,144 @@ export default function AiRightPanel({
     remove(id).catch(() => {});
   };
 
+  // local markdown helpers moved to services/generation
   type TableAnswers = Record<string, unknown> & { commentaire?: string };
 
-  function markdownifyTable(q: Question, ansTable: TableAnswers): string {
-    if (!q.tableau?.columns) {
-      return '';
-    }
+  const handleGenerate = async (
+    section: SectionInfo,
+    newAnswers?: Answers,
+    rawNotes?: string,
+    imageBase64?: string,
+  ) => {
+    await generateSection({
+      mode: 'direct',
+      section,
+      trames: trames as any,
+      selectedTrames,
+      answers,
+      newAnswers,
+      rawNotes,
+      imageBase64,
+      token: token || '',
+      bilanId,
+      kindMap,
+      setIsGenerating,
+      setSelectedSection,
+      setWizardSection,
+      setGenerated,
+      setRegenSection,
+      setRegenPrompt,
+      onInsertText,
+      onSetEditorStateJson,
+      examples: examples as any,
+    });
+  };
 
-    const columns = q.tableau.columns;
-    const allRows = q.tableau.rowsGroups?.flatMap((rg) => rg.rows) || [];
-
-    const isNonEmpty = (v: unknown, col?: { valueType?: string }) => {
-      if (col?.valueType === 'bool') return v === true;
-      if (typeof v === 'number') return true;
-      if (typeof v === 'string') return v.trim() !== '';
-      if (typeof v === 'boolean') return v === true; // par sécurité au cas où
-      return false;
-    };
-
-    const formatCell = (v: unknown, col?: { valueType?: string }) => {
-      if (col?.valueType === 'bool') return v === true ? '✓' : ''; // ou 'Oui' / ''
-      if (v == null) return '';
-      if (typeof v === 'string') return v.trim();
-      if (typeof v === 'number') return String(v);
-      if (typeof v === 'boolean') return v ? '✓' : '';
-      return '';
-    };
-
-    const keptColumns = columns.filter((col) =>
-      allRows.some((row) => {
-        const rowData = ansTable[row.id] as Record<string, unknown> | undefined;
-        const v = rowData?.[col.id];
-        return isNonEmpty(v);
-      }),
+  const handleGenerateFromTemplate = async (
+    section: SectionInfo,
+    newAnswers?: Answers,
+    rawNotes?: string,
+    instId?: string,
+    imageBase64?: string,
+  ) => {
+    console.log(
+      '[DEBUG] AiRightPanel - handleGenerateFromTemplate called with:',
+      {
+        sectionId: section.id,
+        hasNewAnswers: !!newAnswers,
+        hasRawNotes: !!rawNotes,
+        instId,
+        hasImageBase64: !!imageBase64,
+        imageBase64Length: imageBase64?.length || 0,
+      },
     );
 
-    console.log("q", q);
-    console.log("keptColumns", keptColumns);
-    console.log("allRows", allRows);
-    console.log("ansTable", ansTable);
+    console.log('[AiRightPanel] handleGenerateFromTemplate - STARTED', {
+      sectionId: section.id,
+      sectionTitle: section.title,
+      instId,
+      hasNewAnswers: !!newAnswers,
+      hasRawNotes: !!rawNotes,
+      rawNotesLength: rawNotes?.length || 0,
+      newAnswersKeys: Object.keys(newAnswers || {}),
+      selectedTramesForSection: selectedTrames[section.id],
+      currentAnswersKeys: Object.keys(answers[section.id] || {}),
+    });
 
-    const titleLine = `**${q.titre}**\n\n`;
-
-    let tablePart = '';
-    if (keptColumns.length > 0) {
-      const headerLine = `| ${['Ligne', ...keptColumns.map((c) => c.label)].join(' | ')} |`;
-      const sepLine = `| ${['---', ...keptColumns.map(() => '---')].join(' | ')} |`;
-      const bodyLines = allRows
-        .map((row) => {
-          const rowData = ansTable[row.id] as Record<string, unknown> | undefined;
-          const cells = keptColumns.map((col) => formatCell(rowData?.[col.id], col));
-          return `| ${[row.label, ...cells].join(' | ')} |`;
-        })
-        .join('\n');
-      tablePart = `${headerLine}\n${sepLine}\n${bodyLines}`;
+    if (!instId) {
+      console.error(
+        '[AiRightPanel] handleGenerateFromTemplate - ERROR: No instanceId provided',
+      );
+      return;
     }
-
-    const commentVal = ansTable.commentaire;
-    const comment =
-      typeof commentVal === 'string' && commentVal.trim() !== ''
-        ? `\n\n> **Commentaire** : ${commentVal}`
-        : '';
-
-    if (tablePart.trim() === '' && comment.trim() === '') return '';
-    if (tablePart.trim() === '') return titleLine + comment;
-    return titleLine + tablePart + comment;
-  }
-
-  function markdownifyField(q: Question, value: unknown): string {
-    switch (q.type) {
-      case 'notes':
-        return `${q.titre}\n\n${value ?? ''}`;
-      case 'choix-multiple':
-        if (value && typeof value === 'object') {
-          const selectedOptions = Array.isArray((value as any).options) 
-            ? (value as any).options.join(', ')
-            : (value as any).option 
-              ? String((value as any).option)
-              : '';
-          const comment = (value as any).commentaire || '';
-          return `${q.titre}\n\n${selectedOptions}${
-            comment ? `\n\n> **Commentaire** : ${comment}` : ''
-          }`;
-        }
-        return `${q.titre}\n\n${value ?? ''}`;
-      case 'echelle':
-        return `${q.titre}\n\n${value ?? ''}`;
-      case 'titre':
-        return `## ${q.titre}\n\n${value ?? ''}`;
-      default:
-        return `${q.titre} : ${value ?? ''}`;
-    }
-  }
-
-  const handleGenerate = async (section: SectionInfo, newAnswers?: Answers) => {
-    setIsGenerating(true);
-    setSelectedSection(section.id);
 
     try {
-      const trameId = selectedTrames[section.id];
-      const trame = trames[section.id].find((t) => t.value === trameId);
-      const questions: Question[] = (trame?.schema as Question[]) || [];
-      const ans = newAnswers || answers[section.id] || {};
+      console.log(
+        '[AiRightPanel] handleGenerateFromTemplate - Preparing generation params...',
+      );
 
-      const mdBlocks: string[] = [];
-
-      // Titre principal
-      // mdBlocks.push(`# ${section.title}\n`);
-
-      for (const q of questions) {
-        console.log('type', q.type);
-        if (q.type === 'tableau') {
-          const ansTable = (ans[q.id] as TableAnswers) || {};
-          const md = markdownifyTable(q, ansTable);
-          if (md.trim()) mdBlocks.push(md);
-        } else if (q.type === 'titre') {
-          mdBlocks.push(markdownifyField(q, ''));
-        } else {
-          const val = ans[q.id];
-          if (val !== undefined && val !== null) {
-            if (typeof val === 'object') {
-              const hasContent = Object.values(val).some(
-                (v) => String(v || '').trim() !== '',
-              );
-              if (hasContent) mdBlocks.push(markdownifyField(q, val));
-            } else {
-              const raw = String(val).trim();
-              if (raw) mdBlocks.push(markdownifyField(q, raw));
-            }
-          }
-        }
-      }
-
-      // 5) Concatène tout avec deux retours à la ligne
-      const promptMarkdown = mdBlocks.join('\n\n');
-
-      // Ne jamais couper une question en deux: on chunk par blocs/questions déjà construits
-      const chunks = splitBlocksIntoStringChunks(mdBlocks, { maxChars: 1800 });
-      const body = {
-        section: kindMap[section.id],
-        answers: chunks,
-        // N'envoie plus le texte entier de l'exemple, seulement le stylePrompt si dispo
-        stylePrompt: examples
-          .filter((e) => e.sectionId === trameId)
-          .map((e) => (e as any).stylePrompt)
-          .filter((s) => typeof s === 'string' && (s as string).trim().length > 0)
-          .slice(0, 1)[0],
+      const generationParams = {
+        mode: 'template' as const,
+        section,
+        trames: trames as any,
+        selectedTrames,
+        answers,
+        newAnswers,
+        rawNotes,
+        imageBase64,
+        instanceId: instId,
+        token: token || '',
+        bilanId,
+        kindMap,
+        setIsGenerating,
+        setSelectedSection,
+        setWizardSection,
+        onInsertText,
+        onSetEditorStateJson,
+        examples: examples as any,
       };
 
-      console.log('body', body);
-
-      const res = await apiFetch<{ text: string }>(
-        `/api/v1/bilans/${bilanId}/generate`,
+      console.log(
+        '[AiRightPanel] handleGenerateFromTemplate - Generation params prepared:',
         {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
-          body: JSON.stringify(body),
+          mode: generationParams.mode,
+          sectionId: generationParams.section.id,
+          instanceId: generationParams.instanceId,
+          hasToken: !!generationParams.token,
+          hasBilanId: !!generationParams.bilanId,
+          hasNewAnswers: !!generationParams.newAnswers,
+          hasRawNotes: !!generationParams.rawNotes,
+          hasOnSetEditorStateJson: !!generationParams.onSetEditorStateJson,
+          hasOnInsertText: !!generationParams.onInsertText,
         },
       );
 
-      const header = `## ${section.title}\n\n`;
-      const textWithHeader = header + res.text;
+      console.log(
+        '[AiRightPanel] handleGenerateFromTemplate - About to call generateSection...',
+      );
 
-      onInsertText(textWithHeader);
-      setGenerated((g) => ({ ...g, [section.id]: true }));
-      setRegenSection(section.id);
-      setRegenPrompt('');
-    } finally {
-      setIsGenerating(false);
-      setSelectedSection(null);
-      setWizardSection(null);
+      await generateSection(generationParams);
+
+      console.log(
+        '[AiRightPanel] handleGenerateFromTemplate - generateSection completed successfully',
+      );
+      console.log(
+        '[AiRightPanel] handleGenerateFromTemplate - DONE - Template generation completed',
+      );
+    } catch (e) {
+      console.error(
+        '[AiRightPanel] handleGenerateFromTemplate - ERROR occurred:',
+        e,
+      );
+      console.error(
+        '[AiRightPanel] handleGenerateFromTemplate - Error details:',
+        {
+          error: e,
+          errorMessage: e instanceof Error ? e.message : 'Unknown error',
+          errorStack: e instanceof Error ? e.stack : 'No stack trace',
+        },
+      );
+      throw e;
     }
   };
 
@@ -468,6 +450,7 @@ export default function AiRightPanel({
 
   return (
     <div className="w-full max-w-md bg-wood-50 rounded-lg shadow-lg">
+      <GeneratingModal open={isGenerating} />
       <div className="flex flex-col h-full">
         {/*         {selection?.text && (
           <div className="bg-blue-50 text-blue-800 text-sm p-2 border-b border-blue-100">
@@ -658,8 +641,27 @@ export default function AiRightPanel({
                             onAnswersChange={(a) =>
                               setAnswers({ ...answers, [section.id]: a })
                             }
-                            onGenerate={(latest) =>
-                              handleGenerate(section, latest)
+                            onGenerate={async (latest, notes, imageBase64) =>
+                              await handleGenerate(
+                                section,
+                                latest,
+                                notes,
+                                imageBase64,
+                              )
+                            }
+                            onGenerateFromTemplate={async (
+                              latest,
+                              notes,
+                              id,
+                              imageBase64,
+                            ) =>
+                              await handleGenerateFromTemplate(
+                                section,
+                                latest,
+                                notes,
+                                id,
+                                imageBase64,
+                              )
                             }
                             isGenerating={
                               isGenerating && selectedSection === section.id
@@ -683,7 +685,9 @@ export default function AiRightPanel({
 
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2">
-                                <h3 className="font-medium text-base truncate">{section.title}</h3>
+                                <h3 className="font-medium text-base truncate">
+                                  {section.title}
+                                </h3>
 
                                 <Button
                                   size="default"
@@ -707,7 +711,6 @@ export default function AiRightPanel({
                           </div>
                         </CardContent>
                       </Card>
-
                     );
                   }
 
@@ -742,7 +745,14 @@ export default function AiRightPanel({
                       onAnswersChange={(a) =>
                         setAnswers({ ...answers, [section.id]: a })
                       }
-                      onGenerate={(latest) => handleGenerate(section, latest)}
+                      onGenerate={async (latest, notes, imageBase64) =>
+                        await handleGenerate(
+                          section,
+                          latest,
+                          notes,
+                          imageBase64,
+                        )
+                      }
                       isGenerating={
                         isGenerating && selectedSection === section.id
                       }
@@ -767,29 +777,28 @@ export default function AiRightPanel({
                     {isGenerating ? '...' : 'Commenter des résultats de'}
                 </Button>
  */}
-                <div className="flex flex-col gap-4"> 
-                <Button
-                  size="default"
-                  variant="default"
-                  className="h-8 px-2 text-base"
-                  onClick={() => setCommentModalOpen(true)}
-                  disabled={isGenerating}
-                >
-                  Commenter des résultats de tests
-                  <Wand2 className="h-4 w-4 ml-1" />
-                </Button>
+                <div className="flex flex-col gap-4">
                   <Button
-                      size="default"
-                      variant="default"
-                      className="h-8 px-2 text-base"
-                      onClick={handleConclude}
-                      disabled={isGenerating}
-                    >
-                      {isGenerating ? '...' : 'Rédiger la synthèse du bilan'}
-                      <Wand2 className="h-4 w-4 ml-1" />
+                    size="default"
+                    variant="default"
+                    className="h-8 px-2 text-base"
+                    onClick={() => setCommentModalOpen(true)}
+                    disabled={isGenerating}
+                  >
+                    Commenter des résultats de tests
+                    <Wand2 className="h-4 w-4 ml-1" />
+                  </Button>
+                  <Button
+                    size="default"
+                    variant="default"
+                    className="h-8 px-2 text-base"
+                    onClick={handleConclude}
+                    disabled={isGenerating}
+                  >
+                    {isGenerating ? '...' : 'Conclure le bilan'}
+                    <Wand2 className="h-4 w-4 ml-1" />
                   </Button>
                 </div>
-              
               </div>
             </ScrollArea>
           )}

@@ -14,15 +14,15 @@ const kc: Keycloak = globalAny.__kc_instance;
 
 kc.onReady = (auth: boolean) => console.log('[KC] onReady auth=', auth);
 kc.onAuthSuccess = () => console.log('[KC] onAuthSuccess');
-kc.onAuthError   = () => console.log('[KC] onAuthError');
+kc.onAuthError = () => console.log('[KC] onAuthError');
 kc.onAuthRefreshSuccess = () => console.log('[KC] onAuthRefreshSuccess');
-kc.onAuthLogout  = () => console.log('[KC] onAuthLogout');
+kc.onAuthLogout = () => console.log('[KC] onAuthLogout');
 
 let initialized = false;
 let initPromise: Promise<Keycloak> | null = null;
 
 export async function initKeycloak(
-  options?: Keycloak.KeycloakInitOptions
+  options?: Keycloak.KeycloakInitOptions,
 ): Promise<Keycloak> {
   if (initialized) return kc;
   if (initPromise) return initPromise;
