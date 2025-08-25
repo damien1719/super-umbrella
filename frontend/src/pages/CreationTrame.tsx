@@ -19,6 +19,7 @@ import AdminImport from '@/components/AdminImport';
 import ExitConfirmation from '@/components/ExitConfirmation';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import TemplateEditor from '@/components/TemplateEditor';
+import EmptyTemplateState from '@/components/EmptyTemplateState';
 import { useSectionTemplateStore } from '../store/sectionTemplates';
 import type { SectionTemplate } from '../types/template';
 import { apiFetch } from '@/utils/api';
@@ -71,10 +72,19 @@ export default function CreationTrame() {
 
   const transformTemplateToQuestions = async (content: string) => {
     try {
-      console.log('[DEBUG] transformTemplateToQuestions - Received content:', content);
-      console.log('[DEBUG] transformTemplateToQuestions - Content length:', content.length);
-      console.log('[DEBUG] transformTemplateToQuestions - Content type:', typeof content);
-      
+      console.log(
+        '[DEBUG] transformTemplateToQuestions - Received content:',
+        content,
+      );
+      console.log(
+        '[DEBUG] transformTemplateToQuestions - Content length:',
+        content.length,
+      );
+      console.log(
+        '[DEBUG] transformTemplateToQuestions - Content type:',
+        typeof content,
+      );
+
       const res = await apiFetch<{ result: Question[] }>(
         '/api/v1/import/transform',
         {
@@ -87,26 +97,58 @@ export default function CreationTrame() {
         },
       );
       console.log('[DEBUG] transformTemplateToQuestions - API response:', res);
-      console.log('[DEBUG] transformTemplateToQuestions - res.result:', res.result);
-      console.log('[DEBUG] transformTemplateToQuestions - res.result.length:', res.result?.length);
-      console.log('[DEBUG] transformTemplateToQuestions - res.result type:', typeof res.result);
-      console.log('[DEBUG] transformTemplateToQuestions - res.result[0]:', res.result?.[0]);
-      
+      console.log(
+        '[DEBUG] transformTemplateToQuestions - res.result:',
+        res.result,
+      );
+      console.log(
+        '[DEBUG] transformTemplateToQuestions - res.result.length:',
+        res.result?.length,
+      );
+      console.log(
+        '[DEBUG] transformTemplateToQuestions - res.result type:',
+        typeof res.result,
+      );
+      console.log(
+        '[DEBUG] transformTemplateToQuestions - res.result[0]:',
+        res.result?.[0],
+      );
+
       const questionsArray = res.result?.result || res.result;
-    
-      if (questionsArray && Array.isArray(questionsArray) && questionsArray.length > 0) {
-        console.log('[DEBUG] transformTemplateToQuestions - Setting questions:', questionsArray);
-        console.log('[DEBUG] transformTemplateToQuestions - Current questions before update:', questions);
-        
+
+      if (
+        questionsArray &&
+        Array.isArray(questionsArray) &&
+        questionsArray.length > 0
+      ) {
+        console.log(
+          '[DEBUG] transformTemplateToQuestions - Setting questions:',
+          questionsArray,
+        );
+        console.log(
+          '[DEBUG] transformTemplateToQuestions - Current questions before update:',
+          questions,
+        );
+
         setQuestions(questionsArray);
         setSelectedId(questionsArray[0].id);
         setTab('preview');
-        
-        console.log('[DEBUG] transformTemplateToQuestions - Should switch to preview tab');
+
+        console.log(
+          '[DEBUG] transformTemplateToQuestions - Should switch to preview tab',
+        );
       } else {
-        console.warn('[DEBUG] transformTemplateToQuestions - No valid result received');
-        console.warn('[DEBUG] transformTemplateToQuestions - questionsArray is:', questionsArray);
-        console.warn('[DEBUG] transformTemplateToQuestions - res.result is:', res.result);
+        console.warn(
+          '[DEBUG] transformTemplateToQuestions - No valid result received',
+        );
+        console.warn(
+          '[DEBUG] transformTemplateToQuestions - questionsArray is:',
+          questionsArray,
+        );
+        console.warn(
+          '[DEBUG] transformTemplateToQuestions - res.result is:',
+          res.result,
+        );
       }
     } catch (e) {
       console.error('Failed to transform template', e);
@@ -224,20 +266,15 @@ export default function CreationTrame() {
 
   const save = async () => {
     if (!sectionId) return;
-    let tplId = templateRefId;
-    if (tplId) {
-      await updateTemplate(tplId, { ...template, label: nomTrame });
-    } else {
-      const created = await createTemplate({ ...template, label: nomTrame });
-      tplId = created.id;
-      setTemplateRefId(tplId);
+    if (templateRefId) {
+      await updateTemplate(templateRefId, { ...template, label: nomTrame });
     }
     await updateSection(sectionId, {
       title: nomTrame,
       kind: categorie,
       schema: questions,
       isPublic,
-      templateRefId: tplId,
+      templateRefId,
     });
     for (const content of newExamples) {
       await createExample({ sectionId, content });
@@ -286,7 +323,9 @@ export default function CreationTrame() {
               </button>
               <button
                 className={`pb-2 px-1 border-b-2 ${
-                  tab === 'preview' ? 'border-primary-600' : 'border-transparent'
+                  tab === 'preview'
+                    ? 'border-primary-600'
+                    : 'border-transparent'
                 }`}
                 onClick={() => setTab('preview')}
               >
@@ -294,7 +333,9 @@ export default function CreationTrame() {
               </button>
               <button
                 className={`pb-2 px-1 border-b-2 ${
-                  tab === 'examples' ? 'border-primary-600' : 'border-transparent'
+                  tab === 'examples'
+                    ? 'border-primary-600'
+                    : 'border-transparent'
                 }`}
                 onClick={() => setTab('examples')}
               >
@@ -302,7 +343,9 @@ export default function CreationTrame() {
               </button>
               <button
                 className={`pb-2 px-1 border-b-2 ${
-                  tab === 'template' ? 'border-primary-600' : 'border-transparent'
+                  tab === 'template'
+                    ? 'border-primary-600'
+                    : 'border-transparent'
                 }`}
                 onClick={() => setTab('template')}
               >
@@ -355,12 +398,33 @@ export default function CreationTrame() {
                     </span>
                   </div>
                 </div>
-              )}              
-              <TemplateEditor
-                template={template}
-                onChange={setTemplate}
-                onTransformToQuestions={transformTemplateToQuestions}
-              />
+              )}
+              {templateRefId ? (
+                <TemplateEditor
+                  template={template}
+                  onChange={setTemplate}
+                  onTransformToQuestions={transformTemplateToQuestions}
+                />
+              ) : (
+                <EmptyTemplateState
+                  onAdd={async () => {
+                    if (!sectionId) return;
+                    const created = await createTemplate({
+                      ...template,
+                      label: nomTrame,
+                    });
+                    setTemplate(created);
+                    setTemplateRefId(created.id);
+                    await updateSection(sectionId, {
+                      title: nomTrame,
+                      kind: categorie,
+                      schema: questions,
+                      isPublic,
+                      templateRefId: created.id,
+                    });
+                  }}
+                />
+              )}
             </div>
           )}
         </div>

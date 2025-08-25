@@ -119,7 +119,41 @@ it('prompts to save when leaving and saves on confirm', async () => {
   fireEvent.click(screen.getByRole('button', { name: 'Oui' }));
 
   await waitFor(() => expect(update).toHaveBeenCalled());
-  expect(tplCreate).toHaveBeenCalled();
+  expect(tplCreate).not.toHaveBeenCalled();
+});
+
+it('shows empty template state and creates template on demand', async () => {
+  import.meta.env.VITE_DISPLAY_IMPORT_BUTTON = 'false';
+  const update = vi.fn().mockResolvedValue(undefined);
+  useSectionStore.setState({
+    fetchOne: vi.fn().mockResolvedValue({
+      title: 'Section',
+      kind: '',
+      schema: [],
+      templateRefId: null,
+    }),
+    update,
+  });
+  useSectionTemplateStore.setState({ create: tplCreate });
+
+  render(
+    <MemoryRouter initialEntries={['/creation-trame/1']}>
+      <Routes>
+        <Route path="/creation-trame/:sectionId" element={<CreationTrame />} />
+      </Routes>
+    </MemoryRouter>,
+  );
+
+  await screen.findByRole('button', { name: /Template/i });
+  fireEvent.click(screen.getByRole('button', { name: /Template/i }));
+
+  expect(
+    await screen.findByRole('button', { name: /Ajouter un template/i }),
+  ).toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole('button', { name: /Ajouter un template/i }));
+  await waitFor(() => expect(tplCreate).toHaveBeenCalled());
+  expect(update).toHaveBeenCalled();
 });
 
 it('shows admin import button when enabled', async () => {

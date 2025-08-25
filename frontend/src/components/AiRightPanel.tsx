@@ -95,6 +95,7 @@ const useTrames = () => {
           isPublic: s.isPublic,
           authorId: s.authorId,
           author: s.author,
+          templateRefId: s.templateRefId,
         }));
     });
     return res;
