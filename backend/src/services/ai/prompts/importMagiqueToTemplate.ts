@@ -5,7 +5,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import {
   buildPlanController as originalBuildPlanController,
-  generatePlanFromText,
   generatePlanWithSlotsSpec,
   planToTemplateController as originalPlanToTemplateController,
   generateTemplateFromPlanAndText,
@@ -37,7 +36,7 @@ export async function buildPlanController(req: Request, res: Response) {
 
 // POST /api/importMagique/toTemplate
 // body: { planResolved: PlanResolved, originalText: string }
-export async function planToTemplateController(req: Request, res: Response, next: NextFunction) {
+export async function planToTemplateController(req: Request, res: Response, _next: NextFunction) {
   return originalPlanToTemplateController(req, res);
 }
 

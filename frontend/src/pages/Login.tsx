@@ -98,14 +98,7 @@ export default function Login() {
             {loading ? 'Redirection…' : 'Se connecter avec SSO'}
           </button>
 
-          <button
-            type="button"
-            onClick={handleSSOSignUp}
-            className="border p-2 rounded hover:bg-gray-100 disabled:opacity-50"
-            disabled={loading}
-          >
-            Créer un compte
-          </button>
+
         </div>
       </div>
     ); */

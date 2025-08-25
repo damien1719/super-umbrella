@@ -66,6 +66,7 @@
     "clsx": "^2.1.1",
     "dompurify": "^3.2.6",
     "dotenv": "^16.5.0",
+    "framer-motion": "^12.23.12",
     "html-docx-js-typescript": "^0.1.5",
     "keycloak-js": "^26.2.0",
     "lexical": "^0.33.1",

@@ -422,6 +422,7 @@ export async function generateSection(opts: {
       setGenerated?.((g) => ({ ...g, [section.id]: true }));
       setRegenSection?.(section.id);
       setRegenPrompt?.('');
+      return;
     } else if (result.type === 'lexical') {
       console.log(
         '[DEBUG] Generation - Received lexical result - START processing',

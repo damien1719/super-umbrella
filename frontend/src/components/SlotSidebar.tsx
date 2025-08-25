@@ -9,12 +9,21 @@ import SlotEditor from './SlotEditor';
 import { Button } from './ui/button';
 import { Card, CardHeader, CardContent } from './ui/card';
 import { Input } from './ui/input';
+import { Label } from './ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
 import {
   ChevronRight,
   Plus,
   Trash2,
   Settings,
   MoreHorizontal,
+  FileX,
 } from 'lucide-react';
 import { useState } from 'react';
 import {
@@ -22,7 +31,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from './ui/dropdown-menu';
+import type { FieldPreset } from '../types/template';
+import { ConfirmDialog } from './ui/confirm-dialog';
 
 interface Props {
   slots: SlotSpec[];
@@ -31,6 +43,7 @@ interface Props {
   onUpdateSlot?: (slotId: string, slotLabel: string) => void;
   onTransformToQuestions?: () => void;
   onMagicTemplating?: () => void;
+  onDeleteTemplate?: () => void;
   isTransforming?: boolean;
 }
 
@@ -41,9 +54,11 @@ export default function SlotSidebar({
   onUpdateSlot,
   onTransformToQuestions,
   onMagicTemplating,
+  onDeleteTemplate,
   isTransforming = false,
 }: Props) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const updateSlot = (index: number, updated: SlotSpec) => {
     const next = [...(slots || [])];
@@ -175,7 +190,7 @@ export default function SlotSidebar({
   };
 
   return (
-    <aside className="w-120 border-l border-gray-200 bg-gray-50/30 h-screen">
+    <aside className="w-120 border-l border-gray-200 bg-gray-50/30 h-full">
       {/* Header avec boutons d'action */}
       <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 shadow-sm">
         <div className="flex justify-between items-center gap-3">
@@ -244,6 +259,30 @@ export default function SlotSidebar({
                   ? 'Transforming...'
                   : 'Transformer en Questions'}
               </Button>
+            )}
+
+            {/* Menu d'actions secondaires */}
+            {onDeleteTemplate && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 w-8 p-0 border-gray-300 hover:bg-gray-50"
+                  >
+                    <MoreHorizontal className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="flex items-center gap-2 cursor-pointer hover:bg-red-50 text-red-600"
+                  >
+                    <FileX className="w-4 h-4" />
+                    <span>Supprimer le template</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
         </div>
@@ -315,9 +354,34 @@ export default function SlotSidebar({
                             />
                           </div>
                           {preset && (
-                            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded flex-shrink-0">
-                              {preset}
-                            </span>
+                            <div className="flex items-center gap-1">
+                              <Select
+                                value={preset}
+                                onValueChange={(value) => {
+                                  const newPreset = value as FieldPreset;
+                                  const updatedSlot = {
+                                    ...slot,
+                                    preset: newPreset,
+                                    prompt: FIELD_PRESETS[newPreset].prompt,
+                                  };
+                                  updateSlot(idx, updatedSlot);
+                                }}
+                              >
+                                <SelectTrigger
+                                  id={`preset-${idx}`}
+                                  className="h-6 w-20 text-xs border-gray-200"
+                                >
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {Object.keys(FIELD_PRESETS).map((p) => (
+                                    <SelectItem key={p} value={p}>
+                                      {p}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
                           )}
 
                           {/* Actions */}
@@ -377,6 +441,20 @@ export default function SlotSidebar({
           />
         </div>
       )}
+
+      {/* Confirmation de suppression du template */}
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        title="Supprimer le template"
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        confirmVariant="destructive"
+        onConfirm={() => {
+          onDeleteTemplate?.();
+          setShowDeleteConfirm(false);
+        }}
+      />
     </aside>
   );
 }

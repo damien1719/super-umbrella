@@ -161,7 +161,7 @@ export default function CreerTrameModal({
           <Button
             onClick={handleCreerTrame}
             disabled={!nomTrame || !categorieSelectionnee || jobs.length === 0}
-            className="bg-blue-600 hover:bg-blue-700"
+            variant="primary"
           >
             Créer la trame
           </Button>

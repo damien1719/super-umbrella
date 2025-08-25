@@ -1,4 +1,4 @@
-import type { SlotSpec, SlotType } from '../../../types/template';
+import type { SlotSpec } from '../../../types/template';
 
 type SlotsDict = Record<string, string | number | null | undefined>;
 type SpecDict  = Record<string, SlotSpec>;

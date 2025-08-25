@@ -12,7 +12,7 @@ export class OpenAIProvider {
   async chat(
     opts: ChatCompletionCreateParams,
     onChunk?: (delta: string) => void,
-    model?: string
+    _model?: string
   ) {
     let attempt = 0;
     while (attempt++ < 3) {
@@ -20,7 +20,7 @@ export class OpenAIProvider {
         const res = await this.client.chat.completions.create({
           ...opts,
           //model: model || "gpt-4.1-mini-2025-04-14",
-          model: "gpt-5-mini",
+          model: "gpt-5-nano",
           stream: Boolean(onChunk),
         });
 

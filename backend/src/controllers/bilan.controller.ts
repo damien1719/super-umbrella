@@ -149,8 +149,13 @@ export const BilanController = {
         res.status(404).json({ error: 'bilan not found' });
         return;
       }
-      // The export/renderer will render from JSON state; for conclude, send plain text for now
-      const text = await concludeBilan(JSON.stringify(bilan.descriptionJson));
+      
+      // Convertir le JSON du bilan en markdown lisible pour le LLM
+      const { bilanJsonToMarkdown } = await import('../utils/jsonToMarkdown');
+      const markdownContent = bilanJsonToMarkdown(bilan.descriptionJson);
+      
+      // Envoyer le markdown au service de conclusion
+      const text = await concludeBilan(markdownContent);
       res.json({ text });
     } catch (e) {
       next(e);

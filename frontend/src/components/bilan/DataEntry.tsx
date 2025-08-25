@@ -140,7 +140,9 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
           <div
             key={group.id}
             data-idx={i}
-            ref={(el) => (groupEls.current[i] = el)}
+            ref={(el) => {
+              groupEls.current[i] = el;
+            }}
             className="space-y-4"
           >
             <div className="relative z-10 mt-8 border-t border-gray-200 pt-4 flex items-center gap-2">
@@ -150,14 +152,28 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
               <h3 className="text-xl font-bold">{group.title}</h3>
             </div>
             {group.items.map((q) => (
-              <div key={q.id} className="space-y-2 p-2 rounded-md">
+              <div
+                key={q.id}
+                id={`question-${q.id}`}
+                className="space-y-2 p-2 rounded-md"
+              >
                 <Label className="block text-sm font-medium text-gray-800 mb-1">
                   {q.titre}
                 </Label>
                 <QuestionRenderer
                   question={q}
                   value={local[q.id]}
-                  onChange={(v) => setLocal({ ...local, [q.id]: v })}
+                  onChange={(v) =>
+                    setLocal({
+                      ...local,
+                      [q.id]: v as
+                        | string
+                        | number
+                        | boolean
+                        | string[]
+                        | Record<string, unknown>,
+                    })
+                  }
                   error={errors[q.id]}
                   setError={(msg) => setErrors((p) => ({ ...p, [q.id]: msg }))}
                 />
@@ -230,7 +246,17 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
                       <QuestionRenderer
                         question={q}
                         value={local[q.id]}
-                        onChange={(v) => setLocal({ ...local, [q.id]: v })}
+                        onChange={(v) =>
+                          setLocal({
+                            ...local,
+                            [q.id]: v as
+                              | string
+                              | number
+                              | boolean
+                              | string[]
+                              | Record<string, unknown>,
+                          })
+                        }
                         error={errors[q.id]}
                         setError={(msg) =>
                           setErrors((p) => ({ ...p, [q.id]: msg }))

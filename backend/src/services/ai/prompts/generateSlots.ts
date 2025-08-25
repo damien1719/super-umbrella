@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { openaiProvider } from '../providers/openai.provider';
 import { createHash } from 'crypto';
+import { DEFAULT_SYSTEM, SYSTEM_ERGO, SYSTEM_NEUROPSY } from './promptbuilder';
 
 import type { SlotSpec } from '../../../types/template';
 
@@ -10,18 +11,15 @@ function isFieldSpec(spec: SlotSpec): spec is import('../../../types/template').
   return spec.kind === 'field';
 }
 
-export function buildPrompt(ids: string[], spec: Record<string, SlotSpec>, notes: Notes, style?: string) {
+export function buildPrompt(_ids: string[], _spec: Record<string, SlotSpec>, notes: Notes, style?: string, job?: 'PSYCHOMOTRICIEN' | 'ERGOTHERAPEUTE' | 'NEUROPSYCHOLOGUE') {
   const schema: Record<string, string> = {};
-  const prompts: Record<string, string> = {};
-
 
   const fieldInfos: { id: string; label: string; prompt?: string }[] = [];
 
   console.log("notes", notes);
 
-
-  ids.forEach((id) => {
-    const slotSpec = spec[id];
+  _ids.forEach((id) => {
+    const slotSpec = _spec[id];
     schema[id] = (slotSpec && isFieldSpec(slotSpec)) ? slotSpec.type : 'text';
     if (slotSpec && isFieldSpec(slotSpec)) {
       fieldInfos.push({
@@ -34,9 +32,14 @@ export function buildPrompt(ids: string[], spec: Record<string, SlotSpec>, notes
     }
   });
 
-  console.log("slotSpec", spec);
+  console.log("slotSpec", _spec);
 
-  let promptText = `### Format attendu : \n Réponds UNIQUEMENT avec un JSON de la forme :
+  // Sélection du system prompt basé sur le job
+  const systemPrompt = job === 'ERGOTHERAPEUTE' ? SYSTEM_ERGO
+    : job === 'NEUROPSYCHOLOGUE' ? SYSTEM_NEUROPSY
+    : DEFAULT_SYSTEM;
+
+  let promptText = `${systemPrompt}\n\n### Format attendu : \n Réponds UNIQUEMENT avec un JSON de la forme :
 [
   { "id": "slotId", "value": ... }
 ]
@@ -65,7 +68,7 @@ export function buildPrompt(ids: string[], spec: Record<string, SlotSpec>, notes
   return promptText;
 }
 
-export function buildZod(ids: string[], spec: Record<string, SlotSpec>) {
+export function buildZod(_ids: string[], _spec: Record<string, SlotSpec>) {
 /*   const shape: Record<string, z.ZodTypeAny> = {};
   ids.forEach((id) => {
     const slotSpec = spec[id];
@@ -151,7 +154,7 @@ function normalizeToArray(data: unknown): Array<{ id: string; value: unknown }> 
   if (Array.isArray(data)) {
     // Expect array of { id, value } or raw values; filter/normalize
     return data
-      .map((item: any, index) => {
+      .map((item: any, _index) => {
         if (item && typeof item === 'object' && 'id' in item) {
           return { id: String((item as any).id), value: (item as any).value };
         }
@@ -167,7 +170,7 @@ function normalizeToArray(data: unknown): Array<{ id: string; value: unknown }> 
   return [];
 }
 
-export async function callModel(ids: string[], spec: Record<string, SlotSpec>, notes: Notes, style?: string) {
+export async function callModel(ids: string[], spec: Record<string, SlotSpec>, notes: Notes, style?: string, job?: 'PSYCHOMOTRICIEN' | 'ERGOTHERAPEUTE' | 'NEUROPSYCHOLOGUE') {
   // Extract imageBase64 from notes if present
   const { _imageBase64, ...cleanNotes } = notes as Notes & { _imageBase64?: string };
   const imageBase64 = _imageBase64;
@@ -178,6 +181,7 @@ export async function callModel(ids: string[], spec: Record<string, SlotSpec>, n
     notesKeys: Object.keys(notes || {}),
     hasStyle: !!style,
     styleLength: style?.length || 0,
+    job: job || 'PSYCHOMOTRICIEN',
   });
 
   if (ids.length === 0) {
@@ -203,7 +207,7 @@ export async function callModel(ids: string[], spec: Record<string, SlotSpec>, n
       batchIds: batch,
     });
 
-    const prompt = buildPrompt(batch, spec, cleanNotes, style);
+    const prompt = buildPrompt(batch, spec, cleanNotes, style, job);
     console.log(`[DEBUG] callModel - Batch ${batchIndex + 1} prompt built:`, {
       promptLength: prompt.length,
       promptPreview: prompt.slice(0, 300) + '...',

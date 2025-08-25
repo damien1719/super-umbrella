@@ -21,6 +21,7 @@ interface SectionTemplateState {
   create: (data: SectionTemplate) => Promise<SectionTemplate>;
   get: (id: string) => Promise<SectionTemplate>;
   update: (id: string, data: SectionTemplate) => Promise<SectionTemplate>;
+  delete: (id: string) => Promise<void>;
 }
 
 const endpoint = '/api/v1/section-templates';
@@ -158,5 +159,19 @@ export const useSectionTemplateStore = create<SectionTemplateState>((set) => ({
       items: state.items.map((s) => (s.id === id ? item : s)),
     }));
     return item;
+  },
+
+  async delete(id) {
+    const token = useAuth.getState().token;
+    if (!token) throw new Error('Non authentifié');
+
+    await apiFetch(`${endpoint}/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    set((state) => ({
+      items: state.items.filter((s) => s.id !== id),
+    }));
   },
 }));

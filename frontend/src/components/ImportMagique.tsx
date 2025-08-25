@@ -52,7 +52,6 @@ export default function ImportMagique({
         : q,
     );
 
-
   const handle = async () => {
     setLoading(true);
     try {
@@ -348,7 +347,7 @@ export default function ImportMagique({
             <div className="space-y-3">
               <div className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded p-3">
                 Attention: cette opération va écraser le template existant de
-                cette section s'il existe déjà.
+                cette section s&apos;il existe déjà.
               </div>
               <Textarea
                 value={text}

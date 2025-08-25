@@ -13,6 +13,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import GeneratingModal from '@/components/ui/generating-modal';
 import type { TrameOption, TrameExample } from './bilan/TrameSelector';
 import type { Answers, Question } from '@/types/question';
+import { sections, kindMap } from '@/types/trame';
 import {
   FileText,
   Eye,
@@ -25,47 +26,6 @@ import { apiFetch } from '@/utils/api';
 import { generateSection } from '@/services/generation';
 import { useAuth } from '@/store/auth';
 
-const kindMap: Record<string, string> = {
-  anamnese: 'anamnese',
-  'profil-sensoriel': 'profil_sensoriel',
-  'observations-cliniques': 'observations',
-  'tests-mabc': 'tests_standards',
-  conclusion: 'conclusion',
-};
-
-const sections: SectionInfo[] = [
-  {
-    id: 'anamnese',
-    title: 'Anamnèse',
-    icon: FileText,
-    description: 'Histoire personnelle et familiale',
-  },
-  {
-    id: 'profil-sensoriel',
-    title: 'Profil sensoriel',
-    icon: Eye,
-    description: 'Évaluation des capacités sensorielles',
-  },
-  {
-    id: 'observations-cliniques',
-    title: 'Observations',
-    icon: Brain,
-    description: 'Observations comportementales et motrices',
-  },
-  {
-    id: 'tests-mabc',
-    title: 'Tests',
-    icon: Activity,
-    description: 'Résultats des tests standardisés',
-  },
-  {
-    id: 'conclusion',
-    title: 'Conclusion',
-    icon: Activity,
-    description: 'Résultats des tests standardisés',
-  },
-];
-
 const useTrames = () => {
   const { items, fetchAll } = useSectionStore();
 
@@ -76,9 +36,10 @@ const useTrames = () => {
   return useMemo(() => {
     const res: Record<string, TrameOption[]> = {
       anamnese: [],
+      'tests-standards': [],
+      observations: [],
       'profil-sensoriel': [],
-      'observations-cliniques': [],
-      'tests-mabc': [],
+      'bilan-complet': [],
       conclusion: [],
     };
     Object.entries(kindMap).forEach(([key, kind]) => {
@@ -105,6 +66,7 @@ interface AiRightPanelProps {
   onSetEditorStateJson?: (state: unknown) => void;
   initialWizardSection?: string;
   initialTrameId?: string;
+  onSave?: () => Promise<void>; // Ajout de la prop onSave
 }
 
 export default function AiRightPanel({
@@ -113,6 +75,7 @@ export default function AiRightPanel({
   onSetEditorStateJson,
   initialWizardSection,
   initialTrameId,
+  onSave,
 }: AiRightPanelProps) {
   const trames = useTrames();
   const {
@@ -367,6 +330,10 @@ export default function AiRightPanel({
   const handleConclude = async () => {
     setIsGenerating(true);
     try {
+      if (onSave) {
+        await onSave();
+      }
+
       const res = await apiFetch<{ text: string }>(
         `/api/v1/bilans/${bilanId}/conclude`,
         {
@@ -675,13 +642,8 @@ export default function AiRightPanel({
                       onAnswersChange={(a) =>
                         setAnswers({ ...answers, [section.id]: a })
                       }
-                      onGenerate={async (latest, notes, imageBase64) =>
-                        await handleGenerate(
-                          section,
-                          latest,
-                          notes,
-                          imageBase64,
-                        )
+                      onGenerate={async (latest?: Answers) =>
+                        await handleGenerate(section, latest, '', undefined)
                       }
                       isGenerating={
                         isGenerating && selectedSection === section.id

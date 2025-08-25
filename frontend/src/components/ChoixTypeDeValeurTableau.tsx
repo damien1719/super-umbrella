@@ -58,7 +58,7 @@ export default function ChoixTypeDeValeurTableau({
 
   return (
     <Dialog open={!!column} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent>
+      <DialogContent className="max-h-[80vh] w-full max-w-lg overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Type de valeur</DialogTitle>
         </DialogHeader>
