@@ -30,20 +30,24 @@ function markdownifyTable(q: Question, ansTable: TableAnswers): string {
   const columns = q.tableau.columns;
   const allRows = q.tableau.rowsGroups?.flatMap((rg) => rg.rows) || [];
 
+  console.log("columns", columns);
+  console.log("allRows", allRows);
+
+
   const isNonEmpty = (v: unknown, col?: { valueType?: string }) => {
-    if (col?.valueType === 'bool') return v === true;
+    if (col?.valueType === 'bool') return v === true || v === false;
     if (typeof v === 'number') return true;
     if (typeof v === 'string') return (v as string).trim() !== '';
     if (typeof v === 'boolean') return v === true;
     return false;
   };
 
-  const formatCell = (v: unknown, col?: { valueType?: string }) => {
-    if (col?.valueType === 'bool') return v === true ? '✓' : '';
+  const formatCell = (v: unknown, col?: { valueType?: string, label?: string }) => {
+    if (col?.valueType === 'bool') return v === true ? (col.label ?? 'true') : '';
     if (v == null) return '';
     if (typeof v === 'string') return (v as string).trim();
     if (typeof v === 'number') return String(v);
-    if (typeof v === 'boolean') return v ? '✓' : '';
+    if (typeof v === 'boolean') return v ? 'true' : '';
     return '';
   };
 
@@ -51,7 +55,7 @@ function markdownifyTable(q: Question, ansTable: TableAnswers): string {
     allRows.some((row) => {
       const rowData = ansTable[row.id] as Record<string, unknown> | undefined;
       const v = rowData?.[col.id];
-      return isNonEmpty(v);
+      return isNonEmpty(v, col);
     }),
   );
 
@@ -62,16 +66,24 @@ function markdownifyTable(q: Question, ansTable: TableAnswers): string {
     const headerLine = `| ${['Ligne', ...keptColumns.map((c) => c.label)].join(' | ')} |`;
     const sepLine = `| ${['---', ...keptColumns.map(() => '---')].join(' | ')} |`;
     const bodyLines = allRows
-      .map((row) => {
-        const rowData = ansTable[row.id] as Record<string, unknown> | undefined;
-        const cells = keptColumns.map((col) =>
-          formatCell(rowData?.[col.id], col),
-        );
-        return `| ${[row.label, ...cells].join(' | ')} |`;
-      })
-      .join('\n');
+    .filter((row) => {
+      const rowData = ansTable[row.id] as Record<string, unknown> | undefined;
+      // garde la ligne si au moins UNE cellule est non vide
+      return keptColumns.some((col) => isNonEmpty(rowData?.[col.id], col));
+    })
+    .map((row) => {
+      const rowData = ansTable[row.id] as Record<string, unknown> | undefined;
+      const cells = keptColumns.map((col) =>
+        formatCell(rowData?.[col.id], col),
+      );
+      console.log("cells", cells);
+      return `| ${[row.label, ...cells].join(' | ')} |`;
+    })
+    .join('\n');
     tablePart = `${headerLine}\n${sepLine}\n${bodyLines}`;
   }
+
+  console.log("tablePart", tablePart);
 
   const commentVal = ansTable.commentaire;
   const comment =
@@ -220,7 +232,8 @@ async function doRequestFromTemplate(params: {
     trameId: params.trameId,
     answers: params.chunks,
     stylePrompt: params.stylePrompt,
-    contentNotes: params.contentNotes,
+    //contentNotes: params.contentNotes,
+    contentNotes: {},
     rawNotes: params.rawNotes,
   };
   if (params.imageBase64) body.imageBase64 = params.imageBase64;

@@ -17,6 +17,8 @@ export function buildPrompt(ids: string[], spec: Record<string, SlotSpec>, notes
 
   const fieldInfos: { id: string; label: string; prompt?: string }[] = [];
 
+  console.log("notes", notes);
+
 
   ids.forEach((id) => {
     const slotSpec = spec[id];
@@ -34,7 +36,7 @@ export function buildPrompt(ids: string[], spec: Record<string, SlotSpec>, notes
 
   console.log("slotSpec", spec);
 
-  let promptText = `Réponds UNIQUEMENT avec un JSON de la forme :
+  let promptText = `### Format attendu : \n Réponds UNIQUEMENT avec un JSON de la forme :
 [
   { "id": "slotId", "value": ... }
 ]
@@ -42,22 +44,21 @@ export function buildPrompt(ids: string[], spec: Record<string, SlotSpec>, notes
 /* Liste des ids à remplir : ${ids.join(', ')}
  */
   if (fieldInfos.length > 0) {
-    promptText += `\nChamps à remplir (id, label, prompt optionnel):\n` +
+    promptText += `\n\n###Champs à remplir (id, label, prompt optionnel):\n` +
       fieldInfos.map(f => 
         `"id": "${f.id}", "label": "${f.label}", "prompt": "${f.prompt}"`
       ).join('\n');
   }
 
-  if (style) promptText += `\n\nStyle à respecter: ${style}`;
-  if (Object.keys(notes).length > 0) promptText += `\n\nContexte: ${JSON.stringify(notes)}`;
+  if (style) promptText += `\n\n###Style à respecter: ${style}`;
+  if (Object.keys(notes).length > 0) promptText += `\n\n###Contexte: ${JSON.stringify(notes)}`;
 
   // Garde les contraintes de style pour les champs rédigés
-  promptText += `\n\nRègles importantes :
+  promptText += `\n\n###Règles importantes :
 - Pour chaque champ, extraire du Contexte ce qui correspond au label (synonymes/variantes acceptés).
 - Rend compte de toutes les informations brutes présentes dans le Contexte.
 - Si un "prompt" est présent, respecter son intention (ex: "description factuelle simple").
 - Si le Contexte ne fournit rien, n'écris rien.
-- Ecris des phrases complètes, ton descriptif et professionnel, pas de listes.
 - Ne renvoie STRICTEMENT que le JSON demandé.
 `;
 
