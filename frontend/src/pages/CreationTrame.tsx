@@ -208,7 +208,7 @@ export default function CreationTrame() {
     setQuestions((qs: Question[]) =>
       qs.map((q: Question) => {
         if (q.id !== id) return q;
-        const merged: any = { ...q, ...partial };
+        const merged = { ...q, ...partial } as Question;
         if (
           (partial as any).tableau !== undefined &&
           (q as any).tableau !== undefined
@@ -236,11 +236,11 @@ export default function CreationTrame() {
     const idx = questions.findIndex((q) => q.id === id);
     if (idx === -1) return;
     const original = questions[idx];
-    const clone: Question = {
+    const clone = {
       ...(JSON.parse(JSON.stringify(original)) as Question),
       id: Date.now().toString(),
       titre: 'Question sans titre',
-    };
+    } as Question;
     setQuestions((qs) => {
       const before = qs.slice(0, idx + 1);
       const after = qs.slice(idx + 1);
@@ -357,75 +357,75 @@ export default function CreationTrame() {
       </div>
       {/* Zone scrollable des onglets */}
       <div className="flex-1 min-h-0 px-6 pb-6">
-          {tab === 'questions' && (
-            <QuestionList
-              questions={questions}
-              selectedId={selectedId}
-              onSelect={setSelectedId}
-              onPatch={onPatch}
-              onReorder={onReorder}
-              onDuplicate={onDuplicate}
-              onDelete={onDelete}
-              onAddAfter={onAddAfter}
-            />
-          )}
+        {tab === 'questions' && (
+          <QuestionList
+            questions={questions}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
+            onPatch={onPatch}
+            onReorder={onReorder}
+            onDuplicate={onDuplicate}
+            onDelete={onDelete}
+            onAddAfter={onAddAfter}
+          />
+        )}
 
-          {tab === 'preview' && (
-            <DataEntry
-              inline
-              questions={questions}
-              answers={previewAnswers}
-              onChange={setPreviewAnswers}
-            />
-          )}
+        {tab === 'preview' && (
+          <DataEntry
+            inline
+            questions={questions}
+            answers={previewAnswers}
+            onChange={setPreviewAnswers}
+          />
+        )}
 
-          {tab === 'examples' && (
-            <SaisieExempleTrame
-              examples={newExamples}
-              onAdd={(c) => setNewExamples((p) => [...p, c])}
-            />
-          )}
+        {tab === 'examples' && (
+          <SaisieExempleTrame
+            examples={newExamples}
+            onAdd={(c) => setNewExamples((p) => [...p, c])}
+          />
+        )}
 
-          {tab === 'template' && (
-            <div>
-              {loadingTemplate && (
-                <div className="bg-blue-50 border border-blue-200 rounded p-4 mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                    <span className="text-blue-800">
-                      Chargement du template...
-                    </span>
-                  </div>
+        {tab === 'template' && (
+          <div>
+            {loadingTemplate && (
+              <div className="bg-blue-50 border border-blue-200 rounded p-4 mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                  <span className="text-blue-800">
+                    Chargement du template...
+                  </span>
                 </div>
-              )}
-              {templateRefId ? (
-                <TemplateEditor
-                  template={template}
-                  onChange={setTemplate}
-                  onTransformToQuestions={transformTemplateToQuestions}
-                />
-              ) : (
-                <EmptyTemplateState
-                  onAdd={async () => {
-                    if (!sectionId) return;
-                    const created = await createTemplate({
-                      ...template,
-                      label: nomTrame,
-                    });
-                    setTemplate(created);
-                    setTemplateRefId(created.id);
-                    await updateSection(sectionId, {
-                      title: nomTrame,
-                      kind: categorie,
-                      schema: questions,
-                      isPublic,
-                      templateRefId: created.id,
-                    });
-                  }}
-                />
-              )}
-            </div>
-          )}
+              </div>
+            )}
+            {templateRefId ? (
+              <TemplateEditor
+                template={template}
+                onChange={setTemplate}
+                onTransformToQuestions={transformTemplateToQuestions}
+              />
+            ) : (
+              <EmptyTemplateState
+                onAdd={async () => {
+                  if (!sectionId) return;
+                  const created = await createTemplate({
+                    ...template,
+                    label: nomTrame,
+                  });
+                  setTemplate(created);
+                  setTemplateRefId(created.id);
+                  await updateSection(sectionId, {
+                    title: nomTrame,
+                    kind: categorie,
+                    schema: questions,
+                    isPublic,
+                    templateRefId: created.id,
+                  });
+                }}
+              />
+            )}
+          </div>
+        )}
       </div>
 
       {/* Dialogs (portail) */}

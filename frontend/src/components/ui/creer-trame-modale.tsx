@@ -32,7 +32,6 @@ interface CreerTrameModalProps {
 
 export default function CreerTrameModal({
   trigger,
-  initialCategory = '',
   onCreated,
 }: CreerTrameModalProps = {}) {
   const [open, setOpen] = useState(false);

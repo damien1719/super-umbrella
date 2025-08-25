@@ -407,7 +407,7 @@ export default function WizardAIRightPanel({
 
   const handleClose = async () => {
     if (step === 2 && selectedTrame && !isManualSaving) {
-      const data = dataEntryRef.current?.save() as Answers | undefined;
+      //const data = dataEntryRef.current?.save() as Answers | undefined;
       try {
         /*         await saveNotes(data);
          */

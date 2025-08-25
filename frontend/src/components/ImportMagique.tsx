@@ -7,7 +7,7 @@ import { DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { apiFetch } from '@/utils/api';
 import { useAuth } from '@/store/auth';
 import { cn } from '@/lib/utils';
-import type { Question, ColumnDef, Row } from '@/types/question';
+import type { Question } from '@/types/question';
 import { Loader2 } from 'lucide-react';
 
 interface ImportMagiqueProps {
@@ -52,32 +52,6 @@ export default function ImportMagique({
         : q,
     );
 
-  const transformTable = (rows: (string | number)[][]) => {
-    if (rows.length === 0) return [];
-    const header = rows[0];
-    const columns: ColumnDef[] = header
-      .slice(1)
-      .map((c, idx) => ({
-        id: `c${idx}`,
-        label: String(c).trim(),
-        valueType: 'text' as const,
-      }))
-      .filter((c) => c.label);
-    const lignes: Row[] = rows
-      .slice(1)
-      .map((r, idx) => ({ id: `r${idx}`, label: String(r[0]).trim() }))
-      .filter((r) => r.label);
-    return [
-      {
-        id: Date.now().toString(),
-        type: 'tableau' as const,
-        titre: 'Question sans titre',
-        tableau: { columns, sections: [{ id: 's1', title: '', rows: lignes }] },
-      },
-    ];
-  };
-
-  /// DETTE ANCIEN FORMAT DE TABLEAU ///
 
   const handle = async () => {
     setLoading(true);
@@ -95,7 +69,7 @@ export default function ImportMagique({
             body: JSON.stringify({ content: text }),
           },
         );
-        console.log("res", res);
+        console.log('res', res);
         onDone(res.result);
       } else if (tableImportType === 'excel' && file) {
         const data = await new Promise<ArrayBuffer>((resolve, reject) => {
@@ -158,7 +132,7 @@ export default function ImportMagique({
         onDone(addDefaultValueType(res.result));
       }
     } catch {
-      alert("Nous n'avons pas pu transformé votre tableau");
+      alert('Nous n&apos;avons pas pu transformé votre tableau');
     } finally {
       setLoading(false);
       onCancel();

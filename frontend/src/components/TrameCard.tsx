@@ -1,12 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Copy, MoreVertical, Check, ExternalLink, Trash2 } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Copy, ExternalLink, Trash2 } from 'lucide-react';
+
 import { cn } from '@/lib/utils';
 
 export interface TrameInfo {

@@ -2,11 +2,17 @@ export type SlotType = 'text' | 'number' | 'list' | 'table';
 
 export type SlotMode = 'user' | 'computed' | 'llm';
 
-export type FieldPreset = 'description' | 'score' | 'classification' | 'conclusion' | 'custom';
+export type FieldPreset =
+  | 'description'
+  | 'score'
+  | 'classification'
+  | 'conclusion'
+  | 'custom';
 
 export const FIELD_PRESETS: Record<FieldPreset, { prompt: string }> = {
   description: {
-    prompt: 'Description factuelle en phrases complètes, ton descriptif et professionnel, pas de listes',
+    prompt:
+      'Description factuelle en phrases complètes, ton descriptif et professionnel, pas de listes',
   },
   score: {
     prompt: 'Le chiffre uniquement',

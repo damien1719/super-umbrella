@@ -128,30 +128,42 @@ export default function TemplateEditor({
             onMagicTemplating={() => {
               console.log('[DEBUG] MagicTemplating clicked');
               console.log('[DEBUG] editorRef.current:', editorRef.current);
-              console.log('[DEBUG] scanAndInsertSlots available:', !!editorRef.current?.scanAndInsertSlots);
-              
+              console.log(
+                '[DEBUG] scanAndInsertSlots available:',
+                !!editorRef.current?.scanAndInsertSlots,
+              );
+
               if (editorRef.current?.scanAndInsertSlots) {
                 console.log('[DEBUG] Calling scanAndInsertSlots...');
-                
+
                 // Collecter tous les slots créés
                 const newSlots: FieldSpec[] = [];
-                
+
                 editorRef.current.scanAndInsertSlots((slot) => {
                   console.log('[DEBUG] Slot created:', slot);
                   newSlots.push(slot);
                 });
-                
+
                 // Ajouter tous les nouveaux slots au template en une seule fois
                 if (newSlots.length > 0) {
-                  console.log('[DEBUG] Adding', newSlots.length, 'new slots to template');
-                  const updatedSlots = [...(template.slotsSpec || []), ...newSlots];
+                  console.log(
+                    '[DEBUG] Adding',
+                    newSlots.length,
+                    'new slots to template',
+                  );
+                  const updatedSlots = [
+                    ...(template.slotsSpec || []),
+                    ...newSlots,
+                  ];
                   onChange({ ...template, slotsSpec: updatedSlots });
                   console.log('[DEBUG] Template updated with all new slots');
                 }
-                
+
                 console.log('[DEBUG] scanAndInsertSlots called successfully');
               } else {
-                console.error('[DEBUG] scanAndInsertSlots not available on editorRef.current');
+                console.error(
+                  '[DEBUG] scanAndInsertSlots not available on editorRef.current',
+                );
               }
             }}
             isTransforming={isTransforming}

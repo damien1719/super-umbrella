@@ -14,7 +14,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Plus, Edit2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import type { Question, Answers } from '@/types/question';
 import { QuestionRenderer } from './QuestionRenderer';
 import { GroupedQuestionsNav } from './GroupedQuestionsNav';
@@ -113,8 +113,6 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
     useEffect(() => {
       setLocal(answers);
     }, [answers]);
-
-    const answeredCount = Object.keys(answers).length;
 
     const save = () => {
       if (Object.values(errors).some((e) => e)) {

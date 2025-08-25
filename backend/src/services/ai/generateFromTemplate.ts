@@ -1,4 +1,4 @@
-import type { FieldSpec, GroupSpec, RepeatSpec, UseKitSpec, SlotSpec } from '../../types/template';
+import type { FieldSpec, SlotSpec } from '../../types/template';
 
 import { prisma } from '../../prisma';
 import { SectionTemplateService } from '../sectionTemplate.service';
@@ -10,29 +10,9 @@ type Notes = Record<string, unknown>;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = prisma as any;
 
-function getAtPath(obj: unknown, path: string): unknown {
-  if (!path) return undefined;
-  const parts = path.split('.');
-  let cur: any = obj as any;
-  for (const p of parts) {
-    if (cur == null) return undefined;
-    cur = cur[p];
-  }
-  return cur;
-}
 
-function ensureArray<T>(val: unknown): T[] {
-  if (Array.isArray(val)) return val as T[];
-  if (val == null) return [] as T[];
-  return [val as T];
-}
 
-function simpleTpl(input: string, ctx: Record<string, unknown>): string {
-  return String(input || '').replace(/\{\{\s*([\w\.]+)\s*\}\}/g, (_, path) => {
-    const v = getAtPath(ctx, path);
-    return v == null ? '' : String(v);
-  });
-}
+
 
 type Item = { key: string; label: string };
 
@@ -115,7 +95,6 @@ function expandSlotsSpec(slots: SlotSpec[]): Record<string, FieldSpec> {
       }
 
       default: {
-        const _never: never = node;
         throw new Error(`Unknown slot kind at ${trace}`);
       }
     }
@@ -190,10 +169,8 @@ export async function generateFromTemplate(
 
   // DEBUG mapping for templated ids: log unmatched ids
   const allIds = Object.keys(slotsSpec);
-  const provided = Object.keys(slots);
   const missing = allIds.filter((id) => slots[id] === undefined);
   if (missing.length > 0) {
-    // eslint-disable-next-line no-console
     console.warn('[generateFromTemplate] Missing slot values for:', missing.slice(0, 20));
   }
 

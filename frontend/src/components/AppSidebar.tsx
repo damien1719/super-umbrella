@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
-  Home,
   CreditCard,
   Crown,
   User,

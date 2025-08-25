@@ -106,10 +106,10 @@ export default function ImportNotes({
           <RadioGroupItem value="text" id="notes-text" />
           <label htmlFor="notes-text">Texte</label>
         </div>
-        <div className="flex items-center space-x-2">
+        {/*         <div className="flex items-center space-x-2">
           <RadioGroupItem value="excel" id="notes-excel" />
           <label htmlFor="notes-excel">Excel</label>
-        </div>
+        </div> */}
         <div className="flex items-center space-x-2">
           <RadioGroupItem value="image" id="notes-image" />
           <label htmlFor="notes-image">Image</label>

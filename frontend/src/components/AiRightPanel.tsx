@@ -18,9 +18,6 @@ import {
   Eye,
   Brain,
   Activity,
-  Flag,
-  PlusIcon,
-  ArrowRight,
   ArrowRightCircle,
   Wand2,
 } from 'lucide-react';
@@ -150,9 +147,6 @@ export default function AiRightPanel({
   const [refinedText, setRefinedText] = useState('');
   useEditorUi((s) => s.selection);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [commentModalOpen, setCommentModalOpen] = useState(false);
-  const [commentFile, setCommentFile] = useState<File | null>(null);
-  const commentFileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (regenSection && textareaRef.current) {
@@ -200,7 +194,6 @@ export default function AiRightPanel({
   };
 
   // local markdown helpers moved to services/generation
-  type TableAnswers = Record<string, unknown> & { commentaire?: string };
 
   const handleGenerate = async (
     section: SectionInfo,
@@ -211,7 +204,10 @@ export default function AiRightPanel({
     await generateSection({
       mode: 'direct',
       section,
-      trames: trames as any,
+      trames: trames as Record<
+        string,
+        Array<{ value: string; schema: Question[] }>
+      >,
       selectedTrames,
       answers,
       newAnswers,
@@ -228,7 +224,7 @@ export default function AiRightPanel({
       setRegenPrompt,
       onInsertText,
       onSetEditorStateJson,
-      examples: examples as any,
+      examples: examples as Array<{ sectionId: string; stylePrompt?: string }>,
     });
   };
 
@@ -278,7 +274,10 @@ export default function AiRightPanel({
       const generationParams = {
         mode: 'template' as const,
         section,
-        trames: trames as any,
+        trames: trames as Record<
+          string,
+          Array<{ value: string; schema: Question[] }>
+        >,
         selectedTrames,
         answers,
         newAnswers,
@@ -293,7 +292,10 @@ export default function AiRightPanel({
         setWizardSection,
         onInsertText,
         onSetEditorStateJson,
-        examples: examples as any,
+        examples: examples as Array<{
+          sectionId: string;
+          stylePrompt?: string;
+        }>,
       };
 
       console.log(
@@ -378,76 +380,6 @@ export default function AiRightPanel({
     }
   };
 
-  async function convertFileToHtml(file: File): Promise<string> {
-    try {
-      if (
-        file.type ===
-          'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-        file.name.endsWith('.docx')
-      ) {
-        const arrayBuffer = await file.arrayBuffer();
-        const mammoth = await import('mammoth');
-        const result = await mammoth.convertToHtml({ arrayBuffer });
-        return result.value;
-      }
-      if (
-        file.type ===
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-        file.name.endsWith('.xlsx')
-      ) {
-        const arrayBuffer = await file.arrayBuffer();
-        const XLSX = await import('xlsx');
-        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-        const sheetName = workbook.SheetNames[0];
-        return XLSX.utils.sheet_to_html(workbook.Sheets[sheetName]);
-      }
-      if (typeof file.text === 'function') {
-        return await file.text();
-      }
-      return await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = () => reject(reader.error);
-        reader.readAsText(file);
-      });
-    } catch {
-      if (typeof file.text === 'function') {
-        return await file.text();
-      }
-      return await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = () => reject(reader.error);
-        reader.readAsText(file);
-      });
-    }
-  }
-
-  const handleCommentTestResults = async () => {
-    if (!commentFile) return;
-    setIsGenerating(true);
-    try {
-      const html = await convertFileToHtml(commentFile);
-      const body = {
-        prompt: 'promptCommentTestResults',
-        html,
-      };
-      const res = await apiFetch<{ text: string }>(
-        `/api/v1/bilans/${bilanId}/comment-test-results`,
-        {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
-          body: JSON.stringify(body),
-        },
-      );
-      onInsertText(res.text);
-      setCommentModalOpen(false);
-      setCommentFile(null);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
   return (
     <div className="w-full max-w-md bg-wood-50 rounded-lg shadow-lg">
       <GeneratingModal open={isGenerating} />
@@ -466,9 +398,7 @@ export default function AiRightPanel({
                 ? 'Génération de section'
                 : regenSection
                   ? 'Modifier la section'
-                  : commentModalOpen
-                    ? 'Commenter des résultats'
-                    : 'Assistant IA'}
+                  : 'Assistant IA'}
           </span>
           {(regenSection || mode === 'refine') && (
             <Button
@@ -782,16 +712,6 @@ export default function AiRightPanel({
                     size="default"
                     variant="default"
                     className="h-8 px-2 text-base"
-                    onClick={() => setCommentModalOpen(true)}
-                    disabled={isGenerating}
-                  >
-                    Commenter des résultats de tests
-                    <Wand2 className="h-4 w-4 ml-1" />
-                  </Button>
-                  <Button
-                    size="default"
-                    variant="default"
-                    className="h-8 px-2 text-base"
                     onClick={handleConclude}
                     disabled={isGenerating}
                   >
@@ -802,72 +722,6 @@ export default function AiRightPanel({
               </div>
             </ScrollArea>
           )}
-          <Dialog
-            open={commentModalOpen}
-            onOpenChange={(open) => {
-              if (!open) {
-                setCommentModalOpen(false);
-                setCommentFile(null);
-              }
-            }}
-          >
-            <DialogContent showCloseButton={false}>
-              <div className="space-y-4">
-                <div className="flex flex-col items-center justify-center gap-3 min-h-[200px]">
-                  <input
-                    ref={commentFileInputRef}
-                    type="file"
-                    accept=".xls,.xlsx,.doc,.docx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                    onChange={(e) =>
-                      setCommentFile(e.target.files?.[0] || null)
-                    }
-                    className="hidden"
-                    data-testid="comment-file-input"
-                  />
-                  {commentFile ? (
-                    <input
-                      type="text"
-                      value={commentFile.name}
-                      readOnly
-                      className="border rounded px-3 py-2 bg-gray-50 text-gray-700 w-full max-w-xs"
-                      style={{ cursor: 'default' }}
-                    />
-                  ) : (
-                    <Button
-                      type="button"
-                      onClick={() => commentFileInputRef.current?.click()}
-                      disabled={isGenerating}
-                    >
-                      +Choisir un fichier
-                    </Button>
-                  )}
-                  <p className="text-xs text-muted-foreground text-center">
-                    Formats acceptés : .doc, .docx, .xls, .xlsx
-                  </p>
-                </div>
-                <div className="flex justify-end gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setCommentModalOpen(false);
-                      setCommentFile(null);
-                    }}
-                    disabled={isGenerating}
-                  >
-                    Annuler
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={handleCommentTestResults}
-                    disabled={!commentFile || isGenerating}
-                  >
-                    {isGenerating ? 'Génération...' : 'Valider'}
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
         </div>
       </div>
     </div>

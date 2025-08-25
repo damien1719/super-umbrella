@@ -29,7 +29,13 @@ interface Props {
 }
 
 const types: SlotType[] = ['text', 'number', 'list', 'table'];
-const presets: FieldPreset[] = ['description', 'score', 'classification', 'conclusion', 'custom'];
+const presets: FieldPreset[] = [
+  'description',
+  'score',
+  'classification',
+  'conclusion',
+  'custom',
+];
 
 export default function SlotEditor({
   slot,
