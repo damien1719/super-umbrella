@@ -49,13 +49,13 @@ const items: {
     path: '/',
     icon: LayoutDashboard,
   },
-  { title: 'Mes Patients', page: 'Patients', path: '/patients', icon: User },
   {
     title: 'Bibliothèque',
     page: 'Bibliotheque',
     path: '/bibliotheque',
     icon: Library,
   },
+  { title: 'Mes Patients', page: 'Patients', path: '/patients', icon: User },
   {
     title: 'Abonnement',
     page: 'Abonnement',

@@ -8,6 +8,7 @@ import Agenda from './pages/Agenda';
 import Abonnement from './pages/Abonnement';
 import MonCompteV2 from './pages/MonCompte';
 import Patients from './pages/Patients';
+import VuePatient from './pages/VuePatient';
 import Bibliotheque from './pages/Bibliothèque';
 import CreationTrame from './pages/CreationTrame';
 import Login from './pages/Login';
@@ -208,6 +209,7 @@ export default function App() {
       <Route element={<ProtectedLayout />}>
         <Route path="/" element={<BilanV2 />} />
         <Route path="/patients" element={<Patients />} />
+        <Route path="/patients/:patientId" element={<VuePatient />} />
         <Route path="/agenda" element={<Agenda />} />
         <Route path="/bibliotheque" element={<Bibliotheque />} />
         <Route path="/abonnement" element={<Abonnement />} />
