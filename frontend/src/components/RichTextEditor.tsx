@@ -59,6 +59,7 @@ export interface RichTextEditorHandle {
   getPlainText?: () => string;
   insertSlot?: (slotId: string, slotLabel: string, slotType: SlotType) => void;
   updateSlot?: (slotId: string, slotLabel: string) => void;
+  removeSlot?: (slotId: string) => void;
   scanAndInsertSlots?: (onSlotCreated?: (slot: FieldSpec) => void) => void;
 }
 
@@ -185,6 +186,33 @@ const ImperativeHandlePlugin = forwardRef<RichTextEditorHandle, object>(
               ) {
                 // Safe mutation using node API
                 slotCandidate.setLabel?.(slotLabel);
+                return true;
+              }
+              if (typeof slotCandidate.getChildren === 'function') {
+                for (const child of slotCandidate.getChildren()) {
+                  if (visit(child)) return true;
+                }
+              }
+              return false;
+            };
+            visit(root);
+          });
+        },
+        removeSlot(slotId: string) {
+          editor.update(() => {
+            const root = $getRoot();
+            const visit = (node: LexicalNode): boolean => {
+              const slotCandidate = node as unknown as {
+                getSlotId?: () => string;
+                remove?: () => void;
+                getChildren?: () => LexicalNode[];
+              };
+              if (
+                typeof slotCandidate.getSlotId === 'function' &&
+                slotCandidate.getSlotId() === slotId
+              ) {
+                // Safe mutation using node API
+                slotCandidate.remove?.();
                 return true;
               }
               if (typeof slotCandidate.getChildren === 'function') {

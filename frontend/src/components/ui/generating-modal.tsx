@@ -99,7 +99,7 @@ export default function GeneratingModal({
             />
           </div>
           <p className="mt-2 text-center text-xs text-muted-foreground">
-            Bilan plume s’active… quelques instants.
+            Bilan plume s’active… La génération peut prendre jusqu'à 2-3 minutes en fonction de la longueur et de la complexité du document.
           </p>
         </div>
       </DialogContent>

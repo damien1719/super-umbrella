@@ -20,6 +20,7 @@ import ExitConfirmation from '@/components/ExitConfirmation';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import TemplateEditor from '@/components/TemplateEditor';
 import EmptyTemplateState from '@/components/EmptyTemplateState';
+import Settings from '@/components/Settings';
 import { useSectionTemplateStore } from '../store/sectionTemplates';
 import type { SectionTemplate, SlotSpec } from '../types/template';
 import { apiFetch } from '@/utils/api';
@@ -41,7 +42,7 @@ export default function CreationTrame() {
   const createExample = useSectionExampleStore((s) => s.create);
 
   const [tab, setTab] = useState<
-    'questions' | 'preview' | 'examples' | 'template'
+    'questions' | 'preview' | 'examples' | 'template' | 'settings'
   >('questions');
   const [previewAnswers, setPreviewAnswers] = useState<Answers>({});
   const [newExamples, setNewExamples] = useState<string[]>([]);
@@ -327,13 +328,8 @@ export default function CreationTrame() {
         <div className="w-full mx-auto">
           <TrameHeader
             title={nomTrame}
-            category={categorie ?? ''}
             isPublic={isPublic}
-            categories={categories}
-            jobs={job}
             onTitleChange={setNomTrame}
-            onCategoryChange={(v: string) => setCategorie(v as CategoryId)}
-            onJobsChange={setJob}
             onPublicChange={setIsPublic}
             onSave={save}
             onImport={() => setShowImport(true)}
@@ -383,6 +379,16 @@ export default function CreationTrame() {
                 onClick={() => setTab('template')}
               >
                 Template
+              </button>
+              <button
+                className={`pb-2 px-1 border-b-2 ${
+                  tab === 'settings'
+                    ? 'border-primary-600'
+                    : 'border-transparent'
+                }`}
+                onClick={() => setTab('settings')}
+              >
+                Réglages
               </button>
             </nav>
           </div>
@@ -573,6 +579,18 @@ export default function CreationTrame() {
                 />
               </div>
             )}
+          </div>
+        )}
+
+        {tab === 'settings' && (
+          <div className="h-full overflow-y-auto">
+            <Settings
+              category={categorie}
+              jobs={job}
+              categories={categories}
+              onCategoryChange={(v: string) => setCategorie(v as CategoryId)}
+              onJobsChange={setJob}
+            />
           </div>
         )}
       </div>

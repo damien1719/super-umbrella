@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { X } from 'lucide-react';
+import { X, Copy, ClipboardPaste } from 'lucide-react';
 import type { ColumnDef, ValueType, Row } from '@/types/question';
 
 interface Props {
@@ -134,7 +134,58 @@ export default function ChoixTypeDeValeurTableau({
             <div className="space-y-4">
               {rows.map((row) => (
                 <div key={row.id} className="space-y-2">
-                  <Label>{row.label}</Label>
+                  <div className="flex items-center justify-between">
+                    <Label>{row.label}</Label>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          try {
+                            const text = await navigator.clipboard.readText();
+                            const options = text
+                              .split(',')
+                              .map(opt => opt.trim().replace(/^"|"$/g, '').replace(/\n/g, ' ').trim())
+                              .filter(opt => opt.length > 0);
+                            
+                            if (options.length > 0) {
+                              const current = local.rowOptions?.[row.id] || [];
+                              setLocal({
+                                ...local,
+                                rowOptions: {
+                                  ...(local.rowOptions || {}),
+                                  [row.id]: [...current, ...options],
+                                },
+                              });
+                            }
+                          } catch (error) {
+                            console.error('Erreur lors de la lecture du presse-papiers:', error);
+                          }
+                        }}
+                        title="Coller des options depuis le presse-papiers"
+                        className="h-8 w-8 p-0"
+                      >
+                        <ClipboardPaste className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const currentOptions = local.rowOptions?.[row.id] || [];
+                          if (currentOptions.length > 0) {
+                            const optionsText = currentOptions
+                              .map(opt => `"${opt}"`)
+                              .join(',\n        ');
+                            navigator.clipboard.writeText(optionsText);
+                          }
+                        }}
+                        title="Copier les options au format texte"
+                        className="h-8 w-8 p-0"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
                   {(local.rowOptions?.[row.id] || []).map((opt, idx) => (
                     <div key={idx} className="flex items-center gap-2">
                       <Input
