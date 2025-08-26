@@ -101,6 +101,9 @@ export default function TemplateEditor({
                 });
               }
             }}
+            onRemoveSlot={(slotId) => {
+              editorRef.current?.removeSlot?.(slotId);
+            }}
             onTransformToQuestions={() => {
               const handleTransform = async () => {
                 const text = editorRef.current?.getPlainText?.() ?? '';

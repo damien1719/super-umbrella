@@ -46,6 +46,7 @@ interface WizardAIRightPanelProps {
   isGenerating: boolean;
   bilanId: string;
   onCancel: () => void;
+  initialStep?: number;
 }
 
 export default function WizardAIRightPanel({
@@ -61,8 +62,9 @@ export default function WizardAIRightPanel({
   isGenerating,
   bilanId,
   onCancel,
+  initialStep = 1,
 }: WizardAIRightPanelProps) {
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(initialStep);
   const dataEntryRef = useRef<DataEntryHandle>(null);
   const navigate = useNavigate();
   const total = 2;
@@ -94,6 +96,10 @@ export default function WizardAIRightPanel({
   useEffect(() => {
     fetchProfile().catch(() => {});
   }, [fetchProfile]);
+
+  useEffect(() => {
+    setStep(initialStep);
+  }, [initialStep]);
 
   const myTrames = trameOptions.filter(
     (s) => !!profileId && s.authorId === profileId,

@@ -41,6 +41,7 @@ interface Props {
   onChange: (slots: SlotSpec[]) => void;
   onAddSlot?: (slot: FieldSpec) => void;
   onUpdateSlot?: (slotId: string, slotLabel: string) => void;
+  onRemoveSlot?: (slotId: string) => void;
   onTransformToQuestions?: () => void;
   onMagicTemplating?: () => void;
   onDeleteTemplate?: () => void;
@@ -52,6 +53,7 @@ export default function SlotSidebar({
   onChange,
   onAddSlot,
   onUpdateSlot,
+  onRemoveSlot,
   onTransformToQuestions,
   onMagicTemplating,
   onDeleteTemplate,
@@ -59,6 +61,7 @@ export default function SlotSidebar({
 }: Props) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [slotToDelete, setSlotToDelete] = useState<{ id: string; label: string } | null>(null);
 
   const updateSlot = (index: number, updated: SlotSpec) => {
     const next = [...(slots || [])];
@@ -146,9 +149,66 @@ export default function SlotSidebar({
   };
 
   const removeSlot = (id: string) => {
+    // Fonction récursive pour collecter tous les IDs de slots à supprimer
+    const collectSlotIds = (slot: SlotSpec): string[] => {
+      const ids: string[] = [];
+      
+      if (slot.kind === 'field') {
+        ids.push(slot.id);
+      } else if (slot.kind === 'group') {
+        ids.push(slot.id);
+        slot.slots.forEach(child => {
+          ids.push(...collectSlotIds(child));
+        });
+      } else if (slot.kind === 'repeat') {
+        ids.push(slot.id);
+        // Pour les répéteurs, supprimer aussi tous les slots concrets générés
+        if ('enum' in slot.from && slot.slots.length > 0) {
+          for (const it of slot.from.enum) {
+            for (const child of slot.slots) {
+              if (child.kind === 'field') {
+                const stableId = `${slot.id}.${it.key}.${child.id}`;
+                ids.push(stableId);
+              }
+            }
+          }
+        }
+        slot.slots.forEach(child => {
+          ids.push(...collectSlotIds(child));
+        });
+      }
+      
+      return ids;
+    };
+
+    // Trouver le slot à supprimer
+    const slotToRemove = slots.find(s => (s as any).id === id);
+    if (!slotToRemove) return;
+
+    // Collecter tous les IDs de slots à supprimer (incluant les enfants)
+    const allSlotIds = collectSlotIds(slotToRemove);
+    
+    // Supprimer de l'éditeur tous les slots associés
+    allSlotIds.forEach(slotId => {
+      onRemoveSlot?.(slotId);
+    });
+
+    // Supprimer du slotsSpec
     onChange((slots || []).filter((s) => (s as any).id !== id));
+    
     if (selectedIndex != null && (slots[selectedIndex] as any).id === id) {
       setSelectedIndex(null);
+    }
+  };
+
+  const handleDeleteSlot = (id: string, label: string) => {
+    setSlotToDelete({ id, label });
+  };
+
+  const confirmDeleteSlot = () => {
+    if (slotToDelete) {
+      removeSlot(slotToDelete.id);
+      setSlotToDelete(null);
     }
   };
 
@@ -397,7 +457,7 @@ export default function SlotSidebar({
                             <Button
                               size="sm"
                               variant="ghost"
-                              onClick={() => removeSlot((slot as any).id)}
+                              onClick={() => handleDeleteSlot((slot as any).id, label)}
                               className="h-7 w-7 p-0 hover:bg-red-50 hover:text-red-600"
                             >
                               <Trash2 className="w-3 h-3" />
@@ -454,6 +514,17 @@ export default function SlotSidebar({
           onDeleteTemplate?.();
           setShowDeleteConfirm(false);
         }}
+      />
+
+      {/* Confirmation de suppression d'un slot */}
+      <ConfirmDialog
+        open={!!slotToDelete}
+        onOpenChange={(open) => !open && setSlotToDelete(null)}
+        title="Etes-vous sûr de vouloir supprimer ce slot ?"
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        confirmVariant="destructive"
+        onConfirm={confirmDeleteSlot}
       />
     </aside>
   );

@@ -9,6 +9,8 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Plus, ChevronDown } from 'lucide-react';
 import type { Question, ColumnDef } from '@/types/question';
 import { Chip } from './Chip';
 
@@ -27,6 +29,8 @@ export function TableQuestion({
   value,
   onChange,
 }: TableQuestionProps) {
+  const [expandedRows, setExpandedRows] = React.useState<Record<string, boolean>>({});
+  
   let data: Record<string, Record<string, unknown>> & { commentaire?: string } =
     {};
   if (value && typeof value === 'object' && !Array.isArray(value)) {
@@ -34,6 +38,98 @@ export function TableQuestion({
       commentaire?: string;
     };
   }
+
+  const getColumnWidth = (col: ColumnDef) => {
+    switch (col.valueType) {
+      case 'bool':
+        return 'w-16'; // Juste pour le checkbox
+      case 'choice':
+        return 'max-w-32'; // Largeur maximale pour les listes déroulantes
+      case 'number':
+        return 'max-w-24'; // Largeur maximale pour les nombres
+      case 'image':
+        return 'max-w-40'; // Largeur maximale pour les URLs d'images
+      case 'multi-choice':
+      case 'multi-choice-row':
+        return 'min-w-48'; // Largeur minimale pour les choix multiples
+      case 'text':
+        return 'min-w-32'; // Largeur minimale pour le texte, mais peut s'agrandir
+      default:
+        return 'min-w-32'; // Largeur minimale par défaut
+    }
+  };
+
+  const renderChips = (opts: string[], selected: string[], update: (v: string[]) => void, maxVisible = 3) => {
+    const visibleOpts = opts.slice(0, maxVisible);
+    const hiddenOpts = opts.slice(maxVisible);
+    const rowKey = `chips-${opts.join('-')}`;
+    const isExpanded = expandedRows[rowKey];
+
+    return (
+      <div className="space-y-1">
+        <div className="flex flex-wrap gap-1">
+          {visibleOpts.map((opt) => {
+            const isSelected = selected.includes(opt);
+            return (
+              <Chip
+                key={opt}
+                selected={isSelected}
+                onClick={() => {
+                  const newSelected = isSelected
+                    ? selected.filter((o) => o !== opt)
+                    : [...selected, opt];
+                  update(newSelected);
+                }}
+              >
+                {opt}
+              </Chip>
+            );
+          })}
+          {hiddenOpts.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setExpandedRows(prev => ({ ...prev, [rowKey]: !prev[rowKey] }))}
+              className="h-7 px-2 text-xs ml-0"
+            >
+              {isExpanded ? (
+                <>
+                  <ChevronDown className="h-3 w-3 mr-1" />
+                  Moins
+                </>
+              ) : (
+                <>
+                  <Plus className="h-3 w-3 mr-1" />
+                  +{hiddenOpts.length}
+                </>
+              )}
+            </Button>
+          )}
+        </div>
+        {isExpanded && hiddenOpts.length > 0 && (
+          <div className="flex flex-wrap gap-1 pl-2 border-l-2 border-gray-200">
+            {hiddenOpts.map((opt) => {
+              const isSelected = selected.includes(opt);
+              return (
+                <Chip
+                  key={opt}
+                  selected={isSelected}
+                  onClick={() => {
+                    const newSelected = isSelected
+                      ? selected.filter((o) => o !== opt)
+                      : [...selected, opt];
+                    update(newSelected);
+                  }}
+                >
+                  {opt}
+                </Chip>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const renderCell = (rowId: string, col: ColumnDef) => {
     const cellValue = data[rowId]?.[col.id];
@@ -44,6 +140,15 @@ export function TableQuestion({
       onChange(updated);
     };
     switch (col.valueType) {
+      case 'text':
+        return (
+          <Input
+            size="sm"
+            value={(cellValue as string) ?? ''}
+            onChange={(e) => update(e.target.value)}
+            className={`${FIELD_BASE} ${FIELD_DENSE} min-w-32 w-full`}
+          />
+        );
       case 'number':
         return (
           <Input
@@ -83,35 +188,17 @@ export function TableQuestion({
           col.valueType === 'multi-choice-row'
             ? col.rowOptions?.[rowId] || []
             : col.options || [];
-        return (
-          <div className="flex flex-wrap gap-2">
-            {opts.map((opt) => {
-              const isSelected = selected.includes(opt);
-              return (
-                <Chip
-                  key={opt}
-                  selected={isSelected}
-                  onClick={() => {
-                    const newSelected = isSelected
-                      ? selected.filter((o) => o !== opt)
-                      : [...selected, opt];
-                    update(newSelected);
-                  }}
-                >
-                  {opt}
-                </Chip>
-              );
-            })}
-          </div>
-        );
+        return renderChips(opts, selected, update);
       case 'bool':
         return (
-          <input
-            type="checkbox"
-            className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500/40"
-            checked={Boolean(cellValue)}
-            onChange={(e) => update(e.target.checked)}
-          />
+          <div className="flex items-center justify-center">
+            <input
+              type="checkbox"
+              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500/40"
+              checked={Boolean(cellValue)}
+              onChange={(e) => update(e.target.checked)}
+            />
+          </div>
         );
       case 'image':
         return (
@@ -129,6 +216,7 @@ export function TableQuestion({
             size="sm"
             value={(cellValue as string) ?? ''}
             onChange={(e) => update(e.target.value)}
+            className={`${FIELD_BASE} ${FIELD_DENSE} min-w-32 w-full`}
           />
         );
     }
@@ -141,33 +229,43 @@ export function TableQuestion({
           {rowsGroup.title && (
             <div className="px-2 py-1 font-bold text-sm">{rowsGroup.title}</div>
           )}
-          <table className="w-full table-fixed border-collapse">
-            <thead>
-              <tr>
-                <th className="px-2 py-1"></th>
-                {question.tableau?.columns?.map((col) => (
-                  <th
-                    key={col.id}
-                    className="px-2 py-1 text-xs font-medium text-left"
-                  >
-                    {col.label}
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr>
+                  <th className="px-2 py-1 text-left max-w-48 w-48">
+                    <div className="text-xs font-medium">Lignes</div>
                   </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rowsGroup.rows.map((row) => (
-                <tr key={row.id}>
-                  <td className="px-2 py-1 text-xs font-medium">{row.label}</td>
                   {question.tableau?.columns?.map((col) => (
-                    <td key={col.id} className="px-2 py-1">
-                      {renderCell(row.id, col)}
-                    </td>
+                    <th
+                      key={col.id}
+                      className={`px-2 py-1 text-xs font-medium text-left ${getColumnWidth(col)}`}
+                    >
+                      <div className="truncate" title={col.label}>
+                        {col.label}
+                      </div>
+                    </th>
                   ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {rowsGroup.rows.map((row) => (
+                  <tr key={row.id} className="border-t border-gray-100">
+                    <td className="px-2 py-1 text-xs font-medium max-w-48 w-48">
+                      <div className="truncate" title={row.label}>
+                        {row.label}
+                      </div>
+                    </td>
+                    {question.tableau?.columns?.map((col) => (
+                      <td key={col.id} className={`px-2 py-1 ${getColumnWidth(col)}`}>
+                        {renderCell(row.id, col)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       ))}
       {question.tableau?.commentaire && (

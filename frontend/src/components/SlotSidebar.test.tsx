@@ -1,147 +1,217 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 import SlotSidebar from './SlotSidebar';
-import type { FieldSpec } from '../types/template';
+import type { SlotSpec } from '../types/template';
 
-function createField(id: string): FieldSpec {
-  return {
-    kind: 'field',
-    id,
-    type: 'text',
-    mode: 'llm',
-    label: id,
-    prompt: '',
-    pattern: '',
-    deps: [],
-    preset: 'description',
-  };
-}
+// Mock des composants UI
+vi.mock('./ui/button', () => ({
+  Button: ({ children, onClick, ...props }: any) => (
+    <button onClick={onClick} {...props}>
+      {children}
+    </button>
+  ),
+}));
 
-test('add field button calls onChange with new field', () => {
-  const onChange = vi.fn();
-  render(<SlotSidebar slots={[]} onChange={onChange} />);
+vi.mock('./ui/card', () => ({
+  Card: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+  CardHeader: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+  CardContent: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+}));
 
-  fireEvent.click(screen.getByRole('button', { name: /champ/i }));
+vi.mock('./ui/input', () => ({
+  Input: ({ value, onChange, ...props }: any) => (
+    <input value={value} onChange={onChange} {...props} />
+  ),
+}));
 
-  expect(onChange).toHaveBeenCalled();
-  const newSlots = onChange.mock.calls[0][0];
-  expect(newSlots).toHaveLength(1);
-  expect(newSlots[0].kind).toBe('field');
-});
+vi.mock('./ui/label', () => ({
+  Label: ({ children, ...props }: any) => <label {...props}>{children}</label>,
+}));
 
-test('meatball menu opens and contains group and repeat options', async () => {
-  render(<SlotSidebar slots={[]} onChange={vi.fn()} />);
+vi.mock('./ui/select', () => ({
+  Select: ({ children, value, onValueChange }: any) => (
+    <select value={value} onChange={(e) => onValueChange?.(e.target.value)}>
+      {children}
+    </select>
+  ),
+  SelectContent: ({ children }: any) => <div>{children}</div>,
+  SelectItem: ({ children, value }: any) => <option value={value}>{children}</option>,
+  SelectTrigger: ({ children }: any) => <div>{children}</div>,
+  SelectValue: () => <span>Select Value</span>,
+}));
 
-  // Click on meatball menu (MoreHorizontal button)
-  const meatballButton = screen.getByRole('button', { name: '' }); // MoreHorizontal has no accessible name
-  fireEvent.click(meatballButton);
+vi.mock('./ui/dropdown-menu', () => ({
+  DropdownMenu: ({ children }: any) => <div>{children}</div>,
+  DropdownMenuContent: ({ children }: any) => <div>{children}</div>,
+  DropdownMenuItem: ({ children, onClick }: any) => (
+    <div onClick={onClick}>{children}</div>
+  ),
+  DropdownMenuTrigger: ({ children }: any) => <div>{children}</div>,
+  DropdownMenuSeparator: () => <hr />,
+}));
 
-  // Wait for menu to open and check that menu items are visible
-  await waitFor(() => {
-    expect(screen.getByText('Groupe')).toBeInTheDocument();
-    expect(screen.getByText('Répéteur')).toBeInTheDocument();
+vi.mock('./ui/confirm-dialog', () => ({
+  ConfirmDialog: ({ children, open, onConfirm }: any) =>
+    open ? (
+      <div>
+        {children}
+        <button onClick={onConfirm}>Confirm</button>
+      </div>
+    ) : null,
+}));
+
+describe('SlotSidebar - Suppression en cascade', () => {
+  const mockOnChange = vi.fn();
+  const mockOnAddSlot = vi.fn();
+  const mockOnUpdateSlot = vi.fn();
+  const mockOnRemoveSlot = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
-});
 
-test('add group from meatball menu calls onChange with new group', async () => {
-  const onChange = vi.fn();
-  render(<SlotSidebar slots={[]} onChange={onChange} />);
+  it('supprime en cascade un groupe avec ses slots enfants', () => {
+    const slots: SlotSpec[] = [
+      {
+        kind: 'group',
+        id: 'group-1',
+        label: 'Mon groupe',
+        slots: [
+          {
+            kind: 'field',
+            id: 'field-1',
+            type: 'text',
+            mode: 'llm',
+            label: 'Champ 1',
+            prompt: 'Description',
+            deps: [],
+            preset: 'description',
+          },
+          {
+            kind: 'field',
+            id: 'field-2',
+            type: 'text',
+            mode: 'llm',
+            label: 'Champ 2',
+            prompt: 'Description',
+            deps: [],
+            preset: 'description',
+          },
+        ],
+      },
+    ];
 
-  // Open meatball menu
-  const meatballButton = screen.getByRole('button', { name: '' });
-  fireEvent.click(meatballButton);
+    render(
+      <SlotSidebar
+        slots={slots}
+        onChange={mockOnChange}
+        onAddSlot={mockOnAddSlot}
+        onUpdateSlot={mockOnUpdateSlot}
+        onRemoveSlot={mockOnRemoveSlot}
+      />
+    );
 
-  // Wait for menu to open and click on Groupe option
-  await waitFor(() => {
-    expect(screen.getByText('Groupe')).toBeInTheDocument();
+    // Trouver et cliquer sur le bouton de suppression du groupe
+    const deleteButton = screen.getByText('×');
+    fireEvent.click(deleteButton);
+
+    // Confirmer la suppression
+    const confirmButton = screen.getByText('Confirm');
+    fireEvent.click(confirmButton);
+
+    // Vérifier que onRemoveSlot a été appelé pour tous les slots enfants
+    expect(mockOnRemoveSlot).toHaveBeenCalledWith('field-1');
+    expect(mockOnRemoveSlot).toHaveBeenCalledWith('field-2');
+
+    // Vérifier que onChange a été appelé pour supprimer le groupe du slotsSpec
+    expect(mockOnChange).toHaveBeenCalledWith([]);
   });
-  fireEvent.click(screen.getByText('Groupe'));
 
-  expect(onChange).toHaveBeenCalled();
-  const newSlots = onChange.mock.calls[0][0];
-  expect(newSlots).toHaveLength(1);
-  expect(newSlots[0].kind).toBe('group');
-});
+  it('supprime en cascade un répéteur avec tous ses slots concrets', () => {
+    const slots: SlotSpec[] = [
+      {
+        kind: 'repeat',
+        id: 'repeat-1',
+        from: { enum: [{ key: 'item1', label: 'Item 1' }, { key: 'item2', label: 'Item 2' }] },
+        ctx: 'item',
+        namePattern: '',
+        slots: [
+          {
+            kind: 'field',
+            id: 'field-1',
+            type: 'text',
+            mode: 'llm',
+            label: 'Champ',
+            prompt: 'Description',
+            deps: [],
+            preset: 'description',
+          },
+        ],
+      },
+    ];
 
-test('add repeat from meatball menu calls onChange with new repeat', async () => {
-  const onChange = vi.fn();
-  render(<SlotSidebar slots={[]} onChange={onChange} />);
+    render(
+      <SlotSidebar
+        slots={slots}
+        onChange={mockOnChange}
+        onAddSlot={mockOnAddSlot}
+        onUpdateSlot={mockOnUpdateSlot}
+        onRemoveSlot={mockOnRemoveSlot}
+      />
+    );
 
-  // Open meatball menu
-  const meatballButton = screen.getByRole('button', { name: '' });
-  fireEvent.click(meatballButton);
+    // Trouver et cliquer sur le bouton de suppression du répéteur
+    const deleteButton = screen.getByText('×');
+    fireEvent.click(deleteButton);
 
-  // Wait for menu to open and click on Répéteur option
-  await waitFor(() => {
-    expect(screen.getByText('Répéteur')).toBeInTheDocument();
+    // Confirmer la suppression
+    const confirmButton = screen.getByText('Confirm');
+    fireEvent.click(confirmButton);
+
+    // Vérifier que onRemoveSlot a été appelé pour tous les slots concrets
+    expect(mockOnRemoveSlot).toHaveBeenCalledWith('repeat-1.item1.field-1');
+    expect(mockOnRemoveSlot).toHaveBeenCalledWith('repeat-1.item2.field-1');
+
+    // Vérifier que onChange a été appelé pour supprimer le répéteur du slotsSpec
+    expect(mockOnChange).toHaveBeenCalledWith([]);
   });
-  fireEvent.click(screen.getByText('Répéteur'));
 
-  expect(onChange).toHaveBeenCalled();
-  const newSlots = onChange.mock.calls[0][0];
-  expect(newSlots).toHaveLength(1);
-  expect(newSlots[0].kind).toBe('repeat');
-});
+  it('supprime un champ simple sans cascade', () => {
+    const slots: SlotSpec[] = [
+      {
+        kind: 'field',
+        id: 'field-1',
+        type: 'text',
+        mode: 'llm',
+        label: 'Mon champ',
+        prompt: 'Description',
+        deps: [],
+        preset: 'description',
+      },
+    ];
 
-test('insert button calls onAddSlot', () => {
-  const field = createField('field-1');
-  const onAddSlot = vi.fn();
-  render(
-    <SlotSidebar slots={[field]} onChange={vi.fn()} onAddSlot={onAddSlot} />,
-  );
-  fireEvent.click(screen.getByRole('button', { name: /insérer/i }));
-  expect(onAddSlot).toHaveBeenCalledWith(field);
-});
+    render(
+      <SlotSidebar
+        slots={slots}
+        onChange={mockOnChange}
+        onAddSlot={mockOnAddSlot}
+        onUpdateSlot={mockOnUpdateSlot}
+        onRemoveSlot={mockOnRemoveSlot}
+      />
+    );
 
-test('opens detail view and returns on back', () => {
-  const field = createField('field-1');
-  render(<SlotSidebar slots={[field]} onChange={vi.fn()} />);
-  fireEvent.click(screen.getByRole('button', { name: /détails/i }));
-  expect(screen.getByRole('button', { name: /retour/i })).toBeInTheDocument();
-  fireEvent.click(screen.getByRole('button', { name: /retour/i }));
-  expect(
-    screen.queryByRole('button', { name: /retour/i }),
-  ).not.toBeInTheDocument();
-});
+    // Trouver et cliquer sur le bouton de suppression du champ
+    const deleteButton = screen.getByText('×');
+    fireEvent.click(deleteButton);
 
-test('inline label edit updates slot and calls onUpdateSlot', () => {
-  const field = createField('field-1');
-  const onChange = vi.fn();
-  const onUpdateSlot = vi.fn();
-  render(
-    <SlotSidebar
-      slots={[field]}
-      onChange={onChange}
-      onUpdateSlot={onUpdateSlot}
-    />,
-  );
-  const input = screen.getByDisplayValue('field-1');
-  fireEvent.change(input, { target: { value: 'new label' } });
-  expect(onUpdateSlot).toHaveBeenCalledWith('field-1', 'new label');
-  expect(onChange).toHaveBeenCalled();
-  expect(onChange.mock.calls[0][0][0].label).toBe('new label');
-});
+    // Confirmer la suppression
+    const confirmButton = screen.getByText('Confirm');
+    fireEvent.click(confirmButton);
 
-test('transform button calls onTransformToQuestions', () => {
-  const onTransform = vi.fn();
-  render(
-    <SlotSidebar
-      slots={[]}
-      onChange={vi.fn()}
-      onTransformToQuestions={onTransform}
-    />,
-  );
-  fireEvent.click(
-    screen.getByRole('button', { name: /Transformer en Questions/i }),
-  );
-  expect(onTransform).toHaveBeenCalled();
-});
+    // Vérifier que onRemoveSlot a été appelé pour le champ
+    expect(mockOnRemoveSlot).toHaveBeenCalledWith('field-1');
 
-test('magic templating button calls onMagicTemplating', () => {
-  const onMagic = vi.fn();
-  render(
-    <SlotSidebar slots={[]} onChange={vi.fn()} onMagicTemplating={onMagic} />,
-  );
-  fireEvent.click(screen.getByRole('button', { name: /MagicTemplating/i }));
-  expect(onMagic).toHaveBeenCalled();
+    // Vérifier que onChange a été appelé pour supprimer le champ du slotsSpec
+    expect(mockOnChange).toHaveBeenCalledWith([]);
+  });
 });

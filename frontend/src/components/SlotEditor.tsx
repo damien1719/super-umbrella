@@ -19,6 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select';
+import { ConfirmDialog } from './ui/confirm-dialog';
+import { useState } from 'react';
 
 interface Props {
   slot: SlotSpec;
@@ -26,6 +28,7 @@ interface Props {
   onRemove: () => void;
   onAddSlot?: (slot: FieldSpec) => void;
   onUpdateSlot?: (slotId: string, slotLabel: string) => void;
+  onRemoveSlot?: (slotId: string) => void;
 }
 
 const types: SlotType[] = ['text', 'number', 'list', 'table'];
@@ -43,7 +46,19 @@ export default function SlotEditor({
   onRemove,
   onAddSlot,
   onUpdateSlot,
+  onRemoveSlot,
 }: Props) {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  const handleDelete = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = () => {
+    onRemove();
+    setShowDeleteConfirm(false);
+  };
+
   const isField = (s: SlotSpec): s is FieldSpec => (s as any).kind === 'field';
   const isGroup = (s: SlotSpec): s is GroupSpec => (s as any).kind === 'group';
   const isRepeat = (s: SlotSpec): s is RepeatSpec =>
@@ -62,7 +77,7 @@ export default function SlotEditor({
             >
               Insérer
             </Button>
-            <Button size="sm" variant="destructive" onClick={onRemove}>
+            <Button size="sm" variant="destructive" onClick={handleDelete}>
               ×
             </Button>
           </div>
@@ -231,7 +246,32 @@ export default function SlotEditor({
       };
       onChange({ ...group, slots: [...group.slots, r] });
     };
-    const removeGroup = () => onRemove();
+    const removeGroup = () => {
+      // Supprimer de l'éditeur tous les slots enfants avant de supprimer le groupe
+      const removeChildSlots = (slot: SlotSpec) => {
+        if (slot.kind === 'field') {
+          onRemoveSlot?.(slot.id);
+        } else if (slot.kind === 'group') {
+          slot.slots.forEach(removeChildSlots);
+        } else if (slot.kind === 'repeat') {
+          // Pour les répéteurs, supprimer aussi tous les slots concrets générés
+          if ('enum' in slot.from && slot.slots.length > 0) {
+            for (const it of slot.from.enum) {
+              for (const child of slot.slots) {
+                if (child.kind === 'field') {
+                  const stableId = `${slot.id}.${it.key}.${child.id}`;
+                  onRemoveSlot?.(stableId);
+                }
+              }
+            }
+          }
+          slot.slots.forEach(removeChildSlots);
+        }
+      };
+      
+      group.slots.forEach(removeChildSlots);
+      handleDelete();
+    };
 
     return (
       <Card className="mb-2">
@@ -282,6 +322,7 @@ export default function SlotEditor({
                 }}
                 onAddSlot={onAddSlot}
                 onUpdateSlot={onUpdateSlot}
+                onRemoveSlot={onRemoveSlot}
               />
             ))}
           </div>
@@ -447,12 +488,41 @@ export default function SlotEditor({
       onChange(updatedRep);
     };
 
+    const removeRepeat = () => {
+      // Supprimer de l'éditeur tous les slots concrets générés avant de supprimer le répéteur
+      if ('enum' in currentRep.from && currentRep.slots.length > 0) {
+        for (const it of currentRep.from.enum) {
+          for (const child of currentRep.slots) {
+            if (child.kind === 'field') {
+              const stableId = `${currentRep.id}.${it.key}.${child.id}`;
+              onRemoveSlot?.(stableId);
+            }
+          }
+        }
+      }
+      
+      // Supprimer aussi tous les slots enfants du template
+      const removeChildSlots = (slot: SlotSpec) => {
+        if (slot.kind === 'field') {
+          // Les slots de template n'ont pas d'ID concret dans l'éditeur
+          // mais on peut les supprimer du slotsSpec
+        } else if (slot.kind === 'group') {
+          slot.slots.forEach(removeChildSlots);
+        } else if (slot.kind === 'repeat') {
+          slot.slots.forEach(removeChildSlots);
+        }
+      };
+      
+      currentRep.slots.forEach(removeChildSlots);
+      handleDelete();
+    };
+
     return (
       <Card className="mb-2">
         <CardHeader className="pb-2">
           <div className="flex justify-between items-center">
             <span className="text-xs font-medium">Répéteur</span>
-            <Button size="sm" variant="destructive" onClick={onRemove}>
+            <Button size="sm" variant="destructive" onClick={removeRepeat}>
               ×
             </Button>
           </div>
@@ -549,6 +619,7 @@ export default function SlotEditor({
                   }}
                   onAddSlot={onAddSlot}
                   onUpdateSlot={onUpdateSlot}
+                  onRemoveSlot={onRemoveSlot}
                 />
               ))}
             </div>
@@ -563,6 +634,17 @@ export default function SlotEditor({
       {isField(slot) && renderField(slot)}
       {isGroup(slot) && renderGroup(slot)}
       {isRepeat(slot) && renderRepeat(slot)}
+
+      {/* Confirmation de suppression d'un slot */}
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        title="Etes-vous sûr de vouloir supprimer ce slot ?"
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        confirmVariant="destructive"
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }

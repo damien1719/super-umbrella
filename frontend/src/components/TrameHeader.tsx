@@ -1,27 +1,12 @@
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import type { Category } from '@/types/trame';
-import type { Job } from '@/types/job';
-import { jobOptions } from '@/types/job';
 
 interface Props {
   title: string;
-  category: string;
   isPublic: boolean;
-  categories: Category[];
-  jobs: Job[];
   onTitleChange: (v: string) => void;
-  onCategoryChange: (v: string) => void;
-  onJobsChange: (jobs: Job[]) => void;
   onPublicChange: (v: boolean) => void;
   onSave: () => void;
   onImport: () => void;
@@ -33,20 +18,15 @@ interface Props {
 export default function TrameHeader(p?: Partial<Props>) {
   const {
     title = '',
-    category,
     isPublic = false,
-    categories = [],
-    jobs = [],
     onTitleChange = () => {},
-    onCategoryChange = () => {},
-    onJobsChange = () => {},
     onPublicChange = () => {},
     onSave = () => {},
     onImport = () => {},
     onBack = () => {},
     onAdminImport = () => {},
     showAdminImport = false,
-  } = p ?? {};
+  } = p || {};
 
   return (
     <div className="flex flex-wrap items-center gap-4 mb-6">
@@ -60,37 +40,6 @@ export default function TrameHeader(p?: Partial<Props>) {
         placeholder="Titre de la trame"
         className="text-2xl font-bold text-gray-900 flex-1"
       />
-      <div className="w-48 flex-shrink-0">
-        <Select value={category} onValueChange={onCategoryChange}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Catégorie" />
-          </SelectTrigger>
-          <SelectContent>
-            {categories.map((cat) => (
-              <SelectItem key={cat.id} value={cat.id}>
-                {cat.title}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="w-48 flex-shrink-0">
-        <Select
-          value={jobs.length > 0 ? jobs[0] : ''}
-          onValueChange={(value) => onJobsChange([value as Job])}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Métiers" />
-          </SelectTrigger>
-          <SelectContent>
-            {jobOptions.map((job) => (
-              <SelectItem key={job.id} value={job.id}>
-                {job.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
       <div className="flex items-center gap-2">
         <input
           type="checkbox"

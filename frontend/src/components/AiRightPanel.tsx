@@ -105,6 +105,8 @@ export default function AiRightPanel({
   const [wizardSection, setWizardSection] = useState<string | null>(
     initialWizardSection || null,
   );
+  const [lastGeneratedSection, setLastGeneratedSection] = useState<string | null>(null);
+  const [wizardStartStep, setWizardStartStep] = useState<number>(1);
   const [regenSection, setRegenSection] = useState<string | null>(null);
   const [regenPrompt, setRegenPrompt] = useState('');
   const [refinedText, setRefinedText] = useState('');
@@ -164,6 +166,7 @@ export default function AiRightPanel({
     rawNotes?: string,
     imageBase64?: string,
   ) => {
+    setLastGeneratedSection(section.id);
     await generateSection({
       mode: 'direct',
       section,
@@ -279,6 +282,7 @@ export default function AiRightPanel({
         '[AiRightPanel] handleGenerateFromTemplate - About to call generateSection...',
       );
 
+      setLastGeneratedSection(section.id);
       await generateSection(generationParams);
 
       console.log(
@@ -348,7 +352,7 @@ export default function AiRightPanel({
 
   return (
     <div className="w-full max-w-md bg-wood-50 rounded-lg shadow-lg">
-      <GeneratingModal open={isGenerating} />
+      <GeneratingModal open={isGenerating} logoSrc="/logo.png"  />
       <div className="flex flex-col h-full">
         {/*         {selection?.text && (
           <div className="bg-blue-50 text-blue-800 text-sm p-2 border-b border-blue-100">
@@ -366,24 +370,39 @@ export default function AiRightPanel({
                   ? 'Modifier la section'
                   : 'Assistant IA'}
           </span>
-          {(regenSection || mode === 'refine') && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 px-2 text-xs"
-              onClick={() => {
-                if (regenSection) setRegenSection(null);
-                if (mode === 'refine') {
-                  setMode('idle');
-                  setRefinedText('');
-                  setRegenPrompt('');
-                  selection?.clear();
-                }
-              }}
-            >
-              Retour
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {!wizardSection && !regenSection && mode !== 'refine' && lastGeneratedSection && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 px-2 text-xs"
+                onClick={() => {
+                  setWizardStartStep(2);
+                  setWizardSection(lastGeneratedSection);
+                }}
+              >
+                Voir mes dernières réponses
+              </Button>
+            )}
+            {(regenSection || mode === 'refine') && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2 text-xs"
+                onClick={() => {
+                  if (regenSection) setRegenSection(null);
+                  if (mode === 'refine') {
+                    setMode('idle');
+                    setRefinedText('');
+                    setRegenPrompt('');
+                    selection?.clear();
+                  }
+                }}
+              >
+                Retour
+              </Button>
+            )}
+          </div>
         </div>
         <div className="p-4 overflow-y-auto flex-1">
           {mode === 'refine' ? (
@@ -490,21 +509,52 @@ export default function AiRightPanel({
           ) : (
             <ScrollArea className="h-[calc(100vh-120px)]">
               <div className="space-y-4">
-                {sections.map((section) => {
-                  const trameOpts = trames[section.id];
-                  const selected = trameOpts.find(
-                    (t) => t.value === selectedTrames[section.id],
-                  );
+                {wizardSection === 'reponses' ? (
+                  <Dialog
+                    open={true}
+                    onOpenChange={(open) => !open && setWizardSection(null)}
+                  >
+                    <DialogContent showCloseButton={false} fullscreen>
+                      <WizardAIRightPanel
+                        sectionInfo={{
+                          id: 'reponses',
+                          title: 'Mes dernières réponses',
+                          icon: FileText,
+                          description: 'Consultez et modifiez vos réponses précédentes'
+                        }}
+                        trameOptions={[]}
+                        selectedTrame={undefined}
+                        onTrameChange={() => {}}
+                        examples={[]}
+                        onAddExample={() => {}}
+                        onRemoveExample={() => {}}
+                        questions={[]}
+                        answers={{}}
+                        onAnswersChange={() => {}}
+                        onGenerate={async () => {}}
+                        onGenerateFromTemplate={async () => {}}
+                        isGenerating={false}
+                        bilanId={bilanId}
+                        onCancel={() => setWizardSection(null)}
+                      />
+                    </DialogContent>
+                  </Dialog>
+                ) : (
+                  sections.map((section) => {
+                    const trameOpts = trames[section.id];
+                    const selected = trameOpts.find(
+                      (t) => t.value === selectedTrames[section.id],
+                    );
 
-                  if (wizardSection === section.id) {
-                    return (
-                      <Dialog
-                        key={section.id}
-                        open={true}
-                        onOpenChange={(open) => !open && setWizardSection(null)}
-                      >
-                        <DialogContent showCloseButton={false} fullscreen>
-                          <WizardAIRightPanel
+                    if (wizardSection === section.id) {
+                      return (
+                        <Dialog
+                          key={section.id}
+                          open={true}
+                          onOpenChange={(open) => !open && setWizardSection(null)}
+                        >
+                          <DialogContent showCloseButton={false} fullscreen>
+                                                      <WizardAIRightPanel
                             sectionInfo={section}
                             trameOptions={trameOpts}
                             selectedTrame={selected}
@@ -564,13 +614,14 @@ export default function AiRightPanel({
                             }
                             onCancel={() => setWizardSection(null)}
                             bilanId={bilanId}
+                            initialStep={wizardStartStep}
                           />
-                        </DialogContent>
-                      </Dialog>
-                    );
-                  }
+                          </DialogContent>
+                        </Dialog>
+                      );
+                    }
 
-                  if (!generated[section.id]) {
+                    // Toujours afficher la carte simple, jamais SectionCard
                     return (
                       <Card key={section.id} className="p-4">
                         <CardContent className="p-2">
@@ -589,7 +640,10 @@ export default function AiRightPanel({
                                   size="default"
                                   variant="default"
                                   className="ml-auto h-7 px-2 text-sm"
-                                  onClick={() => setWizardSection(section.id)}
+                                  onClick={() => {
+                                    setWizardStartStep(1);
+                                    setWizardSection(section.id);
+                                  }}
                                 >
                                   Démarrer
                                   <ArrowRightCircle className="h-4 w-4 ml-1" />
@@ -608,49 +662,8 @@ export default function AiRightPanel({
                         </CardContent>
                       </Card>
                     );
-                  }
-
-                  return (
-                    <SectionCard
-                      key={section.id}
-                      section={section}
-                      trameOptions={trameOpts}
-                      selectedTrame={selected}
-                      onTrameChange={(v) =>
-                        setSelectedTrames({
-                          ...selectedTrames,
-                          [section.id]: v,
-                        })
-                      }
-                      examples={getExamples(
-                        section.id,
-                        selectedTrames[section.id],
-                      )}
-                      onAddExample={(ex) =>
-                        addExample(section.id, selectedTrames[section.id], ex)
-                      }
-                      onRemoveExample={(id) =>
-                        removeExample(
-                          section.id,
-                          selectedTrames[section.id],
-                          id,
-                        )
-                      }
-                      questions={(selected?.schema as Question[]) || []}
-                      answers={answers[section.id] || {}}
-                      onAnswersChange={(a) =>
-                        setAnswers({ ...answers, [section.id]: a })
-                      }
-                      onGenerate={async (latest?: Answers) =>
-                        await handleGenerate(section, latest, '', undefined)
-                      }
-                      isGenerating={
-                        isGenerating && selectedSection === section.id
-                      }
-                      active={selectedSection === section.id}
-                    />
-                  );
-                })}
+                  })
+                )}
                 {/* <Button className="w-full"
                     size="default"
                     variant="default"
