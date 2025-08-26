@@ -100,6 +100,55 @@ export default function ChoixTypeDeValeurTableau({
           {(local.valueType === 'choice' ||
             local.valueType === 'multi-choice') && (
             <div className="space-y-2">
+              <div className="flex items-center justify-between mb-2">
+                <Label>Options</Label>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      try {
+                        const text = await navigator.clipboard.readText();
+                        const options = text
+                          .split(',')
+                          .map(opt => opt.trim().replace(/^"|"$/g, '').replace(/\n/g, ' ').trim())
+                          .filter(opt => opt.length > 0);
+                        
+                        if (options.length > 0) {
+                          const current = local.options || [];
+                          setLocal({
+                            ...local,
+                            options: [...current, ...options],
+                          });
+                        }
+                      } catch (error) {
+                        console.error('Erreur lors de la lecture du presse-papiers:', error);
+                      }
+                    }}
+                    title="Coller des options depuis le presse-papiers"
+                    className="h-8 w-8 p-0"
+                  >
+                    <ClipboardPaste className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const currentOptions = local.options || [];
+                      if (currentOptions.length > 0) {
+                        const optionsText = currentOptions
+                          .map(opt => `"${opt}"`)
+                          .join(',\n        ');
+                        navigator.clipboard.writeText(optionsText);
+                      }
+                    }}
+                    title="Copier les options au format texte"
+                    className="h-8 w-8 p-0"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
               {local.options?.map((opt, idx) => (
                 <div key={idx} className="flex items-center gap-2">
                   <Input
