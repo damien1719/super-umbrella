@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import PatientForm from '../components/PatientForm';
 import { usePatientStore, Patient } from '../store/patients';
@@ -7,6 +8,7 @@ import { Loader2 } from 'lucide-react';
 
 export default function Patients() {
   const { items, fetchAll, remove } = usePatientStore();
+  const navigate = useNavigate();
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Patient | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -60,9 +62,7 @@ export default function Patients() {
               variant="patient"
               items={items}
               onSelect={(id) => {
-                const patient = items.find((p) => p.id === id) || null;
-                setEditing(patient);
-                setShowForm(true);
+                navigate(`/patients/${id}`);
               }}
               onDelete={(item) => remove(item.id)}
             />

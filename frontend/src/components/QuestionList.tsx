@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,9 +9,23 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { GripVertical, Copy, Trash2, Plus } from 'lucide-react';
+import { GripVertical, Copy, Trash2, Plus, MoreHorizontal, Save, X, ClipboardCopy } from 'lucide-react';
 import type { Question } from '@/types/Typequestion';
 import { EDITORS } from './Editors';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 
 const typesQuestions = [
   { id: 'notes', title: 'Réponse (prise de notes)' },
@@ -43,6 +57,12 @@ export default function QuestionList({
   onAddAfter,
 }: Props) {
   const dragIndex = useRef<number | null>(null);
+  const [jsonDialogOpen, setJsonDialogOpen] = useState(false);
+  const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
+  const [jsonContent, setJsonContent] = useState('');
+  const [jsonError, setJsonError] = useState<string | null>(null);
+  const [isEditingAllQuestions, setIsEditingAllQuestions] = useState(false);
+
   const handleDragStart = (index: number) => {
     dragIndex.current = index;
   };
@@ -69,8 +89,119 @@ export default function QuestionList({
     }
   }, [selectedId]);
 
+  const handleJsonEdit = (question: Question) => {
+    setEditingQuestionId(question.id);
+    setIsEditingAllQuestions(false);
+    setJsonContent(JSON.stringify(question, null, 2));
+    setJsonError(null);
+    setJsonDialogOpen(true);
+  };
+
+  const handleJsonEditAllQuestions = () => {
+    setEditingQuestionId(null);
+    setIsEditingAllQuestions(true);
+    setJsonContent(JSON.stringify(questions, null, 2));
+    setJsonError(null);
+    setJsonDialogOpen(true);
+  };
+
+  const handleJsonSave = () => {
+    try {
+      if (isEditingAllQuestions) {
+        // Édition de toutes les questions
+        const parsedQuestions = JSON.parse(jsonContent) as Question[];
+        
+        if (!Array.isArray(parsedQuestions)) {
+          setJsonError('JSON invalide: un tableau de questions est attendu');
+          return;
+        }
+
+        // Validation de chaque question
+        const validTypes = ['notes', 'choix-multiple', 'echelle', 'tableau', 'titre'];
+        for (let i = 0; i < parsedQuestions.length; i++) {
+          const question = parsedQuestions[i];
+          if (!question.id || !question.type || !question.titre) {
+            setJsonError(`Question ${i + 1} invalide: id, type et titre sont requis`);
+            return;
+          }
+          if (!validTypes.includes(question.type)) {
+            setJsonError(`Question ${i + 1}: Type invalide '${question.type}'. Types valides: ${validTypes.join(', ')}`);
+            return;
+          }
+        }
+
+        // Mettre à jour toutes les questions
+        parsedQuestions.forEach((question, index) => {
+          onPatch(question.id, question);
+        });
+
+        setJsonDialogOpen(false);
+        setIsEditingAllQuestions(false);
+        setJsonContent('');
+        setJsonError(null);
+      } else {
+        // Édition d'une seule question
+        const parsedQuestion = JSON.parse(jsonContent) as Question;
+        
+        // Validation basique
+        if (!parsedQuestion.id || !parsedQuestion.type || !parsedQuestion.titre) {
+          setJsonError('JSON invalide: id, type et titre sont requis');
+          return;
+        }
+
+        // Vérifier que le type est valide
+        const validTypes = ['notes', 'choix-multiple', 'echelle', 'tableau', 'titre'];
+        if (!validTypes.includes(parsedQuestion.type)) {
+          setJsonError(`Type invalide: ${parsedQuestion.type}. Types valides: ${validTypes.join(', ')}`);
+          return;
+        }
+
+        // Mettre à jour la question
+        onPatch(editingQuestionId!, parsedQuestion);
+        setJsonDialogOpen(false);
+        setEditingQuestionId(null);
+        setJsonContent('');
+        setJsonError(null);
+      }
+    } catch (error) {
+      setJsonError(`JSON malformé: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
+    }
+  };
+
+  const handleJsonCancel = () => {
+    setJsonDialogOpen(false);
+    setEditingQuestionId(null);
+    setIsEditingAllQuestions(false);
+    setJsonContent('');
+    setJsonError(null);
+  };
+
+  const handleJsonCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(jsonContent);
+      // Optionnel: afficher un message de confirmation
+    } catch (error) {
+      console.error('Erreur lors de la copie:', error);
+    }
+  };
+
+  const SHOW_EDIT_ALL_JSON = import.meta.env.VITE_DISPLAY_IMPORT_BUTTON === 'true';
+
   return (
-    <div className="space-y-6 overflow-y-auto h-full">
+    <div className="space-y-6 overflow-y-auto h-full relative">
+      {SHOW_EDIT_ALL_JSON && (
+        <div className="absolute top-0 right-0 z-10">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleJsonEditAllQuestions}
+            title="Éditer le JSON de toutes les questions"
+            className="bg-white/90 backdrop-blur-sm"
+          >
+            <MoreHorizontal className="h-4 w-4 mr-2" />
+          </Button>
+        </div>
+      )}
       {questions.map((question, index) => {
         const Editor = EDITORS[question.type];
         return (
@@ -170,6 +301,22 @@ export default function QuestionList({
                   >
                     <Copy className="h-4 w-4" />
                   </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem onClick={() => handleJsonEdit(question)}>
+                        Éditer JSON
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   <Button
                     variant="outline"
                     size="sm"
@@ -205,6 +352,22 @@ export default function QuestionList({
                 >
                   <Copy className="h-4 w-4" />
                 </Button>
+                {/* <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => handleJsonEdit(question)}>
+                      Éditer JSON
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu> */}
                 <Button
                   variant="primary"
                   size="sm"
@@ -220,6 +383,51 @@ export default function QuestionList({
           </div>
         );
       })}
+
+      {/* Dialog pour l'édition JSON */}
+      <Dialog open={jsonDialogOpen} onOpenChange={setJsonDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>
+              {isEditingAllQuestions 
+                ? 'Éditer le JSON de toutes les questions' 
+                : 'Éditer le JSON de la question'
+              }
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="json-content">Contenu JSON</Label>
+              <Textarea
+                id="json-content"
+                value={jsonContent}
+                onChange={(e) => setJsonContent(e.target.value)}
+                className="font-mono text-sm h-96 resize-none"
+                placeholder="Entrez le JSON de la question..."
+              />
+            </div>
+            {jsonError && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+                {jsonError}
+              </div>
+            )}
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={handleJsonCopy}>
+                <ClipboardCopy className="h-4 w-4 mr-2" />
+                Copier
+              </Button>
+              <Button variant="outline" onClick={handleJsonCancel}>
+                <X className="h-4 w-4 mr-2" />
+                Annuler
+              </Button>
+              <Button onClick={handleJsonSave}>
+                <Save className="h-4 w-4 mr-2" />
+                Enregistrer
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
