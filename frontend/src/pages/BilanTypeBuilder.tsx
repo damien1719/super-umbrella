@@ -8,22 +8,24 @@ import { BilanTypeConstruction } from "@/components/bilanType/BilanTypeConstruct
 import { useSectionStore } from "@/store/sections";
 import { useBilanTypeStore } from "@/store/bilanTypes";
 
-interface BilanElement {
+// ✅ On réutilise les types existants
+import { categories, kindMap, type CategoryId } from "@/types/trame";
+import { Job } from "@/types/job";
+
+// Petit type UI local basé UNIQUEMENT sur tes types de domaine
+type BilanElement = {
   id: string;
-  type: "test" | "anamnese" | "conclusion";
+  type: CategoryId;
   title: string;
   description: string;
-  metier:
-    | "psychologue"
-    | "orthophoniste"
-    | "neuropsychologue"
-    | "psychiatre"
-    | "general";
-}
+  // "général" = absence de ciblage métier → on n'invente pas de valeur custom,
+  // on laisse ce champ optionnel et uniquement typé avec Job.
+  metier?: Job;
+};
 
-interface SelectedElement extends BilanElement {
+type SelectedElement = BilanElement & {
   order: number;
-}
+};
 
 export default function BilanTypeBuilder() {
   const [bilanName, setBilanName] = useState("");
@@ -40,20 +42,49 @@ export default function BilanTypeBuilder() {
     fetchSections().catch(console.error);
   }, [fetchSections]);
 
+  // Set des CategoryId valides d'après ta source unique de vérité
+  const validCategoryIds = useMemo(
+    () => new Set<CategoryId>(categories.map((c) => c.id)),
+    [],
+  );
+
+  // Normalise un "kind" venant du store vers un CategoryId si possible
+  const normalizeKind = (k: string | undefined | null): CategoryId | null => {
+    if (!k) return null;
+
+    // 1) Cas des ids d'UI "hyphénés" → map via kindMap (ex: 'profil-sensoriel' -> 'profil_sensoriel')
+    if (k in kindMap) {
+      return kindMap[k as keyof typeof kindMap];
+    }
+
+    // 2) Cas où le store fournit déjà un CategoryId exact (ex: 'tests_standards')
+    if (validCategoryIds.has(k as CategoryId)) {
+      return k as CategoryId;
+    }
+
+    // 3) Sinon : inconnu → on ignore proprement
+    return null;
+  };
+
+  // AUCUNE RESTRICTION : on prend toutes les sections dont le kind est mappable vers un CategoryId
   const availableElements = useMemo<BilanElement[]>(
     () =>
       sections
-        .filter((s) =>
-          ["anamnese", "conclusion", "tests_standards"].includes(s.kind as string),
-        )
-        .map((s) => ({
-          id: s.id,
-          type: (s.kind === "tests_standards" ? "test" : s.kind) as BilanElement["type"],
-          title: s.title,
-          description: s.description || "",
-          metier: "general" as const,
-        })),
-    [sections],
+        .map((s) => {
+          const normalized = normalizeKind((s as any).kind as string | undefined);
+          if (!normalized) return null;
+
+          return {
+            id: (s as any).id as string,
+            type: normalized,
+            title: (s as any).title as string,
+            description: ((s as any).description as string) || "",
+            // pas de "general" string — on garde uniquement Job si un ciblage est utile
+            metier: undefined as Job | undefined,
+          } satisfies BilanElement;
+        })
+        .filter((x): x is BilanElement => x !== null),
+    [sections, validCategoryIds],
   );
 
   const addElement = (element: BilanElement) => {
@@ -61,11 +92,11 @@ export default function BilanTypeBuilder() {
       ...element,
       order: selectedElements.length,
     };
-    setSelectedElements([...selectedElements, newElement]);
+    setSelectedElements((prev) => [...prev, newElement]);
   };
 
   const removeElement = (id: string) => {
-    setSelectedElements(selectedElements.filter((el) => el.id !== id));
+    setSelectedElements((prev) => prev.filter((el) => el.id !== id));
   };
 
   const handleDragStart = (e: React.DragEvent, index: number) => {
