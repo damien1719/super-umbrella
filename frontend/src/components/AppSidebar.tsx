@@ -7,6 +7,7 @@ import {
   Library,
   LogOut,
   LayoutDashboard,
+  FileText,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import {
@@ -54,6 +55,12 @@ const items: {
     page: 'Bibliotheque',
     path: '/bibliotheque',
     icon: Library,
+  },
+  {
+    title: 'Bilans types',
+    page: 'BilanTypes',
+    path: '/bilan-types',
+    icon: FileText,
   },
   { title: 'Mes Patients', page: 'Patients', path: '/patients', icon: User },
   {

@@ -9,7 +9,8 @@ export type Page =
   | 'Resultats'
   | 'Abonnement'
   | 'MonCompte'
-  | 'Bibliotheque';
+  | 'Bibliotheque'
+  | 'BilanTypes';
 
 interface PageState {
   currentPage: Page;
