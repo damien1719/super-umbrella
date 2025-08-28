@@ -19,3 +19,5 @@ export type EditGarant = Prisma.GarantUpdateInput;
 
 export * from './types/UserProfile';
 export * from './types/ApiResponse';
+export * from './types/BilanType';
+export * from './types/BilanTypeSection';

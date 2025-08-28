@@ -1,16 +1,8 @@
 import { create } from 'zustand';
 import { apiFetch } from '../utils/api';
 import { useAuth } from './auth';
-
-export interface BilanType {
-  id: string;
-  name: string;
-  description?: string | null;
-  isPublic?: boolean;
-  authorId?: string | null;
-  author?: { prenom?: string | null } | null;
-  layoutJson?: unknown;
-}
+import type { BilanType } from '@monorepo/shared';
+export type { BilanType } from '@monorepo/shared';
 
 interface BilanTypeState {
   items: BilanType[];
