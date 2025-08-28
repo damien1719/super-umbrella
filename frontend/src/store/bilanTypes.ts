@@ -16,10 +16,13 @@ interface BilanTypeState {
   items: BilanType[];
   fetchAll: () => Promise<void>;
   fetchOne: (id: string) => Promise<BilanType>;
+  create: (data: BilanTypeInput) => Promise<BilanType>;
   remove: (id: string) => Promise<void>;
 }
 
 const endpoint = '/api/v1/bilan-types';
+
+export type BilanTypeInput = Omit<BilanType, 'id' | 'author'>;
 
 export const useBilanTypeStore = create<BilanTypeState>((set) => ({
   items: [],
@@ -44,6 +47,18 @@ export const useBilanTypeStore = create<BilanTypeState>((set) => ({
         ? state.items.map((s) => (s.id === id ? bilanType : s))
         : [...state.items, bilanType],
     }));
+    return bilanType;
+  },
+
+  async create(data) {
+    const token = useAuth.getState().token;
+    if (!token) throw new Error('Non authentifié');
+    const bilanType = await apiFetch<BilanType>(endpoint, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(data),
+    });
+    set((state) => ({ items: [...state.items, bilanType] }));
     return bilanType;
   },
 
