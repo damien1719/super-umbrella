@@ -9,6 +9,7 @@ interface BilanTypeState {
   fetchAll: () => Promise<void>;
   fetchOne: (id: string) => Promise<BilanType>;
   create: (data: BilanTypeInput) => Promise<BilanType>;
+  update: (id: string, data: Partial<BilanTypeInput>) => Promise<BilanType>;
   remove: (id: string) => Promise<void>;
 }
 
@@ -51,6 +52,22 @@ export const useBilanTypeStore = create<BilanTypeState>((set) => ({
       body: JSON.stringify(data),
     });
     set((state) => ({ items: [...state.items, bilanType] }));
+    return bilanType;
+  },
+
+  async update(id, data) {
+    const token = useAuth.getState().token;
+    if (!token) throw new Error('Non authentifié');
+    const bilanType = await apiFetch<BilanType>(`${endpoint}/${id}`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(data),
+    });
+    set((state) => ({
+      items: state.items.some((s) => s.id === id)
+        ? state.items.map((s) => (s.id === id ? bilanType : s))
+        : [...state.items, bilanType],
+    }));
     return bilanType;
   },
 

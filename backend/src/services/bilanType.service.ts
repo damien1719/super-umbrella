@@ -63,12 +63,26 @@ export const BilanTypeService = {
   },
 
   async update(userId: string, id: string, data: Partial<BilanTypeData>) {
+    const { sections, ...bilanTypeData } = data;
     const { count } = await db.bilanType.updateMany({
       where: { id, author: { userId } },
-      data,
+      data: bilanTypeData,
     });
     if (count === 0) throw new NotFoundError();
-    return db.bilanType.findUnique({ where: { id } });
+
+    if (sections) {
+      // Replace all existing sections with provided payload (simple, predictable behavior)
+      await db.$transaction([
+        db.bilanTypeSection.deleteMany({ where: { bilanTypeId: id } }),
+        ...sections.map((s) =>
+          db.bilanTypeSection.create({
+            data: { ...s, bilanTypeId: id },
+          }),
+        ),
+      ]);
+    }
+
+    return db.bilanType.findUnique({ where: { id }, include: { sections: true } });
   },
 
   async remove(userId: string, id: string) {
@@ -78,4 +92,3 @@ export const BilanTypeService = {
     if (count === 0) throw new NotFoundError();
   },
 };
-

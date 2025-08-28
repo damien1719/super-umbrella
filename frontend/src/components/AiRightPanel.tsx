@@ -121,6 +121,33 @@ export default function AiRightPanel({
   useEditorUi((s) => s.selection);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Bulk generation handler (backend orchestrator)
+  const generateFullBilanType = async (bilanTypeId: string, excludeSectionIds?: string[]) => {
+    setIsGenerating(true);
+    try {
+      const res = await apiFetch<{ assembledState: unknown }>(
+        `/api/v1/bilans/${bilanId}/generate-bilan-type`,
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ bilanTypeId, excludeSectionIds }),
+        },
+      );
+      if (onSetEditorStateJson) {
+        onSetEditorStateJson(res.assembledState);
+      } else {
+        // Fallback: dispatch custom event for editor
+        const evt = new CustomEvent('lexical:set-json', { detail: res.assembledState });
+        window.dispatchEvent(evt);
+      }
+      setWizardBilanType(false);
+    } catch (e) {
+      console.error('[AiRightPanel] generateFullBilanType failed', e);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const bilanTypeOptions = useMemo(() =>
     bilanTypes.map((b) => ({
       value: b.id,
@@ -554,6 +581,7 @@ export default function AiRightPanel({
                         answers={{}}
                         onAnswersChange={() => {}}
                         onGenerate={async () => {}}
+                        onGenerateAll={(bilanTypeId, exclude) => generateFullBilanType(bilanTypeId, exclude)}
                         isGenerating={false}
                         bilanId={bilanId}
                         onCancel={() => setWizardBilanType(false)}

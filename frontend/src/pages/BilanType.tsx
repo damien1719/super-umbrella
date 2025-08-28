@@ -7,6 +7,7 @@ import {
   useBilanTypeStore,
   type BilanType as BilanTypeModel,
 } from '@/store/bilanTypes';
+import BilanTypeBuilder from './BilanTypeBuilder';
 
 export default function BilanType() {
   const { bilanTypeId } = useParams();
@@ -33,10 +34,6 @@ export default function BilanType() {
     return <div className="p-4">Bilan type introuvable.</div>;
   }
 
-  return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">{item.name}</h1>
-      {item.description && <p className="text-gray-600">{item.description}</p>}
-    </div>
-  );
+  // Display the full builder initialized from this BilanType
+  return <BilanTypeBuilder initialBilanTypeId={bilanTypeId!} />;
 }

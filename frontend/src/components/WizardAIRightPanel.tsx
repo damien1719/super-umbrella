@@ -47,6 +47,8 @@ export interface WizardAIRightPanelProps {
     instanceId?: string,
     imageBase64?: string,
   ) => void;
+  // Optional bulk generation hook used by WizardAIBilanType footer
+  onGenerateAll?: (bilanTypeId: string, excludeSectionIds?: string[]) => void;
   isGenerating: boolean;
   bilanId: string;
   onCancel: () => void;
@@ -164,6 +166,7 @@ export default function WizardAIRightPanel({
 
   const [activeBilanSectionId, setActiveBilanSectionId] = useState<string | null>(null);
   const [bilanAnswers, setBilanAnswers] = useState<Record<string, Answers>>({});
+  const [excludedSectionIds, setExcludedSectionIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (mode !== 'bilanType') return;
@@ -361,12 +364,29 @@ export default function WizardAIRightPanel({
       content = (
         <div className="flex flex-1 h-full overflow-y-hidden">
           <LeftNavBilanType
-            items={navSections.map((s) => ({ id: s.id, title: s.title, index: s.index }))}
+            items={navSections.map((s) => ({ id: s.id, title: s.title, index: s.index, disabled: excludedSectionIds.includes(s.id) }))}
             activeId={activeBilanSectionId}
             onSelect={(id) => {
+              // Save current section before switching
+              if (notesMode === 'manual' && activeBilanSectionId) {
+                try {
+                  const data = dataEntryRef.current?.save() as Answers | undefined;
+                  if (data) void saveNotes(data, activeBilanSectionId);
+                } catch {}
+              }
               setActiveBilanSectionId(id);
               const next = bilanAnswers[id];
               if (next) dataEntryRef.current?.load?.(next);
+            }}
+            onToggleDisabled={(id) => {
+              setExcludedSectionIds((prev) =>
+                prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+              );
+              // notify outer wrapper for bulk action
+              try {
+                const evt = new CustomEvent('bilan-type:excluded-changed', { detail: excludedSectionIds.includes(id) ? excludedSectionIds.filter(x => x !== id) : [...excludedSectionIds, id] });
+                window.dispatchEvent(evt);
+              } catch {}
             }}
           />
           <div className="flex-1 flex flex-col">
@@ -440,14 +460,17 @@ export default function WizardAIRightPanel({
 
   const saveNotes = async (
     notes: Answers | undefined,
+    targetOverrideId?: string | null,
   ): Promise<string | null> => {
-    const targetSectionId = mode === 'bilanType' ? activeBilanSectionId : selectedTrame?.value;
+    const targetSectionId =
+      targetOverrideId ?? (mode === 'bilanType' ? activeBilanSectionId : selectedTrame?.value);
     if (!targetSectionId) return null;
 
     // Debug: trace d'où vient l'appel upsert
     console.trace('[DEBUG] saveNotes called - Stack trace:');
     console.log('[DEBUG] saveNotes - notes:', notes);
-    console.log('[DEBUG] saveNotes - selectedTrame:', selectedTrame.value);
+    console.log('[DEBUG] saveNotes - selectedTrame:', selectedTrame?.value);
+    console.log('[DEBUG] saveNotes - targetSectionId:', targetSectionId);
     console.log('[DEBUG] saveNotes - isManualSaving:', isManualSaving);
 
     setIsManualSaving(true);
@@ -476,12 +499,16 @@ export default function WizardAIRightPanel({
   const lastSavedRef = useRef<string>('');
   useEffect(() => {
     if (step !== 2 || isManualSaving) return;
-    const payload = JSON.stringify(answers ?? {});
+    const currentAns =
+      mode === 'bilanType'
+        ? (activeBilanSectionId ? bilanAnswers[activeBilanSectionId] : {})
+        : answers;
+    const payload = JSON.stringify(currentAns ?? {});
     if (payload === lastSavedRef.current) return;
     const t = setTimeout(() => {
       (async () => {
         try {
-          await saveNotes(answers);
+          await saveNotes(currentAns);
           lastSavedRef.current = payload;
         } catch {
           // ignore autosave errors silently
@@ -489,7 +516,12 @@ export default function WizardAIRightPanel({
       })();
     }, 1000);
     return () => clearTimeout(t);
-  }, [answers, step, isManualSaving]);
+  }, [answers, bilanAnswers, activeBilanSectionId, mode, step, isManualSaving]);
+
+  // Reset autosave sentinel when switching active section
+  useEffect(() => {
+    lastSavedRef.current = '';
+  }, [activeBilanSectionId]);
 
   useEffect(() => {
     if (step !== 2 || isManualSaving) return;
@@ -571,6 +603,8 @@ export default function WizardAIRightPanel({
         rawNotes,
         imageBase64,
       );
+      // Close the wizard after direct generation to keep UX consistent
+      onCancel();
     }
   };
 
@@ -587,6 +621,10 @@ export default function WizardAIRightPanel({
 
     // Iterate all sections of the selected BilanType
     for (const sec of navSections) {
+      if (excludedSectionIds.includes(sec.id)) {
+        console.log('[DEBUG] triggerGenerateAll - skipping excluded section', sec.id);
+        continue;
+      }
       try {
         // Load latest instanceId for this section to pass to template generation if supported
         let latestInstanceId: string | undefined = undefined;
@@ -612,6 +650,7 @@ export default function WizardAIRightPanel({
             imageBase64,
           );
         } else {
+          console.log("here");
           await onGenerate(
             notesMode === 'manual' ? answersForSec : undefined,
             rawNotes,
@@ -628,13 +667,21 @@ export default function WizardAIRightPanel({
   useEffect(() => {
     const onGenSelected = () => void triggerGenerateCurrent();
     const onGenAll = () => void triggerGenerateAll();
+    const onSaveCurrent = () => {
+      try {
+        const data = notesMode === 'manual' ? (dataEntryRef.current?.save() as Answers) : undefined;
+        if (data) void saveNotes(data);
+      } catch {}
+    };
     window.addEventListener('bilan-type:generate-selected', onGenSelected);
     window.addEventListener('bilan-type:generate-all', onGenAll);
+    window.addEventListener('bilan-type:save-current', onSaveCurrent);
     return () => {
       window.removeEventListener('bilan-type:generate-selected', onGenSelected);
       window.removeEventListener('bilan-type:generate-all', onGenAll);
+      window.removeEventListener('bilan-type:save-current', onSaveCurrent);
     };
-  }, [notesMode, rawNotes, imageBase64, bilanAnswers, navSections, selectedTrame, onGenerateFromTemplate, onGenerate, mode, token, bilanId]);
+  }, [notesMode, rawNotes, imageBase64, bilanAnswers, navSections, selectedTrame, onGenerateFromTemplate, onGenerate, mode, token, bilanId, excludedSectionIds]);
 
   return (
     <div className="h-full flex flex-col overflow-hidden relative">

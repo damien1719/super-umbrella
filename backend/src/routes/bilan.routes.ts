@@ -6,6 +6,7 @@ import {
   updateBilanSchema,
   bilanIdParam,
 } from '../schemas/bilan.schema';
+import { generateBilanTypeBody } from '../schemas/generateBilanType.schema';
 
 export const bilanRouter = Router();
 
@@ -42,4 +43,11 @@ bilanRouter.post(
   BilanController.conclude,
 );
 
+// Generate a full BilanType (all sections) and return assembled Lexical state
+bilanRouter.post(
+  '/:bilanId/generate-bilan-type',
+  validateParams(bilanIdParam),
+  validateBody(generateBilanTypeBody),
+  BilanController.generateBilanType,
+);
 
