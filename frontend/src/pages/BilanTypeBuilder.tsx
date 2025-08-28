@@ -27,22 +27,59 @@ type SelectedElement = BilanElement & {
   order: number;
 };
 
-export default function BilanTypeBuilder() {
+interface BilanTypeBuilderProps {
+  initialBilanTypeId?: string;
+}
+
+export default function BilanTypeBuilder({ initialBilanTypeId }: BilanTypeBuilderProps) {
   const [bilanName, setBilanName] = useState('');
   const [selectedElements, setSelectedElements] = useState<SelectedElement[]>(
     [],
   );
   const [showPreview, setShowPreview] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const sections = useSectionStore((s) => s.items);
   const fetchSections = useSectionStore((s) => s.fetchAll);
   const createBilanType = useBilanTypeStore((s) => s.create);
+  const updateBilanType = useBilanTypeStore((s) => s.update);
+  const fetchBilanType = useBilanTypeStore((s) => s.fetchOne);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchSections().catch(console.error);
   }, [fetchSections]);
+
+  // Initialize from an existing BilanType id if provided
+  useEffect(() => {
+    if (!initialBilanTypeId) return;
+    if (!sections || sections.length === 0) return;
+    (async () => {
+      try {
+        const bt = await fetchBilanType(initialBilanTypeId);
+        const ordered = (bt.sections || [])
+          .slice()
+          .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+        const next: SelectedElement[] = [];
+        for (const it of ordered) {
+          const sec = sections.find((s) => s.id === it.sectionId);
+          if (!sec) continue;
+          const normalized = normalizeKind(sec.kind);
+          if (!normalized) continue;
+          next.push({
+            id: sec.id,
+            type: normalized,
+            title: sec.title,
+            description: sec.description ?? '',
+            order: it.sortOrder ?? next.length,
+          });
+        }
+        setSelectedElements(next);
+        setBilanName(bt.name || '');
+      } catch {}
+    })();
+  }, [initialBilanTypeId, sections, fetchBilanType]);
 
   // Set des CategoryId valides d'après ta source unique de vérité
   const validCategoryIds = useMemo(
@@ -140,14 +177,21 @@ export default function BilanTypeBuilder() {
   };
 
   const saveBilanType = async () => {
-    await createBilanType({
-      name: bilanName,
-      sections: selectedElements.map(({ id, order }) => ({
-        sectionId: id,
-        sortOrder: order,
-      })),
-    });
-    navigate('/bilan-types');
+    setIsSaving(true);
+    try {
+      const payload = {
+        name: bilanName,
+        sections: selectedElements.map(({ id, order }) => ({ sectionId: id, sortOrder: order })),
+      };
+      if (initialBilanTypeId) {
+        await updateBilanType(initialBilanTypeId, payload);
+      } else {
+        await createBilanType(payload);
+      }
+      navigate('/bilan-types');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -173,6 +217,7 @@ export default function BilanTypeBuilder() {
             bilanName={bilanName}
             setBilanName={setBilanName}
             selectedElements={selectedElements}
+            isSaving={isSaving}
             showPreview={showPreview}
             setShowPreview={setShowPreview}
             draggedIndex={draggedIndex}

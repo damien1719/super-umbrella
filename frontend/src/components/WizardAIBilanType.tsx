@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import WizardAIRightPanel, { type WizardAIRightPanelProps } from './WizardAIRightPanel';
 import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
 
 interface WizardAIBilanTypeProps extends WizardAIRightPanelProps {
   mode?: 'section' | 'bilanType';
@@ -46,13 +47,23 @@ export default function WizardAIBilanType({
 
   // Track active test (section) name from inner panel to label the button
   const [activeTestTitle, setActiveTestTitle] = useState<string>('test sélectionné');
+  const [excludedIds, setExcludedIds] = useState<string[]>([]);
+  const [isFooterGenerating, setIsFooterGenerating] = useState<boolean>(false);
   useEffect(() => {
     const onActiveChanged = (e: Event) => {
       const detail = (e as CustomEvent<{ id: string | null; title: string }>).detail;
       if (detail && detail.title) setActiveTestTitle(detail.title);
     };
+    const onExcludedChanged = (e: Event) => {
+      const detail = (e as CustomEvent<string[]>).detail;
+      setExcludedIds(Array.isArray(detail) ? detail : []);
+    };
     window.addEventListener('bilan-type:active-changed', onActiveChanged as EventListener);
-    return () => window.removeEventListener('bilan-type:active-changed', onActiveChanged as EventListener);
+    window.addEventListener('bilan-type:excluded-changed', onExcludedChanged as EventListener);
+    return () => {
+      window.removeEventListener('bilan-type:active-changed', onActiveChanged as EventListener);
+      window.removeEventListener('bilan-type:excluded-changed', onExcludedChanged as EventListener);
+    };
   }, []);
 
   return (
@@ -71,21 +82,47 @@ export default function WizardAIBilanType({
             <Button
               variant="secondary"
               onClick={() => {
+                setIsFooterGenerating(true);
                 const evt = new Event('bilan-type:generate-selected');
                 window.dispatchEvent(evt);
               }}
               type="button"
+              disabled={isFooterGenerating}
             >
-              Générer "{activeTestTitle}"
+              {isFooterGenerating ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Génération...
+                </>
+              ) : (
+                <>Générer "{activeTestTitle}"</>
+              )}
             </Button>
             <Button
               onClick={() => {
-                const evt = new Event('bilan-type:generate-all');
-                window.dispatchEvent(evt);
+                setIsFooterGenerating(true);
+                // Save current section before bulk generation
+                const saveEvt = new Event('bilan-type:save-current');
+                window.dispatchEvent(saveEvt);
+                // Prefer direct callback if provided, else fallback to legacy event
+                if (rest.onGenerateAll && selectedTrame?.value) {
+                  rest.onGenerateAll(selectedTrame.value, excludedIds);
+                } else {
+                  const evt = new Event('bilan-type:generate-all');
+                  window.dispatchEvent(evt);
+                }
               }}
               type="button"
+              disabled={isFooterGenerating}
             >
-              Générer tous les tests
+              {isFooterGenerating ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Génération...
+                </>
+              ) : (
+                <>Générer tous les tests</>
+              )}
             </Button>
           </div>
         </div>

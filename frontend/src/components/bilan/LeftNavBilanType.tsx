@@ -1,20 +1,23 @@
 import * as React from 'react';
 
 import { cn } from '@/lib/utils';
+import { Eye, EyeOff } from 'lucide-react';
 
 export interface LeftNavItem {
   id: string;
   title: string;
   index?: number;
+  disabled?: boolean;
 }
 
 interface LeftNavBilanTypeProps {
   items: LeftNavItem[];
   activeId: string | null;
   onSelect: (id: string) => void;
+  onToggleDisabled?: (id: string) => void;
 }
 
-export function LeftNavBilanType({ items, activeId, onSelect }: LeftNavBilanTypeProps) {
+export function LeftNavBilanType({ items, activeId, onSelect, onToggleDisabled }: LeftNavBilanTypeProps) {
   return (
     <aside className="hidden md:flex w-60 shrink-0 border-r border-wood-200 bg-white sticky top-0 h-[calc(100vh-120px)]">
       <div className="flex flex-col w-full">
@@ -31,6 +34,7 @@ export function LeftNavBilanType({ items, activeId, onSelect }: LeftNavBilanType
                 className={cn(
                   'group relative w-full flex items-center gap-3 px-3 py-2 text-left text-sm',
                   active ? 'bg-muted/40 font-medium bg-primary-50' : 'hover:bg-muted/30',
+                  it.disabled ? 'opacity-50' : '',
                 )}
               >
                 <span
@@ -47,7 +51,16 @@ export function LeftNavBilanType({ items, activeId, onSelect }: LeftNavBilanType
                 >
                   {(it.index ?? i) + 1}
                 </span>
-                <span className="truncate">{it.title}</span>
+                <span className="truncate flex-1">{it.title}</span>
+                {onToggleDisabled && (
+                  <span className="ml-2" onClick={(e) => { e.stopPropagation(); onToggleDisabled?.(it.id); }}>
+                    {it.disabled ? (
+                      <EyeOff className={cn('h-4 w-4', active ? 'text-primary' : 'text-gray-500')} />
+                    ) : (
+                      <Eye className={cn('h-4 w-4', active ? 'text-primary' : 'text-gray-500')} />
+                    )}
+                  </span>
+                )}
               </button>
             );
           })}
@@ -58,4 +71,3 @@ export function LeftNavBilanType({ items, activeId, onSelect }: LeftNavBilanType
 }
 
 export default LeftNavBilanType;
-

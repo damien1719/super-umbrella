@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Save, Eye } from "lucide-react"
+import { Plus, Save, Eye, Loader2 } from "lucide-react"
 import { BilanTypeConstructionCard } from "./BilanTypeConstructionCard"
 
 interface SelectedElement {
@@ -23,6 +23,7 @@ interface BilanTypeConstructionProps {
   bilanName: string
   setBilanName: (name: string) => void
   selectedElements: SelectedElement[]
+  isSaving?: boolean
   showPreview: boolean
   setShowPreview: (show: boolean) => void
   draggedIndex: number | null
@@ -50,6 +51,7 @@ export function BilanTypeConstruction({
   bilanName,
   setBilanName,
   selectedElements,
+  isSaving,
   showPreview,
   setShowPreview,
   draggedIndex,
@@ -71,9 +73,18 @@ export function BilanTypeConstruction({
                 <Eye className="h-4 w-4 mr-2" />
                 {showPreview ? "Masquer" : "Aperçu"}
               </Button>
-              <Button size="sm" onClick={onSave} disabled={!bilanName || selectedElements.length === 0}>
-                <Save className="h-4 w-4 mr-2" />
-                Sauvegarder
+              <Button size="sm" onClick={onSave} disabled={isSaving || !bilanName || selectedElements.length === 0}>
+                {isSaving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Sauvegarde...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Sauvegarder
+                  </>
+                )}
               </Button>
             </div>
           </div>
