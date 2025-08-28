@@ -24,6 +24,7 @@ interface DataEntryProps {
   answers: Answers;
   onChange: (answers: Answers) => void;
   inline?: boolean;
+  showGroupNav?: boolean;
 }
 
 export interface DataEntryHandle {
@@ -42,7 +43,7 @@ type QuestionGroup = {
 
 export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
   function DataEntry(
-    { questions, answers, onChange, inline = false }: DataEntryProps,
+    { questions, answers, onChange, inline = false, showGroupNav = true }: DataEntryProps,
     ref,
   ) {
     const [open, setOpen] = useState(false);
@@ -188,13 +189,15 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
       return (
         <div className="flex h-screen overflow-hidden">
           {/* Nav gauche */}
-          <GroupedQuestionsNav
-            groups={groups}
-            active={activeSec}
-            onNavigate={goTo}
-            onPrev={goPrev}
-            onNext={goNext}
-          />
+          {showGroupNav && (
+            <GroupedQuestionsNav
+              groups={groups}
+              active={activeSec}
+              onNavigate={goTo}
+              onPrev={goPrev}
+              onNext={goNext}
+            />
+          )}
 
           {/* Form droit */}
           {inlineForm}
