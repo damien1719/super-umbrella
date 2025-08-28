@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus, Search, Filter } from "lucide-react"
-import { SectionCardSmall } from "./section-card-small"
+import { SectionCardSmall } from "./SectionCardSmall"
 
 interface BilanElement {
   id: string

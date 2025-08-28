@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Save, Eye } from "lucide-react"
-import { BilanTypeConstructionCard } from "./bilan-type-construction-card"
+import { BilanTypeConstructionCard } from "./BilanTypeConstructionCard"
 
 interface SelectedElement {
   id: string
