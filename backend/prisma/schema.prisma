@@ -82,6 +82,7 @@ model BilanType {
   createdAt   DateTime           @default(now())
   bilans      Bilan[]
   author      Profile?           @relation("AuthorBilanTypes", fields: [authorId], references: [id])
+  layoutJson  Json?
   sections    BilanTypeSection[]
 
   @@schema("psychomot")
