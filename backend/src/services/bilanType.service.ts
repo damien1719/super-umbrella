@@ -1,6 +1,6 @@
 import { prisma } from '../prisma';
 import { NotFoundError } from './profile.service';
-import type { BilanTypeSection } from '@monorepo/shared';
+import type { BilanTypeSection } from '../types/bilanTypeSection';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = prisma as any;

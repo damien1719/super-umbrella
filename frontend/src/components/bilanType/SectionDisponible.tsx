@@ -8,12 +8,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Search, Filter } from "lucide-react"
 import { SectionCardSmall } from "./SectionCardSmall"
 
-interface BilanElement {
+// ✅ use your shared domain types & data
+import type { CategoryId, Category } from "@/types/trame"
+import { categories } from "@/types/trame"
+import type { Job } from "@/types/job"
+import { jobOptions } from "@/types/job"
+
+// -------------------- Types --------------------
+
+export interface BilanElement {
   id: string
-  type: "test" | "anamnese" | "conclusion"
+  type: CategoryId
   title: string
   description: string
-  metier: "psychologue" | "orthophoniste" | "neuropsychologue" | "psychiatre" | "general"
+  metier: Job
 }
 
 interface SectionDisponibleProps {
@@ -21,47 +29,41 @@ interface SectionDisponibleProps {
   onAddElement: (element: BilanElement) => void
 }
 
+// Helper for the label of a CategoryId using the shared categories array
+const categoryLabel = (id: CategoryId) =>
+  (categories as Category[]).find(c => c.id === id)?.title ?? id
+
+// -------------------- Component --------------------
+
 export function SectionDisponible({ availableElements, onAddElement }: SectionDisponibleProps) {
   const [searchText, setSearchText] = useState("")
-  const [filterType, setFilterType] = useState<string>("all")
-  const [filterMetier, setFilterMetier] = useState<string>("all")
+  const [filterType, setFilterType] = useState<"all" | CategoryId>("all")
+  const [filterMetier, setFilterMetier] = useState<"all" | Job>("all")
   const [displayLimit, setDisplayLimit] = useState(8)
 
-  const filteredElements = useMemo(() => {
-    const filtered = availableElements.filter((element) => {
-      const matchesSearch =
-        searchText === "" ||
-        element.title.toLowerCase().includes(searchText.toLowerCase()) ||
-        element.description.toLowerCase().includes(searchText.toLowerCase())
+  const predicate = (element: BilanElement) => {
+    const matchesSearch =
+      searchText === "" ||
+      element.title.toLowerCase().includes(searchText.toLowerCase()) ||
+      element.description.toLowerCase().includes(searchText.toLowerCase())
 
-      const matchesType = filterType === "all" || element.type === filterType
-      const matchesMetier = filterMetier === "all" || element.metier === filterMetier
+    const matchesType = filterType === "all" || element.type === filterType
+    const matchesMetier = filterMetier === "all" || element.metier === filterMetier
 
-      return matchesSearch && matchesType && matchesMetier
-    })
-
-    return filtered.slice(0, displayLimit)
-  }, [searchText, filterType, filterMetier, displayLimit, availableElements])
-
-  const hasMoreResults = useMemo(() => {
-    const totalFiltered = availableElements.filter((element) => {
-      const matchesSearch =
-        searchText === "" ||
-        element.title.toLowerCase().includes(searchText.toLowerCase()) ||
-        element.description.toLowerCase().includes(searchText.toLowerCase())
-
-      const matchesType = filterType === "all" || element.type === filterType
-      const matchesMetier = filterMetier === "all" || element.metier === filterMetier
-
-      return matchesSearch && matchesType && matchesMetier
-    }).length
-
-    return totalFiltered > displayLimit
-  }, [searchText, filterType, filterMetier, displayLimit, availableElements])
-
-  const loadMoreResults = () => {
-    setDisplayLimit((prev) => prev + 8)
+    return matchesSearch && matchesType && matchesMetier
   }
+
+  const filteredElements = useMemo(
+    () => availableElements.filter(predicate).slice(0, displayLimit),
+    [searchText, filterType, filterMetier, displayLimit, availableElements]
+  )
+
+  const hasMoreResults = useMemo(
+    () => availableElements.filter(predicate).length > displayLimit,
+    [searchText, filterType, filterMetier, displayLimit, availableElements]
+  )
+
+  const loadMoreResults = () => setDisplayLimit(prev => prev + 8)
 
   const resetFilters = () => {
     setSearchText("")
@@ -77,9 +79,10 @@ export function SectionDisponible({ availableElements, onAddElement }: SectionDi
           <Plus className="h-5 w-5" />
           Éléments disponibles
         </CardTitle>
+
         <div className="space-y-3 pt-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Rechercher un test, anamnèse..."
               value={searchText}
@@ -89,29 +92,39 @@ export function SectionDisponible({ availableElements, onAddElement }: SectionDi
           </div>
 
           <div className="grid grid-cols-1 gap-2">
-            <Select value={filterType} onValueChange={setFilterType}>
+            {/* Type d'élément (CategoryId) */}
+            <Select
+              value={filterType}
+              onValueChange={(v) => setFilterType(v as "all" | CategoryId)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Type d'élément" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tous les types</SelectItem>
-                <SelectItem value="test">Tests</SelectItem>
-                <SelectItem value="anamnese">Anamnèses</SelectItem>
-                <SelectItem value="conclusion">Conclusions</SelectItem>
+                {categories.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.title}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
-            <Select value={filterMetier} onValueChange={setFilterMetier}>
+            {/* Métier (Job) */}
+            <Select
+              value={filterMetier}
+              onValueChange={(v) => setFilterMetier(v as "all" | Job)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Métier" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tous les métiers</SelectItem>
-                <SelectItem value="psychologue">Psychologue</SelectItem>
-                <SelectItem value="orthophoniste">Orthophoniste</SelectItem>
-                <SelectItem value="neuropsychologue">Neuropsychologue</SelectItem>
-                <SelectItem value="psychiatre">Psychiatre</SelectItem>
-                <SelectItem value="general">Général</SelectItem>
+                {jobOptions.map((opt) => (
+                  <SelectItem key={opt.id} value={opt.id}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -124,6 +137,7 @@ export function SectionDisponible({ availableElements, onAddElement }: SectionDi
           )}
         </div>
       </CardHeader>
+
       <CardContent className="space-y-3">
         {filteredElements.map((element) => (
           <SectionCardSmall key={element.id} element={element} onAdd={onAddElement} />

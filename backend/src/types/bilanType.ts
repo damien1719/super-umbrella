@@ -1,4 +1,4 @@
-import type { BilanTypeSection } from './BilanTypeSection';
+import type { BilanTypeSection } from './bilanTypeSection';
 
 export interface BilanType {
   id: string;
