@@ -24,5 +24,6 @@ describe('BilanTypes page', () => {
 
     expect(fetchAll).toHaveBeenCalled();
     expect(await screen.findByText('BT')).toBeInTheDocument();
+    expect(screen.getByText('Créer un Bilan Type')).toBeInTheDocument();
   });
 });
