@@ -1,23 +1,39 @@
 import { prisma } from '../prisma';
 import { NotFoundError } from './profile.service';
+import type { BilanTypeSection } from '@monorepo/shared';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = prisma as any;
+
+export type BilanTypeSectionInput = Omit<
+  BilanTypeSection,
+  'id' | 'bilanTypeId' | 'bilanType' | 'section'
+>;
 
 export type BilanTypeData = {
   name: string;
   description?: string | null;
   isPublic?: boolean;
   layoutJson?: unknown;
+  sections?: BilanTypeSectionInput[];
 };
 
 export const BilanTypeService = {
   async create(userId: string, data: BilanTypeData) {
     const profile = await db.profile.findUnique({ where: { userId } });
     if (!profile) throw new Error('Profile not found for user');
-    return db.bilanType.create({
-      data: { ...data, authorId: profile.id },
+    const { sections, ...bilanTypeData } = data;
+    const bilanType = await db.bilanType.create({
+      data: { ...bilanTypeData, authorId: profile.id },
     });
+    if (sections?.length) {
+      for (const section of sections) {
+        await db.bilanTypeSection.create({
+          data: { ...section, bilanTypeId: bilanType.id },
+        });
+      }
+    }
+    return bilanType;
   },
 
   list(userId: string) {

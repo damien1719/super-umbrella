@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import type React from "react";
-import { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
-import { SectionDisponible } from "@/components/bilanType/SectionDisponible";
-import { BilanTypeConstruction } from "@/components/bilanType/BilanTypeConstruction";
-import { useSectionStore } from "@/store/sections";
-import { useBilanTypeStore } from "@/store/bilanTypes";
+import type React from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { SectionDisponible } from '@/components/bilanType/SectionDisponible';
+import { BilanTypeConstruction } from '@/components/bilanType/BilanTypeConstruction';
+import { useSectionStore } from '@/store/sections';
+import { useBilanTypeStore } from '@/store/bilanTypes';
 
 // ✅ On réutilise les types existants
-import { categories, kindMap, type CategoryId } from "@/types/trame";
-import { Job } from "@/types/job";
+import { categories, kindMap, type CategoryId } from '@/types/trame';
+import { Job } from '@/types/job';
 
 // Petit type UI local basé UNIQUEMENT sur tes types de domaine
 type BilanElement = {
@@ -28,8 +28,10 @@ type SelectedElement = BilanElement & {
 };
 
 export default function BilanTypeBuilder() {
-  const [bilanName, setBilanName] = useState("");
-  const [selectedElements, setSelectedElements] = useState<SelectedElement[]>([]);
+  const [bilanName, setBilanName] = useState('');
+  const [selectedElements, setSelectedElements] = useState<SelectedElement[]>(
+    [],
+  );
   const [showPreview, setShowPreview] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
@@ -71,14 +73,14 @@ export default function BilanTypeBuilder() {
     () =>
       sections
         .map((s) => {
-          const normalized = normalizeKind((s as any).kind as string | undefined);
+          const normalized = normalizeKind(s.kind);
           if (!normalized) return null;
 
           return {
-            id: (s as any).id as string,
+            id: s.id,
             type: normalized,
-            title: (s as any).title as string,
-            description: ((s as any).description as string) || "",
+            title: s.title,
+            description: s.description ?? '',
             // pas de "general" string — on garde uniquement Job si un ciblage est utile
             metier: undefined as Job | undefined,
           } satisfies BilanElement;
@@ -101,12 +103,12 @@ export default function BilanTypeBuilder() {
 
   const handleDragStart = (e: React.DragEvent, index: number) => {
     setDraggedIndex(index);
-    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.effectAllowed = 'move';
   };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
+    e.dataTransfer.dropEffect = 'move';
   };
 
   const handleDrop = (e: React.DragEvent, dropIndex: number) => {
@@ -140,12 +142,12 @@ export default function BilanTypeBuilder() {
   const saveBilanType = async () => {
     await createBilanType({
       name: bilanName,
-      layoutJson: selectedElements.map(({ id, order }) => ({
+      sections: selectedElements.map(({ id, order }) => ({
         sectionId: id,
-        order,
+        sortOrder: order,
       })),
     });
-    navigate("/bilan-types");
+    navigate('/bilan-types');
   };
 
   return (
@@ -156,7 +158,8 @@ export default function BilanTypeBuilder() {
             Constructeur de Type de Bilan
           </h1>
           <p className="text-muted-foreground">
-            Créez votre type de bilan personnalisé en sélectionnant et organisant les éléments
+            Créez votre type de bilan personnalisé en sélectionnant et
+            organisant les éléments
           </p>
         </div>
 
