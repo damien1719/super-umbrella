@@ -20,4 +20,26 @@ describe('useBilanTypeStore', () => {
     expect(item.id).toBe('1');
     expect(useBilanTypeStore.getState().items[0].id).toBe('1');
   });
+
+  it('sends sections when creating a bilan type', async () => {
+    useAuth.setState((s) => ({ ...s, token: 'tok' }) as AuthState);
+    useBilanTypeStore.setState({ items: [] });
+    (fetch as unknown as vi.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ id: '1', name: 'BT' }),
+    });
+    await useBilanTypeStore.getState().create({
+      name: 'BT',
+      sections: [{ sectionId: 's1', sortOrder: 0 }],
+    });
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/v1/bilan-types',
+      expect.objectContaining({
+        body: JSON.stringify({
+          name: 'BT',
+          sections: [{ sectionId: 's1', sortOrder: 0 }],
+        }),
+      }),
+    );
+  });
 });

@@ -26,7 +26,12 @@ describe('GET /api/v1/bilan-types', () => {
 
 describe('POST /api/v1/bilan-types', () => {
   it('creates a bilan type using the service', async () => {
-    const body = { name: 'BT' };
+    const body = {
+      name: 'BT',
+      sections: [
+        { sectionId: '11111111-1111-1111-1111-111111111111', sortOrder: 0 },
+      ],
+    };
     mockedService.create.mockResolvedValueOnce({
       id: '2',
       name: 'BT',
