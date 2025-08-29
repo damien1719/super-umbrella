@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 // ✅ On réutilise les types existants
 import { categories, kindMap, type CategoryId } from '@/types/trame';
 import { Job } from '@/types/job';
+import { hydrateLayout, type LexicalState } from '@/utils/hydrateLayout';
 
 // Petit type UI local basé UNIQUEMENT sur tes types de domaine
 type BilanElement = {
@@ -41,7 +42,7 @@ export default function BilanTypeBuilder({ initialBilanTypeId }: BilanTypeBuilde
   );
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [mode, setMode] = useState<'build' | 'layout'>('build');
+  const [mode, setMode] = useState<'build' | 'layout' | 'preview'>('build');
   const [layoutJson, setLayoutJson] = useState<unknown | undefined>(undefined);
   const layoutEditorRef = useRef<RichTextEditorHandle | null>(null);
 
@@ -227,7 +228,45 @@ export default function BilanTypeBuilder({ initialBilanTypeId }: BilanTypeBuilde
         ]),
       },
       version: 1,
-    } as unknown;
+    } as unknown as LexicalState;
+  }
+
+  // Small local component to render the left sidebar list of sections
+  function SectionsList({
+    elements,
+    onInsert,
+    showInsert = true,
+  }: {
+    elements: { id: string; title: string }[];
+    onInsert?: (id: string, title: string) => void;
+    showInsert?: boolean;
+  }) {
+    return (
+      <div className="space-y-2">
+        {showInsert && (
+          <div className="text-sm text-muted-foreground mb-2">
+            Cliquez pour insérer un placeholder de section dans le layout
+          </div>
+        )}
+        {elements.map((el, i) => (
+          <div key={el.id} className="flex items-center justify-between gap-2 border rounded px-2 py-1">
+            <div className="truncate">
+              <span className="text-xs text-muted-foreground mr-2">{i + 1}.</span>
+              <span>{el.title}</span>
+            </div>
+            {showInsert && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onInsert?.(el.id, el.title)}
+              >
+                Insérer
+              </Button>
+            )}
+          </div>
+        ))}
+      </div>
+    );
   }
 
   return (
@@ -248,7 +287,10 @@ export default function BilanTypeBuilder({ initialBilanTypeId }: BilanTypeBuilde
                 Construction
               </Button>
               <Button variant={mode === 'layout' ? 'default' : 'outline'} size="sm" onClick={() => setMode('layout')}>
-                Layout
+                Edition Word
+              </Button>
+              <Button variant={mode === 'preview' ? 'default' : 'outline'} size="sm" onClick={() => setMode('preview')}>
+                Aperçu complet
               </Button>
             </div>
           </div>
@@ -275,31 +317,18 @@ export default function BilanTypeBuilder({ initialBilanTypeId }: BilanTypeBuilde
               onSave={saveBilanType}
             />
           </div>
-        ) : (
+        ) : mode === 'layout' ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <Card className="lg:col-span-1">
               <CardHeader>
                 <CardTitle>Sections du bilan</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  <div className="text-sm text-muted-foreground mb-2">Cliquez pour insérer un placeholder de section dans le layout</div>
-                  {selectedElements.map((el, i) => (
-                    <div key={el.id} className="flex items-center justify-between gap-2 border rounded px-2 py-1">
-                      <div className="truncate">
-                        <span className="text-xs text-muted-foreground mr-2">{i + 1}.</span>
-                        <span>{el.title}</span>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => layoutEditorRef.current?.insertSectionPlaceholder?.(el.id, el.title)}
-                      >
-                        Insérer
-                      </Button>
-                    </div>
-                  ))}
-                </div>
+                <SectionsList
+                  elements={selectedElements}
+                  onInsert={(id, title) => layoutEditorRef.current?.insertSectionPlaceholder?.(id, title)}
+                  showInsert
+                />
                 <div className="mt-4 flex gap-2 justify-end">
                   <Button variant="outline" size="sm" onClick={() => setMode('build')}>Retour</Button>
                   <Button size="sm" onClick={saveBilanType} disabled={isSaving || !bilanName || selectedElements.length === 0}>
@@ -324,6 +353,49 @@ export default function BilanTypeBuilder({ initialBilanTypeId }: BilanTypeBuilde
                 </div>
               </CardContent>
             </Card>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+           {/*  <Card className="lg:col-span-1">
+              <CardHeader>
+                <CardTitle>Sections du bilan</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <SectionsList elements={selectedElements} showInsert={false} />
+                <div className="mt-4 flex gap-2 justify-end">
+                  <Button variant="outline" size="sm" onClick={() => setMode('layout')}>Retour</Button>
+                  <Button size="sm" onClick={saveBilanType} disabled={isSaving || !bilanName || selectedElements.length === 0}>
+                    {isSaving ? 'Sauvegarde…' : 'Sauvegarder'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card> */}
+
+            <div className="lg:col-span-2 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Aperçu (composé): {bilanName || 'Sans nom'}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {(() => {
+                    const baseLayout = (layoutJson as LexicalState | undefined) ?? defaultLayoutFromSections(selectedElements);
+                    const sectionsMap = Object.fromEntries(
+                      selectedElements.map((el) => {
+                        const s = sections.find((sec) => sec.id === el.id);
+                        const content = (s?.templateRef?.content ?? s?.defaultContent) as LexicalState | undefined;
+                        return [el.id, content];
+                      }),
+                    );
+                    const composed = hydrateLayout(baseLayout, sectionsMap);
+                    return (
+                      <div className="border rounded">
+                        <RichTextEditor initialStateJson={composed} readOnly={true} />
+                      </div>
+                    );
+                  })()}
+                </CardContent>
+              </Card>
+            </div>
           </div>
         )}
       </div>

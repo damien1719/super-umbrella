@@ -4,6 +4,14 @@ import { useAuth } from './auth';
 import type { CategoryId as SectionKind } from '../types/trame';
 import { Job } from '../types/job';
 
+export interface SectionTemplateRef {
+  id: string;
+  label?: string;
+  version?: number;
+  content: unknown; // Lexical EditorState JSON
+  slotsSpec?: unknown;
+}
+
 export interface Section {
   id: string;
   title: string;
@@ -16,6 +24,7 @@ export interface Section {
   authorId?: string | null;
   author?: { prenom?: string | null } | null;
   templateRefId?: string | null;
+  templateRef?: SectionTemplateRef | null;
 }
 
 export type SectionInput = Omit<Section, 'id' | 'author'>;

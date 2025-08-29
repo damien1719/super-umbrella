@@ -193,10 +193,10 @@ export const BilanController = {
       const job = profiles && profiles.length > 0 ? (profiles[0].job ?? undefined) : undefined;
 
       // Sort sections by sortOrder
-      let items = (bilanType.sections || []).slice().sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+      let items = (bilanType.sections || []).slice().sort((a: { sortOrder?: number }, b: { sortOrder?: number }) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
       if (excludeSectionIds && excludeSectionIds.length > 0) {
         const set = new Set(excludeSectionIds);
-        items = items.filter((s) => !set.has(s.sectionId));
+        items = items.filter((s: { sectionId: string }) => !set.has(s.sectionId));
       }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
