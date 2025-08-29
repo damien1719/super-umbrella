@@ -4,7 +4,12 @@ import { Button } from '../components/ui/button';
 import { InputField } from '../components/ui/input-field';
 import { usePatientStore, Patient, PatientInput } from '../store/patients';
 import { Loader2, ArrowLeft, Edit, Save, X, User } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '../components/ui/card';
 
 export default function VuePatient() {
   const { patientId } = useParams<{ patientId: string }>();
@@ -13,7 +18,7 @@ export default function VuePatient() {
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [patient, setPatient] = useState<Patient | null>(null);
-  
+
   // États pour l'édition
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -24,7 +29,7 @@ export default function VuePatient() {
     if (patientId) {
       fetchAll()
         .then(() => {
-          const foundPatient = items.find(p => p.id === patientId);
+          const foundPatient = items.find((p) => p.id === patientId);
           if (foundPatient) {
             setPatient(foundPatient);
             // Initialiser les champs seulement au premier chargement
@@ -43,7 +48,7 @@ export default function VuePatient() {
 
   const handleSave = async () => {
     if (!patient || !patientId) return;
-    
+
     try {
       const payload: Partial<PatientInput> = {
         firstName,
@@ -51,10 +56,10 @@ export default function VuePatient() {
         dob: dob ? new Date(dob).toISOString() : undefined,
         notes: notes || undefined,
       };
-      
+
       await update(patientId, payload);
       setIsEditing(false);
-      
+
       // Mettre à jour le patient local
       setPatient({
         ...patient,
@@ -92,7 +97,9 @@ export default function VuePatient() {
       <div className="min-h-screen bg-wood-50 p-6">
         <div className="max-w-4xl mx-auto">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Patient non trouvé</h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+              Patient non trouvé
+            </h1>
             <Button onClick={() => navigate('/patients')} variant="primary">
               Retour aux patients
             </Button>
@@ -129,7 +136,7 @@ export default function VuePatient() {
               </div>
             </div>
           </div>
-          
+
           {!isEditing && (
             <Button
               variant="primary"

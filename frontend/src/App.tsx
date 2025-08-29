@@ -65,7 +65,7 @@ function SilentCheckSso() {
 
 function ProtectedLayout() {
   const setCurrentPage = usePageStore((s) => s.setCurrentPage);
-  const { user } = useAuth();
+  const { user, initialized } = useAuth();
   const { profileId, fetchProfile, profile } = useUserProfileStore();
   const loading = useInitAuth();
 
@@ -73,12 +73,12 @@ function ProtectedLayout() {
   useRequireAuth();
 
   useEffect(() => {
-    if (user && !profileId) {
+    if (initialized && user && !profileId) {
       fetchProfile().catch(() => {
         /* ignore */
       });
     }
-  }, [user, profileId, fetchProfile]);
+  }, [initialized, user, profileId, fetchProfile]);
 
   /*   useEffect(() => {
     if (user) {
@@ -119,18 +119,18 @@ function ProtectedLayout() {
 
 function WizardLayout() {
   const setCurrentPage = usePageStore((s) => s.setCurrentPage);
-  const { user } = useAuth();
+  const { user, initialized } = useAuth();
   const { profileId, fetchProfile } = useUserProfileStore();
   const loading = useInitAuth();
   useRequireAuth();
 
   useEffect(() => {
-    if (user && !profileId) {
+    if (initialized && user && !profileId) {
       fetchProfile().catch(() => {
         /* ignore */
       });
     }
-  }, [user, profileId, fetchProfile]);
+  }, [initialized, user, profileId, fetchProfile]);
 
   if (loading) {
     return <div>Chargement...</div>;

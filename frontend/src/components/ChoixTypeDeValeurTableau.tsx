@@ -111,9 +111,15 @@ export default function ChoixTypeDeValeurTableau({
                         const text = await navigator.clipboard.readText();
                         const options = text
                           .split(',')
-                          .map(opt => opt.trim().replace(/^"|"$/g, '').replace(/\n/g, ' ').trim())
-                          .filter(opt => opt.length > 0);
-                        
+                          .map((opt) =>
+                            opt
+                              .trim()
+                              .replace(/^"|"$/g, '')
+                              .replace(/\n/g, ' ')
+                              .trim(),
+                          )
+                          .filter((opt) => opt.length > 0);
+
                         if (options.length > 0) {
                           const current = local.options || [];
                           setLocal({
@@ -122,7 +128,10 @@ export default function ChoixTypeDeValeurTableau({
                           });
                         }
                       } catch (error) {
-                        console.error('Erreur lors de la lecture du presse-papiers:', error);
+                        console.error(
+                          'Erreur lors de la lecture du presse-papiers:',
+                          error,
+                        );
                       }
                     }}
                     title="Coller des options depuis le presse-papiers"
@@ -137,7 +146,7 @@ export default function ChoixTypeDeValeurTableau({
                       const currentOptions = local.options || [];
                       if (currentOptions.length > 0) {
                         const optionsText = currentOptions
-                          .map(opt => `"${opt}"`)
+                          .map((opt) => `"${opt}"`)
                           .join(',\n        ');
                         navigator.clipboard.writeText(optionsText);
                       }
@@ -194,9 +203,15 @@ export default function ChoixTypeDeValeurTableau({
                             const text = await navigator.clipboard.readText();
                             const options = text
                               .split(',')
-                              .map(opt => opt.trim().replace(/^"|"$/g, '').replace(/\n/g, ' ').trim())
-                              .filter(opt => opt.length > 0);
-                            
+                              .map((opt) =>
+                                opt
+                                  .trim()
+                                  .replace(/^"|"$/g, '')
+                                  .replace(/\n/g, ' ')
+                                  .trim(),
+                              )
+                              .filter((opt) => opt.length > 0);
+
                             if (options.length > 0) {
                               const current = local.rowOptions?.[row.id] || [];
                               setLocal({
@@ -208,7 +223,10 @@ export default function ChoixTypeDeValeurTableau({
                               });
                             }
                           } catch (error) {
-                            console.error('Erreur lors de la lecture du presse-papiers:', error);
+                            console.error(
+                              'Erreur lors de la lecture du presse-papiers:',
+                              error,
+                            );
                           }
                         }}
                         title="Coller des options depuis le presse-papiers"
@@ -220,10 +238,11 @@ export default function ChoixTypeDeValeurTableau({
                         variant="outline"
                         size="sm"
                         onClick={() => {
-                          const currentOptions = local.rowOptions?.[row.id] || [];
+                          const currentOptions =
+                            local.rowOptions?.[row.id] || [];
                           if (currentOptions.length > 0) {
                             const optionsText = currentOptions
-                              .map(opt => `"${opt}"`)
+                              .map((opt) => `"${opt}"`)
                               .join(',\n        ');
                             navigator.clipboard.writeText(optionsText);
                           }

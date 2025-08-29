@@ -14,6 +14,7 @@ import { Plus, ChevronDown } from 'lucide-react';
 import type { Question, ColumnDef } from '@/types/question';
 import { Chip } from './Chip';
 
+
 const FIELD_BASE =
   'rounded-lg border border-gray-300 bg-white shadow-sm focus-visible:ring-2 focus-visible:ring-primary-500/40 focus-visible:outline-none';
 const FIELD_DENSE = 'h-9 px-3';
@@ -29,8 +30,10 @@ export function TableQuestion({
   value,
   onChange,
 }: TableQuestionProps) {
-  const [expandedRows, setExpandedRows] = React.useState<Record<string, boolean>>({});
-  
+  const [expandedRows, setExpandedRows] = React.useState<
+    Record<string, boolean>
+  >({});
+
   let data: Record<string, Record<string, unknown>> & { commentaire?: string } =
     {};
   if (value && typeof value === 'object' && !Array.isArray(value)) {
@@ -59,7 +62,12 @@ export function TableQuestion({
     }
   };
 
-  const renderChips = (opts: string[], selected: string[], update: (v: string[]) => void, maxVisible = 3) => {
+  const renderChips = (
+    opts: string[],
+    selected: string[],
+    update: (v: string[]) => void,
+    maxVisible = 3,
+  ) => {
     const visibleOpts = opts.slice(0, maxVisible);
     const hiddenOpts = opts.slice(maxVisible);
     const rowKey = `chips-${opts.join('-')}`;
@@ -89,7 +97,12 @@ export function TableQuestion({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setExpandedRows(prev => ({ ...prev, [rowKey]: !prev[rowKey] }))}
+              onClick={() =>
+                setExpandedRows((prev) => ({
+                  ...prev,
+                  [rowKey]: !prev[rowKey],
+                }))
+              }
               className="h-7 px-2 text-xs ml-0"
             >
               {isExpanded ? (
@@ -99,8 +112,7 @@ export function TableQuestion({
                 </>
               ) : (
                 <>
-                  <Plus className="h-3 w-3 mr-1" />
-                  +{hiddenOpts.length}
+                  <Plus className="h-3 w-3 mr-1" />+{hiddenOpts.length}
                 </>
               )}
             </Button>
@@ -257,7 +269,10 @@ export function TableQuestion({
                       </div>
                     </td>
                     {question.tableau?.columns?.map((col) => (
-                      <td key={col.id} className={`px-2 py-1 ${getColumnWidth(col)}`}>
+                      <td
+                        key={col.id}
+                        className={`px-2 py-1 ${getColumnWidth(col)}`}
+                      >
                         {renderCell(row.id, col)}
                       </td>
                     ))}

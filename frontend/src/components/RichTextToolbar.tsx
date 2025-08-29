@@ -76,6 +76,27 @@ export function setLineHeight(editor: LexicalEditor, value: string) {
   });
 }
 
+export function setTextColor(editor: LexicalEditor, color: string | null) {
+  editor.update(() => {
+    const selection = $getSelection();
+    if ($isRangeSelection(selection)) {
+      $patchStyleText(selection, { color: color || null });
+    }
+  });
+}
+
+export function setBackgroundColor(
+  editor: LexicalEditor,
+  color: string | null,
+) {
+  editor.update(() => {
+    const selection = $getSelection();
+    if ($isRangeSelection(selection)) {
+      $patchStyleText(selection, { 'background-color': color || null });
+    }
+  });
+}
+
 interface Props {
   onSave?: () => void;
   exportFileName?: string;
@@ -371,6 +392,106 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
         >
           <span style={{ textDecoration: 'underline' }}>U</span>
         </Button>
+
+        {/* Text color */}
+        <DropdownMenu onOpenChange={(open) => !open && handleSelectClosed()}>
+          <DropdownMenuTrigger asChild>
+            <Button
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              variant="editor"
+              aria-label="Couleur du texte"
+              title="Couleur du texte"
+            >
+              Couleur
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            {[
+              ['Par défaut', null],
+              ['Noir', '#000000'],
+              ['Gris', '#6B7280'],
+              ['Rouge', '#DC2626'],
+              ['Orange', '#EA580C'],
+              ['Jaune', '#CA8A04'],
+              ['Vert', '#16A34A'],
+              ['Turquoise', '#14B8A6'],
+              ['Bleu', '#2563EB'],
+              ['Violet', '#7C3AED'],
+            ].map(([label, value]) => (
+              <DropdownMenuItem
+                key={label as string}
+                onClick={() => {
+                  restoreSelectionAndFocus();
+                  setTimeout(
+                    () => setTextColor(editor, value as string | null),
+                    0,
+                  );
+                }}
+              >
+                <span
+                  style={{
+                    display: 'inline-block',
+                    width: 12,
+                    height: 12,
+                    backgroundColor: (value as string) || 'transparent',
+                    border: '1px solid #e5e7eb',
+                    marginRight: 8,
+                  }}
+                />
+                {label as string}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {/* Highlight color */}
+        <DropdownMenu onOpenChange={(open) => !open && handleSelectClosed()}>
+          <DropdownMenuTrigger asChild>
+            <Button
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              variant="editor"
+              aria-label="Surlignage"
+              title="Surlignage"
+            >
+              Surlignage
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            {[
+              ['Aucun', null],
+              ['Jaune', '#FEF08A'],
+              ['Vert clair', '#D9F99D'],
+              ['Bleu clair', '#BAE6FD'],
+              ['Violet clair', '#E9D5FF'],
+              ['Rose clair', '#FBCFE8'],
+            ].map(([label, value]) => (
+              <DropdownMenuItem
+                key={label as string}
+                onClick={() => {
+                  restoreSelectionAndFocus();
+                  setTimeout(
+                    () => setBackgroundColor(editor, value as string | null),
+                    0,
+                  );
+                }}
+              >
+                <span
+                  style={{
+                    display: 'inline-block',
+                    width: 12,
+                    height: 12,
+                    backgroundColor: (value as string) || 'transparent',
+                    border: '1px solid #e5e7eb',
+                    marginRight: 8,
+                  }}
+                />
+                {label as string}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
         <div className="w-px self-stretch bg-wood-200 mx-1" />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -422,7 +543,76 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
             let html = '';
             try {
               editor.getEditorState().read(() => {
-                html = DOMPurify.sanitize($generateHtmlFromNodes(editor));
+                const SANITIZE_OPTIONS: DOMPurify.Config = {
+                  ALLOWED_TAGS: [
+                    'a',
+                    'b',
+                    'i',
+                    'u',
+                    'em',
+                    'strong',
+                    'span',
+                    'p',
+                    'br',
+                    'blockquote',
+                    'h1',
+                    'h2',
+                    'h3',
+                    'ul',
+                    'ol',
+                    'li',
+                    'table',
+                    'thead',
+                    'tbody',
+                    'tr',
+                    'th',
+                    'td',
+                    'div',
+                  ],
+                  ALLOWED_ATTR: [
+                    'href',
+                    'target',
+                    'rel',
+                    'colspan',
+                    'rowspan',
+                    'style',
+                    'class',
+                  ],
+                  ALLOWED_CSS_PROPERTIES: [
+                    'color',
+                    'background',
+                    'background-color',
+                    'text-decoration',
+                    'font-size',
+                    'font-family',
+                    'line-height',
+                    'font-weight',
+                    'font-style',
+                    'border',
+                    'border-color',
+                    'border-width',
+                    'border-style',
+                    'border-radius',
+                    'padding',
+                    'padding-left',
+                    'padding-right',
+                    'padding-top',
+                    'padding-bottom',
+                    'margin',
+                    'margin-left',
+                    'margin-right',
+                    'margin-top',
+                    'margin-bottom',
+                    'vertical-align',
+                    'text-align',
+                    'width',
+                    'height',
+                  ],
+                } as unknown as DOMPurify.Config;
+                html = DOMPurify.sanitize(
+                  $generateHtmlFromNodes(editor),
+                  SANITIZE_OPTIONS,
+                );
               });
             } catch {}
             const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="ie=edge"/><style>

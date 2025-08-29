@@ -9,7 +9,9 @@ vi.mock('@supabase/supabase-js', () => ({
       signUp: () => Promise.resolve({ data: { user: null, session: null } }),
       signOut: () => Promise.resolve(),
       getSession: () => Promise.resolve({ data: { session: null } }),
-      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+      onAuthStateChange: () => ({
+        data: { subscription: { unsubscribe: () => {} } },
+      }),
     },
   }),
 }));

@@ -15,7 +15,9 @@ vi.mock('./ui/button', () => ({
 vi.mock('./ui/card', () => ({
   Card: ({ children, ...props }: any) => <div {...props}>{children}</div>,
   CardHeader: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-  CardContent: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+  CardContent: ({ children, ...props }: any) => (
+    <div {...props}>{children}</div>
+  ),
 }));
 
 vi.mock('./ui/input', () => ({
@@ -35,7 +37,9 @@ vi.mock('./ui/select', () => ({
     </select>
   ),
   SelectContent: ({ children }: any) => <div>{children}</div>,
-  SelectItem: ({ children, value }: any) => <option value={value}>{children}</option>,
+  SelectItem: ({ children, value }: any) => (
+    <option value={value}>{children}</option>
+  ),
   SelectTrigger: ({ children }: any) => <div>{children}</div>,
   SelectValue: () => <span>Select Value</span>,
 }));
@@ -108,7 +112,7 @@ describe('SlotSidebar - Suppression en cascade', () => {
         onAddSlot={mockOnAddSlot}
         onUpdateSlot={mockOnUpdateSlot}
         onRemoveSlot={mockOnRemoveSlot}
-      />
+      />,
     );
 
     // Trouver et cliquer sur le bouton de suppression du groupe
@@ -132,7 +136,12 @@ describe('SlotSidebar - Suppression en cascade', () => {
       {
         kind: 'repeat',
         id: 'repeat-1',
-        from: { enum: [{ key: 'item1', label: 'Item 1' }, { key: 'item2', label: 'Item 2' }] },
+        from: {
+          enum: [
+            { key: 'item1', label: 'Item 1' },
+            { key: 'item2', label: 'Item 2' },
+          ],
+        },
         ctx: 'item',
         namePattern: '',
         slots: [
@@ -157,7 +166,7 @@ describe('SlotSidebar - Suppression en cascade', () => {
         onAddSlot={mockOnAddSlot}
         onUpdateSlot={mockOnUpdateSlot}
         onRemoveSlot={mockOnRemoveSlot}
-      />
+      />,
     );
 
     // Trouver et cliquer sur le bouton de suppression du répéteur
@@ -197,7 +206,7 @@ describe('SlotSidebar - Suppression en cascade', () => {
         onAddSlot={mockOnAddSlot}
         onUpdateSlot={mockOnUpdateSlot}
         onRemoveSlot={mockOnRemoveSlot}
-      />
+      />,
     );
 
     // Trouver et cliquer sur le bouton de suppression du champ

@@ -2,7 +2,10 @@
 // custom { type: 'section-placeholder', sectionId } nodes with the
 // corresponding section editor states (defaultContent).
 
-type LexicalNode = Record<string, unknown> & { type?: string; children?: LexicalNode[] };
+type LexicalNode = Record<string, unknown> & {
+  type?: string;
+  children?: LexicalNode[];
+};
 export type LexicalState = { root: LexicalNode };
 export type SectionsMap = Record<string, LexicalState | undefined>;
 
@@ -16,7 +19,10 @@ function asArray<T>(val: unknown): T[] {
   return [val as T];
 }
 
-export function hydrateLayout(layout: LexicalState, sections: SectionsMap): LexicalState {
+export function hydrateLayout(
+  layout: LexicalState,
+  sections: SectionsMap,
+): LexicalState {
   const inLayout = deepClone(layout);
   const root = inLayout?.root ?? { type: 'root', children: [] };
 
@@ -37,7 +43,7 @@ export function hydrateLayout(layout: LexicalState, sections: SectionsMap): Lexi
             children: [
               {
                 type: 'text',
-                text: `[SECTION introuvable]`,
+                text: ``,
                 detail: 0,
                 format: 0,
                 style: '',
@@ -72,4 +78,3 @@ export function hydrateLayout(layout: LexicalState, sections: SectionsMap): Lexi
 
   return { root: { ...(root || {}), children: outChildren } } as LexicalState;
 }
-

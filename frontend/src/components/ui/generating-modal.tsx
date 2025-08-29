@@ -95,11 +95,15 @@ export default function GeneratingModal({
               className="h-full rounded-full bg-primary/80"
               initial={{ width: '0%' }}
               animate={{ width: '100%' }}
-              transition={{ duration: approxDurationMs / 1000, ease: 'easeInOut' }}
+              transition={{
+                duration: approxDurationMs / 1000,
+                ease: 'easeInOut',
+              }}
             />
           </div>
           <p className="mt-2 text-center text-xs text-muted-foreground">
-            Bilan plume s’active… La génération peut prendre jusqu'à 2-3 minutes en fonction de la longueur et de la complexité du document.
+            Bilan plume s’active… La génération peut prendre jusqu'à 2-3 minutes
+            en fonction de la longueur et de la complexité du document.
           </p>
         </div>
       </DialogContent>

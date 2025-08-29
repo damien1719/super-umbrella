@@ -43,7 +43,7 @@ describe('VuePatient', () => {
     render(
       <BrowserRouter>
         <VuePatient />
-      </BrowserRouter>
+      </BrowserRouter>,
     );
 
     await waitFor(() => {
@@ -56,7 +56,7 @@ describe('VuePatient', () => {
     render(
       <BrowserRouter>
         <VuePatient />
-      </BrowserRouter>
+      </BrowserRouter>,
     );
 
     await waitFor(() => {
@@ -74,7 +74,7 @@ describe('VuePatient', () => {
     render(
       <BrowserRouter>
         <VuePatient />
-      </BrowserRouter>
+      </BrowserRouter>,
     );
 
     await waitFor(() => {
@@ -100,11 +100,11 @@ describe('VuePatient', () => {
     });
   });
 
-  it('permet d\'annuler les modifications', async () => {
+  it("permet d'annuler les modifications", async () => {
     render(
       <BrowserRouter>
         <VuePatient />
-      </BrowserRouter>
+      </BrowserRouter>,
     );
 
     await waitFor(() => {
@@ -128,7 +128,7 @@ describe('VuePatient', () => {
     render(
       <BrowserRouter>
         <VuePatient />
-      </BrowserRouter>
+      </BrowserRouter>,
     );
 
     await waitFor(() => {
@@ -143,7 +143,7 @@ describe('VuePatient', () => {
     render(
       <BrowserRouter>
         <VuePatient />
-      </BrowserRouter>
+      </BrowserRouter>,
     );
 
     await waitFor(() => {
@@ -162,7 +162,7 @@ describe('VuePatient', () => {
 
     // Simuler un changement dans le store (comme si fetchAll était appelé)
     mockStore.items = [{ ...mockPatient, firstName: 'Jane' }];
-    
+
     // Vérifier que le texte saisi est toujours là
     expect(screen.getByDisplayValue('Doe-Smith')).toBeInTheDocument();
   });

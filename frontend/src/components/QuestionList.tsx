@@ -9,7 +9,16 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { GripVertical, Copy, Trash2, Plus, MoreHorizontal, Save, X, ClipboardCopy } from 'lucide-react';
+import {
+  GripVertical,
+  Copy,
+  Trash2,
+  Plus,
+  MoreHorizontal,
+  Save,
+  X,
+  ClipboardCopy,
+} from 'lucide-react';
 import type { Question } from '@/types/Typequestion';
 import { EDITORS } from './Editors';
 import {
@@ -58,7 +67,9 @@ export default function QuestionList({
 }: Props) {
   const dragIndex = useRef<number | null>(null);
   const [jsonDialogOpen, setJsonDialogOpen] = useState(false);
-  const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
+  const [editingQuestionId, setEditingQuestionId] = useState<string | null>(
+    null,
+  );
   const [jsonContent, setJsonContent] = useState('');
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [isEditingAllQuestions, setIsEditingAllQuestions] = useState(false);
@@ -110,22 +121,32 @@ export default function QuestionList({
       if (isEditingAllQuestions) {
         // Édition de toutes les questions
         const parsedQuestions = JSON.parse(jsonContent) as Question[];
-        
+
         if (!Array.isArray(parsedQuestions)) {
           setJsonError('JSON invalide: un tableau de questions est attendu');
           return;
         }
 
         // Validation de chaque question
-        const validTypes = ['notes', 'choix-multiple', 'echelle', 'tableau', 'titre'];
+        const validTypes = [
+          'notes',
+          'choix-multiple',
+          'echelle',
+          'tableau',
+          'titre',
+        ];
         for (let i = 0; i < parsedQuestions.length; i++) {
           const question = parsedQuestions[i];
           if (!question.id || !question.type || !question.titre) {
-            setJsonError(`Question ${i + 1} invalide: id, type et titre sont requis`);
+            setJsonError(
+              `Question ${i + 1} invalide: id, type et titre sont requis`,
+            );
             return;
           }
           if (!validTypes.includes(question.type)) {
-            setJsonError(`Question ${i + 1}: Type invalide '${question.type}'. Types valides: ${validTypes.join(', ')}`);
+            setJsonError(
+              `Question ${i + 1}: Type invalide '${question.type}'. Types valides: ${validTypes.join(', ')}`,
+            );
             return;
           }
         }
@@ -142,17 +163,29 @@ export default function QuestionList({
       } else {
         // Édition d'une seule question
         const parsedQuestion = JSON.parse(jsonContent) as Question;
-        
+
         // Validation basique
-        if (!parsedQuestion.id || !parsedQuestion.type || !parsedQuestion.titre) {
+        if (
+          !parsedQuestion.id ||
+          !parsedQuestion.type ||
+          !parsedQuestion.titre
+        ) {
           setJsonError('JSON invalide: id, type et titre sont requis');
           return;
         }
 
         // Vérifier que le type est valide
-        const validTypes = ['notes', 'choix-multiple', 'echelle', 'tableau', 'titre'];
+        const validTypes = [
+          'notes',
+          'choix-multiple',
+          'echelle',
+          'tableau',
+          'titre',
+        ];
         if (!validTypes.includes(parsedQuestion.type)) {
-          setJsonError(`Type invalide: ${parsedQuestion.type}. Types valides: ${validTypes.join(', ')}`);
+          setJsonError(
+            `Type invalide: ${parsedQuestion.type}. Types valides: ${validTypes.join(', ')}`,
+          );
           return;
         }
 
@@ -164,7 +197,9 @@ export default function QuestionList({
         setJsonError(null);
       }
     } catch (error) {
-      setJsonError(`JSON malformé: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
+      setJsonError(
+        `JSON malformé: ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
+      );
     }
   };
 
@@ -185,7 +220,8 @@ export default function QuestionList({
     }
   };
 
-  const SHOW_EDIT_ALL_JSON = import.meta.env.VITE_DISPLAY_IMPORT_BUTTON === 'true';
+  const SHOW_EDIT_ALL_JSON =
+    import.meta.env.VITE_DISPLAY_IMPORT_BUTTON === 'true';
 
   return (
     <div className="space-y-6 overflow-y-auto h-full relative">
@@ -312,7 +348,9 @@ export default function QuestionList({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
-                      <DropdownMenuItem onClick={() => handleJsonEdit(question)}>
+                      <DropdownMenuItem
+                        onClick={() => handleJsonEdit(question)}
+                      >
                         Éditer JSON
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -389,10 +427,9 @@ export default function QuestionList({
         <DialogContent className="max-w-4xl max-h-[80vh]">
           <DialogHeader>
             <DialogTitle>
-              {isEditingAllQuestions 
-                ? 'Éditer le JSON de toutes les questions' 
-                : 'Éditer le JSON de la question'
-              }
+              {isEditingAllQuestions
+                ? 'Éditer le JSON de toutes les questions'
+                : 'Éditer le JSON de la question'}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
