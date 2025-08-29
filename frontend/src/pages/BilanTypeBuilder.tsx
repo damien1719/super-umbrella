@@ -1,12 +1,15 @@
 'use client';
 
 import type React from 'react';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SectionDisponible } from '@/components/bilanType/SectionDisponible';
 import { BilanTypeConstruction } from '@/components/bilanType/BilanTypeConstruction';
 import { useSectionStore } from '@/store/sections';
 import { useBilanTypeStore } from '@/store/bilanTypes';
+import RichTextEditor, { type RichTextEditorHandle } from '@/components/RichTextEditor';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 // ✅ On réutilise les types existants
 import { categories, kindMap, type CategoryId } from '@/types/trame';
@@ -36,9 +39,11 @@ export default function BilanTypeBuilder({ initialBilanTypeId }: BilanTypeBuilde
   const [selectedElements, setSelectedElements] = useState<SelectedElement[]>(
     [],
   );
-  const [showPreview, setShowPreview] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [mode, setMode] = useState<'build' | 'layout'>('build');
+  const [layoutJson, setLayoutJson] = useState<unknown | undefined>(undefined);
+  const layoutEditorRef = useRef<RichTextEditorHandle | null>(null);
 
   const sections = useSectionStore((s) => s.items);
   const fetchSections = useSectionStore((s) => s.fetchAll);
@@ -77,6 +82,7 @@ export default function BilanTypeBuilder({ initialBilanTypeId }: BilanTypeBuilde
         }
         setSelectedElements(next);
         setBilanName(bt.name || '');
+        setLayoutJson(bt.layoutJson ?? undefined);
       } catch {}
     })();
   }, [initialBilanTypeId, sections, fetchBilanType]);
@@ -182,6 +188,7 @@ export default function BilanTypeBuilder({ initialBilanTypeId }: BilanTypeBuilde
       const payload = {
         name: bilanName,
         sections: selectedElements.map(({ id, order }) => ({ sectionId: id, sortOrder: order })),
+        layoutJson: layoutJson ?? undefined,
       };
       if (initialBilanTypeId) {
         await updateBilanType(initialBilanTypeId, payload);
@@ -194,41 +201,131 @@ export default function BilanTypeBuilder({ initialBilanTypeId }: BilanTypeBuilde
     }
   };
 
+  function defaultLayoutFromSections(items: { id: string; title: string }[]) {
+    return {
+      root: {
+        type: 'root',
+        direction: 'ltr',
+        format: '',
+        indent: 0,
+        version: 1,
+        children: items.flatMap((s, i) => [
+          // A small heading before each section placeholder by default
+          {
+            type: 'heading',
+            tag: 'h2',
+            direction: 'ltr',
+            format: '',
+            indent: 0,
+            version: 1,
+            children: [
+              { type: 'text', text: s.title || `Section ${i + 1}`, detail: 0, format: 0, style: '', version: 1 },
+            ],
+          },
+          { type: 'section-placeholder', version: 1, sectionId: s.id, label: s.title || `Section ${i + 1}` },
+          { type: 'paragraph', direction: 'ltr', format: '', indent: 0, version: 1, children: [] },
+        ]),
+      },
+      version: 1,
+    } as unknown;
+  }
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            Constructeur de Type de Bilan
-          </h1>
-          <p className="text-muted-foreground">
-            Créez votre type de bilan personnalisé en sélectionnant et
-            organisant les éléments
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground mb-2">
+                Constructeur de Type de Bilan
+              </h1>
+              <p className="text-muted-foreground">
+                Créez votre type de bilan personnalisé en sélectionnant et organisant les éléments
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant={mode === 'build' ? 'default' : 'outline'} size="sm" onClick={() => setMode('build')}>
+                Construction
+              </Button>
+              <Button variant={mode === 'layout' ? 'default' : 'outline'} size="sm" onClick={() => setMode('layout')}>
+                Layout
+              </Button>
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <SectionDisponible
-            availableElements={availableElements}
-            onAddElement={addElement}
-          />
+        {mode === 'build' ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <SectionDisponible
+              availableElements={availableElements}
+              onAddElement={addElement}
+            />
 
-          <BilanTypeConstruction
-            bilanName={bilanName}
-            setBilanName={setBilanName}
-            selectedElements={selectedElements}
-            isSaving={isSaving}
-            showPreview={showPreview}
-            setShowPreview={setShowPreview}
-            draggedIndex={draggedIndex}
-            onDragStart={handleDragStart}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-            onDragEnd={handleDragEnd}
-            onRemoveElement={removeElement}
-            onSave={saveBilanType}
-          />
-        </div>
+            <BilanTypeConstruction
+              bilanName={bilanName}
+              setBilanName={setBilanName}
+              selectedElements={selectedElements}
+              isSaving={isSaving}
+              draggedIndex={draggedIndex}
+              onDragStart={handleDragStart}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              onDragEnd={handleDragEnd}
+              onRemoveElement={removeElement}
+              onSave={saveBilanType}
+            />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Card className="lg:col-span-1">
+              <CardHeader>
+                <CardTitle>Sections du bilan</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="text-sm text-muted-foreground mb-2">Cliquez pour insérer un placeholder de section dans le layout</div>
+                  {selectedElements.map((el, i) => (
+                    <div key={el.id} className="flex items-center justify-between gap-2 border rounded px-2 py-1">
+                      <div className="truncate">
+                        <span className="text-xs text-muted-foreground mr-2">{i + 1}.</span>
+                        <span>{el.title}</span>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => layoutEditorRef.current?.insertSectionPlaceholder?.(el.id, el.title)}
+                      >
+                        Insérer
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 flex gap-2 justify-end">
+                  <Button variant="outline" size="sm" onClick={() => setMode('build')}>Retour</Button>
+                  <Button size="sm" onClick={saveBilanType} disabled={isSaving || !bilanName || selectedElements.length === 0}>
+                    {isSaving ? 'Sauvegarde…' : 'Sauvegarder'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle>Layout du Bilan: {bilanName || 'Sans nom'}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="border rounded">
+                  <RichTextEditor
+                    ref={layoutEditorRef as unknown as React.RefObject<RichTextEditorHandle>}
+                    initialStateJson={layoutJson ?? defaultLayoutFromSections(selectedElements)}
+                    readOnly={false}
+                    onChangeStateJson={(st) => setLayoutJson(st)}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );

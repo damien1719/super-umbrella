@@ -6,8 +6,7 @@ import type React from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Plus, Save, Eye, Loader2 } from "lucide-react"
+import { Plus, Save, Loader2 } from "lucide-react"
 import { BilanTypeConstructionCard } from "./BilanTypeConstructionCard"
 
 interface SelectedElement {
@@ -24,8 +23,6 @@ interface BilanTypeConstructionProps {
   setBilanName: (name: string) => void
   selectedElements: SelectedElement[]
   isSaving?: boolean
-  showPreview: boolean
-  setShowPreview: (show: boolean) => void
   draggedIndex: number | null
   onDragStart: (e: React.DragEvent, index: number) => void
   onDragOver: (e: React.DragEvent) => void
@@ -35,25 +32,12 @@ interface BilanTypeConstructionProps {
   onSave: () => void
 }
 
-const typeColors = {
-  test: "bg-blue-100 text-blue-800 border-blue-200",
-  anamnese: "bg-green-100 text-green-800 border-green-200",
-  conclusion: "bg-purple-100 text-purple-800 border-purple-200",
-}
-
-const typeLabels = {
-  test: "Test",
-  anamnese: "Anamnèse",
-  conclusion: "Conclusion",
-}
 
 export function BilanTypeConstruction({
   bilanName,
   setBilanName,
   selectedElements,
   isSaving,
-  showPreview,
-  setShowPreview,
   draggedIndex,
   onDragStart,
   onDragOver,
@@ -69,10 +53,6 @@ export function BilanTypeConstruction({
           <div className="flex items-center justify-between">
             <CardTitle>Construction du Type de Bilan</CardTitle>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => setShowPreview(!showPreview)}>
-                <Eye className="h-4 w-4 mr-2" />
-                {showPreview ? "Masquer" : "Aperçu"}
-              </Button>
               <Button size="sm" onClick={onSave} disabled={isSaving || !bilanName || selectedElements.length === 0}>
                 {isSaving ? (
                   <>
@@ -120,35 +100,6 @@ export function BilanTypeConstruction({
           )}
         </CardContent>
       </Card>
-
-      {/* Preview Modal */}
-      {showPreview && selectedElements.length > 0 && (
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle>Aperçu du Type de Bilan: {bilanName || "Sans nom"}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {selectedElements.map((element, index) => (
-                <div key={element.id} className="flex items-start gap-4 p-3 bg-muted/50 rounded-lg">
-                  <div className="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-                    {index + 1}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Badge className={typeColors[element.type]} variant="outline">
-                        {typeLabels[element.type]}
-                      </Badge>
-                      <h4 className="font-medium">{element.title}</h4>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{element.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </>
   )
 }

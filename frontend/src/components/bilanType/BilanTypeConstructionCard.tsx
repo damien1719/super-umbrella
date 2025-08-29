@@ -55,7 +55,7 @@ export function BilanTypeConstructionCard({
       onDragOver={onDragOver}
       onDrop={(e) => onDrop(e, index)}
       onDragEnd={onDragEnd}
-      className={`p-4 border rounded-lg bg-card cursor-move transition-all ${
+      className={`p-4 border border-wood-200 rounded-lg bg-card cursor-move transition-all ${
         draggedIndex === index ? "opacity-50 scale-95" : "hover:shadow-md"
       }`}
     >

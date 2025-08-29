@@ -47,6 +47,7 @@ import {
 import { TablePlugin } from '@lexical/react/LexicalTablePlugin';
 import { useVirtualSelection } from '../hooks/useVirtualSelection';
 import { SlotNode, $createSlotNode, $isSlotNode } from '../nodes/SlotNode';
+import { SectionPlaceholderNode, $createSectionPlaceholderNode } from '../nodes/SectionPlaceholderNode';
 import type { SlotType, FieldSpec } from '../types/template';
 import { scanAndInsertSlots as runScanAndInsertSlots } from '../utils/scanAndInsertSlots';
 import TableContextMenuPlugin from './TableContextMenuPlugin';
@@ -61,6 +62,7 @@ export interface RichTextEditorHandle {
   updateSlot?: (slotId: string, slotLabel: string) => void;
   removeSlot?: (slotId: string) => void;
   scanAndInsertSlots?: (onSlotCreated?: (slot: FieldSpec) => void) => void;
+  insertSectionPlaceholder?: (sectionId: string, label: string) => void;
 }
 
 // Safe default Lexical state with a non-empty root
@@ -225,6 +227,18 @@ const ImperativeHandlePlugin = forwardRef<RichTextEditorHandle, object>(
             visit(root);
           });
         },
+        insertSectionPlaceholder(sectionId: string, label: string) {
+          editor.update(() => {
+            const node = $createSectionPlaceholderNode(sectionId, label);
+            const selection = $getSelection();
+            if (selection) {
+              $insertNodes([node]);
+            } else {
+              $getRoot().append(node);
+            }
+            editor.focus();
+          });
+        },
         getEditorStateJson() {
           try {
             return editor.getEditorState().toJSON();
@@ -370,6 +384,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
         TableRowNode,
         TableCellNode,
         SlotNode,
+        SectionPlaceholderNode,
       ],
     };
 

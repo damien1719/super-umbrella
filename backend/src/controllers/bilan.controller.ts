@@ -10,6 +10,7 @@ import { concludeBilan } from "../services/ai/conclude.service";
 import { BilanTypeService } from "../services/bilanType.service";
 import { BilanSectionInstanceService } from "../services/bilanSectionInstance.service";
 import { prisma } from "../prisma";
+import { hydrateLayout } from "../services/bilan/composeLayout";
 import { generateFromTemplate as generateFromTemplateSvc } from "../services/ai/generateFromTemplate";
 
 
@@ -201,6 +202,9 @@ export const BilanController = {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const db = prisma as any;
       const children: unknown[] = [];
+      const conclusionSections: Array<{ id: string; title: string }> = [];
+      // Per-section editor state map for layout composition
+      const sectionsMap: Record<string, { root: Record<string, unknown> }> = {};
 
       // helper: detect if notes contain any meaningful data
       const hasMeaningful = (val: unknown): boolean => {
@@ -227,6 +231,12 @@ export const BilanController = {
           const title: string = section.title;
           const templateId: string | null = section.templateRefId ?? null;
 
+          // Defer conclusion sections to the end
+          if (kind === 'conclusion') {
+            conclusionSections.push({ id: btSec.sectionId, title: title || 'Conclusion' });
+            continue;
+          }
+
           // Latest notes (contentNotes)
           const latest = await BilanSectionInstanceService.list(userId, bilanId, btSec.sectionId, true);
           const contentNotes = latest.length ? (latest[0].contentNotes ?? {}) : {};
@@ -251,30 +261,30 @@ export const BilanController = {
 
             const result = await generateFromTemplateSvc(templateId, aggregatedNotes, { instanceId });
 
-            // Optional: add a heading for the section
-            children.push({
-              type: 'heading', tag: 'h2', direction: 'ltr', format: '', indent: 0, version: 1,
-              children: [{ type: 'text', text: String(title), detail: 0, format: 0, style: '', version: 1 }],
-            });
-
-            // Parse returned Lexical state and append its children
+            // Parse returned Lexical state and append its children (fallback aggregation)
             try {
               const state = JSON.parse(result.assembledState as string);
+              // Store per-section state for layout composition
+              sectionsMap[btSec.sectionId] = { root: state?.root || state } as { root: Record<string, unknown> };
+
+              // Fallback: add a heading for the section and merge its children
+              children.push({
+                type: 'heading', tag: 'h2', direction: 'ltr', format: '', indent: 0, version: 1,
+                children: [{ type: 'text', text: String(title), detail: 0, format: 0, style: '', version: 1 }],
+              });
               const subChildren = (state?.root?.children ?? []) as unknown[];
               for (const node of subChildren) children.push(node);
+              // Spacer paragraph
+              children.push({ type: 'paragraph', direction: 'ltr', format: '', indent: 0, version: 1, children: [] });
             } catch {
               // If parsing fails, skip merging this section's content
             }
-
-            // Spacer paragraph
-            children.push({ type: 'paragraph', direction: 'ltr', format: '', indent: 0, version: 1, children: [] });
             continue;
           }
 
           // No template: generate plain text using prompt configs
           const promptKey = ((): keyof typeof promptConfigs | null => {
             if ((promptConfigs as any)[kind]) return kind as keyof typeof promptConfigs;
-            if (kind === 'conclusion' && (promptConfigs as any)['conclusions']) return 'conclusions' as keyof typeof promptConfigs;
             return null;
           })();
           if (!promptKey) continue;
@@ -291,21 +301,37 @@ export const BilanController = {
           }
 
           // Build simple Lexical nodes: heading (h2) + paragraphs
-          children.push({
-            type: 'heading', tag: 'h2', direction: 'ltr', format: '', indent: 0, version: 1,
-            children: [{ type: 'text', text: String(title), detail: 0, format: 0, style: '', version: 1 }],
-          });
-
-          const paras = String(text || '').split(/\n{2,}/).map(s => s.trim()).filter(Boolean);
-          for (const p of paras) {
-            children.push({
-              type: 'paragraph', direction: 'ltr', format: '', indent: 0, version: 1,
-              children: [{ type: 'text', text: p, detail: 0, format: 0, style: '', version: 1 }],
-            });
+          // Build per-section state (paragraphs only) for layout composition
+          {
+            const paras = String(text || '').split(/\n{2,}/).map(s => s.trim()).filter(Boolean);
+            const sectionChildren: unknown[] = [];
+            for (const p of paras) {
+              sectionChildren.push({
+                type: 'paragraph', direction: 'ltr', format: '', indent: 0, version: 1,
+                children: [{ type: 'text', text: p, detail: 0, format: 0, style: '', version: 1 }],
+              });
+            }
+            sectionsMap[btSec.sectionId] = {
+              root: { type: 'root', direction: 'ltr', format: '', indent: 0, version: 1, children: sectionChildren as unknown[] },
+            } as { root: Record<string, unknown> };
           }
 
-          // Blank line between sections
-          children.push({ type: 'paragraph', direction: 'ltr', format: '', indent: 0, version: 1, children: [] });
+          // Fallback aggregation: heading + paragraphs
+          {
+            children.push({
+              type: 'heading', tag: 'h2', direction: 'ltr', format: '', indent: 0, version: 1,
+              children: [{ type: 'text', text: String(title), detail: 0, format: 0, style: '', version: 1 }],
+            });
+            const paras = String(text || '').split(/\n{2,}/).map(s => s.trim()).filter(Boolean);
+            for (const p of paras) {
+              children.push({
+                type: 'paragraph', direction: 'ltr', format: '', indent: 0, version: 1,
+                children: [{ type: 'text', text: p, detail: 0, format: 0, style: '', version: 1 }],
+              });
+            }
+            // Blank line between sections
+            children.push({ type: 'paragraph', direction: 'ltr', format: '', indent: 0, version: 1, children: [] });
+          }
         } catch (err) {
           // Continue with next section on failure
           // eslint-disable-next-line no-console
@@ -313,13 +339,79 @@ export const BilanController = {
         }
       }
 
+      // After generating all sections, handle any deferred conclusion sections
+      if (conclusionSections.length > 0) {
+        try {
+          // Build a temporary editor state from the generated children so far
+          const preEditorState = {
+            root: { type: 'root', direction: 'ltr', format: '', indent: 0, version: 1, children: [...children] },
+            version: 1,
+          };
+
+          // Convert aggregated JSON to markdown for the LLM
+          const { bilanJsonToMarkdown } = await import('../utils/jsonToMarkdown');
+          let markdownContent = bilanJsonToMarkdown(preEditorState);
+          if (patientNames.firstName || patientNames.lastName) {
+            markdownContent = Anonymization.anonymizeText(markdownContent, patientNames);
+          }
+
+          // Ask the model to conclude based on the aggregated content
+          let conclusionText = await concludeBilan(markdownContent);
+          if (patientNames.firstName || patientNames.lastName) {
+            conclusionText = Anonymization.deanonymizeText(conclusionText as string, patientNames);
+          }
+
+          // Build conclusion per-section states and also append to fallback aggregation
+          for (const c of conclusionSections) {
+            // Per-section state
+            const cParas = String(conclusionText || '').split(/\n{2,}/).map(s => s.trim()).filter(Boolean);
+            const cChildren: unknown[] = cParas.map((p) => ({
+              type: 'paragraph', direction: 'ltr', format: '', indent: 0, version: 1,
+              children: [{ type: 'text', text: p, detail: 0, format: 0, style: '', version: 1 }],
+            }));
+            sectionsMap[c.id] = {
+              root: { type: 'root', direction: 'ltr', format: '', indent: 0, version: 1, children: cChildren as unknown[] },
+            } as { root: Record<string, unknown> };
+
+            // Fallback aggregation: heading + paragraphs
+            children.push({
+              type: 'heading', tag: 'h2', direction: 'ltr', format: '', indent: 0, version: 1,
+              children: [{ type: 'text', text: String(c.title || 'Conclusion'), detail: 0, format: 0, style: '', version: 1 }],
+            });
+            for (const p of cParas) {
+              children.push({
+                type: 'paragraph', direction: 'ltr', format: '', indent: 0, version: 1,
+                children: [{ type: 'text', text: p, detail: 0, format: 0, style: '', version: 1 }],
+              });
+            }
+            // Blank line after conclusion
+            children.push({ type: 'paragraph', direction: 'ltr', format: '', indent: 0, version: 1, children: [] });
+          }
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.warn('[generateBilanType] conclusion generation failed', err);
+        }
+      }
+
+      // Prefer layoutJson composition when available, otherwise fallback to aggregated children
+      const layout = bilanType.layoutJson as { root?: unknown } | undefined;
+      if (layout && typeof layout === 'object' && layout.root) {
+        try {
+          const composed = hydrateLayout(layout as { root: Record<string, unknown> }, sectionsMap);
+          const assembledState = JSON.stringify({ root: composed.root, version: 1 });
+          res.json({ assembledState });
+          return;
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.warn('[generateBilanType] layout composition failed, falling back', err);
+        }
+      }
+
       const editorState = {
         root: { type: 'root', direction: 'ltr', format: '', indent: 0, version: 1, children },
         version: 1,
       };
-
-      const assembledState = JSON.stringify(editorState);
-      res.json({ assembledState });
+      res.json({ assembledState: JSON.stringify(editorState) });
     } catch (e) {
       next(e);
     }

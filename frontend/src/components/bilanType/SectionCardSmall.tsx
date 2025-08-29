@@ -38,7 +38,7 @@ const metierLabels = {
 export function SectionCardSmall({ element, onAdd }: SectionCardSmallProps) {
   return (
     <div
-      className="p-3 border rounded-lg hover:bg-accent cursor-pointer transition-colors"
+      className="p-3 border border-wood-200 rounded-lg hover:bg-accent cursor-pointer transition-colors"
       onClick={() => onAdd(element)}
     >
       <div className="flex items-center justify-between mb-2">
