@@ -21,17 +21,18 @@ Réalise un profil sensoriel sur la base des données fournies par la famille
       title: "Observations",
       instructions: `
 ###INSTRUCTIONS OBSERVATIONS
-  1. Présente les observations motrices et posturales (schéma corporel, praxies).
-  2. Décris le contexte de l’observation (activité, environnement).
-  3. Note les points forts et les difficultés.
-  4. Utilise un ton descriptif, nuancé et factuel.
+Décris les résultats puis les observations qualitatives fournies
+Adopte des phrases simples, factuelles et descriptives.
+Très important : n'invente rien et n'oublie rien ce sont des données factuelles clés sur une personne
       `.trim(),
     },
     tests_standards: {
       title: "Tests standards",
       instructions: `
 ###INSTRUCTIONS:
-Réalise un bilan psychomoteur sur la base des résultats de tests fournis
+Décris les résultats puis les observations qualitatives fournies
+Adopte des phrases simples, factuelles et descriptives.
+Très important : n'invente rien et n'oublie rien ce sont des données factuelles clés sur une personne
       `.trim(),
     },
     conclusions: {

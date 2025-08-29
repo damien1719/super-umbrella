@@ -2,7 +2,7 @@ const PHI_REGEX = /\b(\d{13}|[A-Z]{2}\d{9})\b/g; // ex. NIR ou identifiant ficti
 
 export function pre(text: string) {
   // masque les identifiants patients
-  return text.replace(PHI_REGEX, "[REDACTED]");
+  return text.replace(PHI_REGEX, "[PRENOM]");
 }
 
 export function post<T>(text: T): T {
