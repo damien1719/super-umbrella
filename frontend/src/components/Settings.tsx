@@ -1,4 +1,10 @@
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import type { Category, CategoryId } from '@/types/trame';
 import type { Job } from '@/types/job';
@@ -22,7 +28,9 @@ export default function Settings({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Réglages de la trame</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          Réglages de la trame
+        </h2>
         <p className="text-sm text-gray-600 mb-6">
           Configurez les paramètres de base de votre trame
         </p>
@@ -31,7 +39,10 @@ export default function Settings({
       <div className="space-y-6">
         {/* Choix de la catégorie */}
         <div className="space-y-2">
-          <Label htmlFor="category" className="text-sm font-medium text-gray-700">
+          <Label
+            htmlFor="category"
+            className="text-sm font-medium text-gray-700"
+          >
             Type de trame
           </Label>
           <Select
@@ -73,9 +84,7 @@ export default function Settings({
                   <button
                     type="button"
                     className="text-primary-700 hover:text-primary-900 hover:bg-primary-200 rounded-full w-5 h-5 flex items-center justify-center"
-                    onClick={() =>
-                      onJobsChange(jobs.filter((x) => x !== j))
-                    }
+                    onClick={() => onJobsChange(jobs.filter((x) => x !== j))}
                     aria-label={`Retirer ${jobOptions.find((o) => o.id === j)?.label}`}
                   >
                     ×

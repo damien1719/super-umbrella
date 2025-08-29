@@ -48,7 +48,10 @@ import {
 import { TablePlugin } from '@lexical/react/LexicalTablePlugin';
 import { useVirtualSelection } from '../hooks/useVirtualSelection';
 import { SlotNode, $createSlotNode, $isSlotNode } from '../nodes/SlotNode';
-import { SectionPlaceholderNode, $createSectionPlaceholderNode } from '../nodes/SectionPlaceholderNode';
+import {
+  SectionPlaceholderNode,
+  $createSectionPlaceholderNode,
+} from '../nodes/SectionPlaceholderNode';
 import type { SlotType, FieldSpec } from '../types/template';
 import { scanAndInsertSlots as runScanAndInsertSlots } from '../utils/scanAndInsertSlots';
 import TableContextMenuPlugin from './TableContextMenuPlugin';
@@ -424,7 +427,9 @@ function PasteSanitizePlugin() {
         }
 
         // Map mso-highlight to background-color if present
-        const allWithStyle = Array.from(doc.querySelectorAll('[style*="mso-highlight:"]')) as HTMLElement[];
+        const allWithStyle = Array.from(
+          doc.querySelectorAll('[style*="mso-highlight:"]'),
+        ) as HTMLElement[];
         for (const el of allWithStyle) {
           const style = el.getAttribute('style') || '';
           const match = /mso-highlight\s*:\s*([^;]+)\s*;?/i.exec(style);
@@ -452,7 +457,10 @@ function PasteSanitizePlugin() {
           const cleaned = DOMPurify.sanitize(html, SANITIZE_OPTIONS);
           editor.update(() => {
             const parser = new DOMParser();
-            const dom = parser.parseFromString(`<div>${cleaned}</div>`, 'text/html');
+            const dom = parser.parseFromString(
+              `<div>${cleaned}</div>`,
+              'text/html',
+            );
             const nodes = $generateNodesFromDOM(editor, dom);
             const selection = $getSelection();
             if (selection) {

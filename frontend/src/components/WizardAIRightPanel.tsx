@@ -144,13 +144,75 @@ export default function WizardAIRightPanel({
   const { items: bilanTypes } = useBilanTypeStore();
   const { items: allSections } = useSectionStore();
   const currentBilanType = useMemo(
-    () => (mode === 'bilanType' && selectedTrame ? bilanTypes.find((b) => b.id === selectedTrame.value) : undefined),
+    () =>
+      mode === 'bilanType' && selectedTrame
+        ? bilanTypes.find((b) => b.id === selectedTrame.value)
+        : undefined,
     [mode, selectedTrame, bilanTypes],
   );
-  const navSections = useMemo(() => {
-    if (mode !== 'bilanType' || !currentBilanType) return [] as Array<{ id: string; title: string; schema: Question[]; index: number }>;
+  const navItems = useMemo(() => {
+    if (mode !== 'bilanType' || !currentBilanType)
+      return [] as Array<{
+        id: string;
+        title: string;
+        kind?: 'section' | 'separator';
+        index?: number;
+        schema?: Question[];
+      }>;
+    const layout = currentBilanType.layoutJson as any;
+    const tokens: Array<{ t: 'sep' | 'sec'; id?: string; title?: string }> = [];
+    try {
+      const root = layout?.root;
+      const children = Array.isArray(root?.children) ? root.children : [];
+      for (const node of children) {
+        if (node?.type === 'heading') {
+          // Extract heading plain text
+          const text = Array.isArray(node.children)
+            ? node.children
+                .map((c: any) => (typeof c?.text === 'string' ? c.text : ''))
+                .join('')
+            : '';
+          if (text) tokens.push({ t: 'sep', title: text });
+        } else if (
+          node?.type === 'section-placeholder' &&
+          typeof node?.sectionId === 'string'
+        ) {
+          tokens.push({ t: 'sec', id: node.sectionId });
+        }
+      }
+    } catch {}
+
+    const items: Array<{
+      id: string;
+      title: string;
+      kind?: 'section' | 'separator';
+      index?: number;
+      schema?: Question[];
+    }> = [];
+    let idx = 0;
+    if (tokens.length > 0) {
+      for (let i = 0; i < tokens.length; i++) {
+        const tk = tokens[i];
+        if (tk.t === 'sep' && tk.title) {
+          items.push({ id: `__sep__${i}`, title: tk.title, kind: 'separator' });
+        } else if (tk.t === 'sec' && tk.id) {
+          const sec = allSections.find((x) => x.id === tk.id);
+          items.push({
+            id: tk.id,
+            title: (sec?.title as string) || `Section ${idx + 1}`,
+            kind: 'section',
+            index: idx,
+            schema: ((sec?.schema || []) as unknown as Question[]) || [],
+          });
+          idx += 1;
+        }
+      }
+      return items;
+    }
+
+    // Fallback to simple section list using sortOrder
     const map = currentBilanType.sections || [];
-    const items = map
+    return map
       .slice()
       .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
       .map((s, index) => {
@@ -158,34 +220,39 @@ export default function WizardAIRightPanel({
         return {
           id: s.sectionId,
           title: (sec?.title as string) || `Section ${index + 1}`,
-          schema: ((sec?.schema || []) as unknown as Question[]) || [],
+          kind: 'section' as const,
           index,
+          schema: ((sec?.schema || []) as unknown as Question[]) || [],
         };
       });
-    return items;
   }, [mode, currentBilanType, allSections]);
 
-  const [activeBilanSectionId, setActiveBilanSectionId] = useState<string | null>(null);
+  const [activeBilanSectionId, setActiveBilanSectionId] = useState<
+    string | null
+  >(null);
   const [bilanAnswers, setBilanAnswers] = useState<Record<string, Answers>>({});
   const [excludedSectionIds, setExcludedSectionIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (mode !== 'bilanType') return;
-    if (!activeBilanSectionId && navSections.length > 0) {
-      setActiveBilanSectionId(navSections[0].id);
+    const firstSec = navItems.find((x) => x.kind !== 'separator');
+    if (!activeBilanSectionId && firstSec) {
+      setActiveBilanSectionId(firstSec.id);
     }
-  }, [mode, navSections, activeBilanSectionId]);
+  }, [mode, navItems, activeBilanSectionId]);
 
   // Notify outer wrapper of active section changes (for footer label)
   useEffect(() => {
     if (mode !== 'bilanType') return;
-    const active = navSections.find((s) => s.id === activeBilanSectionId);
+    const active = navItems.find(
+      (s) => s.id === activeBilanSectionId && s.kind !== 'separator',
+    );
     const detail = active
       ? { id: active.id, title: active.title }
       : { id: null as unknown as string, title: '' };
     const evt = new CustomEvent('bilan-type:active-changed', { detail });
     window.dispatchEvent(evt);
-  }, [mode, activeBilanSectionId, navSections]);
+  }, [mode, activeBilanSectionId, navItems]);
 
   // Preload latest notes when entering step 2
   useEffect(() => {
@@ -203,11 +270,17 @@ export default function WizardAIRightPanel({
           if (res.length) {
             setInstanceId(res[0].id);
             const content = (res[0].contentNotes || {}) as Answers;
-            setBilanAnswers((prev) => ({ ...prev, [activeBilanSectionId]: content }));
+            setBilanAnswers((prev) => ({
+              ...prev,
+              [activeBilanSectionId]: content,
+            }));
             dataEntryRef.current?.load?.(content);
           } else {
             setInstanceId(null);
-            setBilanAnswers((prev) => ({ ...prev, [activeBilanSectionId]: {} }));
+            setBilanAnswers((prev) => ({
+              ...prev,
+              [activeBilanSectionId]: {},
+            }));
             dataEntryRef.current?.clear?.();
           }
         } catch (e) {
@@ -243,6 +316,19 @@ export default function WizardAIRightPanel({
 
   const next = () => setStep((s) => Math.min(total, s + 1));
   const prev = () => setStep((s) => Math.max(1, s - 1));
+
+  // Notify wrapper about step changes (used to control outer footer)
+  useEffect(() => {
+    const evt = new CustomEvent('bilan-type:step-changed', { detail: step });
+    window.dispatchEvent(evt);
+  }, [step]);
+
+  // Allow wrapper to drive navigation (for aligning footer actions)
+  useEffect(() => {
+    const onPrev = () => prev();
+    window.addEventListener('bilan-type:prev', onPrev);
+    return () => window.removeEventListener('bilan-type:prev', onPrev);
+  }, []);
 
   const stepTitles = [
     'Trame',
@@ -359,7 +445,8 @@ export default function WizardAIRightPanel({
     );
   } else {
     if (mode === 'bilanType') {
-      const active = navSections.find((s) => s.id === activeBilanSectionId);
+      const sectionItems = navItems.filter((x) => x.kind !== 'separator');
+      const active = sectionItems.find((s) => s.id === activeBilanSectionId);
       const activeQuestions = active?.schema ?? [];
       // Build in-page group outline titles from questions
       const groupTitles = (() => {
@@ -377,17 +464,30 @@ export default function WizardAIRightPanel({
         if (!hasGeneral && titles.length === 0) titles.push('Général');
         return titles;
       })();
-      const activeAnswers = (activeBilanSectionId && bilanAnswers[activeBilanSectionId]) || {};
+      const activeAnswers =
+        (activeBilanSectionId && bilanAnswers[activeBilanSectionId]) || {};
       content = (
         <div className="flex flex-1 h-full overflow-y-hidden">
           <LeftNavBilanType
-            items={navSections.map((s) => ({ id: s.id, title: s.title, index: s.index, disabled: excludedSectionIds.includes(s.id) }))}
+            items={navItems.map((s) =>
+              s.kind === 'separator'
+                ? { id: s.id, title: s.title, kind: 'separator' as const }
+                : {
+                    id: s.id,
+                    title: s.title,
+                    kind: 'section' as const,
+                    index: s.index,
+                    disabled: excludedSectionIds.includes(s.id),
+                  },
+            )}
             activeId={activeBilanSectionId}
             onSelect={(id) => {
               // Save current section before switching
               if (notesMode === 'manual' && activeBilanSectionId) {
                 try {
-                  const data = dataEntryRef.current?.save() as Answers | undefined;
+                  const data = dataEntryRef.current?.save() as
+                    | Answers
+                    | undefined;
                   if (data) void saveNotes(data, activeBilanSectionId);
                 } catch {}
               }
@@ -397,11 +497,17 @@ export default function WizardAIRightPanel({
             }}
             onToggleDisabled={(id) => {
               setExcludedSectionIds((prev) =>
-                prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+                prev.includes(id)
+                  ? prev.filter((x) => x !== id)
+                  : [...prev, id],
               );
               // notify outer wrapper for bulk action
               try {
-                const evt = new CustomEvent('bilan-type:excluded-changed', { detail: excludedSectionIds.includes(id) ? excludedSectionIds.filter(x => x !== id) : [...excludedSectionIds, id] });
+                const evt = new CustomEvent('bilan-type:excluded-changed', {
+                  detail: excludedSectionIds.includes(id)
+                    ? excludedSectionIds.filter((x) => x !== id)
+                    : [...excludedSectionIds, id],
+                });
                 window.dispatchEvent(evt);
               } catch {}
             }}
@@ -423,7 +529,9 @@ export default function WizardAIRightPanel({
                 { key: 'import', label: 'Import des notes' },
               ]}
             />
-            {notesMode === 'manual' && <InlineGroupChips titles={groupTitles} />}
+            {notesMode === 'manual' && (
+              <InlineGroupChips titles={groupTitles} />
+            )}
 
             {notesMode === 'manual' ? (
               <DataEntry
@@ -432,13 +540,19 @@ export default function WizardAIRightPanel({
                 answers={activeAnswers}
                 onChange={(a) => {
                   if (!activeBilanSectionId) return;
-                  setBilanAnswers((prev) => ({ ...prev, [activeBilanSectionId]: a }));
+                  setBilanAnswers((prev) => ({
+                    ...prev,
+                    [activeBilanSectionId]: a,
+                  }));
                 }}
                 inline
                 showGroupNav={false}
               />
             ) : (
-              <ImportNotes onChange={setRawNotes} onImageChange={setImageBase64} />
+              <ImportNotes
+                onChange={setRawNotes}
+                onImageChange={setImageBase64}
+              />
             )}
           </div>
         </div>
@@ -470,7 +584,10 @@ export default function WizardAIRightPanel({
               inline
             />
           ) : (
-            <ImportNotes onChange={setRawNotes} onImageChange={setImageBase64} />
+            <ImportNotes
+              onChange={setRawNotes}
+              onImageChange={setImageBase64}
+            />
           )}
         </div>
       );
@@ -484,7 +601,8 @@ export default function WizardAIRightPanel({
     targetOverrideId?: string | null,
   ): Promise<string | null> => {
     const targetSectionId =
-      targetOverrideId ?? (mode === 'bilanType' ? activeBilanSectionId : selectedTrame?.value);
+      targetOverrideId ??
+      (mode === 'bilanType' ? activeBilanSectionId : selectedTrame?.value);
     if (!targetSectionId) return null;
 
     // Debug: trace d'où vient l'appel upsert
@@ -522,7 +640,9 @@ export default function WizardAIRightPanel({
     if (step !== 2 || isManualSaving) return;
     const currentAns =
       mode === 'bilanType'
-        ? (activeBilanSectionId ? bilanAnswers[activeBilanSectionId] : {})
+        ? activeBilanSectionId
+          ? bilanAnswers[activeBilanSectionId]
+          : {}
         : answers;
     const payload = JSON.stringify(currentAns ?? {});
     if (payload === lastSavedRef.current) return;
@@ -602,7 +722,8 @@ export default function WizardAIRightPanel({
   // Centralized current-generation handler so it can be called from UI and external events
   const triggerGenerateCurrent = async () => {
     console.log('[DEBUG] WizardAIRightPanel - triggerGenerateCurrent');
-    const isTemplateMode = !!selectedTrame?.templateRefId && !!onGenerateFromTemplate;
+    const isTemplateMode =
+      !!selectedTrame?.templateRefId && !!onGenerateFromTemplate;
     const data: Answers =
       notesMode === 'manual'
         ? (dataEntryRef.current?.save() as Answers) || {}
@@ -636,31 +757,48 @@ export default function WizardAIRightPanel({
     // Save current active section answers first if in manual mode
     try {
       const currentData: Answers | undefined =
-        notesMode === 'manual' ? (dataEntryRef.current?.save() as Answers) : undefined;
+        notesMode === 'manual'
+          ? (dataEntryRef.current?.save() as Answers)
+          : undefined;
       if (currentData) await saveNotes(currentData).catch(() => {});
     } catch {}
 
     // Iterate all sections of the selected BilanType
-    for (const sec of navSections) {
+    const sectionItems = navItems.filter((x) => x.kind !== 'separator');
+    for (const sec of sectionItems as Array<{
+      id: string;
+      title: string;
+      index?: number;
+    }>) {
       if (excludedSectionIds.includes(sec.id)) {
-        console.log('[DEBUG] triggerGenerateAll - skipping excluded section', sec.id);
+        console.log(
+          '[DEBUG] triggerGenerateAll - skipping excluded section',
+          sec.id,
+        );
         continue;
       }
       try {
         // Load latest instanceId for this section to pass to template generation if supported
         let latestInstanceId: string | undefined = undefined;
         try {
-          const res = await apiFetch<Array<{ id: string; contentNotes: Answers }>>(
+          const res = await apiFetch<
+            Array<{ id: string; contentNotes: Answers }>
+          >(
             `/api/v1/bilan-section-instances?bilanId=${bilanId}&sectionId=${sec.id}&latest=true`,
             { headers: { Authorization: `Bearer ${token}` } },
           );
           latestInstanceId = res[0]?.id;
         } catch (e) {
-          console.warn('[DEBUG] triggerGenerateAll - load latest failed for', sec.id, e);
+          console.warn(
+            '[DEBUG] triggerGenerateAll - load latest failed for',
+            sec.id,
+            e,
+          );
         }
 
         const answersForSec = bilanAnswers[sec.id] || {};
-        const isTemplateMode = !!selectedTrame?.templateRefId && !!onGenerateFromTemplate;
+        const isTemplateMode =
+          !!selectedTrame?.templateRefId && !!onGenerateFromTemplate;
 
         if (isTemplateMode) {
           // Use per-section instance if available
@@ -671,7 +809,7 @@ export default function WizardAIRightPanel({
             imageBase64,
           );
         } else {
-          console.log("here");
+          console.log('here');
           await onGenerate(
             notesMode === 'manual' ? answersForSec : undefined,
             rawNotes,
@@ -679,7 +817,11 @@ export default function WizardAIRightPanel({
           );
         }
       } catch (e) {
-        console.error('[DEBUG] triggerGenerateAll - error on section', sec.id, e);
+        console.error(
+          '[DEBUG] triggerGenerateAll - error on section',
+          sec.id,
+          e,
+        );
       }
     }
   };
@@ -690,7 +832,10 @@ export default function WizardAIRightPanel({
     const onGenAll = () => void triggerGenerateAll();
     const onSaveCurrent = () => {
       try {
-        const data = notesMode === 'manual' ? (dataEntryRef.current?.save() as Answers) : undefined;
+        const data =
+          notesMode === 'manual'
+            ? (dataEntryRef.current?.save() as Answers)
+            : undefined;
         if (data) void saveNotes(data);
       } catch {}
     };
@@ -702,7 +847,20 @@ export default function WizardAIRightPanel({
       window.removeEventListener('bilan-type:generate-all', onGenAll);
       window.removeEventListener('bilan-type:save-current', onSaveCurrent);
     };
-  }, [notesMode, rawNotes, imageBase64, bilanAnswers, navSections, selectedTrame, onGenerateFromTemplate, onGenerate, mode, token, bilanId, excludedSectionIds]);
+  }, [
+    notesMode,
+    rawNotes,
+    imageBase64,
+    bilanAnswers,
+    navItems,
+    selectedTrame,
+    onGenerateFromTemplate,
+    onGenerate,
+    mode,
+    token,
+    bilanId,
+    excludedSectionIds,
+  ]);
 
   return (
     <div className="h-full flex flex-col overflow-hidden relative">
@@ -737,8 +895,9 @@ export default function WizardAIRightPanel({
       {/* Row 2 — Scrollable content */}
       <div className="flex-1 overflow-y-auto px-4 min-h-0">{content}</div>
 
-      {/* Row 3 — Footer glued to bottom (not sticky anymore) */}
-      <div className="px-4">
+      {/* Row 3 — Footer glued to bottom (hidden at step 2 in bilanType mode to avoid duplicate footers) */}
+      {!(mode === 'bilanType' && step === total) && (
+        <div className="px-4">
         <div
           className="bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/70
                         border-t border-gray-200 shadow-[0_-1px_0_0_rgba(0,0,0,0.04)]
@@ -757,9 +916,17 @@ export default function WizardAIRightPanel({
               <Button onClick={next} type="button" size="lg">
                 Étape suivante
               </Button>
+            ) : mode === 'bilanType' ? (
+              // When used inside WizardAIBilanType, its footer provides
+              // the generation controls. Avoid duplicate buttons here.
+              <div />
             ) : (
               <div className="flex gap-2">
-                <Button onClick={triggerGenerateCurrent} disabled={isGenerating} type="button">
+                <Button
+                  onClick={triggerGenerateCurrent}
+                  disabled={isGenerating}
+                  type="button"
+                >
                   {isGenerating ? (
                     <>
                       <Loader2 className="h-5 w-5 mr-2 animate-spin" />
@@ -776,7 +943,8 @@ export default function WizardAIRightPanel({
             )}
           </div>
         </div>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

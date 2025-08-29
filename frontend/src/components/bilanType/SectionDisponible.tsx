@@ -1,76 +1,86 @@
-"use client"
+'use client';
 
-import { useState, useMemo } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Search, Filter } from "lucide-react"
-import { SectionCardSmall } from "./SectionCardSmall"
+import { useState, useMemo } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Plus, Search, Filter } from 'lucide-react';
+import { SectionCardSmall } from './SectionCardSmall';
 
 // ✅ use your shared domain types & data
-import type { CategoryId, Category } from "@/types/trame"
-import { categories } from "@/types/trame"
-import type { Job } from "@/types/job"
-import { jobOptions } from "@/types/job"
+import type { CategoryId, Category } from '@/types/trame';
+import { categories } from '@/types/trame';
+import type { Job } from '@/types/job';
+import { jobOptions } from '@/types/job';
 
 // -------------------- Types --------------------
 
 export interface BilanElement {
-  id: string
-  type: CategoryId
-  title: string
-  description: string
-  metier: Job
+  id: string;
+  type: CategoryId;
+  title: string;
+  description: string;
+  metier?: Job;
 }
 
 interface SectionDisponibleProps {
-  availableElements: BilanElement[]
-  onAddElement: (element: BilanElement) => void
+  availableElements: BilanElement[];
+  onAddElement: (element: BilanElement) => void;
 }
 
 // Helper for the label of a CategoryId using the shared categories array
 const categoryLabel = (id: CategoryId) =>
-  (categories as Category[]).find(c => c.id === id)?.title ?? id
+  (categories as Category[]).find((c) => c.id === id)?.title ?? id;
 
 // -------------------- Component --------------------
 
-export function SectionDisponible({ availableElements, onAddElement }: SectionDisponibleProps) {
-  const [searchText, setSearchText] = useState("")
-  const [filterType, setFilterType] = useState<"all" | CategoryId>("all")
-  const [filterMetier, setFilterMetier] = useState<"all" | Job>("all")
-  const [displayLimit, setDisplayLimit] = useState(8)
+export function SectionDisponible({
+  availableElements,
+  onAddElement,
+}: SectionDisponibleProps) {
+  const [searchText, setSearchText] = useState('');
+  const [filterType, setFilterType] = useState<'all' | CategoryId>('all');
+  const [filterMetier, setFilterMetier] = useState<'all' | Job>('all');
+  const [displayLimit, setDisplayLimit] = useState(8);
 
   const predicate = (element: BilanElement) => {
     const matchesSearch =
-      searchText === "" ||
+      searchText === '' ||
       element.title.toLowerCase().includes(searchText.toLowerCase()) ||
-      element.description.toLowerCase().includes(searchText.toLowerCase())
+      element.description.toLowerCase().includes(searchText.toLowerCase());
 
-    const matchesType = filterType === "all" || element.type === filterType
-    const matchesMetier = filterMetier === "all" || element.metier === filterMetier
+    const matchesType = filterType === 'all' || element.type === filterType;
+    const matchesMetier =
+      filterMetier === 'all' || element.metier === filterMetier;
 
-    return matchesSearch && matchesType && matchesMetier
-  }
+    return matchesSearch && matchesType && matchesMetier;
+  };
 
   const filteredElements = useMemo(
     () => availableElements.filter(predicate).slice(0, displayLimit),
-    [searchText, filterType, filterMetier, displayLimit, availableElements]
-  )
+    [searchText, filterType, filterMetier, displayLimit, availableElements],
+  );
 
   const hasMoreResults = useMemo(
     () => availableElements.filter(predicate).length > displayLimit,
-    [searchText, filterType, filterMetier, displayLimit, availableElements]
-  )
+    [searchText, filterType, filterMetier, displayLimit, availableElements],
+  );
 
-  const loadMoreResults = () => setDisplayLimit(prev => prev + 8)
+  const loadMoreResults = () => setDisplayLimit((prev) => prev + 8);
 
   const resetFilters = () => {
-    setSearchText("")
-    setFilterType("all")
-    setFilterMetier("all")
-    setDisplayLimit(8)
-  }
+    setSearchText('');
+    setFilterType('all');
+    setFilterMetier('all');
+    setDisplayLimit(8);
+  };
 
   return (
     <Card className="lg:col-span-1">
@@ -95,7 +105,7 @@ export function SectionDisponible({ availableElements, onAddElement }: SectionDi
             {/* Type d'élément (CategoryId) */}
             <Select
               value={filterType}
-              onValueChange={(v) => setFilterType(v as "all" | CategoryId)}
+              onValueChange={(v) => setFilterType(v as 'all' | CategoryId)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Type d'élément" />
@@ -113,7 +123,7 @@ export function SectionDisponible({ availableElements, onAddElement }: SectionDi
             {/* Métier (Job) */}
             <Select
               value={filterMetier}
-              onValueChange={(v) => setFilterMetier(v as "all" | Job)}
+              onValueChange={(v) => setFilterMetier(v as 'all' | Job)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Métier" />
@@ -129,8 +139,13 @@ export function SectionDisponible({ availableElements, onAddElement }: SectionDi
             </Select>
           </div>
 
-          {(searchText || filterType !== "all" || filterMetier !== "all") && (
-            <Button variant="outline" size="sm" onClick={resetFilters} className="w-full bg-transparent">
+          {(searchText || filterType !== 'all' || filterMetier !== 'all') && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={resetFilters}
+              className="w-full bg-transparent"
+            >
               <Filter className="h-4 w-4 mr-2" />
               Réinitialiser les filtres
             </Button>
@@ -140,11 +155,19 @@ export function SectionDisponible({ availableElements, onAddElement }: SectionDi
 
       <CardContent className="space-y-3">
         {filteredElements.map((element) => (
-          <SectionCardSmall key={element.id} element={element} onAdd={onAddElement} />
+          <SectionCardSmall
+            key={element.id}
+            element={element}
+            onAdd={onAddElement}
+          />
         ))}
 
         {hasMoreResults && (
-          <Button variant="outline" className="w-full mt-4 bg-transparent" onClick={loadMoreResults}>
+          <Button
+            variant="outline"
+            className="w-full mt-4 bg-transparent"
+            onClick={loadMoreResults}
+          >
             Afficher plus de résultats
           </Button>
         )}
@@ -158,5 +181,5 @@ export function SectionDisponible({ availableElements, onAddElement }: SectionDi
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

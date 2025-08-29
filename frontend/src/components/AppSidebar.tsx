@@ -51,16 +51,16 @@ const items: {
     icon: LayoutDashboard,
   },
   {
+    title: 'Trames de bilan',
+    page: 'BilanTypes',
+    path: '/bilan-types',
+    icon: FileText,
+  },
+  {
     title: 'Bibliothèque',
     page: 'Bibliotheque',
     path: '/bibliotheque',
     icon: Library,
-  },
-  {
-    title: 'Bilans types',
-    page: 'BilanTypes',
-    path: '/bilan-types',
-    icon: FileText,
   },
   { title: 'Mes Patients', page: 'Patients', path: '/patients', icon: User },
   {
