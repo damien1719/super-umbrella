@@ -23,6 +23,7 @@ import type { SectionInfo } from './bilan/SectionCard';
 import { useBilanTypeStore } from '@/store/bilanTypes';
 import { useSectionStore } from '@/store/sections';
 import LeftNavBilanType from './bilan/LeftNavBilanType';
+import InlineGroupChips from './bilan/InlineGroupChips';
 
 export interface WizardAIRightPanelProps {
   sectionInfo: SectionInfo;
@@ -360,6 +361,22 @@ export default function WizardAIRightPanel({
     if (mode === 'bilanType') {
       const active = navSections.find((s) => s.id === activeBilanSectionId);
       const activeQuestions = active?.schema ?? [];
+      // Build in-page group outline titles from questions
+      const groupTitles = (() => {
+        const titles: string[] = [];
+        let hasGeneral = false;
+        for (const q of activeQuestions) {
+          if ((q as any).type === 'titre') {
+            titles.push(((q as any).titre as string) || 'Groupe de question');
+          } else if (titles.length === 0 && !hasGeneral) {
+            // There is content before the first explicit titre => a General group exists
+            hasGeneral = true;
+          }
+        }
+        if (hasGeneral) titles.unshift('Général');
+        if (!hasGeneral && titles.length === 0) titles.push('Général');
+        return titles;
+      })();
       const activeAnswers = (activeBilanSectionId && bilanAnswers[activeBilanSectionId]) || {};
       content = (
         <div className="flex flex-1 h-full overflow-y-hidden">
@@ -390,6 +407,7 @@ export default function WizardAIRightPanel({
             }}
           />
           <div className="flex-1 flex flex-col">
+            {/* In-section outline chips (replaces the inner left nav) */}
             <Tabs
               className="mb-4"
               active={notesMode}
@@ -405,6 +423,8 @@ export default function WizardAIRightPanel({
                 { key: 'import', label: 'Import des notes' },
               ]}
             />
+            {notesMode === 'manual' && <InlineGroupChips titles={groupTitles} />}
+
             {notesMode === 'manual' ? (
               <DataEntry
                 ref={dataEntryRef}
@@ -415,6 +435,7 @@ export default function WizardAIRightPanel({
                   setBilanAnswers((prev) => ({ ...prev, [activeBilanSectionId]: a }));
                 }}
                 inline
+                showGroupNav={false}
               />
             ) : (
               <ImportNotes onChange={setRawNotes} onImageChange={setImageBase64} />
