@@ -94,6 +94,20 @@ export const requireAuth: RequestHandler = async (req, res, next) => {
     let user
     if (authAccount) {
       user = authAccount.user
+
+      // Ensure a Profile exists for this user (backfill if missing)
+      const existingProfile = await db.profile.findUnique({ where: { userId: user.id } })
+      if (!existingProfile) {
+        const profileFields = getProfileFieldsFromPayload(payload, provider)
+        await db.profile.create({
+          data: {
+            userId: user.id,
+            prenom: profileFields.prenom,
+            nom: profileFields.nom,
+            email: profileFields.email,
+          },
+        })
+      }
     } else {
       // 2) Crée l'utilisateur + le compte d’auth
       const profileFields = getProfileFieldsFromPayload(payload, provider)
@@ -124,7 +138,7 @@ export const requireAuth: RequestHandler = async (req, res, next) => {
     req.user = { id: user.id }
     next()
   } catch (e) {
-    console.error('JWT verify error:', e)
+    console.error('JWT verify error:', (e as Error)?.message || e)
     res.status(401).send('Invalid token')
   }
 }

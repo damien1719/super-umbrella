@@ -26,6 +26,7 @@ import {
   KEY_BACKSPACE_COMMAND,
   KEY_DELETE_COMMAND,
   COMMAND_PRIORITY_LOW,
+  PASTE_COMMAND,
   type LexicalNode,
 } from 'lexical';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
@@ -51,6 +52,76 @@ import { SectionPlaceholderNode, $createSectionPlaceholderNode } from '../nodes/
 import type { SlotType, FieldSpec } from '../types/template';
 import { scanAndInsertSlots as runScanAndInsertSlots } from '../utils/scanAndInsertSlots';
 import TableContextMenuPlugin from './TableContextMenuPlugin';
+
+// Sanitize options that preserve safe inline styles (colors, backgrounds, borders)
+const SANITIZE_OPTIONS: DOMPurify.Config = {
+  ALLOWED_TAGS: [
+    'a',
+    'b',
+    'i',
+    'u',
+    'em',
+    'strong',
+    'span',
+    'p',
+    'br',
+    'blockquote',
+    'h1',
+    'h2',
+    'h3',
+    'ul',
+    'ol',
+    'li',
+    'table',
+    'thead',
+    'tbody',
+    'tr',
+    'th',
+    'td',
+    'div',
+  ],
+  ALLOWED_ATTR: [
+    'href',
+    'target',
+    'rel',
+    'colspan',
+    'rowspan',
+    'style',
+    'class',
+  ],
+  // Keep default CSS sanitization and allow common text/table styles
+  // Note: DOMPurify will still sanitize CSS values for safety.
+  ALLOWED_CSS_PROPERTIES: [
+    'color',
+    'background',
+    'background-color',
+    'text-decoration',
+    'font-size',
+    'font-family',
+    'line-height',
+    'font-weight',
+    'font-style',
+    'border',
+    'border-color',
+    'border-width',
+    'border-style',
+    'border-radius',
+    'padding',
+    'padding-left',
+    'padding-right',
+    'padding-top',
+    'padding-bottom',
+    'margin',
+    'margin-left',
+    'margin-right',
+    'margin-top',
+    'margin-bottom',
+    'vertical-align',
+    'text-align',
+    'width',
+    'height',
+  ],
+} as unknown as DOMPurify.Config;
 
 export interface RichTextEditorHandle {
   importHtml: (html: string) => void;
@@ -330,6 +401,79 @@ function TableDeletePlugin() {
   return null;
 }
 
+function PasteSanitizePlugin() {
+  const [editor] = useLexicalComposerContext();
+  useEffect(() => {
+    const normalizeWordHtml = (html: string): string => {
+      try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+
+        // Convert <font color="..."> to <span style="color: ...">
+        const fontNodes = Array.from(doc.getElementsByTagName('font'));
+        for (const font of fontNodes) {
+          const span = doc.createElement('span');
+          // Merge existing inline style with color attribute
+          const colorAttr = font.getAttribute('color');
+          const existing = font.getAttribute('style') || '';
+          const colorPart = colorAttr ? `color: ${colorAttr};` : '';
+          const style = `${existing} ${colorPart}`.trim();
+          if (style) span.setAttribute('style', style);
+          span.innerHTML = font.innerHTML;
+          font.replaceWith(span);
+        }
+
+        // Map mso-highlight to background-color if present
+        const allWithStyle = Array.from(doc.querySelectorAll('[style*="mso-highlight:"]')) as HTMLElement[];
+        for (const el of allWithStyle) {
+          const style = el.getAttribute('style') || '';
+          const match = /mso-highlight\s*:\s*([^;]+)\s*;?/i.exec(style);
+          if (match) {
+            const color = match[1].trim();
+            const cleaned = style.replace(/mso-highlight\s*:\s*[^;]+;?/gi, '');
+            el.setAttribute('style', `${cleaned} background-color: ${color};`);
+          }
+        }
+
+        return doc.body.innerHTML;
+      } catch {
+        return html;
+      }
+    };
+    return editor.registerCommand(
+      PASTE_COMMAND,
+      (event: ClipboardEvent) => {
+        try {
+          if (!event || !event.clipboardData) return false;
+          const htmlRaw = event.clipboardData.getData('text/html');
+          const html = htmlRaw ? normalizeWordHtml(htmlRaw) : '';
+          if (!html) return false; // let default text paste happen
+          event.preventDefault();
+          const cleaned = DOMPurify.sanitize(html, SANITIZE_OPTIONS);
+          editor.update(() => {
+            const parser = new DOMParser();
+            const dom = parser.parseFromString(`<div>${cleaned}</div>`, 'text/html');
+            const nodes = $generateNodesFromDOM(editor, dom);
+            const selection = $getSelection();
+            if (selection) {
+              $insertNodes(nodes);
+            } else {
+              $getRoot().append(...nodes);
+            }
+            editor.focus();
+          });
+          return true;
+        } catch (e) {
+          console.warn('[Lexical] PasteSanitizePlugin failed, falling back', e);
+          return false;
+        }
+      },
+      COMMAND_PRIORITY_LOW,
+    );
+  }, [editor]);
+  return null;
+}
+
 const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
   function RichTextEditor(rawProps, ref) {
     // 1) props par défaut robustes
@@ -445,11 +589,13 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
                 <TablePlugin hasCellMerge hasCellBackgroundColor />
                 <TableDeletePlugin />
                 <TableContextMenuPlugin />
+                <PasteSanitizePlugin />
                 <OnChangePlugin
                   onChange={(state, editor) => {
                     state.read(() => {
                       const html = DOMPurify.sanitize(
                         $generateHtmlFromNodes(editor),
+                        SANITIZE_OPTIONS,
                       );
                       onChange?.(html);
                     });

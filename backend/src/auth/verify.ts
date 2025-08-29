@@ -29,9 +29,15 @@ export async function verifyKeycloakToken(token: string) {
     throw new Error('Missing KEYCLOAK_ISSUER or KEYCLOAK_CLIENT_ID')
   }
 
+  // Permettre plusieurs audiences (ex: plume-api, plume-web, account)
+  const extra = (process.env.KEYCLOAK_ALLOWED_AUDIENCES || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
   const allowedAudiences = [
-    process.env.KEYCLOAK_CLIENT_ID, // plume-web
+    process.env.KEYCLOAK_CLIENT_ID, // généralement le client API (ex: plume-api)
     'account',                      // audience par défaut de Keycloak
+    ...extra,                       // audiences additionnelles via env
   ].filter(Boolean) as string[]
 
   const { payload, protectedHeader } = await jose.jwtVerify(token, getJwks(), {
