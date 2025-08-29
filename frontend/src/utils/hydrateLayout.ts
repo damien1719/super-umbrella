@@ -43,7 +43,7 @@ export function hydrateLayout(
             children: [
               {
                 type: 'text',
-                text: `[SECTION introuvable]`,
+                text: ``,
                 detail: 0,
                 format: 0,
                 style: '',
