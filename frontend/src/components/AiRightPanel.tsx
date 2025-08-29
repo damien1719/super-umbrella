@@ -4,8 +4,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSectionStore } from '@/store/sections';
 import { useEditorUi } from '@/store/editorUi';
 import { useSectionExampleStore } from '@/store/sectionExamples';
-import { SectionCard, SectionInfo } from './bilan/SectionCard';
+import { SectionInfo } from './bilan/SectionCard';
 import WizardAIRightPanel from './WizardAIRightPanel';
+import WizardAIBilanType from './WizardAIBilanType';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from './ui/textarea';
@@ -25,6 +26,7 @@ import {
 import { apiFetch } from '@/utils/api';
 import { generateSection } from '@/services/generation';
 import { useAuth } from '@/store/auth';
+import { useBilanTypeStore } from '@/store/bilanTypes';
 
 const useTrames = () => {
   const { items, fetchAll } = useSectionStore();
@@ -85,10 +87,15 @@ export default function AiRightPanel({
     remove,
   } = useSectionExampleStore();
   const token = useAuth((s) => s.token);
+  const {
+    items: bilanTypes,
+    fetchAll: fetchBilanTypes,
+  } = useBilanTypeStore();
 
   useEffect(() => {
     fetchAll().catch(() => {});
-  }, [fetchAll]);
+    fetchBilanTypes().catch(() => {});
+  }, [fetchAll, fetchBilanTypes]);
 
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const [selectedTrames, setSelectedTrames] = useState<Record<string, string>>(
@@ -105,6 +112,7 @@ export default function AiRightPanel({
   const [wizardSection, setWizardSection] = useState<string | null>(
     initialWizardSection || null,
   );
+  const [wizardBilanType, setWizardBilanType] = useState(false);
   const [lastGeneratedSection, setLastGeneratedSection] = useState<string | null>(null);
   const [wizardStartStep, setWizardStartStep] = useState<number>(1);
   const [regenSection, setRegenSection] = useState<string | null>(null);
@@ -112,6 +120,46 @@ export default function AiRightPanel({
   const [refinedText, setRefinedText] = useState('');
   useEditorUi((s) => s.selection);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Bulk generation handler (backend orchestrator)
+  const generateFullBilanType = async (bilanTypeId: string, excludeSectionIds?: string[]) => {
+    setIsGenerating(true);
+    try {
+      const res = await apiFetch<{ assembledState: unknown }>(
+        `/api/v1/bilans/${bilanId}/generate-bilan-type`,
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ bilanTypeId, excludeSectionIds }),
+        },
+      );
+      if (onSetEditorStateJson) {
+        onSetEditorStateJson(res.assembledState);
+      } else {
+        // Fallback: dispatch custom event for editor
+        const evt = new CustomEvent('lexical:set-json', { detail: res.assembledState });
+        window.dispatchEvent(evt);
+      }
+      setWizardBilanType(false);
+    } catch (e) {
+      console.error('[AiRightPanel] generateFullBilanType failed', e);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const bilanTypeOptions = useMemo(() =>
+    bilanTypes.map((b) => ({
+      value: b.id,
+      label: b.name,
+      description: b.description || '',
+      schema: [],
+      isPublic: b.isPublic ?? false,
+      authorId: b.authorId || '',
+      author: b.author?.prenom || '',
+      templateRefId: undefined,
+    })) as TrameOption[],
+  [bilanTypes]);
 
   useEffect(() => {
     if (regenSection && textareaRef.current) {
@@ -509,6 +557,65 @@ export default function AiRightPanel({
           ) : (
             <ScrollArea className="h-[calc(100vh-120px)]">
               <div className="space-y-4">
+                {wizardBilanType && (
+                  <Dialog
+                    open={true}
+                    onOpenChange={(open) => !open && setWizardBilanType(false)}
+                  >
+                    <DialogContent showCloseButton={false} fullscreen>
+                      <WizardAIBilanType
+                        mode="bilanType"
+                        sectionInfo={{
+                          id: 'bilanType',
+                          title: 'Bilan type',
+                          icon: Brain,
+                          description: '',
+                        }}
+                        trameOptions={bilanTypeOptions}
+                        selectedTrame={undefined}
+                        onTrameChange={() => {}}
+                        examples={[]}
+                        onAddExample={() => {}}
+                        onRemoveExample={() => {}}
+                        questions={[]}
+                        answers={{}}
+                        onAnswersChange={() => {}}
+                        onGenerate={async () => {}}
+                        onGenerateAll={(bilanTypeId, exclude) => generateFullBilanType(bilanTypeId, exclude)}
+                        isGenerating={false}
+                        bilanId={bilanId}
+                        onCancel={() => setWizardBilanType(false)}
+                      />
+                    </DialogContent>
+                  </Dialog>
+                )}
+
+                <Card key="bilan-type" className="p-4">
+                  <CardContent className="p-2">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded-lg bg-muted/60">
+                        <Brain className="h-4 w-4 text-muted-foreground text-primary-500" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium text-base truncate">
+                            Bilan type
+                          </h3>
+                          <Button
+                            size="default"
+                            variant="default"
+                            className="ml-auto h-7 px-2 text-sm"
+                            onClick={() => setWizardBilanType(true)}
+                          >
+                            Démarrer
+                            <ArrowRightCircle className="h-4 w-4 ml-1" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
                 {wizardSection === 'reponses' ? (
                   <Dialog
                     open={true}

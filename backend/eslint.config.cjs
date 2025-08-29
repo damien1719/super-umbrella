@@ -38,6 +38,7 @@ module.exports = [
         'error',
         { argsIgnorePattern: '^_' },
       ],
+      '@typescript-eslint/no-explicit-any': 'off',
     },
     ignores: ['jest.config.ts', 'prettier.config.js'],
   },

@@ -13,7 +13,6 @@ const db = prisma as any;
 
 
 
-
 type Item = { key: string; label: string };
 
 function expandSlotsSpec(slots: SlotSpec[]): Record<string, FieldSpec> {

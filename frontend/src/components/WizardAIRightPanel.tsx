@@ -20,8 +20,11 @@ import { DataEntry, type DataEntryHandle } from './bilan/DataEntry';
 import ImportNotes from './ImportNotes';
 import type { Answers, Question } from '@/types/question';
 import type { SectionInfo } from './bilan/SectionCard';
+import { useBilanTypeStore } from '@/store/bilanTypes';
+import { useSectionStore } from '@/store/sections';
+import LeftNavBilanType from './bilan/LeftNavBilanType';
 
-interface WizardAIRightPanelProps {
+export interface WizardAIRightPanelProps {
   sectionInfo: SectionInfo;
   trameOptions: TrameOption[];
   selectedTrame: TrameOption | undefined;
@@ -32,6 +35,7 @@ interface WizardAIRightPanelProps {
   questions: Question[];
   answers: Answers;
   onAnswersChange: (a: Answers) => void;
+  mode?: 'section' | 'bilanType';
   onGenerate: (
     latest?: Answers,
     rawNotes?: string,
@@ -43,6 +47,8 @@ interface WizardAIRightPanelProps {
     instanceId?: string,
     imageBase64?: string,
   ) => void;
+  // Optional bulk generation hook used by WizardAIBilanType footer
+  onGenerateAll?: (bilanTypeId: string, excludeSectionIds?: string[]) => void;
   isGenerating: boolean;
   bilanId: string;
   onCancel: () => void;
@@ -57,6 +63,7 @@ export default function WizardAIRightPanel({
   questions,
   answers,
   onAnswersChange,
+  mode = 'section',
   onGenerate,
   onGenerateFromTemplate,
   isGenerating,
@@ -132,32 +139,106 @@ export default function WizardAIRightPanel({
     );
   };
 
+  // BilanType-specific state and helpers
+  const { items: bilanTypes } = useBilanTypeStore();
+  const { items: allSections } = useSectionStore();
+  const currentBilanType = useMemo(
+    () => (mode === 'bilanType' && selectedTrame ? bilanTypes.find((b) => b.id === selectedTrame.value) : undefined),
+    [mode, selectedTrame, bilanTypes],
+  );
+  const navSections = useMemo(() => {
+    if (mode !== 'bilanType' || !currentBilanType) return [] as Array<{ id: string; title: string; schema: Question[]; index: number }>;
+    const map = currentBilanType.sections || [];
+    const items = map
+      .slice()
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+      .map((s, index) => {
+        const sec = allSections.find((x) => x.id === s.sectionId);
+        return {
+          id: s.sectionId,
+          title: (sec?.title as string) || `Section ${index + 1}`,
+          schema: ((sec?.schema || []) as unknown as Question[]) || [],
+          index,
+        };
+      });
+    return items;
+  }, [mode, currentBilanType, allSections]);
+
+  const [activeBilanSectionId, setActiveBilanSectionId] = useState<string | null>(null);
+  const [bilanAnswers, setBilanAnswers] = useState<Record<string, Answers>>({});
+  const [excludedSectionIds, setExcludedSectionIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (mode !== 'bilanType') return;
+    if (!activeBilanSectionId && navSections.length > 0) {
+      setActiveBilanSectionId(navSections[0].id);
+    }
+  }, [mode, navSections, activeBilanSectionId]);
+
+  // Notify outer wrapper of active section changes (for footer label)
+  useEffect(() => {
+    if (mode !== 'bilanType') return;
+    const active = navSections.find((s) => s.id === activeBilanSectionId);
+    const detail = active
+      ? { id: active.id, title: active.title }
+      : { id: null as unknown as string, title: '' };
+    const evt = new CustomEvent('bilan-type:active-changed', { detail });
+    window.dispatchEvent(evt);
+  }, [mode, activeBilanSectionId, navSections]);
+
   // Preload latest notes when entering step 2
   useEffect(() => {
-    if (step !== 2 || !selectedTrame) return;
-    (async () => {
-      try {
-        const res = await apiFetch<
-          Array<{ id: string; contentNotes: Answers }>
-        >(
-          `/api/v1/bilan-section-instances?bilanId=${bilanId}&sectionId=${selectedTrame.value}&latest=true`,
-          { headers: { Authorization: `Bearer ${token}` } },
-        );
-        if (res.length) {
-          setInstanceId(res[0].id);
-          // preload answers both in parent state and DataEntry local state
-          onAnswersChange(res[0].contentNotes as Answers);
-          dataEntryRef.current?.load?.(res[0].contentNotes as Answers);
-        } else {
-          setInstanceId(null);
-          onAnswersChange({});
-          dataEntryRef.current?.clear?.();
+    if (step !== 2) return;
+    if (mode === 'bilanType') {
+      if (!activeBilanSectionId) return;
+      (async () => {
+        try {
+          const res = await apiFetch<
+            Array<{ id: string; contentNotes: Answers }>
+          >(
+            `/api/v1/bilan-section-instances?bilanId=${bilanId}&sectionId=${activeBilanSectionId}&latest=true`,
+            { headers: { Authorization: `Bearer ${token}` } },
+          );
+          if (res.length) {
+            setInstanceId(res[0].id);
+            const content = (res[0].contentNotes || {}) as Answers;
+            setBilanAnswers((prev) => ({ ...prev, [activeBilanSectionId]: content }));
+            dataEntryRef.current?.load?.(content);
+          } else {
+            setInstanceId(null);
+            setBilanAnswers((prev) => ({ ...prev, [activeBilanSectionId]: {} }));
+            dataEntryRef.current?.clear?.();
+          }
+        } catch (e) {
+          console.error('Failed to load latest section instance', e);
         }
-      } catch (e) {
-        console.error('Failed to load latest section instance', e);
-      }
-    })();
-  }, [step, selectedTrame, bilanId, token]);
+      })();
+    } else {
+      if (!selectedTrame) return;
+      (async () => {
+        try {
+          const res = await apiFetch<
+            Array<{ id: string; contentNotes: Answers }>
+          >(
+            `/api/v1/bilan-section-instances?bilanId=${bilanId}&sectionId=${selectedTrame.value}&latest=true`,
+            { headers: { Authorization: `Bearer ${token}` } },
+          );
+          if (res.length) {
+            setInstanceId(res[0].id);
+            // preload answers both in parent state and DataEntry local state
+            onAnswersChange(res[0].contentNotes as Answers);
+            dataEntryRef.current?.load?.(res[0].contentNotes as Answers);
+          } else {
+            setInstanceId(null);
+            onAnswersChange({});
+            dataEntryRef.current?.clear?.();
+          }
+        } catch (e) {
+          console.error('Failed to load latest section instance', e);
+        }
+      })();
+    }
+  }, [step, selectedTrame, bilanId, token, mode, activeBilanSectionId]);
 
   const next = () => setStep((s) => Math.min(total, s + 1));
   const prev = () => setStep((s) => Math.max(1, s - 1));
@@ -276,49 +357,120 @@ export default function WizardAIRightPanel({
       </div>
     );
   } else {
-    content = (
-      <div className="flex flex-1 h-full overflow-y-hidden flex-col">
-        <Tabs
-          className="mb-4"
-          active={notesMode}
-          onChange={(k) => {
-            setNotesMode(k as 'manual' | 'import');
-            if (k === 'manual') {
-              setRawNotes('');
-              setImageBase64(undefined);
-            }
-          }}
-          tabs={[
-            { key: 'manual', label: 'Saisie manuelle' },
-            { key: 'import', label: 'Import des notes' },
-          ]}
-        />
-        {notesMode === 'manual' ? (
-          <DataEntry
-            ref={dataEntryRef}
-            questions={questions}
-            answers={answers}
-            onChange={onAnswersChange}
-            inline
+    if (mode === 'bilanType') {
+      const active = navSections.find((s) => s.id === activeBilanSectionId);
+      const activeQuestions = active?.schema ?? [];
+      const activeAnswers = (activeBilanSectionId && bilanAnswers[activeBilanSectionId]) || {};
+      content = (
+        <div className="flex flex-1 h-full overflow-y-hidden">
+          <LeftNavBilanType
+            items={navSections.map((s) => ({ id: s.id, title: s.title, index: s.index, disabled: excludedSectionIds.includes(s.id) }))}
+            activeId={activeBilanSectionId}
+            onSelect={(id) => {
+              // Save current section before switching
+              if (notesMode === 'manual' && activeBilanSectionId) {
+                try {
+                  const data = dataEntryRef.current?.save() as Answers | undefined;
+                  if (data) void saveNotes(data, activeBilanSectionId);
+                } catch {}
+              }
+              setActiveBilanSectionId(id);
+              const next = bilanAnswers[id];
+              if (next) dataEntryRef.current?.load?.(next);
+            }}
+            onToggleDisabled={(id) => {
+              setExcludedSectionIds((prev) =>
+                prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+              );
+              // notify outer wrapper for bulk action
+              try {
+                const evt = new CustomEvent('bilan-type:excluded-changed', { detail: excludedSectionIds.includes(id) ? excludedSectionIds.filter(x => x !== id) : [...excludedSectionIds, id] });
+                window.dispatchEvent(evt);
+              } catch {}
+            }}
           />
-        ) : (
-          <ImportNotes onChange={setRawNotes} onImageChange={setImageBase64} />
-        )}
-      </div>
-    );
+          <div className="flex-1 flex flex-col">
+            <Tabs
+              className="mb-4"
+              active={notesMode}
+              onChange={(k) => {
+                setNotesMode(k as 'manual' | 'import');
+                if (k === 'manual') {
+                  setRawNotes('');
+                  setImageBase64(undefined);
+                }
+              }}
+              tabs={[
+                { key: 'manual', label: 'Saisie manuelle' },
+                { key: 'import', label: 'Import des notes' },
+              ]}
+            />
+            {notesMode === 'manual' ? (
+              <DataEntry
+                ref={dataEntryRef}
+                questions={activeQuestions}
+                answers={activeAnswers}
+                onChange={(a) => {
+                  if (!activeBilanSectionId) return;
+                  setBilanAnswers((prev) => ({ ...prev, [activeBilanSectionId]: a }));
+                }}
+                inline
+              />
+            ) : (
+              <ImportNotes onChange={setRawNotes} onImageChange={setImageBase64} />
+            )}
+          </div>
+        </div>
+      );
+    } else {
+      content = (
+        <div className="flex flex-1 h-full overflow-y-hidden flex-col">
+          <Tabs
+            className="mb-4"
+            active={notesMode}
+            onChange={(k) => {
+              setNotesMode(k as 'manual' | 'import');
+              if (k === 'manual') {
+                setRawNotes('');
+                setImageBase64(undefined);
+              }
+            }}
+            tabs={[
+              { key: 'manual', label: 'Saisie manuelle' },
+              { key: 'import', label: 'Import des notes' },
+            ]}
+          />
+          {notesMode === 'manual' ? (
+            <DataEntry
+              ref={dataEntryRef}
+              questions={questions}
+              answers={answers}
+              onChange={onAnswersChange}
+              inline
+            />
+          ) : (
+            <ImportNotes onChange={setRawNotes} onImageChange={setImageBase64} />
+          )}
+        </div>
+      );
+    }
   }
 
   const [isManualSaving, setIsManualSaving] = useState(false);
 
   const saveNotes = async (
     notes: Answers | undefined,
+    targetOverrideId?: string | null,
   ): Promise<string | null> => {
-    if (!selectedTrame) return null;
+    const targetSectionId =
+      targetOverrideId ?? (mode === 'bilanType' ? activeBilanSectionId : selectedTrame?.value);
+    if (!targetSectionId) return null;
 
     // Debug: trace d'où vient l'appel upsert
     console.trace('[DEBUG] saveNotes called - Stack trace:');
     console.log('[DEBUG] saveNotes - notes:', notes);
-    console.log('[DEBUG] saveNotes - selectedTrame:', selectedTrame.value);
+    console.log('[DEBUG] saveNotes - selectedTrame:', selectedTrame?.value);
+    console.log('[DEBUG] saveNotes - targetSectionId:', targetSectionId);
     console.log('[DEBUG] saveNotes - isManualSaving:', isManualSaving);
 
     setIsManualSaving(true);
@@ -330,7 +482,7 @@ export default function WizardAIRightPanel({
           headers: { Authorization: `Bearer ${token}` },
           body: JSON.stringify({
             bilanId,
-            sectionId: selectedTrame.value,
+            sectionId: targetSectionId,
             contentNotes: notes,
           }),
         },
@@ -347,12 +499,16 @@ export default function WizardAIRightPanel({
   const lastSavedRef = useRef<string>('');
   useEffect(() => {
     if (step !== 2 || isManualSaving) return;
-    const payload = JSON.stringify(answers ?? {});
+    const currentAns =
+      mode === 'bilanType'
+        ? (activeBilanSectionId ? bilanAnswers[activeBilanSectionId] : {})
+        : answers;
+    const payload = JSON.stringify(currentAns ?? {});
     if (payload === lastSavedRef.current) return;
     const t = setTimeout(() => {
       (async () => {
         try {
-          await saveNotes(answers);
+          await saveNotes(currentAns);
           lastSavedRef.current = payload;
         } catch {
           // ignore autosave errors silently
@@ -360,7 +516,12 @@ export default function WizardAIRightPanel({
       })();
     }, 1000);
     return () => clearTimeout(t);
-  }, [answers, step, isManualSaving]);
+  }, [answers, bilanAnswers, activeBilanSectionId, mode, step, isManualSaving]);
+
+  // Reset autosave sentinel when switching active section
+  useEffect(() => {
+    lastSavedRef.current = '';
+  }, [activeBilanSectionId]);
 
   useEffect(() => {
     if (step !== 2 || isManualSaving) return;
@@ -417,6 +578,111 @@ export default function WizardAIRightPanel({
     onCancel();
   };
 
+  // Centralized current-generation handler so it can be called from UI and external events
+  const triggerGenerateCurrent = async () => {
+    console.log('[DEBUG] WizardAIRightPanel - triggerGenerateCurrent');
+    const isTemplateMode = !!selectedTrame?.templateRefId && !!onGenerateFromTemplate;
+    const data: Answers =
+      notesMode === 'manual'
+        ? (dataEntryRef.current?.save() as Answers) || {}
+        : {};
+
+    if (isTemplateMode) {
+      const id = await saveNotes(data);
+      onGenerateFromTemplate?.(
+        notesMode === 'manual' ? data : undefined,
+        rawNotes,
+        id || undefined,
+        imageBase64,
+      );
+      onCancel();
+    } else {
+      await saveNotes(data);
+      onGenerate(
+        notesMode === 'manual' ? data : undefined,
+        rawNotes,
+        imageBase64,
+      );
+      // Close the wizard after direct generation to keep UX consistent
+      onCancel();
+    }
+  };
+
+  // Batch generation across all tests (sections) for bilanType mode
+  const triggerGenerateAll = async () => {
+    if (mode !== 'bilanType') return;
+    console.log('[DEBUG] WizardAIRightPanel - triggerGenerateAll');
+    // Save current active section answers first if in manual mode
+    try {
+      const currentData: Answers | undefined =
+        notesMode === 'manual' ? (dataEntryRef.current?.save() as Answers) : undefined;
+      if (currentData) await saveNotes(currentData).catch(() => {});
+    } catch {}
+
+    // Iterate all sections of the selected BilanType
+    for (const sec of navSections) {
+      if (excludedSectionIds.includes(sec.id)) {
+        console.log('[DEBUG] triggerGenerateAll - skipping excluded section', sec.id);
+        continue;
+      }
+      try {
+        // Load latest instanceId for this section to pass to template generation if supported
+        let latestInstanceId: string | undefined = undefined;
+        try {
+          const res = await apiFetch<Array<{ id: string; contentNotes: Answers }>>(
+            `/api/v1/bilan-section-instances?bilanId=${bilanId}&sectionId=${sec.id}&latest=true`,
+            { headers: { Authorization: `Bearer ${token}` } },
+          );
+          latestInstanceId = res[0]?.id;
+        } catch (e) {
+          console.warn('[DEBUG] triggerGenerateAll - load latest failed for', sec.id, e);
+        }
+
+        const answersForSec = bilanAnswers[sec.id] || {};
+        const isTemplateMode = !!selectedTrame?.templateRefId && !!onGenerateFromTemplate;
+
+        if (isTemplateMode) {
+          // Use per-section instance if available
+          await onGenerateFromTemplate?.(
+            notesMode === 'manual' ? answersForSec : undefined,
+            rawNotes,
+            latestInstanceId,
+            imageBase64,
+          );
+        } else {
+          console.log("here");
+          await onGenerate(
+            notesMode === 'manual' ? answersForSec : undefined,
+            rawNotes,
+            imageBase64,
+          );
+        }
+      } catch (e) {
+        console.error('[DEBUG] triggerGenerateAll - error on section', sec.id, e);
+      }
+    }
+  };
+
+  // External event listeners from wrapper (WizardAIBilanType)
+  useEffect(() => {
+    const onGenSelected = () => void triggerGenerateCurrent();
+    const onGenAll = () => void triggerGenerateAll();
+    const onSaveCurrent = () => {
+      try {
+        const data = notesMode === 'manual' ? (dataEntryRef.current?.save() as Answers) : undefined;
+        if (data) void saveNotes(data);
+      } catch {}
+    };
+    window.addEventListener('bilan-type:generate-selected', onGenSelected);
+    window.addEventListener('bilan-type:generate-all', onGenAll);
+    window.addEventListener('bilan-type:save-current', onSaveCurrent);
+    return () => {
+      window.removeEventListener('bilan-type:generate-selected', onGenSelected);
+      window.removeEventListener('bilan-type:generate-all', onGenAll);
+      window.removeEventListener('bilan-type:save-current', onSaveCurrent);
+    };
+  }, [notesMode, rawNotes, imageBase64, bilanAnswers, navSections, selectedTrame, onGenerateFromTemplate, onGenerate, mode, token, bilanId, excludedSectionIds]);
+
   return (
     <div className="h-full flex flex-col overflow-hidden relative">
       {/* Close button stays absolute over everything */}
@@ -472,48 +738,7 @@ export default function WizardAIRightPanel({
               </Button>
             ) : (
               <div className="flex gap-2">
-                <Button
-                  onClick={async () => {
-                    console.log(
-                      '[DEBUG] WizardAIRightPanel - Generate button clicked:',
-                      {
-                        notesMode,
-                        hasRawNotes: !!rawNotes,
-                        hasImageBase64: !!imageBase64,
-                        imageBase64Length: imageBase64?.length || 0,
-                        templateRefId: selectedTrame?.templateRefId,
-                        instanceId,
-                      },
-                    );
-
-                    const data: Answers =
-                      notesMode === 'manual'
-                        ? (dataEntryRef.current?.save() as Answers) || {}
-                        : {};
-                    if (
-                      selectedTrame?.templateRefId &&
-                      onGenerateFromTemplate
-                    ) {
-                      const id = await saveNotes(data);
-                      onGenerateFromTemplate(
-                        notesMode === 'manual' ? data : undefined,
-                        rawNotes,
-                        id || undefined,
-                        imageBase64,
-                      );
-                      onCancel();
-                    } else {
-                      await saveNotes(data);
-                      onGenerate(
-                        notesMode === 'manual' ? data : undefined,
-                        rawNotes,
-                        imageBase64,
-                      );
-                    }
-                  }}
-                  disabled={isGenerating}
-                  type="button"
-                >
+                <Button onClick={triggerGenerateCurrent} disabled={isGenerating} type="button">
                   {isGenerating ? (
                     <>
                       <Loader2 className="h-5 w-5 mr-2 animate-spin" />

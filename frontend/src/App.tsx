@@ -10,6 +10,9 @@ import MonCompteV2 from './pages/MonCompte';
 import Patients from './pages/Patients';
 import VuePatient from './pages/VuePatient';
 import Bibliotheque from './pages/Bibliothèque';
+import BilanTypes from './pages/BilanTypes';
+import BilanType from './pages/BilanType';
+import BilanTypeBuilder from './pages/BilanTypeBuilder';
 import CreationTrame from './pages/CreationTrame';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
@@ -212,6 +215,9 @@ export default function App() {
         <Route path="/patients/:patientId" element={<VuePatient />} />
         <Route path="/agenda" element={<Agenda />} />
         <Route path="/bibliotheque" element={<Bibliotheque />} />
+        <Route path="/bilan-types" element={<BilanTypes />} />
+        <Route path="/bilan-types/builder" element={<BilanTypeBuilder />} />
+        <Route path="/bilan-types/:bilanTypeId" element={<BilanType />} />
         <Route path="/abonnement" element={<Abonnement />} />
         <Route path="/compte" element={<MonCompteV2 />} />
       </Route>
