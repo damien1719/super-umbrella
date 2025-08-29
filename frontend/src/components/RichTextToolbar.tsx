@@ -423,7 +423,10 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
                 key={label as string}
                 onClick={() => {
                   restoreSelectionAndFocus();
-                  setTimeout(() => setTextColor(editor, value as string | null), 0);
+                  setTimeout(
+                    () => setTextColor(editor, value as string | null),
+                    0,
+                  );
                 }}
               >
                 <span
@@ -606,7 +609,10 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
                     'height',
                   ],
                 } as unknown as DOMPurify.Config;
-                html = DOMPurify.sanitize($generateHtmlFromNodes(editor), SANITIZE_OPTIONS);
+                html = DOMPurify.sanitize(
+                  $generateHtmlFromNodes(editor),
+                  SANITIZE_OPTIONS,
+                );
               });
             } catch {}
             const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="ie=edge"/><style>

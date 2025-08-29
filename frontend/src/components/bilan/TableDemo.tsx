@@ -55,8 +55,15 @@ const demoQuestion: Question = {
         label: 'Choix multiples par ligne',
         valueType: 'multi-choice-row',
         rowOptions: {
-          'row1': ['Option A', 'Option B', 'Option C', 'Option D', 'Option E', 'Option F'],
-          'row2': ['Choix 1', 'Choix 2', 'Choix 3', 'Choix 4', 'Choix 5'],
+          row1: [
+            'Option A',
+            'Option B',
+            'Option C',
+            'Option D',
+            'Option E',
+            'Option F',
+          ],
+          row2: ['Choix 1', 'Choix 2', 'Choix 3', 'Choix 4', 'Choix 5'],
         },
       },
     ],
@@ -65,7 +72,11 @@ const demoQuestion: Question = {
         id: 'group1',
         title: 'Groupe de démonstration',
         rows: [
-          { id: 'row1', label: 'Ligne avec un label très long pour tester la troncature de la colonne des lignes' },
+          {
+            id: 'row1',
+            label:
+              'Ligne avec un label très long pour tester la troncature de la colonne des lignes',
+          },
           { id: 'row2', label: 'Ligne 2' },
           { id: 'row3', label: 'Ligne 3' },
         ],
@@ -80,9 +91,12 @@ export function TableDemo() {
   return (
     <div className="p-6 max-w-full">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold mb-2">Démonstration des améliorations UI des tableaux</h2>
+        <h2 className="text-2xl font-bold mb-2">
+          Démonstration des améliorations UI des tableaux
+        </h2>
         <p className="text-gray-600">
-          Ce composant démontre les améliorations apportées à l'interface des tableaux :
+          Ce composant démontre les améliorations apportées à l'interface des
+          tableaux :
         </p>
         <ul className="list-disc list-inside mt-2 text-gray-600 space-y-1">
           <li>Colonne des lignes avec largeur maximale limitée</li>
@@ -94,15 +108,17 @@ export function TableDemo() {
       </div>
 
       <div className="border rounded-lg p-4 bg-gray-50">
-        <TableQuestion 
-          question={demoQuestion} 
-          value={values} 
-          onChange={setValues} 
+        <TableQuestion
+          question={demoQuestion}
+          value={values}
+          onChange={setValues}
         />
       </div>
 
       <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-        <h3 className="font-semibold text-blue-800 mb-2">Valeurs actuelles :</h3>
+        <h3 className="font-semibold text-blue-800 mb-2">
+          Valeurs actuelles :
+        </h3>
         <pre className="text-sm text-blue-700 overflow-auto">
           {JSON.stringify(values, null, 2)}
         </pre>

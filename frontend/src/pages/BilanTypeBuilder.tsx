@@ -7,7 +7,9 @@ import { SectionDisponible } from '@/components/bilanType/SectionDisponible';
 import { BilanTypeConstruction } from '@/components/bilanType/BilanTypeConstruction';
 import { useSectionStore } from '@/store/sections';
 import { useBilanTypeStore } from '@/store/bilanTypes';
-import RichTextEditor, { type RichTextEditorHandle } from '@/components/RichTextEditor';
+import RichTextEditor, {
+  type RichTextEditorHandle,
+} from '@/components/RichTextEditor';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
@@ -16,30 +18,34 @@ import { categories, kindMap, type CategoryId } from '@/types/trame';
 import { Job } from '@/types/job';
 import { hydrateLayout, type LexicalState } from '@/utils/hydrateLayout';
 
-// Petit type UI local basé UNIQUEMENT sur tes types de domaine
-type BilanElement = {
-  id: string;
+// Types d'élément composant la construction
+type SectionElement = {
+  kind: 'section';
+  id: string; // sectionId
   type: CategoryId;
   title: string;
   description: string;
-  // "général" = absence de ciblage métier → on n'invente pas de valeur custom,
-  // on laisse ce champ optionnel et uniquement typé avec Job.
   metier?: Job;
-};
-
-type SelectedElement = BilanElement & {
   order: number;
 };
+
+type HeadingElement = {
+  kind: 'heading';
+  id: string; // derived key e.g. heading-<index>
+  title: string;
+  order: number;
+};
+
+type SelectedElement = SectionElement | HeadingElement;
 
 interface BilanTypeBuilderProps {
   initialBilanTypeId?: string;
 }
 
-export default function BilanTypeBuilder({ initialBilanTypeId }: BilanTypeBuilderProps) {
+export default function BilanTypeBuilder({
+  initialBilanTypeId,
+}: BilanTypeBuilderProps) {
   const [bilanName, setBilanName] = useState('');
-  const [selectedElements, setSelectedElements] = useState<SelectedElement[]>(
-    [],
-  );
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [mode, setMode] = useState<'build' | 'layout' | 'preview'>('build');
@@ -57,36 +63,19 @@ export default function BilanTypeBuilder({ initialBilanTypeId }: BilanTypeBuilde
     fetchSections().catch(console.error);
   }, [fetchSections]);
 
+  // No auto-sync from construction → layout. layoutJson is the single source of truth.
+
   // Initialize from an existing BilanType id if provided
   useEffect(() => {
     if (!initialBilanTypeId) return;
-    if (!sections || sections.length === 0) return;
     (async () => {
       try {
         const bt = await fetchBilanType(initialBilanTypeId);
-        const ordered = (bt.sections || [])
-          .slice()
-          .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-        const next: SelectedElement[] = [];
-        for (const it of ordered) {
-          const sec = sections.find((s) => s.id === it.sectionId);
-          if (!sec) continue;
-          const normalized = normalizeKind(sec.kind);
-          if (!normalized) continue;
-          next.push({
-            id: sec.id,
-            type: normalized,
-            title: sec.title,
-            description: sec.description ?? '',
-            order: it.sortOrder ?? next.length,
-          });
-        }
-        setSelectedElements(next);
         setBilanName(bt.name || '');
         setLayoutJson(bt.layoutJson ?? undefined);
       } catch {}
     })();
-  }, [initialBilanTypeId, sections, fetchBilanType]);
+  }, [initialBilanTypeId, fetchBilanType]);
 
   // Set des CategoryId valides d'après ta source unique de vérité
   const validCategoryIds = useMemo(
@@ -113,7 +102,15 @@ export default function BilanTypeBuilder({ initialBilanTypeId }: BilanTypeBuilde
   };
 
   // AUCUNE RESTRICTION : on prend toutes les sections dont le kind est mappable vers un CategoryId
-  const availableElements = useMemo<BilanElement[]>(
+  const availableElements = useMemo<
+    {
+      id: string;
+      type: CategoryId;
+      title: string;
+      description: string;
+      metier?: Job;
+    }[]
+  >(
     () =>
       sections
         .map((s) => {
@@ -127,23 +124,21 @@ export default function BilanTypeBuilder({ initialBilanTypeId }: BilanTypeBuilde
             description: s.description ?? '',
             // pas de "general" string — on garde uniquement Job si un ciblage est utile
             metier: undefined as Job | undefined,
-          } satisfies BilanElement;
+          };
         })
-        .filter((x): x is BilanElement => x !== null),
+        .filter(
+          (
+            x,
+          ): x is {
+            id: string;
+            type: CategoryId;
+            title: string;
+            description: string;
+            metier?: Job;
+          } => x !== null,
+        ),
     [sections, validCategoryIds],
   );
-
-  const addElement = (element: BilanElement) => {
-    const newElement: SelectedElement = {
-      ...element,
-      order: selectedElements.length,
-    };
-    setSelectedElements((prev) => [...prev, newElement]);
-  };
-
-  const removeElement = (id: string) => {
-    setSelectedElements((prev) => prev.filter((el) => el.id !== id));
-  };
 
   const handleDragStart = (e: React.DragEvent, index: number) => {
     setDraggedIndex(index);
@@ -155,27 +150,187 @@ export default function BilanTypeBuilder({ initialBilanTypeId }: BilanTypeBuilde
     e.dataTransfer.dropEffect = 'move';
   };
 
+  // ===== Layout helpers: parse, mutate, derive display list =====
+  type LexNode = Record<string, any> & { type?: string; children?: any[] };
+  type Segment =
+    | {
+        kind: 'heading';
+        start: number;
+        end: number; // exclusive
+        title: string;
+      }
+    | {
+        kind: 'section';
+        start: number;
+        end: number; // exclusive
+        sectionId: string;
+        label: string;
+      };
+
+  const asArray = (x: any): any[] => (Array.isArray(x) ? x : x ? [x] : []);
+
+  const getRootChildren = (state: unknown): LexNode[] => {
+    const root = (state as any)?.root;
+    const children = asArray<LexNode>(root?.children ?? []);
+    return children;
+  };
+
+  const setRootChildren = (state: any, nextChildren: LexNode[]) => {
+    const root = (state?.root ?? {}) as any;
+    return { ...state, root: { ...root, children: nextChildren } } as unknown;
+  };
+
+  // Identify segments: each heading or section-placeholder and the non-item nodes until next item
+  const computeSegments = (state: unknown): { segments: Segment[]; prefix: LexNode[]; suffix: LexNode[] } => {
+    const children = getRootChildren(state);
+    const boundaries: { index: number; kind: 'heading' | 'section'; meta?: any }[] = [];
+    children.forEach((ch, idx) => {
+      if (ch?.type === 'heading') {
+        const text = asArray(ch.children).find((c) => c?.type === 'text');
+        const title = (text?.text as string) || '';
+        boundaries.push({ index: idx, kind: 'heading', meta: { title } });
+      } else if (ch?.type === 'section-placeholder') {
+        boundaries.push({ index: idx, kind: 'section', meta: { sectionId: ch.sectionId, label: ch.label } });
+      }
+    });
+    if (boundaries.length === 0) {
+      return { segments: [], prefix: children.slice(), suffix: [] };
+    }
+    const segments: Segment[] = [];
+    for (let i = 0; i < boundaries.length; i++) {
+      const b = boundaries[i];
+      const nextIndex = i + 1 < boundaries.length ? boundaries[i + 1].index : children.length;
+      if (b.kind === 'heading') {
+        segments.push({ kind: 'heading', start: b.index, end: nextIndex, title: b.meta?.title ?? '' });
+      } else {
+        segments.push({ kind: 'section', start: b.index, end: nextIndex, sectionId: b.meta?.sectionId, label: b.meta?.label ?? '' });
+      }
+    }
+    const prefix = children.slice(0, segments[0].start);
+    const suffix = children.slice(segments[segments.length - 1].end);
+    return { segments, prefix, suffix };
+  };
+
+  const deriveSelectedElements = (state: unknown): SelectedElement[] => {
+    const { segments } = computeSegments(state);
+    const out: SelectedElement[] = segments.map((seg, i) => {
+      if (seg.kind === 'heading') {
+        return { kind: 'heading', id: `heading-${i}`, title: seg.title || 'Titre', order: i };
+      }
+      // seg.kind === 'section'
+      const sec = sections.find((s) => s.id === seg.sectionId);
+      const normalized = normalizeKind(sec?.kind);
+      return {
+        kind: 'section',
+        id: seg.sectionId,
+        type: (normalized || 'tests_standards') as CategoryId,
+        title: sec?.title || seg.label || 'Section',
+        description: sec?.description ?? '',
+        order: i,
+      } as SectionElement;
+    });
+    return out;
+  };
+
+  const addSectionElement = (element: {
+    id: string;
+    type: CategoryId;
+    title: string;
+    description: string;
+    metier?: Job;
+  }) => {
+    setLayoutJson((prev) => {
+      const base = (prev as any) ?? { root: { type: 'root', children: [] } };
+      const children = getRootChildren(base).slice();
+      children.push(
+        { type: 'section-placeholder', version: 1, sectionId: element.id, label: element.title },
+        { type: 'paragraph', direction: 'ltr', format: '', indent: 0, version: 1, children: [] },
+      );
+      return setRootChildren(base, children);
+    });
+  };
+
+  const addHeadingElement = (title?: string) => {
+    const headingTitle = (title || '').trim() || 'Nouvelle partie';
+    setLayoutJson((prev) => {
+      const base = (prev as any) ?? { root: { type: 'root', children: [] } };
+      const children = getRootChildren(base).slice();
+      children.push(
+        {
+          type: 'heading',
+          tag: 'h1',
+          direction: 'ltr',
+          format: '',
+          indent: 0,
+          version: 1,
+          children: [
+            { type: 'text', text: headingTitle, detail: 0, format: 0, style: '', version: 1 },
+          ],
+        },
+        { type: 'paragraph', direction: 'ltr', format: '', indent: 0, version: 1, children: [] },
+      );
+      return setRootChildren(base, children);
+    });
+  };
+
+  const removeElementByIndex = (index: number) => {
+    setLayoutJson((prev) => {
+      const base = (prev as any) ?? { root: { type: 'root', children: [] } };
+      const { segments, prefix, suffix } = computeSegments(base);
+      if (index < 0 || index >= segments.length) return base;
+      const nextSegs = segments.slice();
+      nextSegs.splice(index, 1);
+      const nextChildren = [
+        ...prefix,
+        ...nextSegs.flatMap((s) => getRootChildren(base).slice(s.start, s.end)),
+        ...suffix,
+      ];
+      return setRootChildren(base, nextChildren);
+    });
+  };
+
+  const renameHeadingByIndex = (index: number, title: string) => {
+    setLayoutJson((prev) => {
+      const base = (prev as any) ?? { root: { type: 'root', children: [] } };
+      const { segments } = computeSegments(base);
+      if (index < 0 || index >= segments.length) return base;
+      const seg = segments[index];
+      if (seg.kind !== 'heading') return base;
+      const children = getRootChildren(base).slice();
+      const node = { ...(children[seg.start] || {}) } as any;
+      const kids = asArray(node.children).slice();
+      if (kids.length === 0 || kids[0]?.type !== 'text') {
+        kids.unshift({ type: 'text', text: title, detail: 0, format: 0, style: '', version: 1 });
+      } else {
+        kids[0] = { ...kids[0], text: title };
+      }
+      node.children = kids;
+      children[seg.start] = node;
+      return setRootChildren(base, children);
+    });
+  };
+
   const handleDrop = (e: React.DragEvent, dropIndex: number) => {
     e.preventDefault();
-
     if (draggedIndex === null || draggedIndex === dropIndex) {
       setDraggedIndex(null);
       return;
     }
-
-    const items = Array.from(selectedElements);
-    const draggedItem = items[draggedIndex];
-
-    items.splice(draggedIndex, 1);
-    const newIndex = draggedIndex < dropIndex ? dropIndex - 1 : dropIndex;
-    items.splice(newIndex, 0, draggedItem);
-
-    const updatedItems = items.map((item, index) => ({
-      ...item,
-      order: index,
-    }));
-
-    setSelectedElements(updatedItems);
+    setLayoutJson((prev) => {
+      const base = (prev as any) ?? { root: { type: 'root', children: [] } };
+      const children = getRootChildren(base);
+      const { segments, prefix, suffix } = computeSegments(base);
+      if (segments.length === 0) return base;
+      const segSlices = segments.map((s) => children.slice(s.start, s.end));
+      const from = draggedIndex;
+      let to = dropIndex;
+      if (from < to) to = to - 1;
+      const working = segSlices.slice();
+      const [moved] = working.splice(from, 1);
+      working.splice(to, 0, moved);
+      const nextChildren = [ ...prefix, ...working.flat(), ...suffix ];
+      return setRootChildren(base, nextChildren);
+    });
     setDraggedIndex(null);
   };
 
@@ -186,10 +341,15 @@ export default function BilanTypeBuilder({ initialBilanTypeId }: BilanTypeBuilde
   const saveBilanType = async () => {
     setIsSaving(true);
     try {
+      // Derive sections order from layout placeholders (by appearance order)
+      const { segments } = computeSegments(layoutJson);
+      const sectionOrder = segments
+        .filter((s): s is Extract<Segment, { kind: 'section' }> => s.kind === 'section')
+        .map((s, idx) => ({ sectionId: s.sectionId, sortOrder: idx }));
       const payload = {
         name: bilanName,
-        sections: selectedElements.map(({ id, order }) => ({ sectionId: id, sortOrder: order })),
-        layoutJson: layoutJson ?? undefined,
+        sections: sectionOrder,
+        layoutJson: layoutJson ?? { root: { type: 'root', children: [] } },
       };
       if (initialBilanTypeId) {
         await updateBilanType(initialBilanTypeId, payload);
@@ -201,35 +361,6 @@ export default function BilanTypeBuilder({ initialBilanTypeId }: BilanTypeBuilde
       setIsSaving(false);
     }
   };
-
-  function defaultLayoutFromSections(items: { id: string; title: string }[]) {
-    return {
-      root: {
-        type: 'root',
-        direction: 'ltr',
-        format: '',
-        indent: 0,
-        version: 1,
-        children: items.flatMap((s, i) => [
-          // A small heading before each section placeholder by default
-          {
-            type: 'heading',
-            tag: 'h2',
-            direction: 'ltr',
-            format: '',
-            indent: 0,
-            version: 1,
-            children: [
-              { type: 'text', text: s.title || `Section ${i + 1}`, detail: 0, format: 0, style: '', version: 1 },
-            ],
-          },
-          { type: 'section-placeholder', version: 1, sectionId: s.id, label: s.title || `Section ${i + 1}` },
-          { type: 'paragraph', direction: 'ltr', format: '', indent: 0, version: 1, children: [] },
-        ]),
-      },
-      version: 1,
-    } as unknown as LexicalState;
-  }
 
   // Small local component to render the left sidebar list of sections
   function SectionsList({
@@ -249,9 +380,14 @@ export default function BilanTypeBuilder({ initialBilanTypeId }: BilanTypeBuilde
           </div>
         )}
         {elements.map((el, i) => (
-          <div key={el.id} className="flex items-center justify-between gap-2 border rounded px-2 py-1">
+          <div
+            key={el.id}
+            className="flex items-center justify-between gap-2 border rounded px-2 py-1"
+          >
             <div className="truncate">
-              <span className="text-xs text-muted-foreground mr-2">{i + 1}.</span>
+              <span className="text-xs text-muted-foreground mr-2">
+                {i + 1}.
+              </span>
               <span>{el.title}</span>
             </div>
             {showInsert && (
@@ -279,17 +415,30 @@ export default function BilanTypeBuilder({ initialBilanTypeId }: BilanTypeBuilde
                 Constructeur de Type de Bilan
               </h1>
               <p className="text-muted-foreground">
-                Créez votre type de bilan personnalisé en sélectionnant et organisant les éléments
+                Créez votre type de bilan personnalisé en sélectionnant et
+                organisant les éléments
               </p>
             </div>
             <div className="flex gap-2">
-              <Button variant={mode === 'build' ? 'default' : 'outline'} size="sm" onClick={() => setMode('build')}>
+              <Button
+                variant={mode === 'build' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setMode('build')}
+              >
                 Construction
               </Button>
-              <Button variant={mode === 'layout' ? 'default' : 'outline'} size="sm" onClick={() => setMode('layout')}>
+              <Button
+                variant={mode === 'layout' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setMode('layout')}
+              >
                 Edition Word
               </Button>
-              <Button variant={mode === 'preview' ? 'default' : 'outline'} size="sm" onClick={() => setMode('preview')}>
+              <Button
+                variant={mode === 'preview' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setMode('preview')}
+              >
                 Aperçu complet
               </Button>
             </div>
@@ -300,20 +449,22 @@ export default function BilanTypeBuilder({ initialBilanTypeId }: BilanTypeBuilde
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <SectionDisponible
               availableElements={availableElements}
-              onAddElement={addElement}
+              onAddElement={addSectionElement}
             />
 
             <BilanTypeConstruction
               bilanName={bilanName}
               setBilanName={setBilanName}
-              selectedElements={selectedElements}
+              selectedElements={deriveSelectedElements(layoutJson)}
               isSaving={isSaving}
               draggedIndex={draggedIndex}
               onDragStart={handleDragStart}
               onDragOver={handleDragOver}
               onDrop={handleDrop}
-              onDragEnd={handleDragEnd}
-              onRemoveElement={removeElement}
+              onDragEnd={() => setDraggedIndex(null)}
+              onRemoveElement={removeElementByIndex}
+              onAddHeading={addHeadingElement}
+              onRenameHeading={renameHeadingByIndex}
               onSave={saveBilanType}
             />
           </div>
@@ -324,14 +475,40 @@ export default function BilanTypeBuilder({ initialBilanTypeId }: BilanTypeBuilde
                 <CardTitle>Sections du bilan</CardTitle>
               </CardHeader>
               <CardContent>
-                <SectionsList
-                  elements={selectedElements}
-                  onInsert={(id, title) => layoutEditorRef.current?.insertSectionPlaceholder?.(id, title)}
-                  showInsert
-                />
+                {(() => {
+                  const { segments } = computeSegments(layoutJson);
+                  const list = segments
+                    .filter((s): s is Extract<Segment, { kind: 'section' }> => s.kind === 'section')
+                    .map((s) => {
+                      const sec = sections.find((x) => x.id === s.sectionId);
+                      return { id: s.sectionId, title: sec?.title || s.label };
+                    });
+                  return (
+                    <SectionsList
+                      elements={list}
+                      onInsert={(id, title) =>
+                        layoutEditorRef.current?.insertSectionPlaceholder?.(
+                          id,
+                          title,
+                        )
+                      }
+                      showInsert
+                    />
+                  );
+                })()}
                 <div className="mt-4 flex gap-2 justify-end">
-                  <Button variant="outline" size="sm" onClick={() => setMode('build')}>Retour</Button>
-                  <Button size="sm" onClick={saveBilanType} disabled={isSaving || !bilanName || selectedElements.length === 0}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setMode('build')}
+                  >
+                    Retour
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={saveBilanType}
+                    disabled={isSaving || !bilanName}
+                  >
                     {isSaving ? 'Sauvegarde…' : 'Sauvegarder'}
                   </Button>
                 </div>
@@ -340,13 +517,17 @@ export default function BilanTypeBuilder({ initialBilanTypeId }: BilanTypeBuilde
 
             <Card className="lg:col-span-2">
               <CardHeader>
-                <CardTitle>Layout du Bilan: {bilanName || 'Sans nom'}</CardTitle>
+                <CardTitle>
+                  Layout du Bilan: {bilanName || 'Sans nom'}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="border rounded">
                   <RichTextEditor
-                    ref={layoutEditorRef as unknown as React.RefObject<RichTextEditorHandle>}
-                    initialStateJson={layoutJson ?? defaultLayoutFromSections(selectedElements)}
+                    ref={
+                      layoutEditorRef as unknown as React.RefObject<RichTextEditorHandle>
+                    }
+                    initialStateJson={layoutJson}
                     readOnly={false}
                     onChangeStateJson={(st) => setLayoutJson(st)}
                   />
@@ -356,34 +537,25 @@ export default function BilanTypeBuilder({ initialBilanTypeId }: BilanTypeBuilde
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-           {/*  <Card className="lg:col-span-1">
-              <CardHeader>
-                <CardTitle>Sections du bilan</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <SectionsList elements={selectedElements} showInsert={false} />
-                <div className="mt-4 flex gap-2 justify-end">
-                  <Button variant="outline" size="sm" onClick={() => setMode('layout')}>Retour</Button>
-                  <Button size="sm" onClick={saveBilanType} disabled={isSaving || !bilanName || selectedElements.length === 0}>
-                    {isSaving ? 'Sauvegarde…' : 'Sauvegarder'}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card> */}
+            {/* Sidebar intentionally removed in preview mode to keep focus on the composed output */}
 
             <div className="lg:col-span-2 space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Aperçu (composé): {bilanName || 'Sans nom'}</CardTitle>
+                  <CardTitle>
+                    Aperçu (composé): {bilanName || 'Sans nom'}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {(() => {
-                    const baseLayout = (layoutJson as LexicalState | undefined) ?? defaultLayoutFromSections(selectedElements);
+                    const baseLayout = (layoutJson as LexicalState | undefined) ?? {
+                      root: { type: 'root', children: [] },
+                    };
+                    // Build sections map from all known sections (id -> content)
                     const sectionsMap = Object.fromEntries(
-                      selectedElements.map((el) => {
-                        const s = sections.find((sec) => sec.id === el.id);
+                      sections.map((s) => {
                         const content = (s?.templateRef?.content ?? s?.defaultContent) as LexicalState | undefined;
-                        return [el.id, content];
+                        return [s.id, content];
                       }),
                     );
                     const composed = hydrateLayout(baseLayout, sectionsMap);

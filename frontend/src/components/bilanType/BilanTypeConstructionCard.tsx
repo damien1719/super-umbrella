@@ -1,42 +1,47 @@
-"use client"
+'use client';
 
-import type React from "react"
+import type React from 'react';
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { GripVertical, X } from "lucide-react"
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { GripVertical, X } from 'lucide-react';
 
-interface SelectedElement {
-  id: string
-  type: "test" | "anamnese" | "conclusion"
-  title: string
-  description: string
-  metier: "psychologue" | "orthophoniste" | "neuropsychologue" | "psychiatre" | "general"
-  order: number
-}
+type SelectedElement =
+  | {
+      kind: 'section';
+      id: string;
+      type: string;
+      title: string;
+      description: string;
+      metier?: string;
+      order: number;
+    }
+  | {
+      kind: 'heading';
+      id: string;
+      title: string;
+      order: number;
+    };
 
 interface BilanTypeConstructionCardProps {
-  element: SelectedElement
-  index: number
-  draggedIndex: number | null
-  onDragStart: (e: React.DragEvent, index: number) => void
-  onDragOver: (e: React.DragEvent) => void
-  onDrop: (e: React.DragEvent, dropIndex: number) => void
-  onDragEnd: () => void
-  onRemove: (id: string) => void
+  element: SelectedElement;
+  index: number;
+  draggedIndex: number | null;
+  onDragStart: (e: React.DragEvent, index: number) => void;
+  onDragOver: (e: React.DragEvent) => void;
+  onDrop: (e: React.DragEvent, dropIndex: number) => void;
+  onDragEnd: () => void;
+  onRemove: (index: number) => void;
+  onRenameHeading: (index: number, title: string) => void;
 }
 
-const typeColors = {
-  test: "bg-blue-100 text-blue-800 border-blue-200",
-  anamnese: "bg-green-100 text-green-800 border-green-200",
-  conclusion: "bg-purple-100 text-purple-800 border-purple-200",
-}
-
-const typeLabels = {
-  test: "Test",
-  anamnese: "Anamnèse",
-  conclusion: "Conclusion",
-}
+const typeColors: Record<string, string> = {
+  default: 'bg-blue-100 text-blue-800 border-blue-200',
+};
+const typeLabels: Record<string, string> = {
+  default: 'Section',
+};
 
 export function BilanTypeConstructionCard({
   element,
@@ -47,6 +52,7 @@ export function BilanTypeConstructionCard({
   onDrop,
   onDragEnd,
   onRemove,
+  onRenameHeading,
 }: BilanTypeConstructionCardProps) {
   return (
     <div
@@ -56,7 +62,7 @@ export function BilanTypeConstructionCard({
       onDrop={(e) => onDrop(e, index)}
       onDragEnd={onDragEnd}
       className={`p-4 border border-wood-200 rounded-lg bg-card cursor-move transition-all ${
-        draggedIndex === index ? "opacity-50 scale-95" : "hover:shadow-md"
+        draggedIndex === index ? 'opacity-50 scale-95' : 'hover:shadow-md'
       }`}
     >
       <div className="flex items-center gap-3">
@@ -64,22 +70,48 @@ export function BilanTypeConstructionCard({
           <GripVertical className="h-5 w-5" />
         </div>
         <div className="flex-1">
-          <div className="flex items-center justify-between mb-2">
-            <Badge className={typeColors[element.type]}>{typeLabels[element.type]}</Badge>
-            <span className="text-xs text-muted-foreground">Position {index + 1}</span>
-          </div>
-          <h4 className="font-medium mb-1">{element.title}</h4>
-          <p className="text-sm text-muted-foreground">{element.description}</p>
+          {element.kind === 'heading' ? (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <Badge className="bg-amber-100 text-amber-800 border-amber-200">
+                  Grande partie
+                </Badge>
+                <span className="text-xs text-muted-foreground">
+                  Position {index + 1}
+                </span>
+              </div>
+              <Input
+                value={element.title}
+                onChange={(e) => onRenameHeading(index, e.target.value)}
+                className="font-medium mb-1"
+              />
+            </div>
+          ) : (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <Badge className={typeColors['default']}>
+                  {typeLabels['default']}
+                </Badge>
+                <span className="text-xs text-muted-foreground">
+                  Position {index + 1}
+                </span>
+              </div>
+              <h4 className="font-medium mb-1">{element.title}</h4>
+              <p className="text-sm text-muted-foreground">
+                {(element as any).description}
+              </p>
+            </div>
+          )}
         </div>
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => onRemove(element.id)}
+          onClick={() => onRemove(index)}
           className="text-destructive hover:text-destructive"
         >
           <X className="h-4 w-4" />
         </Button>
       </div>
     </div>
-  )
+  );
 }

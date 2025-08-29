@@ -17,7 +17,11 @@ export class SectionPlaceholderNode extends DecoratorNode<JSX.Element> {
   }
 
   static clone(node: SectionPlaceholderNode) {
-    return new SectionPlaceholderNode(node.__sectionId, node.__label, node.__key);
+    return new SectionPlaceholderNode(
+      node.__sectionId,
+      node.__label,
+      node.__key,
+    );
   }
 
   constructor(sectionId: string, label: string, key?: NodeKey) {
@@ -70,7 +74,10 @@ export class SectionPlaceholderNode extends DecoratorNode<JSX.Element> {
   }
 }
 
-export function $createSectionPlaceholderNode(sectionId: string, label: string) {
+export function $createSectionPlaceholderNode(
+  sectionId: string,
+  label: string,
+) {
   return new SectionPlaceholderNode(sectionId, label);
 }
 
@@ -79,4 +86,3 @@ export function $isSectionPlaceholderNode(
 ): node is SectionPlaceholderNode {
   return node instanceof SectionPlaceholderNode;
 }
-

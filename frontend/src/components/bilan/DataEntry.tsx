@@ -43,7 +43,13 @@ type QuestionGroup = {
 
 export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
   function DataEntry(
-    { questions, answers, onChange, inline = false, showGroupNav = true }: DataEntryProps,
+    {
+      questions,
+      answers,
+      onChange,
+      inline = false,
+      showGroupNav = true,
+    }: DataEntryProps,
     ref,
   ) {
     const [open, setOpen] = useState(false);

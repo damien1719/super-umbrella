@@ -17,7 +17,9 @@ export default function InlineGroupChips({ titles }: ChipOutlineProps) {
   useEffect(() => {
     const root = document.getElementById('dataentry-scroll-root');
     if (!root) return;
-    const sections = Array.from(root.querySelectorAll<HTMLElement>('[data-idx]'));
+    const sections = Array.from(
+      root.querySelectorAll<HTMLElement>('[data-idx]'),
+    );
     obsRef.current?.disconnect();
     const obs = new IntersectionObserver(
       (entries) => {
@@ -47,7 +49,10 @@ export default function InlineGroupChips({ titles }: ChipOutlineProps) {
     const el = root.querySelector<HTMLElement>(`[data-idx="${i}"]`);
     if (!el) return;
     // Force scrolling only within the DataEntry container
-    const top = el.getBoundingClientRect().top - root.getBoundingClientRect().top + root.scrollTop;
+    const top =
+      el.getBoundingClientRect().top -
+      root.getBoundingClientRect().top +
+      root.scrollTop;
     root.scrollTo({ top, behavior: 'smooth' });
   };
 
@@ -67,9 +72,12 @@ export default function InlineGroupChips({ titles }: ChipOutlineProps) {
                 : 'bg-white text-gray-700 border-wood-200 hover:bg-gray-50'
             }`}
           >
-            <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full border ${
-              i === active ? 'border-primary text-primary' : 'border-wood-200 text-gray-500'
-            } text-[11px]`}
+            <span
+              className={`inline-flex h-5 w-5 items-center justify-center rounded-full border ${
+                i === active
+                  ? 'border-primary text-primary'
+                  : 'border-wood-200 text-gray-500'
+              } text-[11px]`}
             >
               {i + 1}
             </span>

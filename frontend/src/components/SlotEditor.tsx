@@ -268,7 +268,7 @@ export default function SlotEditor({
           slot.slots.forEach(removeChildSlots);
         }
       };
-      
+
       group.slots.forEach(removeChildSlots);
       handleDelete();
     };
@@ -500,7 +500,7 @@ export default function SlotEditor({
           }
         }
       }
-      
+
       // Supprimer aussi tous les slots enfants du template
       const removeChildSlots = (slot: SlotSpec) => {
         if (slot.kind === 'field') {
@@ -512,7 +512,7 @@ export default function SlotEditor({
           slot.slots.forEach(removeChildSlots);
         }
       };
-      
+
       currentRep.slots.forEach(removeChildSlots);
       handleDelete();
     };

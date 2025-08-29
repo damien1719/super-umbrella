@@ -87,10 +87,7 @@ export default function AiRightPanel({
     remove,
   } = useSectionExampleStore();
   const token = useAuth((s) => s.token);
-  const {
-    items: bilanTypes,
-    fetchAll: fetchBilanTypes,
-  } = useBilanTypeStore();
+  const { items: bilanTypes, fetchAll: fetchBilanTypes } = useBilanTypeStore();
 
   useEffect(() => {
     fetchAll().catch(() => {});
@@ -113,7 +110,9 @@ export default function AiRightPanel({
     initialWizardSection || null,
   );
   const [wizardBilanType, setWizardBilanType] = useState(false);
-  const [lastGeneratedSection, setLastGeneratedSection] = useState<string | null>(null);
+  const [lastGeneratedSection, setLastGeneratedSection] = useState<
+    string | null
+  >(null);
   const [wizardStartStep, setWizardStartStep] = useState<number>(1);
   const [regenSection, setRegenSection] = useState<string | null>(null);
   const [regenPrompt, setRegenPrompt] = useState('');
@@ -122,7 +121,10 @@ export default function AiRightPanel({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Bulk generation handler (backend orchestrator)
-  const generateFullBilanType = async (bilanTypeId: string, excludeSectionIds?: string[]) => {
+  const generateFullBilanType = async (
+    bilanTypeId: string,
+    excludeSectionIds?: string[],
+  ) => {
     setIsGenerating(true);
     try {
       const res = await apiFetch<{ assembledState: unknown }>(
@@ -137,7 +139,9 @@ export default function AiRightPanel({
         onSetEditorStateJson(res.assembledState);
       } else {
         // Fallback: dispatch custom event for editor
-        const evt = new CustomEvent('lexical:set-json', { detail: res.assembledState });
+        const evt = new CustomEvent('lexical:set-json', {
+          detail: res.assembledState,
+        });
         window.dispatchEvent(evt);
       }
       setWizardBilanType(false);
@@ -148,18 +152,20 @@ export default function AiRightPanel({
     }
   };
 
-  const bilanTypeOptions = useMemo(() =>
-    bilanTypes.map((b) => ({
-      value: b.id,
-      label: b.name,
-      description: b.description || '',
-      schema: [],
-      isPublic: b.isPublic ?? false,
-      authorId: b.authorId || '',
-      author: b.author?.prenom || '',
-      templateRefId: undefined,
-    })) as TrameOption[],
-  [bilanTypes]);
+  const bilanTypeOptions = useMemo(
+    () =>
+      bilanTypes.map((b) => ({
+        value: b.id,
+        label: b.name,
+        description: b.description || '',
+        schema: [],
+        isPublic: b.isPublic ?? false,
+        authorId: b.authorId || '',
+        author: b.author?.prenom || '',
+        templateRefId: undefined,
+      })) as TrameOption[],
+    [bilanTypes],
+  );
 
   useEffect(() => {
     if (regenSection && textareaRef.current) {
@@ -400,7 +406,7 @@ export default function AiRightPanel({
 
   return (
     <div className="w-full max-w-md bg-wood-50 rounded-lg shadow-lg">
-      <GeneratingModal open={isGenerating} logoSrc="/logo.png"  />
+      <GeneratingModal open={isGenerating} logoSrc="/logo.png" />
       <div className="flex flex-col h-full">
         {/*         {selection?.text && (
           <div className="bg-blue-50 text-blue-800 text-sm p-2 border-b border-blue-100">
@@ -419,19 +425,22 @@ export default function AiRightPanel({
                   : 'Assistant IA'}
           </span>
           <div className="flex items-center gap-2">
-            {!wizardSection && !regenSection && mode !== 'refine' && lastGeneratedSection && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 px-2 text-xs"
-                onClick={() => {
-                  setWizardStartStep(2);
-                  setWizardSection(lastGeneratedSection);
-                }}
-              >
-                Voir mes dernières réponses
-              </Button>
-            )}
+            {!wizardSection &&
+              !regenSection &&
+              mode !== 'refine' &&
+              lastGeneratedSection && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 px-2 text-xs"
+                  onClick={() => {
+                    setWizardStartStep(2);
+                    setWizardSection(lastGeneratedSection);
+                  }}
+                >
+                  Voir mes dernières réponses
+                </Button>
+              )}
             {(regenSection || mode === 'refine') && (
               <Button
                 variant="ghost"
@@ -581,7 +590,9 @@ export default function AiRightPanel({
                         answers={{}}
                         onAnswersChange={() => {}}
                         onGenerate={async () => {}}
-                        onGenerateAll={(bilanTypeId, exclude) => generateFullBilanType(bilanTypeId, exclude)}
+                        onGenerateAll={(bilanTypeId, exclude) =>
+                          generateFullBilanType(bilanTypeId, exclude)
+                        }
                         isGenerating={false}
                         bilanId={bilanId}
                         onCancel={() => setWizardBilanType(false)}
@@ -627,7 +638,8 @@ export default function AiRightPanel({
                           id: 'reponses',
                           title: 'Mes dernières réponses',
                           icon: FileText,
-                          description: 'Consultez et modifiez vos réponses précédentes'
+                          description:
+                            'Consultez et modifiez vos réponses précédentes',
                         }}
                         trameOptions={[]}
                         selectedTrame={undefined}
@@ -658,71 +670,73 @@ export default function AiRightPanel({
                         <Dialog
                           key={section.id}
                           open={true}
-                          onOpenChange={(open) => !open && setWizardSection(null)}
+                          onOpenChange={(open) =>
+                            !open && setWizardSection(null)
+                          }
                         >
                           <DialogContent showCloseButton={false} fullscreen>
-                                                      <WizardAIRightPanel
-                            sectionInfo={section}
-                            trameOptions={trameOpts}
-                            selectedTrame={selected}
-                            onTrameChange={(v) =>
-                              setSelectedTrames({
-                                ...selectedTrames,
-                                [section.id]: v,
-                              })
-                            }
-                            examples={getExamples(
-                              section.id,
-                              selectedTrames[section.id],
-                            )}
-                            onAddExample={(ex) =>
-                              addExample(
+                            <WizardAIRightPanel
+                              sectionInfo={section}
+                              trameOptions={trameOpts}
+                              selectedTrame={selected}
+                              onTrameChange={(v) =>
+                                setSelectedTrames({
+                                  ...selectedTrames,
+                                  [section.id]: v,
+                                })
+                              }
+                              examples={getExamples(
                                 section.id,
                                 selectedTrames[section.id],
-                                ex,
-                              )
-                            }
-                            onRemoveExample={(id) =>
-                              removeExample(
-                                section.id,
-                                selectedTrames[section.id],
-                                id,
-                              )
-                            }
-                            questions={(selected?.schema as Question[]) || []}
-                            answers={answers[section.id] || {}}
-                            onAnswersChange={(a) =>
-                              setAnswers({ ...answers, [section.id]: a })
-                            }
-                            onGenerate={async (latest, notes, imageBase64) =>
-                              await handleGenerate(
-                                section,
-                                latest,
-                                notes,
-                                imageBase64,
-                              )
-                            }
-                            onGenerateFromTemplate={async (
-                              latest,
-                              notes,
-                              id,
-                              imageBase64,
-                            ) =>
-                              await handleGenerateFromTemplate(
-                                section,
+                              )}
+                              onAddExample={(ex) =>
+                                addExample(
+                                  section.id,
+                                  selectedTrames[section.id],
+                                  ex,
+                                )
+                              }
+                              onRemoveExample={(id) =>
+                                removeExample(
+                                  section.id,
+                                  selectedTrames[section.id],
+                                  id,
+                                )
+                              }
+                              questions={(selected?.schema as Question[]) || []}
+                              answers={answers[section.id] || {}}
+                              onAnswersChange={(a) =>
+                                setAnswers({ ...answers, [section.id]: a })
+                              }
+                              onGenerate={async (latest, notes, imageBase64) =>
+                                await handleGenerate(
+                                  section,
+                                  latest,
+                                  notes,
+                                  imageBase64,
+                                )
+                              }
+                              onGenerateFromTemplate={async (
                                 latest,
                                 notes,
                                 id,
                                 imageBase64,
-                              )
-                            }
-                            isGenerating={
-                              isGenerating && selectedSection === section.id
-                            }
-                            onCancel={() => setWizardSection(null)}
-                            bilanId={bilanId}
-                            initialStep={wizardStartStep}
-                          />
+                              ) =>
+                                await handleGenerateFromTemplate(
+                                  section,
+                                  latest,
+                                  notes,
+                                  id,
+                                  imageBase64,
+                                )
+                              }
+                              isGenerating={
+                                isGenerating && selectedSection === section.id
+                              }
+                              onCancel={() => setWizardSection(null)}
+                              bilanId={bilanId}
+                              initialStep={wizardStartStep}
+                            />
                           </DialogContent>
                         </Dialog>
                       );

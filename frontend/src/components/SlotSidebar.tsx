@@ -61,7 +61,10 @@ export default function SlotSidebar({
 }: Props) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [slotToDelete, setSlotToDelete] = useState<{ id: string; label: string } | null>(null);
+  const [slotToDelete, setSlotToDelete] = useState<{
+    id: string;
+    label: string;
+  } | null>(null);
 
   const updateSlot = (index: number, updated: SlotSpec) => {
     const next = [...(slots || [])];
@@ -152,12 +155,12 @@ export default function SlotSidebar({
     // Fonction récursive pour collecter tous les IDs de slots à supprimer
     const collectSlotIds = (slot: SlotSpec): string[] => {
       const ids: string[] = [];
-      
+
       if (slot.kind === 'field') {
         ids.push(slot.id);
       } else if (slot.kind === 'group') {
         ids.push(slot.id);
-        slot.slots.forEach(child => {
+        slot.slots.forEach((child) => {
           ids.push(...collectSlotIds(child));
         });
       } else if (slot.kind === 'repeat') {
@@ -173,29 +176,29 @@ export default function SlotSidebar({
             }
           }
         }
-        slot.slots.forEach(child => {
+        slot.slots.forEach((child) => {
           ids.push(...collectSlotIds(child));
         });
       }
-      
+
       return ids;
     };
 
     // Trouver le slot à supprimer
-    const slotToRemove = slots.find(s => (s as any).id === id);
+    const slotToRemove = slots.find((s) => (s as any).id === id);
     if (!slotToRemove) return;
 
     // Collecter tous les IDs de slots à supprimer (incluant les enfants)
     const allSlotIds = collectSlotIds(slotToRemove);
-    
+
     // Supprimer de l'éditeur tous les slots associés
-    allSlotIds.forEach(slotId => {
+    allSlotIds.forEach((slotId) => {
       onRemoveSlot?.(slotId);
     });
 
     // Supprimer du slotsSpec
     onChange((slots || []).filter((s) => (s as any).id !== id));
-    
+
     if (selectedIndex != null && (slots[selectedIndex] as any).id === id) {
       setSelectedIndex(null);
     }
@@ -457,7 +460,9 @@ export default function SlotSidebar({
                             <Button
                               size="sm"
                               variant="ghost"
-                              onClick={() => handleDeleteSlot((slot as any).id, label)}
+                              onClick={() =>
+                                handleDeleteSlot((slot as any).id, label)
+                              }
                               className="h-7 w-7 p-0 hover:bg-red-50 hover:text-red-600"
                             >
                               <Trash2 className="w-3 h-3" />
