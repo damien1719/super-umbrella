@@ -1,13 +1,9 @@
 import { prisma } from '../prisma';
 import { NotFoundError } from './profile.service';
+import type { Job } from '../types/job';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = prisma as any;
-
-export type Job =
-  | 'PSYCHOMOTRICIEN'
-  | 'ERGOTHERAPEUTE'
-  | 'NEUROPSYCHOLOGUE';
 
 
 export type SectionData = {

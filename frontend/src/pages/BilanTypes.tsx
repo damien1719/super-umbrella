@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import BilanTypeCard from '@/components/BilanTypeCard';
 import { Button } from '@/components/ui/button';
+import CreateWithJobsModal from '@/components/ui/create-with-jobs-modal';
+import EmptyState from '@/components/bilans/EmptyState';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,6 +24,8 @@ export default function BilanTypes() {
   const [toDelete, setToDelete] = useState<BilanType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  // no local dialog state anymore; handled by the shared modal
 
   useEffect(() => {
     fetchAll().finally(() => setIsLoading(false));
@@ -37,16 +41,28 @@ export default function BilanTypes() {
             </h1>
             <p className="text-gray-600">Vos bilans préconfigurés</p>
           </div>
-          <Button onClick={() => navigate('/bilan-types/builder')}>
-            Créer un Bilan Type
-          </Button>
+          <CreateWithJobsModal
+            dialogTitle="Créer un Bilan Type"
+            nameLabel="Nom"
+            confirmLabel="Valider"
+            trigger={<Button>Créer un Bilan Type</Button>}
+            open={createOpen}
+            onOpenChange={setCreateOpen}
+            onSubmit={({ name, jobs }) => {
+              const params = new URLSearchParams({
+                name,
+                jobs: jobs.join(','),
+              });
+              navigate(`/bilan-types/builder?${params.toString()}`);
+            }}
+          />
         </div>
         {isLoading ? (
           <div className="flex justify-center items-center h-40">
             <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
           </div>
         ) : items.length === 0 ? (
-          <p className="text-gray-600">Aucun bilan type pour le moment.</p>
+          <EmptyState onCreate={() => setCreateOpen(true)} />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {items.map((bt) => (
@@ -56,10 +72,13 @@ export default function BilanTypes() {
                   id: bt.id,
                   name: bt.name,
                   description: bt.description,
+                  isPublic: bt.isPublic ?? false,
                   authorPrenom:
                     bt.isPublic && bt.author?.prenom
                       ? bt.author.prenom
                       : undefined,
+                  testsCount: bt.sections?.length ?? 0,
+                  job: bt.job,
                 }}
                 onOpen={() => navigate(`/bilan-types/${bt.id}`)}
                 onDelete={() => setToDelete(bt)}

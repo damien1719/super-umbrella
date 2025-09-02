@@ -1,0 +1,5 @@
+export type Job =
+  | 'PSYCHOMOTRICIEN'
+  | 'ERGOTHERAPEUTE'
+  | 'NEUROPSYCHOLOGUE';
+
