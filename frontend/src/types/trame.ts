@@ -36,8 +36,8 @@ export const categories: Category[] = [
   { id: 'tests_standards', title: 'Tests standards', icon: ClipboardList },
   { id: 'observations', title: 'Observations', icon: Eye },
   { id: 'profil_sensoriel', title: 'Profil sensoriel', icon: Radar },
-  { id: 'bilan_complet', title: 'Bilan complet', icon: Layers },
-  { id: 'conclusion', title: 'Conclusion', icon: Brain },
+/*   { id: 'bilan_complet', title: 'Bilan complet', icon: Layers },
+ */  { id: 'conclusion', title: 'Conclusion', icon: Brain },
 ];
 
 // Sections avec descriptions pour AiRightPanel
@@ -65,12 +65,6 @@ export const sections: SectionInfo[] = [
     title: 'Profil sensoriel',
     icon: Radar,
     description: 'Évaluation des capacités sensorielles',
-  },
-  {
-    id: 'bilan-complet',
-    title: 'Bilan complet',
-    icon: Layers,
-    description: 'Synthèse globale et recommandations',
   },
   {
     id: 'conclusion',
