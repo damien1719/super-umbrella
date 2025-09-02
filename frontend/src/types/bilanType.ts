@@ -1,4 +1,5 @@
 import type { BilanTypeSection } from './bilanTypeSection';
+import type { Job } from './job';
 
 export interface BilanType {
   id: string;
@@ -9,6 +10,7 @@ export interface BilanType {
   createdAt?: string;
   layoutJson?: unknown;
   author?: { prenom?: string | null } | null;
+  job?: Job[];
   sections?: BilanTypeSection[];
 }
 

@@ -14,7 +14,6 @@ import { Plus, ChevronDown } from 'lucide-react';
 import type { Question, ColumnDef } from '@/types/question';
 import { Chip } from './Chip';
 
-
 const FIELD_BASE =
   'rounded-lg border border-gray-300 bg-white shadow-sm focus-visible:ring-2 focus-visible:ring-primary-500/40 focus-visible:outline-none';
 const FIELD_DENSE = 'h-9 px-3';
