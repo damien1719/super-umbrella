@@ -4,8 +4,7 @@ import type React from 'react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Plus, Save, Loader2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { BilanTypeConstructionCard } from './BilanTypeConstructionCard';
 
 type SelectedElement =
@@ -42,10 +41,7 @@ interface BilanTypeConstructionProps {
 }
 
 export function BilanTypeConstruction({
-  bilanName,
-  setBilanName,
   selectedElements,
-  isSaving,
   draggedIndex,
   onDragStart,
   onDragOver,
@@ -54,40 +50,12 @@ export function BilanTypeConstruction({
   onRemoveElement,
   onAddHeading,
   onRenameHeading,
-  onSave,
 }: BilanTypeConstructionProps) {
   return (
     <>
       <Card className="lg:col-span-2">
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Construction du Type de Bilan</CardTitle>
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                onClick={onSave}
-                disabled={isSaving || !bilanName}
-              >
-                {isSaving ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Sauvegarde...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    Sauvegarder
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-          <Input
-            placeholder="Nom du type de bilan..."
-            value={bilanName}
-            onChange={(e) => setBilanName(e.target.value)}
-            className="mt-4"
-          />
+          <CardTitle>Construction du Type de Bilan</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex justify-end mb-4">

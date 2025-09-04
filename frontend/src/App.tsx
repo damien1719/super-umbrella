@@ -208,6 +208,7 @@ export default function App() {
         <Route path="/bilan/:bilanId" element={<Bilan />} />
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/creation-trame/:sectionId" element={<CreationTrame />} />
+        <Route path="/bilan-types/:bilanTypeId" element={<BilanType />} />
       </Route>
       <Route element={<ProtectedLayout />}>
         <Route path="/" element={<BilanV2 />} />
@@ -217,7 +218,6 @@ export default function App() {
         <Route path="/bibliotheque" element={<Bibliotheque />} />
         <Route path="/bilan-types" element={<BilanTypes />} />
         <Route path="/bilan-types/builder" element={<BilanTypeBuilder />} />
-        <Route path="/bilan-types/:bilanTypeId" element={<BilanType />} />
         <Route path="/abonnement" element={<Abonnement />} />
         <Route path="/compte" element={<MonCompteV2 />} />
       </Route>

@@ -34,6 +34,11 @@
     --color-paper-50:      #FFFEFC;                /* page "papier" */
     --color-surface-50:    #FFFFFF;                /* cartes, barres */
     --color-tools_bg-50:   #EFEAE3;                /* panneau droit */
+
+    /* New accent colors */
+    --color-coral-500: #E07A5F;   /* warm coral */
+    --color-ocean-600: #3D5A80;   /* deep ocean blue */
+    --color-gold-500:  #E9C46A;   /* golden sand */
 }
 
 :root {
@@ -67,6 +72,11 @@
     --danger-600:#D0495C;
 
     --background: var(--wood-50); 
+
+    /* New accent colors (root aliases) */
+    --coral-500:#E07A5F;
+    --ocean-600:#3D5A80;
+    --gold-500:#E9C46A;
 }
 
 html, body, #root {
@@ -112,4 +122,3 @@ html, body, #root {
 .editor-content td:empty::before {
   content: '\00a0';            /* NBSP, occupe un tout petit espace */
 }
-

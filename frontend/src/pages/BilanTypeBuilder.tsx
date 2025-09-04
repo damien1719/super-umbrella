@@ -25,6 +25,7 @@ import {
 import { categories, kindMap, type CategoryId } from '@/types/trame';
 import { Job, jobOptions } from '@/types/job';
 import { hydrateLayout, type LexicalState } from '@/utils/hydrateLayout';
+import { ArrowLeft, Loader2, Save } from 'lucide-react';
 
 // Types d'élément composant la construction
 type SectionElement = {
@@ -62,6 +63,8 @@ export default function BilanTypeBuilder({
   const [layoutJson, setLayoutJson] = useState<unknown | undefined>(undefined);
   const [jobs, setJobs] = useState<Job[]>([]);
   const layoutEditorRef = useRef<RichTextEditorHandle | null>(null);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [tempTitle, setTempTitle] = useState('');
 
   const sections = useSectionStore((s) => s.items);
   const fetchSections = useSectionStore((s) => s.fetchAll);
@@ -431,9 +434,7 @@ export default function BilanTypeBuilder({
     setDraggedIndex(null);
   };
 
-  const handleDragEnd = () => {
-    setDraggedIndex(null);
-  };
+  // drag end handled inline where needed
 
   const saveBilanType = async () => {
     setIsSaving(true);
@@ -509,29 +510,87 @@ export default function BilanTypeBuilder({
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate(-1)}
+                aria-label="Retour"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <div>
+                {isEditingTitle ? (
+                  <input
+                    autoFocus
+                    className="text-2xl font-semibold bg-transparent border-b border-muted-foreground/30 focus:outline-none focus:border-foreground"
+                    value={tempTitle}
+                    onChange={(e) => setTempTitle(e.target.value)}
+                    onBlur={() => {
+                      setBilanName(tempTitle.trim());
+                      setIsEditingTitle(false);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        setBilanName(tempTitle.trim());
+                        setIsEditingTitle(false);
+                      } else if (e.key === 'Escape') {
+                        setIsEditingTitle(false);
+                        setTempTitle(bilanName);
+                      }
+                    }}
+                  />
+                ) : (
+                  <h1
+                    className="text-2xl font-semibold cursor-text"
+                    onClick={() => {
+                      setTempTitle(bilanName);
+                      setIsEditingTitle(true);
+                    }}
+                    title="Cliquer pour modifier le titre"
+                  >
+                    {bilanName || 'Nouveau type de bilan'}
+                  </h1>
+                )}
+                <p className="text-sm text-muted-foreground">
+                  Constructeur de Type de Bilan
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button onClick={saveBilanType} disabled={isSaving || !bilanName}>
+                {isSaving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Sauvegarde...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Sauvegarder
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs with extra spacing from header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">
-                Constructeur de Type de Bilan
-              </h1>
-              <p className="text-muted-foreground">
-                Créez votre type de bilan personnalisé en sélectionnant et
-                organisant les éléments
-              </p>
-            </div>
-            <div className="flex-1">
-              <Tabs
-                tabs={[
-                  { key: 'build', label: 'Construction' },
-                  { key: 'layout', label: 'Edition Word' },
-                  { key: 'preview', label: 'Aperçu complet' },
-                  { key: 'settings', label: 'Réglage' },
-                ]}
-                active={mode}
-                onChange={(k) => setMode(k as typeof mode)}
-              />
-            </div>
+          <div className="flex-1 mt-4">
+            <Tabs
+              tabs={[
+                { key: 'build', label: 'Construction' },
+                { key: 'layout', label: 'Edition Word' },
+                { key: 'preview', label: 'Aperçu complet' },
+                { key: 'settings', label: 'Réglages' },
+              ]}
+              active={mode}
+              onChange={(k) => setMode(k as typeof mode)}
+            />
           </div>
         </div>
 
@@ -596,13 +655,6 @@ export default function BilanTypeBuilder({
                     onClick={() => setMode('build')}
                   >
                     Retour
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={saveBilanType}
-                    disabled={isSaving || !bilanName}
-                  >
-                    {isSaving ? 'Sauvegarde…' : 'Sauvegarder'}
                   </Button>
                 </div>
               </CardContent>
@@ -729,13 +781,6 @@ export default function BilanTypeBuilder({
                       onClick={() => setMode('build')}
                     >
                       Retour
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={saveBilanType}
-                      disabled={isSaving || !bilanName}
-                    >
-                      {isSaving ? 'Sauvegarde…' : 'Sauvegarder'}
                     </Button>
                   </div>
                 </div>
