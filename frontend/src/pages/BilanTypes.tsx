@@ -62,7 +62,11 @@ export default function BilanTypes() {
             <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
           </div>
         ) : items.length === 0 ? (
-          <EmptyState onCreate={() => setCreateOpen(true)} />
+          <EmptyState
+            title="Commencez par créer votre première trame de Bilan complet"
+            ctaLabel="Créer trame"
+            onCreate={() => setCreateOpen(true)}
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {items.map((bt) => (
