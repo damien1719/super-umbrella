@@ -55,6 +55,7 @@ model Profile {
   onboardingVersion  String      @default("1")
   job                Job?
 
+
   @@map("profile")
   @@schema("public")
 }
@@ -86,6 +87,8 @@ model BilanType {
   sections    BilanTypeSection[]
   job         Job[] @default([])
 
+  shares      BilanTypeShare[]
+
   @@schema("psychomot")
 }
 
@@ -112,6 +115,8 @@ model Section {
   /// Options d’affichage / variantes propres à cette Section (ex: bulletStyle)
   templateOptions   Json?                  // libre; UI-only
   version           Int                    @default(1)
+  shares            SectionShare[]
+
 
 
   @@schema("psychomot")
@@ -158,6 +163,68 @@ model BilanTypeSection {
 
   @@schema("psychomot")
 }
+
+enum ShareRole {
+  VIEWER
+  EDITOR
+
+  @@schema("psychomot")
+}
+
+model BilanTypeShare {
+  id                      String     @id @default(uuid())
+  bilanTypeId             String
+  createdById             String     // Profile.id (public)
+  granteeUserId           String?    @db.Uuid // public.User.id
+  /// Email saisi (optionnel). Conserve la valeur d'origine si tu veux l’afficher.
+  granteeEmail            String?
+  /// Email normalisé (lowercase/trim) pour recherche/unique
+  granteeEmailNormalized  String?
+  role                    ShareRole  @default(EDITOR)
+  createdAt               DateTime   @default(now())
+
+  /// Relations
+  bilanType   BilanType @relation(fields: [bilanTypeId], references: [id], onDelete: Cascade)
+  createdBy   Profile   @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  granteeUser User?     @relation(fields: [granteeUserId], references: [id], onDelete: SetNull)
+  shares      BilanTypeShare[]
+
+
+  /// Index / contraintes
+  @@index([granteeUserId])
+  @@index([granteeEmailNormalized])
+  // Empêche doublons “même objet + même user”
+  @@unique([bilanTypeId, granteeUserId])
+  // Empêche doublons “même objet + même email normalisé”
+  @@unique([bilanTypeId, granteeEmailNormalized])
+
+  @@schema("psychomot")
+}
+
+model SectionShare {
+  id                      String     @id @default(uuid())
+  sectionId               String
+  createdById             String     // Profile.id (public)
+  granteeUserId           String?    @db.Uuid
+  granteeEmail            String?
+  granteeEmailNormalized  String?
+  role                    ShareRole  @default(EDITOR)
+  createdAt               DateTime   @default(now())
+
+  /// Relations
+  section     Section  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  createdBy   Profile  @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  granteeUser User?    @relation(fields: [granteeUserId], references: [id], onDelete: SetNull)
+
+  /// Index / contraintes
+  @@index([granteeUserId])
+  @@index([granteeEmailNormalized])
+  @@unique([sectionId, granteeUserId])
+  @@unique([sectionId, granteeEmailNormalized])
+
+  @@schema("psychomot")
+}
+
 
 model SectionExample {
   id        String  @id @default(uuid())
@@ -208,9 +275,6 @@ model BilanSectionInstance {
   status            BilanSectionStatus @default(DRAFT)
   bilan             Bilan   @relation(fields: [bilanId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   section           Section @relation(fields: [sectionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-
-
 
   @@index([bilanId, order])
   @@schema("psychomot")
