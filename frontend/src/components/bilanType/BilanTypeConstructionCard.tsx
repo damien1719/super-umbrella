@@ -76,9 +76,6 @@ export function BilanTypeConstructionCard({
                 <Badge className="bg-amber-100 text-amber-800 border-amber-200">
                   Grande partie
                 </Badge>
-                <span className="text-xs text-muted-foreground">
-                  Position {index + 1}
-                </span>
               </div>
               <Input
                 value={element.title}
@@ -92,9 +89,6 @@ export function BilanTypeConstructionCard({
                 <Badge className={typeColors['default']}>
                   {typeLabels['default']}
                 </Badge>
-                <span className="text-xs text-muted-foreground">
-                  Position {index + 1}
-                </span>
               </div>
               <h4 className="font-medium mb-1">{element.title}</h4>
               <p className="text-sm text-muted-foreground">

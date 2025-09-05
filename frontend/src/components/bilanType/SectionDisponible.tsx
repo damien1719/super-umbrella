@@ -87,7 +87,7 @@ export function SectionDisponible({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Plus className="h-5 w-5" />
-          Éléments disponibles
+          Liste des sections disponibles
         </CardTitle>
 
         <div className="space-y-3 pt-4">
