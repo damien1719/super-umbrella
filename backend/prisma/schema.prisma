@@ -17,6 +17,8 @@ model User {
   authAccounts AuthAccount[]
   profile      Profile?
 
+  invitedShares BilanTypeShare[] @relation("BilanTypeShare_invitedUser")
+
   @@schema("public")
 }
 
@@ -85,6 +87,7 @@ model BilanType {
   layoutJson  Json?
   sections    BilanTypeSection[]
   job         Job[] @default([])
+  shares      BilanTypeShare[]
 
   @@schema("psychomot")
 }
@@ -147,6 +150,13 @@ enum Job {
   @@schema("psychomot")
 }
 
+enum ShareRole {
+  VIEWER
+  EDITOR
+
+  @@schema("psychomot")
+}
+
 model BilanTypeSection {
   id          String    @id @default(uuid())
   bilanTypeId String
@@ -156,6 +166,22 @@ model BilanTypeSection {
   bilanType   BilanType @relation(fields: [bilanTypeId], references: [id], onDelete: Cascade)
   section     Section   @relation(fields: [sectionId], references: [id], onDelete: Cascade)
 
+  @@schema("psychomot")
+}
+
+model BilanTypeShare {
+  id            String     @id @default(uuid())
+  bilanTypeId   String
+  invitedEmail  String?    @db.VarChar(255)
+  invitedUserId String?    @db.Uuid
+  role          ShareRole  @default(VIEWER)
+  createdAt     DateTime   @default(now())
+
+  bilanType     BilanType  @relation(fields: [bilanTypeId], references: [id], onDelete: Cascade)
+  invitedUser   User?      @relation("BilanTypeShare_invitedUser", fields: [invitedUserId], references: [id], onDelete: SetNull)
+
+  @@index([invitedEmail])
+  @@index([invitedUserId])
   @@schema("psychomot")
 }
 

@@ -38,28 +38,35 @@ export const BilanTypeService = {
     return bilanType;
   },
 
-  list(userId: string) {
+  async list(userId: string) {
+    const profile = await db.profile.findUnique({ where: { userId }, select: { email: true } });
+    const email = profile?.email?.toLowerCase();
+    const OR: any[] = [
+      { isPublic: true },
+      { author: { userId } },
+      { shares: { some: { invitedUserId: userId } } },
+    ];
+    if (email) OR.push({ shares: { some: { invitedEmail: email } } });
+
     return db.bilanType.findMany({
-      where: {
-        OR: [
-          { isPublic: true },
-          { author: { userId } },
-        ],
-      },
+      where: { OR },
       orderBy: { createdAt: 'desc' },
       include: { author: { select: { prenom: true } }, sections: true },
     });
   },
 
-  get(userId: string, id: string) {
+  async get(userId: string, id: string) {
+    const profile = await db.profile.findUnique({ where: { userId }, select: { email: true } });
+    const email = profile?.email?.toLowerCase();
+    const OR: any[] = [
+      { isPublic: true },
+      { author: { userId } },
+      { shares: { some: { invitedUserId: userId } } },
+    ];
+    if (email) OR.push({ shares: { some: { invitedEmail: email } } });
+
     return db.bilanType.findFirst({
-      where: {
-        id,
-        OR: [
-          { isPublic: true },
-          { author: { userId } },
-        ],
-      },
+      where: { id, OR },
       include: { author: { select: { prenom: true } }, sections: true },
     });
   },

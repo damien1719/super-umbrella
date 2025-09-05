@@ -116,17 +116,25 @@ export default function WizardAIRightPanel({
     (s) =>
       !!OFFICIAL_AUTHOR_ID && s.isPublic && s.authorId === OFFICIAL_AUTHOR_ID,
   );
+  // Trames accessibles mais privées (partagées avec moi)
+  const sharedTrames = trameOptions.filter(
+    (s) => !!profileId && !s.isPublic && s.authorId !== profileId,
+  );
   const communityTrames = trameOptions.filter(
     (s) =>
       s.isPublic && (!OFFICIAL_AUTHOR_ID || s.authorId !== OFFICIAL_AUTHOR_ID),
   );
 
-  const [activeTab, setActiveTab] = useState<'mine' | 'official' | 'community'>(
+  const [activeTab, setActiveTab] = useState<
+    'mine' | 'official' | 'shared' | 'community'
+  >(
     myTrames.length > 0
       ? 'mine'
       : officialTrames.length > 0
         ? 'official'
-        : 'community',
+        : sharedTrames.length > 0
+          ? 'shared'
+          : 'community',
   );
 
   const matchesActiveFilter = (s: TrameOption) => {
@@ -135,6 +143,8 @@ export default function WizardAIRightPanel({
       return (
         !!OFFICIAL_AUTHOR_ID && s.isPublic && s.authorId === OFFICIAL_AUTHOR_ID
       );
+    if (activeTab === 'shared')
+      return !!profileId && !s.isPublic && s.authorId !== profileId;
     return (
       s.isPublic && (!OFFICIAL_AUTHOR_ID || s.authorId !== OFFICIAL_AUTHOR_ID)
     );
@@ -357,7 +367,7 @@ export default function WizardAIRightPanel({
             <Tabs
               active={activeTab}
               onChange={(k) =>
-                setActiveTab(k as 'mine' | 'official' | 'community')
+                setActiveTab(k as 'mine' | 'official' | 'shared' | 'community')
               }
               tabs={[
                 {
@@ -370,6 +380,12 @@ export default function WizardAIRightPanel({
                   key: 'official',
                   label: 'Trames Bilan Plume',
                   count: officialTrames.length,
+                },
+                {
+                  key: 'shared',
+                  label: 'Trames partagées',
+                  count: sharedTrames.length,
+                  hidden: sharedTrames.length === 0,
                 },
                 {
                   key: 'community',
@@ -388,8 +404,9 @@ export default function WizardAIRightPanel({
                 id: trame.value,
                 title: trame.label,
                 description: trame.description,
+                // Affiche le nom de l'auteur si la trame n'est pas la mienne
                 sharedBy:
-                  trame.isPublic && trame.author?.prenom
+                  trame.author?.prenom && trame.authorId !== profileId
                     ? trame.author.prenom
                     : undefined,
               }}

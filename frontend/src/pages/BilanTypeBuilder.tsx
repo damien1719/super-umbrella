@@ -20,12 +20,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 // ✅ On réutilise les types existants
 import { categories, kindMap, type CategoryId } from '@/types/trame';
 import { Job, jobOptions } from '@/types/job';
 import { hydrateLayout, type LexicalState } from '@/utils/hydrateLayout';
-import { ArrowLeft, Loader2, Save } from 'lucide-react';
+import { ArrowLeft, Loader2, Save, Trash2 } from 'lucide-react';
 
 // Types d'élément composant la construction
 type SectionElement = {
@@ -62,6 +64,14 @@ export default function BilanTypeBuilder({
   );
   const [layoutJson, setLayoutJson] = useState<unknown | undefined>(undefined);
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [isPublic, setIsPublic] = useState<boolean>(false);
+  const [shares, setShares] = useState<
+    { id: string; invitedEmail: string | null; invitedUserId: string | null; role: 'VIEWER' | 'EDITOR'; createdAt: string }[]
+  >([]);
+  const [shareEmail, setShareEmail] = useState<string>('');
+  const [shareRole, setShareRole] = useState<'VIEWER' | 'EDITOR'>('EDITOR');
+  const [isSharing, setIsSharing] = useState<boolean>(false);
+  const [loadingShares, setLoadingShares] = useState<boolean>(false);
   const layoutEditorRef = useRef<RichTextEditorHandle | null>(null);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState('');
@@ -107,6 +117,7 @@ export default function BilanTypeBuilder({
         const bt = await fetchBilanType(initialBilanTypeId);
         setBilanName(bt.name || '');
         setLayoutJson(bt.layoutJson ?? undefined);
+        setIsPublic(!!bt.isPublic);
         if (Array.isArray(bt.job)) {
           const valid = bt.job.filter((p): p is Job =>
             Object.values(Job).includes(p as Job),
@@ -140,6 +151,59 @@ export default function BilanTypeBuilder({
     // 3) Sinon : inconnu → on ignore proprement
     return null;
   };
+
+  // Shares API helpers
+  async function fetchSharesIfNeeded() {
+    if (!initialBilanTypeId) return;
+    setLoadingShares(true);
+    try {
+      const { apiFetch } = await import('@/utils/api');
+      const list = await apiFetch<
+        { id: string; invitedEmail: string | null; invitedUserId: string | null; role: 'VIEWER' | 'EDITOR'; createdAt: string }[]
+      >(`/api/v1/bilan-types/${initialBilanTypeId}/shares`);
+      setShares(list);
+    } catch (e) {
+      // noop
+    } finally {
+      setLoadingShares(false);
+    }
+  }
+
+  useEffect(() => {
+    if (mode === 'settings' && initialBilanTypeId) {
+      fetchSharesIfNeeded();
+    }
+  }, [mode, initialBilanTypeId]);
+
+  async function addShare() {
+    if (!initialBilanTypeId || !shareEmail) return;
+    setIsSharing(true);
+    try {
+      const { apiFetch } = await import('@/utils/api');
+      await apiFetch(`/api/v1/bilan-types/${initialBilanTypeId}/shares`, {
+        method: 'POST',
+        body: JSON.stringify({ email: shareEmail, role: shareRole }),
+      });
+      setShareEmail('');
+      setShareRole('EDITOR');
+      await fetchSharesIfNeeded();
+    } finally {
+      setIsSharing(false);
+    }
+  }
+
+  async function removeShare(shareId: string) {
+    if (!initialBilanTypeId) return;
+    try {
+      const { apiFetch } = await import('@/utils/api');
+      await apiFetch(`/api/v1/bilan-types/${initialBilanTypeId}/shares/${shareId}`, {
+        method: 'DELETE',
+      });
+      setShares((prev) => prev.filter((s) => s.id !== shareId));
+    } catch (e) {
+      // noop
+    }
+  }
 
   // AUCUNE RESTRICTION : on prend toutes les sections dont le kind est mappable vers un CategoryId
   const availableElements = useMemo<
@@ -452,6 +516,7 @@ export default function BilanTypeBuilder({
         sections: sectionOrder,
         layoutJson: layoutJson ?? { root: { type: 'root', children: [] } },
         job: jobs,
+        isPublic,
       };
       if (initialBilanTypeId) {
         await updateBilanType(initialBilanTypeId, payload);
@@ -728,6 +793,18 @@ export default function BilanTypeBuilder({
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
+                  {/* Visibilité */}
+                  <div className="space-y-2">
+                    <div className="text-sm font-medium text-gray-700">Visibilité</div>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={isPublic}
+                        onChange={(e) => setIsPublic(e.target.checked)}
+                      />
+                      <span>Rendre public (accessible à tous)</span>
+                    </label>
+                  </div>
                   <div className="space-y-2">
                     <div className="text-sm font-medium text-gray-700">
                       Métiers concernés
@@ -783,6 +860,82 @@ export default function BilanTypeBuilder({
                       Retour
                     </Button>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Partage ciblé */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Partage ciblé</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {!initialBilanTypeId ? (
+                    <div className="text-sm text-muted-foreground">
+                      Sauvegardez d’abord la trame pour pouvoir la partager par email.
+                    </div>
+                  ) : (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="share-email">Inviter par email</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            id="share-email"
+                            type="email"
+                            placeholder="prenom.nom@exemple.com"
+                            value={shareEmail}
+                            onChange={(e) => setShareEmail(e.target.value)}
+                          />
+                          <Select value={shareRole} onValueChange={(v) => setShareRole(v as 'VIEWER' | 'EDITOR')}>
+                            <SelectTrigger className="w-[140px]">
+                              <SelectValue placeholder="Rôle" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="EDITOR">Éditeur</SelectItem>
+                              <SelectItem value="VIEWER">Lecteur</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Button size="sm" onClick={addShare} disabled={!shareEmail || isSharing}>
+                            {isSharing ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Ajout...
+                              </>
+                            ) : (
+                              'Ajouter'
+                            )}
+                          </Button>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          L’invitation fonctionne même si la personne n’a pas encore de compte. Les accès seront liés à cet email.
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="text-sm font-medium text-gray-700">Personnes ayant accès</div>
+                        <div className="border rounded divide-y">
+                          {loadingShares ? (
+                            <div className="p-3 text-sm text-muted-foreground">Chargement…</div>
+                          ) : shares.length === 0 ? (
+                            <div className="p-3 text-sm text-muted-foreground">Aucun partage</div>
+                          ) : (
+                            shares.map((s) => (
+                              <div key={s.id} className="p-3 flex items-center justify-between gap-2">
+                                <div className="truncate">
+                                  <div className="text-sm">{s.invitedEmail || 'Utilisateur lié'}</div>
+                                  <div className="text-xs text-muted-foreground">{s.role === 'EDITOR' ? 'Éditeur' : 'Lecteur'}</div>
+                                </div>
+                                <Button variant="outline" size="icon" onClick={() => removeShare(s.id)} aria-label="Supprimer le partage">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </CardContent>
             </Card>

@@ -135,6 +135,21 @@ export const requireAuth: RequestHandler = async (req, res, next) => {
       })
     }
 
+    // Attach pending shares by email to this user (if any)
+    try {
+      const profileFields = getProfileFieldsFromPayload(payload, provider)
+      const normalized = profileFields.email?.toLowerCase()
+      if (normalized) {
+        await db.bilanTypeShare.updateMany({
+          where: { invitedUserId: null, invitedEmail: normalized },
+          data: { invitedUserId: user.id },
+        })
+      }
+    } catch (e) {
+      // non bloquant
+      console.error('Linking shares failed:', (e as Error)?.message || e)
+    }
+
     req.user = { id: user.id }
     next()
   } catch (e) {

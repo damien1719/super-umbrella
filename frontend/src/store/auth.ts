@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { auth } from '../lib/auth';
 import { apiFetch } from '../utils/api';
 import type { User, Session } from '@supabase/supabase-js';
+import { setAuthTokenGetter } from '../utils/authToken';
 
 const provider = (
   import.meta.env.VITE_AUTH_PROVIDER || 'supabase'
@@ -36,6 +37,7 @@ export const useAuth = create<AuthState>((set) => {
       loading: false,
       initialized: true,
     });
+    setAuthTokenGetter(() => useAuth.getState().token ?? undefined);
   });
 
   // écoute les changements d'authentification (p. ex. refresh du token, sign out)
@@ -46,6 +48,7 @@ export const useAuth = create<AuthState>((set) => {
       session: session ?? null,
       initialized: true,
     });
+    setAuthTokenGetter(() => useAuth.getState().token ?? undefined);
   });
 
   return {
@@ -99,6 +102,7 @@ export const useAuth = create<AuthState>((set) => {
         loading: false,
         initialized: true,
       });
+      setAuthTokenGetter(() => useAuth.getState().token ?? undefined);
     },
 
     signUp: async (
@@ -148,6 +152,7 @@ export const useAuth = create<AuthState>((set) => {
           loading: false,
           initialized: true,
         });
+        setAuthTokenGetter(() => useAuth.getState().token ?? undefined);
 
         // Création du profil après l'inscription
         try {
@@ -180,6 +185,7 @@ export const useAuth = create<AuthState>((set) => {
         loading: false,
         initialized: true,
       });
+      setAuthTokenGetter(() => undefined);
     },
   };
 });
