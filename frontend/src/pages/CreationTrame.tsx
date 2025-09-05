@@ -26,6 +26,7 @@ import type { SectionTemplate, SlotSpec } from '../types/template';
 import { apiFetch } from '@/utils/api';
 import { useAuth } from '@/store/auth';
 import { Job } from '../types/job';
+import SharePanel from '@/components/SharePanel';
 
 interface ImportResponse {
   result: Question[][];
@@ -583,7 +584,7 @@ export default function CreationTrame() {
         )}
 
         {tab === 'settings' && (
-          <div className="h-full overflow-y-auto">
+          <div className="h-full overflow-y-auto space-y-6">
             <Settings
               category={categorie}
               jobs={job}
@@ -591,6 +592,7 @@ export default function CreationTrame() {
               onCategoryChange={(v: string) => setCategorie(v as CategoryId)}
               onJobsChange={setJob}
             />
+            <SharePanel resourceType="section" resourceId={sectionId} />
           </div>
         )}
       </div>

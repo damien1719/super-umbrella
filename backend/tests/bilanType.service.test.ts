@@ -5,10 +5,10 @@ jest.mock('../src/prisma', () => {
   return { prisma: { profile, bilanType, bilanTypeSection } };
 });
 
-const { prisma } = require('../src/prisma');
-const { BilanTypeService } = require('../src/services/bilanType.service');
+import { prisma } from '../src/prisma';
+import { BilanTypeService } from '../src/services/bilanType.service';
 
-const db = prisma;
+const db: any = prisma;
 
 describe('BilanTypeService.create', () => {
   beforeEach(() => {

@@ -2,6 +2,7 @@ import { prisma } from '../prisma';
 import { NotFoundError } from './profile.service';
 import type { BilanTypeSection } from '../types/bilanTypeSection';
 import type { Job } from '../types/job';
+import { isAdminUser } from '../utils/admin';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = prisma as any;
@@ -38,12 +39,25 @@ export const BilanTypeService = {
     return bilanType;
   },
 
-  list(userId: string) {
+  async list(userId: string) {
+    const profile = await db.profile.findUnique({ where: { userId } });
+    const email = (profile?.email as string | undefined)?.trim().toLowerCase();
+    const shareClause = {
+      shares: {
+        some: {
+          OR: [
+            { invitedUserId: userId },
+            ...(email ? [{ invitedEmail: email }] : []),
+          ],
+        },
+      },
+    };
     return db.bilanType.findMany({
       where: {
         OR: [
           { isPublic: true },
           { author: { userId } },
+          shareClause,
         ],
       },
       orderBy: { createdAt: 'desc' },
@@ -51,13 +65,26 @@ export const BilanTypeService = {
     });
   },
 
-  get(userId: string, id: string) {
+  async get(userId: string, id: string) {
+    const profile = await db.profile.findUnique({ where: { userId } });
+    const email = (profile?.email as string | undefined)?.trim().toLowerCase();
+    const shareClause = {
+      shares: {
+        some: {
+          OR: [
+            { invitedUserId: userId },
+            ...(email ? [{ invitedEmail: email }] : []),
+          ],
+        },
+      },
+    };
     return db.bilanType.findFirst({
       where: {
         id,
         OR: [
           { isPublic: true },
           { author: { userId } },
+          shareClause,
         ],
       },
       include: { author: { select: { prenom: true } }, sections: true },
@@ -66,10 +93,23 @@ export const BilanTypeService = {
 
   async update(userId: string, id: string, data: Partial<BilanTypeData>) {
     const { sections, ...bilanTypeData } = data;
-    const { count } = await db.bilanType.updateMany({
-      where: { id, author: { userId } },
-      data: bilanTypeData,
-    });
+    let count = 0;
+    if (await isAdminUser(userId)) {
+      const updated = await db.bilanType.update({ where: { id }, data: bilanTypeData });
+      count = updated ? 1 : 0;
+    } else {
+      const result = await db.bilanType.updateMany({
+        where: {
+          id,
+          OR: [
+            { author: { userId } },
+            { shares: { some: { invitedUserId: userId, role: 'EDITOR' } } },
+          ],
+        },
+        data: bilanTypeData,
+      });
+      count = result.count ?? 0;
+    }
     if (count === 0) throw new NotFoundError();
 
     if (sections) {
@@ -88,8 +128,18 @@ export const BilanTypeService = {
   },
 
   async remove(userId: string, id: string) {
+    if (await isAdminUser(userId)) {
+      await db.bilanType.delete({ where: { id } });
+      return;
+    }
     const { count } = await db.bilanType.deleteMany({
-      where: { id, author: { userId } },
+      where: {
+        id,
+        OR: [
+          { author: { userId } },
+          { shares: { some: { invitedUserId: userId, role: 'EDITOR' } } },
+        ],
+      },
     });
     if (count === 0) throw new NotFoundError();
   },

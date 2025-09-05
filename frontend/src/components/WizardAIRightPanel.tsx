@@ -109,8 +109,12 @@ export default function WizardAIRightPanel({
     setStep(initialStep);
   }, [initialStep]);
 
+  const isSharedWithMe = (s: { isPublic?: boolean; authorId?: string | null }) => {
+    // Heuristic: returned by backend because shared (private, not mine)
+    return s.isPublic === false && !!profileId && s.authorId !== profileId;
+  };
   const myTrames = trameOptions.filter(
-    (s) => !!profileId && s.authorId === profileId,
+    (s) => (!!profileId && s.authorId === profileId) || isSharedWithMe(s),
   );
   const officialTrames = trameOptions.filter(
     (s) =>
@@ -130,7 +134,8 @@ export default function WizardAIRightPanel({
   );
 
   const matchesActiveFilter = (s: TrameOption) => {
-    if (activeTab === 'mine') return !!profileId && s.authorId === profileId;
+    if (activeTab === 'mine')
+      return (!!profileId && s.authorId === profileId) || isSharedWithMe(s);
     if (activeTab === 'official')
       return (
         !!OFFICIAL_AUTHOR_ID && s.isPublic && s.authorId === OFFICIAL_AUTHOR_ID

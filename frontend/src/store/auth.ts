@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { auth } from '../lib/auth';
 import { apiFetch } from '../utils/api';
+import { setAuthTokenGetter } from '../utils/authToken';
 import type { User, Session } from '@supabase/supabase-js';
 
 const provider = (
@@ -183,3 +184,13 @@ export const useAuth = create<AuthState>((set) => {
     },
   };
 });
+
+// Bridge apiFetch Authorization with current auth token (Supabase/fake only)
+try {
+  const provider = (import.meta.env.VITE_AUTH_PROVIDER || 'supabase').toLowerCase();
+  if (provider !== 'keycloak') {
+    setAuthTokenGetter(() => useAuth.getState().token ?? undefined);
+  }
+} catch {
+  // ignore in non-browser contexts
+}
