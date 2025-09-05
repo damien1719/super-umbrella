@@ -63,9 +63,9 @@ export const requireAuth: RequestHandler = async (req, res, next) => {
     return
   }
 
-  // 1) Vérification du token (séparée pour distinguer les erreurs JWT des erreurs DB)
-  let payload: TokenPayload
   try {
+    let payload: TokenPayload
+
     if (provider === 'supabase') {
       const verified = verifySupabaseToken(token) // HS256 + aud=authenticated
       payload = verified.payload as TokenPayload
@@ -73,11 +73,6 @@ export const requireAuth: RequestHandler = async (req, res, next) => {
       const verified = await verifyKeycloakToken(token) // RS256 + iss/aud check
       payload = verified.payload as TokenPayload
     }
-  } catch (e) {
-    console.error('JWT verify error:', (e as Error)?.message || e)
-    res.status(401).send('Invalid token')
-    return
-  }
 
     const providerAccountId = payload.sub as string | undefined
     if (!providerAccountId) {
@@ -85,53 +80,25 @@ export const requireAuth: RequestHandler = async (req, res, next) => {
       return
     }
 
-    // 2) Persistance et récupération utilisateur
-    try {
-      // 2.1) Cherche un AuthAccount existant
-      let authAccount = await db.authAccount.findUnique({
-        where: {
-          provider_providerAccountId: {
-            provider,
-            providerAccountId,
-          },
+    // 1) Cherche un AuthAccount existant
+    let authAccount = await db.authAccount.findUnique({
+      where: {
+        provider_providerAccountId: {
+          provider,
+          providerAccountId,
         },
-        include: { user: true },
-      })
+      },
+      include: { user: true },
+    })
 
-      let user
-      if (authAccount) {
-        user = authAccount.user
+    let user
+    if (authAccount) {
+      user = authAccount.user
 
-        // Ensure a Profile exists for this user (backfill if missing)
-        const existingProfile = await db.profile.findUnique({ where: { userId: user.id } })
-        if (!existingProfile) {
-          const profileFields = getProfileFieldsFromPayload(payload, provider)
-          await db.profile.create({
-            data: {
-              userId: user.id,
-              prenom: profileFields.prenom,
-              nom: profileFields.nom,
-              email: profileFields.email,
-            },
-          })
-        }
-      } else {
-        // 2.2) Crée l'utilisateur + le compte d’auth
+      // Ensure a Profile exists for this user (backfill if missing)
+      const existingProfile = await db.profile.findUnique({ where: { userId: user.id } })
+      if (!existingProfile) {
         const profileFields = getProfileFieldsFromPayload(payload, provider)
-
-        user = await db.user.create({
-          data: {
-            authAccounts: {
-              create: {
-                provider,
-                providerAccountId,
-                email: profileFields.email,
-              },
-            },
-          },
-        })
-
-        // 2.3) Crée le profil automatiquement
         await db.profile.create({
           data: {
             userId: user.id,
@@ -141,37 +108,37 @@ export const requireAuth: RequestHandler = async (req, res, next) => {
           },
         })
       }
+    } else {
+      // 2) Crée l'utilisateur + le compte d’auth
+      const profileFields = getProfileFieldsFromPayload(payload, provider)
 
-      // Attach user on request
-      req.user = { id: user.id }
+      user = await db.user.create({
+        data: {
+          authAccounts: {
+            create: {
+              provider,
+              providerAccountId,
+              email: profileFields.email,
+            },
+          },
+        },
+      })
 
-      // Link pending shares by email to this user (first time login)
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const db = prisma as any
-        const profile = await db.profile.findUnique({ where: { userId: user.id } })
-        const email = (profile?.email as string | undefined)?.trim().toLowerCase()
-        if (email) {
-          await Promise.all([
-            db.bilanTypeShare.updateMany({
-              where: { invitedEmail: email, invitedUserId: null },
-              data: { invitedUserId: user.id },
-            }),
-            db.sectionShare.updateMany({
-              where: { invitedEmail: email, invitedUserId: null },
-              data: { invitedUserId: user.id },
-            }),
-          ])
-        }
-      } catch (e) {
-        // Non-fatal: logging only
-        console.error('Share linking error:', (e as Error)?.message || e)
-      }
-    } catch (e) {
-      console.error('Auth persistence error:', (e as Error)?.message || e)
-      res.status(500).send('Auth backend error')
-      return
+      // 3) Crée le profil automatiquement
+      await db.profile.create({
+        data: {
+          userId: user.id,
+          prenom: profileFields.prenom,
+          nom: profileFields.nom,
+          email: profileFields.email,
+        },
+      })
     }
 
+    req.user = { id: user.id }
     next()
+  } catch (e) {
+    console.error('JWT verify error:', (e as Error)?.message || e)
+    res.status(401).send('Invalid token')
+  }
 }

@@ -18,7 +18,8 @@ export const BilanTypeShareService = {
     const targetProfile = await db.profile.findFirst({ where: { email: invitedEmail } });
     const invitedUserId = targetProfile?.userId ?? null;
 
-    return db.bilanTypeShare.create({
+    // Create share for the BilanType itself
+    const share = await db.bilanTypeShare.create({
       data: {
         bilanTypeId,
         invitedEmail,
@@ -26,6 +27,59 @@ export const BilanTypeShareService = {
         role,
       },
     });
+
+    // Also share all private sections associated with this BilanType
+    // 1) Fetch all linked sections (only private ones)
+    const linked = await db.bilanTypeSection.findMany({
+      where: { bilanTypeId },
+      select: {
+        section: { select: { id: true, isPublic: true } },
+      },
+    });
+
+    const privateSectionIds = Array.from(
+      new Set(
+        (linked || [])
+          .filter((s: { section: { id: string; isPublic: boolean } }) => s.section && s.section.isPublic === false)
+          .map((s: { section: { id: string } }) => s.section.id),
+      ),
+    );
+
+    if (privateSectionIds.length > 0) {
+      // 2) For each private section, create a SectionShare if not already present
+      const createOps = [] as unknown[];
+      for (const sectionId of privateSectionIds) {
+        // Check existing share by invited user or invited email
+        const existing = await db.sectionShare.findFirst({
+          where: {
+            sectionId,
+            OR: [
+              ...(invitedUserId ? [{ invitedUserId }] : []),
+              { invitedEmail },
+            ],
+          },
+          select: { id: true },
+        });
+        if (!existing) {
+          createOps.push(
+            db.sectionShare.create({
+              data: {
+                sectionId,
+                invitedEmail,
+                invitedUserId,
+                role,
+              },
+            }),
+          );
+        }
+      }
+
+      if (createOps.length > 0) {
+        await db.$transaction(createOps as any);
+      }
+    }
+
+    return share;
   },
 
   async list(inviterUserId: string, bilanTypeId: string) {
@@ -44,4 +98,3 @@ export const BilanTypeShareService = {
     if (count === 0) throw new Error('Share not found');
   },
 };
-
