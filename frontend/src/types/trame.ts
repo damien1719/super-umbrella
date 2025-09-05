@@ -15,7 +15,6 @@ export type CategoryId =
   | 'tests_standards'
   | 'observations'
   | 'profil_sensoriel'
-  | 'bilan_complet'
   | 'conclusion';
 
 export interface Category {
@@ -36,8 +35,8 @@ export const categories: Category[] = [
   { id: 'tests_standards', title: 'Tests standards', icon: ClipboardList },
   { id: 'observations', title: 'Observations', icon: Eye },
   { id: 'profil_sensoriel', title: 'Profil sensoriel', icon: Radar },
-  { id: 'bilan_complet', title: 'Bilan complet', icon: Layers },
-  { id: 'conclusion', title: 'Conclusion', icon: Brain },
+  /*   { id: 'bilan_complet', title: 'Bilan complet', icon: Layers },
+   */ { id: 'conclusion', title: 'Conclusion', icon: Brain },
 ];
 
 // Sections avec descriptions pour AiRightPanel
@@ -67,12 +66,6 @@ export const sections: SectionInfo[] = [
     description: 'Évaluation des capacités sensorielles',
   },
   {
-    id: 'bilan-complet',
-    title: 'Bilan complet',
-    icon: Layers,
-    description: 'Synthèse globale et recommandations',
-  },
-  {
     id: 'conclusion',
     title: 'Conclusion',
     icon: Brain,
@@ -86,6 +79,5 @@ export const kindMap: Record<string, CategoryId> = {
   'profil-sensoriel': 'profil_sensoriel',
   observations: 'observations',
   'tests-standards': 'tests_standards',
-  'bilan-complet': 'bilan_complet',
   conclusion: 'conclusion',
 };

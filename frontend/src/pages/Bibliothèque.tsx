@@ -13,6 +13,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import CreerTrameModal from '@/components/ui/creer-trame-modale';
+import EmptyState from '@/components/bilans/EmptyState';
 import { useSectionStore, type Section } from '@/store/sections';
 import { Loader2 } from 'lucide-react';
 import { Tabs } from '@/components/ui/tabs';
@@ -204,6 +205,11 @@ export default function Bibliotheque() {
           <div className="flex items-center justify-center h-64">
             <Loader2 className="w-8 h-8 animate-spin" />
           </div>
+        ) : items.length === 0 ? (
+          <EmptyState
+            title="Commencez par créer votre première trame"
+            cta={<CreerTrameModal />}
+          />
         ) : (
           <div className="space-y-8">
             {categories.map((category) => {

@@ -898,51 +898,51 @@ export default function WizardAIRightPanel({
       {/* Row 3 — Footer glued to bottom (hidden at step 2 in bilanType mode to avoid duplicate footers) */}
       {!(mode === 'bilanType' && step === total) && (
         <div className="px-4">
-        <div
-          className="bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/70
+          <div
+            className="bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/70
                         border-t border-gray-200 shadow-[0_-1px_0_0_rgba(0,0,0,0.04)]
                         py-3"
-        >
-          <div className="flex items-center justify-between">
-            {step > 1 ? (
-              <Button variant="secondary" onClick={prev} type="button">
-                Précédent
-              </Button>
-            ) : (
-              <span />
-            )}
-
-            {step < total ? (
-              <Button onClick={next} type="button" size="lg">
-                Étape suivante
-              </Button>
-            ) : mode === 'bilanType' ? (
-              // When used inside WizardAIBilanType, its footer provides
-              // the generation controls. Avoid duplicate buttons here.
-              <div />
-            ) : (
-              <div className="flex gap-2">
-                <Button
-                  onClick={triggerGenerateCurrent}
-                  disabled={isGenerating}
-                  type="button"
-                >
-                  {isGenerating ? (
-                    <>
-                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                      Génération...
-                    </>
-                  ) : (
-                    <>
-                      <Wand2 className="h-5 w-5 mr-2" />
-                      Générer
-                    </>
-                  )}
+          >
+            <div className="flex items-center justify-between">
+              {step > 1 ? (
+                <Button variant="secondary" onClick={prev} type="button">
+                  Précédent
                 </Button>
-              </div>
-            )}
+              ) : (
+                <span />
+              )}
+
+              {step < total ? (
+                <Button onClick={next} type="button" size="lg">
+                  Étape suivante
+                </Button>
+              ) : mode === 'bilanType' ? (
+                // When used inside WizardAIBilanType, its footer provides
+                // the generation controls. Avoid duplicate buttons here.
+                <div />
+              ) : (
+                <div className="flex gap-2">
+                  <Button
+                    onClick={triggerGenerateCurrent}
+                    disabled={isGenerating}
+                    type="button"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                        Génération...
+                      </>
+                    ) : (
+                      <>
+                        <Wand2 className="h-5 w-5 mr-2" />
+                        Générer
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
         </div>
       )}
     </div>

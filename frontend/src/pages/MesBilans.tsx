@@ -106,14 +106,14 @@ export default function Component() {
                 Consultez et gérez tous vos bilans
               </p>
             </div>
-            <Button
+            {/* <Button
               className=""
               variant="primary"
               onClick={() => setIsCreationModalOpen(true)}
             >
               <Plus className="w-4 h-4 mr-2" />
               Rédiger un nouveau bilan
-            </Button>
+            </Button> */}
           </div>
         </div>
 
@@ -137,7 +137,7 @@ export default function Component() {
                 </div>
                 <Button
                   className=""
-                  variant="outline"
+                  variant="primary"
                   onClick={() => setIsCreationModalOpen(true)}
                 >
                   <Plus className="w-4 h-4 mr-2" />

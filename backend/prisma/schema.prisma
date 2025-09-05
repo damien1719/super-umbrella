@@ -84,6 +84,7 @@ model BilanType {
   author      Profile?           @relation("AuthorBilanTypes", fields: [authorId], references: [id])
   layoutJson  Json?
   sections    BilanTypeSection[]
+  job         Job[] @default([])
 
   @@schema("psychomot")
 }
@@ -152,8 +153,8 @@ model BilanTypeSection {
   sectionId   String
   sortOrder   Int
   settings    Json?
-  bilanType   BilanType @relation(fields: [bilanTypeId], references: [id])
-  section     Section   @relation(fields: [sectionId], references: [id])
+  bilanType   BilanType @relation(fields: [bilanTypeId], references: [id], onDelete: Cascade)
+  section     Section   @relation(fields: [sectionId], references: [id], onDelete: Cascade)
 
   @@schema("psychomot")
 }
@@ -164,7 +165,7 @@ model SectionExample {
   label     String?
   content   String
   stylePrompt String?
-  section   Section @relation(fields: [sectionId], references: [id])
+  section   Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
 
 
   @@schema("psychomot")
