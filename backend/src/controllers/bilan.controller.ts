@@ -260,6 +260,16 @@ export const BilanController = {
               ...(contentNotes as Record<string, unknown>),
             };
 
+            // Provide markdownified blocks to the template LLM context as well
+            try {
+              const schemaQuestions = ((section?.schema || []) as unknown[]) as any[];
+              const mdBlocks = answersToMdBlocks(schemaQuestions as any[], contentNotes as Record<string, unknown>);
+              aggregatedNotes["_mdBlocks"] = mdBlocks;
+              aggregatedNotes["_md"] = (mdBlocks || []).join("\n\n");
+            } catch {
+              // Non-blocking: if markdownification fails, proceed without it
+            }
+
             const result = await generateFromTemplateSvc(templateId, aggregatedNotes, { instanceId });
 
             // Parse returned Lexical state and append its children (fallback aggregation)
