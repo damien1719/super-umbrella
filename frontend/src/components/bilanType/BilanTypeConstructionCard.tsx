@@ -79,6 +79,7 @@ export function BilanTypeConstructionCard({
               </div>
               <Input
                 value={element.title}
+                placeholder="Titre"
                 onChange={(e) => onRenameHeading(index, e.target.value)}
                 className="font-medium mb-1"
               />

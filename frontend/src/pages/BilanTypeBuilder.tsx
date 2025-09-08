@@ -281,7 +281,7 @@ export default function BilanTypeBuilder({
         return {
           kind: 'heading',
           id: `heading-${i}`,
-          title: seg.title || 'Titre',
+          title: seg.title,
           order: i,
         };
       }
