@@ -11,6 +11,7 @@ import { BilanTypeService } from "../services/bilanType.service";
 import { BilanSectionInstanceService } from "../services/bilanSectionInstance.service";
 import { prisma } from "../prisma";
 import { hydrateLayout } from "../services/bilan/composeLayout";
+import { answersToMdBlocks } from "../utils/answersMarkdown";
 import { generateFromTemplate as generateFromTemplateSvc } from "../services/ai/generateFromTemplate";
 
 
@@ -289,7 +290,10 @@ export const BilanController = {
           })();
           if (!promptKey) continue;
 
-          let userContent = JSON.stringify(contentNotes ?? {});
+          // Align prompt content with frontend markdownification
+          const schemaQuestions = ((section?.schema || []) as unknown[]) as any[];
+          const mdBlocks = answersToMdBlocks(schemaQuestions as any[], contentNotes as Record<string, unknown>);
+          let userContent = JSON.stringify(mdBlocks);
           if (patientNames.firstName || patientNames.lastName) {
             userContent = Anonymization.anonymizeText(userContent, patientNames);
           }

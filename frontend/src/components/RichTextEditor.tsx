@@ -515,9 +515,13 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
       theme: {
         paragraph: 'mb-2',
         heading: {
-          h1: 'text-2xl font-bold mb-4',
-          h2: 'text-xl font-semibold mb-3',
-          h3: 'text-lg font-medium mb-2',
+          // Custom heading styles per request:
+          // H1: 16pt
+          // H2: 14pt bold and underlined
+          // H3: 12pt underlined
+          h1: 'text-[16pt] mb-3',
+          h2: 'text-[14pt] font-bold underline mb-2',
+          h3: 'text-[12pt] underline mb-2',
         },
         text: {
           underline: 'underline',

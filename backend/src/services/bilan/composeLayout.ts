@@ -28,7 +28,7 @@ export function hydrateLayout(layout: LexicalState, sections: SectionsMap): Lexi
       if (children.length === 0) {
         // If no content available, keep a small marker paragraph (visible hint for missing section)
         return [
-          {
+/*           {
             type: 'paragraph',
             direction: 'ltr',
             format: '',
@@ -44,7 +44,7 @@ export function hydrateLayout(layout: LexicalState, sections: SectionsMap): Lexi
                 version: 1,
               },
             ],
-          } as LexicalNode,
+          } as LexicalNode, */
         ];
       }
       // Splice-in section children at the placeholder position
