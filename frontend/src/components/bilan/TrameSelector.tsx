@@ -29,6 +29,7 @@ export interface TrameOption {
   authorId?: string | null;
   author?: { prenom?: string | null } | null;
   templateRefId?: string | null;
+  coverUrl?: string | null;
 }
 
 export interface TrameExample {

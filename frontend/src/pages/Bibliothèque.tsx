@@ -48,7 +48,12 @@ export default function Bibliotheque() {
     );
   }, []);
 
-  const myTrames = items.filter((s) => !!profileId && s.authorId === profileId);
+  // Mes trames = celles que j'ai créées + celles privées partagées avec moi
+  const myTrames = items.filter(
+    (s) =>
+      !!profileId &&
+      (s.authorId === profileId || (!s.isPublic && s.authorId !== profileId)),
+  );
   const officialTrames = items.filter(
     (s) =>
       !!OFFICIAL_AUTHOR_ID && s.isPublic && s.authorId === OFFICIAL_AUTHOR_ID,
@@ -67,7 +72,11 @@ export default function Bibliotheque() {
   );
 
   const matchesActiveFilter = (s: Section) => {
-    if (activeTab === 'mine') return !!profileId && s.authorId === profileId;
+    if (activeTab === 'mine')
+      return (
+        !!profileId &&
+        (s.authorId === profileId || (!s.isPublic && s.authorId !== profileId))
+      );
     if (activeTab === 'official')
       return (
         !!OFFICIAL_AUTHOR_ID && s.isPublic && s.authorId === OFFICIAL_AUTHOR_ID
@@ -242,18 +251,22 @@ export default function Bibliotheque() {
                           id: trame.id,
                           title: trame.title,
                           description: trame.description,
+                          coverUrl: trame.coverUrl,
+                          job: trame.job,
+                          // Affiche "Partagée par" si la trame n'est pas la mienne
                           sharedBy:
-                            trame.isPublic && trame.author?.prenom
+                            trame.authorId !== profileId && trame.author?.prenom
                               ? trame.author.prenom
                               : undefined,
                         }}
+                        kind={category.id}
                         onSelect={() => navigate(`/creation-trame/${trame.id}`)}
                         onDuplicate={async () => {
                           await duplicate(trame.id);
                           await fetchAll().catch(() => {});
                         }}
                         onDelete={() => setToDelete(trame)}
-                        showDelete={true}
+                        showDelete={trame.authorId === profileId}
                         showDuplicate={true}
                       />
                     ))}

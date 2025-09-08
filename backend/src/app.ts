@@ -10,7 +10,9 @@ import { profileRouter } from './routes/profile.routes';
 import { patientRouter } from './routes/patient.routes';
 import { bilanRouter } from './routes/bilan.routes';
 import { bilanTypeRouter } from './routes/bilanType.routes';
+import { bilanTypeShareRouter } from './routes/bilanTypeShare.routes';
 import { sectionRouter } from './routes/section.routes';
+import { sectionShareRouter } from './routes/sectionShare.routes';
 import { sectionExampleRouter } from './routes/sectionExample.routes';
 import { sectionTemplateRouter } from './routes/sectionTemplate.routes';
 import { importRouter } from './routes/import.routes';
@@ -100,8 +102,10 @@ app.use(requireAuth);
 app.use('/api/v1/patients', patientRouter);
 app.use('/api/v1/bilans', bilanRouter);
 app.use('/api/v1/bilan-types', bilanTypeRouter);
+app.use('/api/v1/bilan-types', bilanTypeShareRouter);
 app.use('/api/v1/profile', profileRouter);
 app.use('/api/v1/sections', sectionRouter);
+app.use('/api/v1/sections', sectionShareRouter);
 app.use('/api/v1/section-examples', sectionExampleRouter);
 app.use('/api/v1/section-templates', sectionTemplateRouter);
 app.use('/api/v1/bilan-section-instances', bilanSectionInstanceRouter);
@@ -111,5 +115,4 @@ app.use('/api/v1/import', importRouter);
 app.use(errorHandler);
 
 export default app;
-
 

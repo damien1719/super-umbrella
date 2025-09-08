@@ -17,6 +17,9 @@ model User {
   authAccounts AuthAccount[]
   profile      Profile?
 
+  invitedBilanTypeShares BilanTypeShare[] @relation("BilanTypeShare_invitedUser")
+  invitedSectionShares   SectionShare[]   @relation("SectionShare_invitedUser")
+
   @@schema("public")
 }
 
@@ -55,6 +58,7 @@ model Profile {
   onboardingVersion  String      @default("1")
   job                Job?
 
+
   @@map("profile")
   @@schema("public")
 }
@@ -86,6 +90,8 @@ model BilanType {
   sections    BilanTypeSection[]
   job         Job[] @default([])
 
+  shares      BilanTypeShare[]
+
   @@schema("psychomot")
 }
 
@@ -104,6 +110,7 @@ model Section {
   author            Profile?               @relation("AuthorSections", fields: [authorId], references: [id])
   examples          SectionExample[]
   job               Job[] @default([])
+  coverUrl          String?
 
   /// Lien (optionnel) vers un template réutilisable
   templateRefId     String?                @db.VarChar(160)
@@ -112,6 +119,8 @@ model Section {
   /// Options d’affichage / variantes propres à cette Section (ex: bulletStyle)
   templateOptions   Json?                  // libre; UI-only
   version           Int                    @default(1)
+  shares            SectionShare[]
+
 
 
   @@schema("psychomot")
@@ -158,6 +167,48 @@ model BilanTypeSection {
 
   @@schema("psychomot")
 }
+
+enum ShareRole {
+  VIEWER
+  EDITOR
+
+  @@schema("psychomot")
+}
+
+
+model BilanTypeShare {
+  id            String     @id @default(uuid())
+  bilanTypeId   String
+  invitedEmail  String?    @db.VarChar(255)
+  invitedUserId String?    @db.Uuid
+  role          ShareRole  @default(VIEWER)
+  createdAt     DateTime   @default(now())
+
+  bilanType     BilanType  @relation(fields: [bilanTypeId], references: [id], onDelete: Cascade)
+  invitedUser   User?      @relation("BilanTypeShare_invitedUser", fields: [invitedUserId], references: [id], onDelete: SetNull)
+
+  @@index([invitedEmail])
+  @@index([invitedUserId])
+  @@schema("psychomot")
+}
+
+
+model SectionShare {
+  id            String     @id @default(uuid())
+  sectionId   String
+  invitedEmail  String?    @db.VarChar(255)
+  invitedUserId String?    @db.Uuid
+  role          ShareRole  @default(VIEWER)
+  createdAt     DateTime   @default(now())
+
+  section     Section  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  invitedUser   User?      @relation("SectionShare_invitedUser", fields: [invitedUserId], references: [id], onDelete: SetNull)
+
+  @@index([invitedEmail])
+  @@index([invitedUserId])
+  @@schema("psychomot")
+}
+
 
 model SectionExample {
   id        String  @id @default(uuid())
@@ -208,9 +259,6 @@ model BilanSectionInstance {
   status            BilanSectionStatus @default(DRAFT)
   bilan             Bilan   @relation(fields: [bilanId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   section           Section @relation(fields: [sectionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-
-
 
   @@index([bilanId, order])
   @@schema("psychomot")

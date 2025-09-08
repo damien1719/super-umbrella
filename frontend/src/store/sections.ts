@@ -23,6 +23,7 @@ export interface Section {
   isPublic?: boolean;
   authorId?: string | null;
   author?: { prenom?: string | null } | null;
+  coverUrl?: string | null;
   templateRefId?: string | null;
   templateRef?: SectionTemplateRef | null;
 }
