@@ -12,6 +12,7 @@ export interface BilanType {
   author?: { prenom?: string | null } | null;
   job?: Job[];
   sections?: BilanTypeSection[];
+  coverUrl?: string | null;
 }
 
 export type BilanTypes = BilanType[];

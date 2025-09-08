@@ -88,7 +88,9 @@ export function SharePanel({
       </CardHeader>
       <CardContent>
         {!resourceId ? (
-          <p className="text-sm text-gray-600">Sauvegardez d’abord pour activer le partage.</p>
+          <p className="text-sm text-gray-600">
+            Sauvegardez d’abord pour activer le partage.
+          </p>
         ) : (
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row gap-2">

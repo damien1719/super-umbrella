@@ -1,14 +1,25 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Copy, ExternalLink, Trash2 } from 'lucide-react';
+import JobBadge from '@/components/ui/job-badge';
+import { Copy, ExternalLink, Trash2, MoreHorizontal } from 'lucide-react';
 
-import { cn } from '@/lib/utils';
+import type { Job } from '@/types/job';
+import type { CategoryId } from '@/types/trame';
+import { categories } from '@/types/trame';
+import CoverCard from '@/components/ui/cover-card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export interface TrameInfo {
   id: string;
   title: string;
   description?: string | null;
   sharedBy?: string | null;
+  job?: Job[];
+  coverUrl?: string | null;
 }
 
 interface TrameCardProps {
@@ -20,6 +31,7 @@ interface TrameCardProps {
   showLink?: boolean;
   showDuplicate?: boolean;
   showDelete?: boolean;
+  kind?: CategoryId;
 }
 
 export default function TrameCard({
@@ -31,119 +43,90 @@ export default function TrameCard({
   showLink,
   showDuplicate,
   showDelete,
+  kind,
 }: TrameCardProps) {
-  return (
-    <Card
-      onClick={onSelect}
-      className={cn(
-        'relative hover:shadow-md hover:bg-wood-100 transition-shadow cursor-pointer max-w-60 w-full',
-        selected && 'border-2 border-primary-500 bg-primary-50',
+  const cat = kind ? categories.find((c) => c.id === kind) : undefined;
+  const imageSrc = trame.coverUrl ?? cat?.image;
+  const actions = (
+    <div className="flex items-center gap-1 shrink-0">
+      {showLink && (
+        <a
+          href={`/creation-trame/${trame.id}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center rounded-md p-2 text-gray-600 hover:text-primary-700 hover:bg-primary-50"
+          onClick={(e) => e.stopPropagation()}
+          aria-label="Ouvrir la trame dans un nouvel onglet"
+          title="Ouvrir"
+        >
+          <ExternalLink className="h-4 w-4" />
+        </a>
       )}
-    >
       {(showDuplicate || showDelete) && (
-        <div className="absolute bottom-2 right-2 flex gap-1 z-10">
-          {/*           {showDuplicate && onDuplicate && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
             <Button
               size="icon"
               variant="ghost"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDuplicate();
-              }}
+              className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900"
+              onClick={(e) => e.stopPropagation()}
+              aria-label="Plus d'actions"
             >
-              <Copy className="w-4 h-4" />
+              <MoreHorizontal className="w-4 h-4" />
             </Button>
-          )} */}
-          {/*           {showDelete && onDelete && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <MoreVertical className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <DropdownMenuItem
-                  className="text-red-600"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete();
-                  }}
-                >
-                  Supprimer
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )} */}
-        </div>
-      )}
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base font-medium text-gray-900 flex items-center gap-1">
-          {trame.title}
-        </CardTitle>
-        {trame.sharedBy && (
-          <p className="text-xs text-gray-500">Partagée par {trame.sharedBy}</p>
-        )}
-      </CardHeader>
-      <CardContent className="space-y-1">
-        <p className="text-sm text-gray-600">{trame.description}</p>
-        {/* Barre d’actions (tout en bas, dans le CardContent) */}
-        {(showLink ||
-          (showDuplicate && onDuplicate) ||
-          (showDelete && onDelete)) && (
-          <div className="pt-2 flex items-center justify-end gap-1">
-            {showLink && (
-              <a
-                href={`/creation-trame/${trame.id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center rounded-md p-2 text-primary-600 hover:text-primary-800 hover:bg-primary-50"
-                onClick={(e) => e.stopPropagation()}
-                aria-label="Ouvrir la trame dans un nouvel onglet"
-                title="Ouvrir"
-              >
-                <ExternalLink className="h-4 w-4" />
-              </a>
-            )}
-
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="end"
+            onClick={(e) => e.stopPropagation()}
+            className="w-40"
+          >
             {showDuplicate && onDuplicate && (
-              <Button
-                size="icon"
-                variant="ghost"
+              <DropdownMenuItem
+                className="flex items-center gap-2 cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();
                   onDuplicate();
                 }}
-                aria-label="Dupliquer la trame"
-                title="Dupliquer"
               >
-                <Copy className="h-4 w-4" />
-              </Button>
+                <Copy className="w-4 h-4" />
+                Dupliquer
+              </DropdownMenuItem>
             )}
-
             {showDelete && onDelete && (
-              <Button
-                size="icon"
-                variant="ghost"
+              <DropdownMenuItem
+                className="flex items-center gap-2 text-red-600 cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();
                   onDelete();
                 }}
-                aria-label="Supprimer la trame"
-                title="Supprimer"
               >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+                <Trash2 className="w-4 h-4" />
+                Supprimer
+              </DropdownMenuItem>
             )}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
+    </div>
+  );
+
+  return (
+    <CoverCard
+      onClick={onSelect}
+      selected={selected}
+      coverSrc={imageSrc ?? null}
+      title={trame.title}
+      subtitle={
+        trame.sharedBy ? <span>Partagée par {trame.sharedBy}</span> : undefined
+      }
+      actions={actions}
+      footerLeft={
+        Array.isArray(trame.job) && trame.job.length > 0
+          ? trame.job.map((j) => (
+              <JobBadge key={j} job={j} className="bg-ocean-600 text-white" />
+            ))
+          : undefined
+      }
+    />
   );
 }

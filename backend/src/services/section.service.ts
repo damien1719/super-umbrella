@@ -130,12 +130,25 @@ export const SectionService = {
     if (await isAdminUser(userId)) {
       return db.section.update({ where: { id }, data, include: { templateRef: true } });
     }
+    // Support shares granted by email OR by userId (like list/get)
+    const profile = await db.profile.findUnique({ where: { userId } });
+    const email = (profile?.email as string | undefined)?.trim().toLowerCase();
     const { count } = await db.section.updateMany({
       where: {
         id,
         OR: [
           { author: { userId } },
-          { shares: { some: { invitedUserId: userId, role: 'EDITOR' } } },
+          {
+            shares: {
+              some: {
+                role: 'EDITOR',
+                OR: [
+                  { invitedUserId: userId },
+                  ...(email ? [{ invitedEmail: email }] : []),
+                ],
+              },
+            },
+          },
         ],
       },
       data,
@@ -149,13 +162,25 @@ export const SectionService = {
       await db.section.delete({ where: { id } });
       return;
     }
-    // Vérifier droits: auteur ou éditeur via partage
+    // Vérifier droits: auteur ou éditeur via partage (userId or email)
+    const profile = await db.profile.findUnique({ where: { userId } });
+    const email = (profile?.email as string | undefined)?.trim().toLowerCase();
     const { count } = await db.section.deleteMany({
       where: {
         id,
         OR: [
           { author: { userId } },
-          { shares: { some: { invitedUserId: userId, role: 'EDITOR' } } },
+          {
+            shares: {
+              some: {
+                role: 'EDITOR',
+                OR: [
+                  { invitedUserId: userId },
+                  ...(email ? [{ invitedEmail: email }] : []),
+                ],
+              },
+            },
+          },
         ],
       },
     });

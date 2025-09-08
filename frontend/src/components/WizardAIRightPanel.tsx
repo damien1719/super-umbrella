@@ -109,7 +109,10 @@ export default function WizardAIRightPanel({
     setStep(initialStep);
   }, [initialStep]);
 
-  const isSharedWithMe = (s: { isPublic?: boolean; authorId?: string | null }) => {
+  const isSharedWithMe = (s: {
+    isPublic?: boolean;
+    authorId?: string | null;
+  }) => {
     // Heuristic: returned by backend because shared (private, not mine)
     return s.isPublic === false && !!profileId && s.authorId !== profileId;
   };
@@ -385,7 +388,7 @@ export default function WizardAIRightPanel({
             />
           </div>
         </div>
-        <div className="flex flex-wrap gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {displayedTrames.map((trame) => (
             <TrameCard
               key={trame.value}
@@ -393,11 +396,13 @@ export default function WizardAIRightPanel({
                 id: trame.value,
                 title: trame.label,
                 description: trame.description,
+                coverUrl: trame.coverUrl,
                 sharedBy:
                   trame.isPublic && trame.author?.prenom
                     ? trame.author.prenom
                     : undefined,
               }}
+              kind={kindMap[sectionInfo.id]}
               selected={selectedTrame?.value === trame.value}
               onSelect={() => onTrameChange(trame.value)}
               showLink={true}
@@ -409,7 +414,7 @@ export default function WizardAIRightPanel({
                 type="button"
                 aria-label="Créer une nouvelle trame"
                 className="
-                  group relative w-full min-h-[160px] max-w-60 w-full
+                  group relative w-full max-w-120
                   rounded-xl border-2 border-dashed
                   border-primary-300 bg-primary-50/60
                   hover:bg-primary-100/70 hover:border-primary-400

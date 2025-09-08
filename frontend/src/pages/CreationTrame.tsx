@@ -50,6 +50,7 @@ export default function CreationTrame() {
   const [nomTrame, setNomTrame] = useState('');
   const [categorie, setCategorie] = useState<CategoryId | undefined>(undefined);
   const [isPublic, setIsPublic] = useState(false);
+  const [coverUrl, setCoverUrl] = useState<string>('');
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showImport, setShowImport] = useState(false);
@@ -175,6 +176,7 @@ export default function CreationTrame() {
       setNomTrame(section.title);
       setCategorie(section.kind);
       setIsPublic(section.isPublic ?? false);
+      setCoverUrl((section as any)?.coverUrl ?? '');
       setJob(section.job || [Job.PSYCHOMOTRICIEN]);
       setTemplateRefId(section.templateRefId ?? null);
       if (section.templateRefId) {
@@ -294,6 +296,7 @@ export default function CreationTrame() {
       schema: Question[];
       isPublic: boolean;
       templateRefId?: string;
+      coverUrl?: string | null;
     } = {
       title: nomTrame,
       kind: categorie,
@@ -307,7 +310,13 @@ export default function CreationTrame() {
       updateData.templateRefId = templateRefId;
     }
 
-    await updateSection(sectionId, updateData);
+    // Normaliser coverUrl: vide -> null pour effacer
+    const normalizedCover =
+      coverUrl && coverUrl.trim().length > 0 ? coverUrl.trim() : null;
+    await updateSection(sectionId, {
+      ...updateData,
+      coverUrl: normalizedCover,
+    });
 
     for (const content of newExamples) {
       await createExample({ sectionId, content });
@@ -591,6 +600,8 @@ export default function CreationTrame() {
               categories={categories}
               onCategoryChange={(v: string) => setCategorie(v as CategoryId)}
               onJobsChange={setJob}
+              coverUrl={coverUrl}
+              onCoverUrlChange={setCoverUrl}
             />
             <SharePanel resourceType="section" resourceId={sectionId} />
           </div>
