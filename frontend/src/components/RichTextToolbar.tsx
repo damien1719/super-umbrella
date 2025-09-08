@@ -540,9 +540,10 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
           const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="ie=edge"/><style>
             body { font-family: ${fontFamily}; font-size: ${fontSize}pt; line-height: ${lineHeight}; }
             p { margin: 0 0 8px 0; }
-            h1 { font-size: 24pt; margin: 16pt 0 8pt; }
-            h2 { font-size: 18pt; margin: 14pt 0 6pt; }
-            h3 { font-size: 14pt; margin: 12pt 0 6pt; }
+            /* Custom heading sizes & decorations */
+            h1 { font-size: 16pt; margin: 12pt 0 8pt; font-weight: normal; text-decoration: none; }
+            h2 { font-size: 14pt; margin: 10pt 0 6pt; font-weight: bold; text-decoration: underline; }
+            h3 { font-size: 12pt; margin: 8pt 0 6pt; font-weight: normal; text-decoration: underline; }
             ul, ol { margin: 0 0 8px 24px; }
             li { margin: 4px 0; }
           </style></head><body>${html}</body></html>`;
