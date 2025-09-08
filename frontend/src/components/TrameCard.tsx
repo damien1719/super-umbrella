@@ -78,7 +78,7 @@ export default function TrameCard({
           <DropdownMenuContent
             align="end"
             onClick={(e) => e.stopPropagation()}
-            className="w-40"
+            className="w-40 bg-white border border-wood-200 shadow-sm"
           >
             {showDuplicate && onDuplicate && (
               <DropdownMenuItem
