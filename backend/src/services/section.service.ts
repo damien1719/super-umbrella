@@ -1,6 +1,7 @@
 import { prisma } from '../prisma';
 import { NotFoundError } from './profile.service';
 import type { Job } from '../types/job';
+import { isAdminUser } from '../utils/admin';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = prisma as any;
@@ -30,12 +31,25 @@ export const SectionService = {
     });
   },
 
-  list(userId: string) {
+  async list(userId: string) {
+    const profile = await db.profile.findUnique({ where: { userId } });
+    const email = (profile?.email as string | undefined)?.trim().toLowerCase();
+    const shareClause = {
+      shares: {
+        some: {
+          OR: [
+            { invitedUserId: userId },
+            ...(email ? [{ invitedEmail: email }] : []),
+          ],
+        },
+      },
+    };
     return db.section.findMany({
       where: {
         OR: [
           { isPublic: true },
           { author: { userId } },
+          shareClause,
         ],
       },
       orderBy: { createdAt: 'desc' },
@@ -43,13 +57,26 @@ export const SectionService = {
     });
   },
 
-  get(userId: string, id: string) {
+  async get(userId: string, id: string) {
+    const profile = await db.profile.findUnique({ where: { userId } });
+    const email = (profile?.email as string | undefined)?.trim().toLowerCase();
+    const shareClause = {
+      shares: {
+        some: {
+          OR: [
+            { invitedUserId: userId },
+            ...(email ? [{ invitedEmail: email }] : []),
+          ],
+        },
+      },
+    };
     return db.section.findFirst({
       where: {
         id,
         OR: [
           { isPublic: true },
           { author: { userId } },
+          shareClause,
         ],
       },
       include: { author: { select: { prenom: true } }, templateRef: true },
@@ -59,12 +86,24 @@ export const SectionService = {
   async duplicate(userId: string, id: string) {
     const profile = await db.profile.findUnique({ where: { userId } });
     if (!profile) throw new Error('Profile not found for user');
+    const email = (profile?.email as string | undefined)?.trim().toLowerCase();
+    const shareClause = {
+      shares: {
+        some: {
+          OR: [
+            { invitedUserId: userId },
+            ...(email ? [{ invitedEmail: email }] : []),
+          ],
+        },
+      },
+    };
     const section = await db.section.findFirst({
       where: {
         id,
         OR: [
           { isPublic: true },
           { author: { userId } },
+          shareClause,
         ],
       },
     });
@@ -88,8 +127,30 @@ export const SectionService = {
   },
 
   async update(userId: string, id: string, data: Partial<SectionData>) {
+    if (await isAdminUser(userId)) {
+      return db.section.update({ where: { id }, data, include: { templateRef: true } });
+    }
+    // Support shares granted by email OR by userId (like list/get)
+    const profile = await db.profile.findUnique({ where: { userId } });
+    const email = (profile?.email as string | undefined)?.trim().toLowerCase();
     const { count } = await db.section.updateMany({
-      where: { id, author: { userId } },
+      where: {
+        id,
+        OR: [
+          { author: { userId } },
+          {
+            shares: {
+              some: {
+                role: 'EDITOR',
+                OR: [
+                  { invitedUserId: userId },
+                  ...(email ? [{ invitedEmail: email }] : []),
+                ],
+              },
+            },
+          },
+        ],
+      },
       data,
     });
     if (count === 0) throw new NotFoundError();
@@ -97,14 +158,31 @@ export const SectionService = {
   },
 
   async remove(userId: string, id: string) {
-    // Vérifier que la section existe et appartient à l'utilisateur
-    const section = await db.section.findFirst({
-      where: { id, author: { userId } },
-    });
-    if (!section) throw new NotFoundError();
-
+    if (await isAdminUser(userId)) {
+      await db.section.delete({ where: { id } });
+      return;
+    }
+    // Vérifier droits: auteur ou éditeur via partage (userId or email)
+    const profile = await db.profile.findUnique({ where: { userId } });
+    const email = (profile?.email as string | undefined)?.trim().toLowerCase();
     const { count } = await db.section.deleteMany({
-      where: { id, author: { userId } },
+      where: {
+        id,
+        OR: [
+          { author: { userId } },
+          {
+            shares: {
+              some: {
+                role: 'EDITOR',
+                OR: [
+                  { invitedUserId: userId },
+                  ...(email ? [{ invitedEmail: email }] : []),
+                ],
+              },
+            },
+          },
+        ],
+      },
     });
     if (count === 0) throw new NotFoundError();
   },

@@ -6,6 +6,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import type { Category, CategoryId } from '@/types/trame';
 import type { Job } from '@/types/job';
 import { jobOptions } from '@/types/job';
@@ -16,6 +17,8 @@ interface SettingsProps {
   categories: Category[];
   onCategoryChange: (category: CategoryId) => void;
   onJobsChange: (jobs: Job[]) => void;
+  coverUrl?: string | null;
+  onCoverUrlChange?: (url: string) => void;
 }
 
 export default function Settings({
@@ -24,6 +27,8 @@ export default function Settings({
   categories,
   onCategoryChange,
   onJobsChange,
+  coverUrl,
+  onCoverUrlChange,
 }: SettingsProps) {
   return (
     <div className="space-y-6">
@@ -117,6 +122,38 @@ export default function Settings({
           <p className="text-xs text-gray-500">
             Sélectionnez les métiers qui utiliseront cette trame
           </p>
+        </div>
+
+        {/* Image de couverture */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium text-gray-700">
+            Image de couverture (URL ou chemin public)
+          </Label>
+          <Input
+            value={coverUrl ?? ''}
+            onChange={(e) => onCoverUrlChange?.(e.target.value)}
+            placeholder="Ex: /images/ma-trame.png ou https://..."
+          />
+          {coverUrl ? (
+            <div className="mt-2">
+              <div className="relative bg-wood-100 aspect-[5/3] w-full overflow-hidden rounded-md border">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={coverUrl}
+                  alt="Aperçu de l'image de couverture"
+                  className="absolute inset-0 h-full w-full object-cover"
+                  loading="lazy"
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Cette image apparaîtra en haut de la carte de la trame
+              </p>
+            </div>
+          ) : (
+            <p className="text-xs text-gray-500">
+              Laissez vide pour utiliser l'image par défaut de la catégorie
+            </p>
+          )}
         </div>
       </div>
     </div>

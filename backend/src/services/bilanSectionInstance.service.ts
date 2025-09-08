@@ -20,12 +20,48 @@ export const BilanSectionInstanceService = {
     });
     if (!bilan) throw new NotFoundError('Bilan not found for user');
 
+    // Autorise l'accès à la Section si :
+    // - elle est publique
+    // - l'utilisateur en est l'auteur
+    // - elle lui a été partagée (par userId ou par email)
+    const profile = await db.profile.findUnique({ where: { userId } });
+    const email = (profile?.email as string | undefined)?.trim().toLowerCase();
+    const shareClause = {
+      shares: {
+        some: {
+          OR: [
+            { invitedUserId: userId },
+            ...(email ? [{ invitedEmail: email }] : []),
+          ],
+        },
+      },
+    } as const;
+
     const section = await db.section.findFirst({
       where: {
         id: data.sectionId,
         OR: [
           { isPublic: true },
           { author: { userId } },
+          shareClause,
+          // Si l'utilisateur a un partage sur un BilanType qui inclut cette section,
+          // on autorise aussi l'utilisation de la section dans un Bilan.
+          {
+            bilanTypeSections: {
+              some: {
+                bilanType: {
+                  shares: {
+                    some: {
+                      OR: [
+                        { invitedUserId: userId },
+                        ...(email ? [{ invitedEmail: email }] : []),
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          },
         ],
       },
     });
@@ -109,4 +145,3 @@ export const BilanSectionInstanceService = {
     if (count === 0) throw new NotFoundError();
   },
 };
-

@@ -1,6 +1,9 @@
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useEffect, useState, Suspense, lazy, useRef } from 'react';
 import { Button } from '../components/ui/button';
+import OverflowToolbar, {
+  type OverflowItem,
+} from '../components/OverflowToolbar';
 import ExitConfirmation from '../components/ExitConfirmation';
 import { apiFetch } from '../utils/api';
 import { useAuth } from '../store/auth';
@@ -79,20 +82,32 @@ export default function Bilan() {
 
   if (!bilan) return <div>Chargement...</div>;
 
-  return (
-    <div className="flex flex-col h-screen overflow-hidden">
-      <div className="h-12 flex items-center bg-wood-50 border border-wood-300 p-4">
+  const headerItems: OverflowItem[] = [
+    {
+      key: 'back',
+      element: (
         <Button variant="ghost" onClick={handleBack} className="px-2 py-1">
           Retour
         </Button>
-        <h1 className="flex-1 text-center text-lg font-semibold">
+      ),
+    },
+  ];
+
+  return (
+    <div className="flex flex-col h-screen overflow-hidden">
+      <div className="h-12 grid grid-cols-3 items-center bg-wood-50 border border-wood-300 px-2">
+        <div className="truncate">
+          <OverflowToolbar items={headerItems} className="p-2" />
+        </div>
+        <h1 className="text-center text-lg font-semibold truncate">
           {bilan.title}
         </h1>
+        <div />
       </div>
 
       <div className="flex-1 overflow-hidden">
-        <div className="flex h-full">
-          <div className="flex-1">
+        <div className="flex h-full overflow-hidden">
+          <div className="flex-1 min-w-0">
             <Suspense fallback="Chargement...">
               <RichTextEditor
                 ref={editorRef}
@@ -104,7 +119,7 @@ export default function Bilan() {
             </Suspense>
             <SelectionOverlay />
           </div>
-          <div className="block w-104 border-l border-wood-300 overflow-auto shadow-sm ">
+          <div className="block w-[26rem] min-w-[26rem] flex-shrink-0 border-l border-wood-300 overflow-auto shadow-sm ">
             <Suspense fallback="Chargement...">
               {bilanId && (
                 <AiRightPanel

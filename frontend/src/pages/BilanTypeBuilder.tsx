@@ -26,6 +26,7 @@ import { categories, kindMap, type CategoryId } from '@/types/trame';
 import { Job, jobOptions } from '@/types/job';
 import { hydrateLayout, type LexicalState } from '@/utils/hydrateLayout';
 import { ArrowLeft, Loader2, Save } from 'lucide-react';
+import SharePanel from '@/components/SharePanel';
 
 // Types d'élément composant la construction
 type SectionElement = {
@@ -280,7 +281,7 @@ export default function BilanTypeBuilder({
         return {
           kind: 'heading',
           id: `heading-${i}`,
-          title: seg.title || 'Titre',
+          title: seg.title,
           order: i,
         };
       }
@@ -786,6 +787,10 @@ export default function BilanTypeBuilder({
                 </div>
               </CardContent>
             </Card>
+            <SharePanel
+              resourceType="bilan-type"
+              resourceId={initialBilanTypeId}
+            />
           </div>
         )}
       </div>

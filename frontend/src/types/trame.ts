@@ -21,6 +21,8 @@ export interface Category {
   id: CategoryId;
   title: string;
   icon: LucideIcon;
+  // Optional image used in cards/previews for this category
+  image?: string;
 }
 
 export interface SectionInfo {
@@ -31,12 +33,37 @@ export interface SectionInfo {
 }
 
 export const categories: Category[] = [
-  { id: 'anamnese', title: 'Anamnèse', icon: BookOpen },
-  { id: 'tests_standards', title: 'Tests standards', icon: ClipboardList },
-  { id: 'observations', title: 'Observations', icon: Eye },
-  { id: 'profil_sensoriel', title: 'Profil sensoriel', icon: Radar },
+  {
+    id: 'anamnese',
+    title: 'Anamnèse',
+    icon: BookOpen,
+    image: '/anamnese.png',
+  },
+  {
+    id: 'tests_standards',
+    title: 'Tests standards',
+    icon: ClipboardList,
+    image: '/tests-standards.png',
+  },
+  {
+    id: 'observations',
+    title: 'Observations',
+    icon: Eye,
+    image: '/observations.png',
+  },
+  {
+    id: 'profil_sensoriel',
+    title: 'Profil sensoriel',
+    icon: Radar,
+    image: '/profil-sensoriel.png',
+  },
   /*   { id: 'bilan_complet', title: 'Bilan complet', icon: Layers },
-   */ { id: 'conclusion', title: 'Conclusion', icon: Brain },
+   */ {
+    id: 'conclusion',
+    title: 'Conclusion',
+    icon: Brain,
+    image: '/conclusion.png',
+  },
 ];
 
 // Sections avec descriptions pour AiRightPanel

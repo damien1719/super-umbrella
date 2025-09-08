@@ -56,6 +56,7 @@ const useTrames = () => {
           authorId: s.authorId,
           author: s.author,
           templateRefId: s.templateRefId,
+          coverUrl: s.coverUrl,
         }));
     });
     return res;
@@ -152,6 +153,8 @@ export default function AiRightPanel({
     }
   };
 
+  const DEFAULT_BILAN_TYPE_COVER = '/bilan-type.png';
+
   const bilanTypeOptions = useMemo(
     () =>
       bilanTypes.map((b) => ({
@@ -161,7 +164,8 @@ export default function AiRightPanel({
         schema: [],
         isPublic: b.isPublic ?? false,
         authorId: b.authorId || '',
-        author: b.author?.prenom || '',
+        author: b.author ?? null,
+        coverUrl: b.coverUrl ?? DEFAULT_BILAN_TYPE_COVER,
         templateRefId: undefined,
       })) as TrameOption[],
     [bilanTypes],

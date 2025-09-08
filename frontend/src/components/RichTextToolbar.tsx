@@ -47,6 +47,7 @@ import { INSERT_TABLE_COMMAND } from '@lexical/table';
 import { $generateHtmlFromNodes } from '@lexical/html';
 import DOMPurify from 'dompurify';
 import { toDocxBlob } from '@/lib/htmlDocx';
+import OverflowToolbar, { type OverflowItem } from './OverflowToolbar';
 
 export function setFontSize(editor: LexicalEditor, size: string) {
   editor.update(() => {
@@ -297,354 +298,447 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
     setShowTableDialog(false);
   }, [editor, tableCols, tableRows]);
 
-  return (
-    <>
-      <div className="sticky top-0 z-10 flex space-x-2 bg-wood-50 border-b border-wood-200 p-2">
-        <Select
-          value={blockType}
-          onValueChange={(v) =>
-            applyBlockType(v as 'paragraph' | 'h1' | 'h2' | 'h3' | 'quote')
-          }
-          onOpenChange={(open) => !open && handleSelectClosed()}
-        >
-          <SelectTrigger data-testid="block-type" className="w-40">
-            <SelectValue placeholder="Style" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="paragraph">Paragraphe</SelectItem>
-            <SelectItem value="h1">Titre 1</SelectItem>
-            <SelectItem value="h2">Titre 2</SelectItem>
-            <SelectItem value="h3">Titre 3</SelectItem>
-            <SelectItem value="quote">Citation</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select
-          value={fontSize}
-          onValueChange={changeFontSize}
-          onOpenChange={(open) => !open && handleSelectClosed()}
-        >
-          <SelectTrigger data-testid="font-size" className="w-24">
-            <SelectValue placeholder="Taille" />
-          </SelectTrigger>
-          <SelectContent>
-            {WORD_FONT_SIZES.map((s) => (
-              <SelectItem key={s} value={s}>
-                {s}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select
-          value={fontFamily}
-          onValueChange={changeFontFamily}
-          onOpenChange={(open) => !open && handleSelectClosed()}
-        >
-          <SelectTrigger data-testid="font-family" className="w-44">
-            <SelectValue placeholder="Police" />
-          </SelectTrigger>
-          <SelectContent>
-            {FONT_FAMILIES.map((f) => (
-              <SelectItem key={f.label} value={f.value}>
-                {f.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select
-          value={lineHeight}
-          onValueChange={changeLineHeight}
-          onOpenChange={(open) => !open && handleSelectClosed()}
-        >
-          <SelectTrigger data-testid="line-height" className="w-40">
-            <SelectValue placeholder="Interligne" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="1">Simple (1.0)</SelectItem>
-            <SelectItem value="1.15">1.15</SelectItem>
-            <SelectItem value="1.5">1.5</SelectItem>
-            <SelectItem value="2">Double (2.0)</SelectItem>
-          </SelectContent>
-        </Select>
-        <Button
-          type="button"
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={() => format('bold')}
-          variant="editor"
-          active={isBold}
-        >
-          B
-        </Button>
-        <Button
-          type="button"
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={() => format('italic')}
-          variant="editor"
-          active={isItalic}
-        >
-          I
-        </Button>
-        <Button
-          type="button"
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={() => format('underline')}
-          variant="editor"
-          active={isUnderline}
-        >
-          <span style={{ textDecoration: 'underline' }}>U</span>
-        </Button>
+  // Build toolbar items for responsive overflow
+  const toolbarItems: OverflowItem[] = [];
 
-        {/* Text color */}
-        <DropdownMenu onOpenChange={(open) => !open && handleSelectClosed()}>
-          <DropdownMenuTrigger asChild>
-            <Button
-              type="button"
-              onMouseDown={(e) => e.preventDefault()}
-              variant="editor"
-              aria-label="Couleur du texte"
-              title="Couleur du texte"
-            >
-              Couleur
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            {[
-              ['Par défaut', null],
-              ['Noir', '#000000'],
-              ['Gris', '#6B7280'],
-              ['Rouge', '#DC2626'],
-              ['Orange', '#EA580C'],
-              ['Jaune', '#CA8A04'],
-              ['Vert', '#16A34A'],
-              ['Turquoise', '#14B8A6'],
-              ['Bleu', '#2563EB'],
-              ['Violet', '#7C3AED'],
-            ].map(([label, value]) => (
-              <DropdownMenuItem
-                key={label as string}
-                onClick={() => {
-                  restoreSelectionAndFocus();
-                  setTimeout(
-                    () => setTextColor(editor, value as string | null),
-                    0,
-                  );
-                }}
-              >
-                <span
-                  style={{
-                    display: 'inline-block',
-                    width: 12,
-                    height: 12,
-                    backgroundColor: (value as string) || 'transparent',
-                    border: '1px solid #e5e7eb',
-                    marginRight: 8,
-                  }}
-                />
-                {label as string}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+  toolbarItems.push({
+    key: 'block-type',
+    element: (
+      <Select
+        value={blockType}
+        onValueChange={(v) =>
+          applyBlockType(v as 'paragraph' | 'h1' | 'h2' | 'h3' | 'quote')
+        }
+        onOpenChange={(open) => !open && handleSelectClosed()}
+      >
+        <SelectTrigger data-testid="block-type" className="w-40">
+          <SelectValue placeholder="Style" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="paragraph">Paragraphe</SelectItem>
+          <SelectItem value="h1">Titre 1</SelectItem>
+          <SelectItem value="h2">Titre 2</SelectItem>
+          <SelectItem value="h3">Titre 3</SelectItem>
+          <SelectItem value="quote">Citation</SelectItem>
+        </SelectContent>
+      </Select>
+    ),
+  });
 
-        {/* Highlight color */}
-        <DropdownMenu onOpenChange={(open) => !open && handleSelectClosed()}>
-          <DropdownMenuTrigger asChild>
-            <Button
-              type="button"
-              onMouseDown={(e) => e.preventDefault()}
-              variant="editor"
-              aria-label="Surlignage"
-              title="Surlignage"
-            >
-              Surlignage
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            {[
-              ['Aucun', null],
-              ['Jaune', '#FEF08A'],
-              ['Vert clair', '#D9F99D'],
-              ['Bleu clair', '#BAE6FD'],
-              ['Violet clair', '#E9D5FF'],
-              ['Rose clair', '#FBCFE8'],
-            ].map(([label, value]) => (
-              <DropdownMenuItem
-                key={label as string}
-                onClick={() => {
-                  restoreSelectionAndFocus();
-                  setTimeout(
-                    () => setBackgroundColor(editor, value as string | null),
-                    0,
-                  );
-                }}
-              >
-                <span
-                  style={{
-                    display: 'inline-block',
-                    width: 12,
-                    height: 12,
-                    backgroundColor: (value as string) || 'transparent',
-                    border: '1px solid #e5e7eb',
-                    marginRight: 8,
-                  }}
-                />
-                {label as string}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <div className="w-px self-stretch bg-wood-200 mx-1" />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              type="button"
-              onMouseDown={(e) => e.preventDefault()}
-              variant="editor"
-            >
-              +Tableau
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => setShowTableDialog(true)}>
-              Tableau
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+  toolbarItems.push({
+    key: 'font-size',
+    element: (
+      <Select
+        value={fontSize}
+        onValueChange={changeFontSize}
+        onOpenChange={(open) => !open && handleSelectClosed()}
+      >
+        <SelectTrigger data-testid="font-size" className="w-24">
+          <SelectValue placeholder="Taille" />
+        </SelectTrigger>
+        <SelectContent>
+          {WORD_FONT_SIZES.map((s) => (
+            <SelectItem key={s} value={s}>
+              {s}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    ),
+  });
 
+  toolbarItems.push({
+    key: 'font-family',
+    element: (
+      <Select
+        value={fontFamily}
+        onValueChange={changeFontFamily}
+        onOpenChange={(open) => !open && handleSelectClosed()}
+      >
+        <SelectTrigger data-testid="font-family" className="w-44">
+          <SelectValue placeholder="Police" />
+        </SelectTrigger>
+        <SelectContent>
+          {FONT_FAMILIES.map((f) => (
+            <SelectItem key={f.label} value={f.value}>
+              {f.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    ),
+  });
+
+  toolbarItems.push({
+    key: 'line-height',
+    element: (
+      <Select
+        value={lineHeight}
+        onValueChange={changeLineHeight}
+        onOpenChange={(open) => !open && handleSelectClosed()}
+      >
+        <SelectTrigger data-testid="line-height" className="w-40">
+          <SelectValue placeholder="Interligne" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="1">Simple (1.0)</SelectItem>
+          <SelectItem value="1.15">1.15</SelectItem>
+          <SelectItem value="1.5">1.5</SelectItem>
+          <SelectItem value="2">Double (2.0)</SelectItem>
+        </SelectContent>
+      </Select>
+    ),
+  });
+
+  toolbarItems.push({
+    key: 'bold',
+    element: (
+      <Button
+        type="button"
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={() => format('bold')}
+        variant="editor"
+        active={isBold}
+      >
+        B
+      </Button>
+    ),
+  });
+
+  toolbarItems.push({
+    key: 'italic',
+    element: (
+      <Button
+        type="button"
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={() => format('italic')}
+        variant="editor"
+        active={isItalic}
+      >
+        I
+      </Button>
+    ),
+  });
+
+  toolbarItems.push({
+    key: 'underline',
+    element: (
+      <Button
+        type="button"
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={() => format('underline')}
+        variant="editor"
+        active={isUnderline}
+      >
+        <span style={{ textDecoration: 'underline' }}>U</span>
+      </Button>
+    ),
+  });
+
+  toolbarItems.push({
+    key: 'sep-1',
+    element: <div className="w-px self-stretch bg-wood-200 mx-1" />,
+  });
+
+  if (onSave) {
+    toolbarItems.push({
+      key: 'save',
+      element: (
         <Button
           type="button"
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={() => insertList(false)}
+          onClick={onSave}
           variant="editor"
+          aria-label="Save"
         >
-          •
+          <Save className="w-4 h-4" />
         </Button>
-        <Button
-          type="button"
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={() => insertList(true)}
-          variant="editor"
-        >
-          1.
-        </Button>
-        <div className="w-px self-stretch bg-wood-200 mx-1" />
-        {onSave && (
-          <Button
-            type="button"
-            onClick={onSave}
-            variant="editor"
-            aria-label="Save"
-          >
-            <Save className="w-4 h-4" />
-          </Button>
-        )}
-        <Button
-          type="button"
-          onClick={async () => {
-            let html = '';
-            try {
-              editor.getEditorState().read(() => {
-                const SANITIZE_OPTIONS: DOMPurify.Config = {
-                  ALLOWED_TAGS: [
-                    'a',
-                    'b',
-                    'i',
-                    'u',
-                    'em',
-                    'strong',
-                    'span',
-                    'p',
-                    'br',
-                    'blockquote',
-                    'h1',
-                    'h2',
-                    'h3',
-                    'ul',
-                    'ol',
-                    'li',
-                    'table',
-                    'thead',
-                    'tbody',
-                    'tr',
-                    'th',
-                    'td',
-                    'div',
-                  ],
-                  ALLOWED_ATTR: [
-                    'href',
-                    'target',
-                    'rel',
-                    'colspan',
-                    'rowspan',
-                    'style',
-                    'class',
-                  ],
-                  ALLOWED_CSS_PROPERTIES: [
-                    'color',
-                    'background',
-                    'background-color',
-                    'text-decoration',
-                    'font-size',
-                    'font-family',
-                    'line-height',
-                    'font-weight',
-                    'font-style',
-                    'border',
-                    'border-color',
-                    'border-width',
-                    'border-style',
-                    'border-radius',
-                    'padding',
-                    'padding-left',
-                    'padding-right',
-                    'padding-top',
-                    'padding-bottom',
-                    'margin',
-                    'margin-left',
-                    'margin-right',
-                    'margin-top',
-                    'margin-bottom',
-                    'vertical-align',
-                    'text-align',
-                    'width',
-                    'height',
-                  ],
-                } as unknown as DOMPurify.Config;
-                html = DOMPurify.sanitize(
-                  $generateHtmlFromNodes(editor),
-                  SANITIZE_OPTIONS,
-                );
-              });
-            } catch {}
-            const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="ie=edge"/><style>
+      ),
+    });
+  }
+
+  toolbarItems.push({
+    key: 'export',
+    element: (
+      <Button
+        type="button"
+        onClick={async () => {
+          let html = '';
+          try {
+            editor.getEditorState().read(() => {
+              const SANITIZE_OPTIONS: DOMPurify.Config = {
+                ALLOWED_TAGS: [
+                  'a',
+                  'b',
+                  'i',
+                  'u',
+                  'em',
+                  'strong',
+                  'span',
+                  'p',
+                  'br',
+                  'blockquote',
+                  'h1',
+                  'h2',
+                  'h3',
+                  'ul',
+                  'ol',
+                  'li',
+                  'table',
+                  'thead',
+                  'tbody',
+                  'tr',
+                  'th',
+                  'td',
+                  'div',
+                ],
+                ALLOWED_ATTR: [
+                  'href',
+                  'target',
+                  'rel',
+                  'colspan',
+                  'rowspan',
+                  'style',
+                  'class',
+                ],
+                ALLOWED_CSS_PROPERTIES: [
+                  'color',
+                  'background',
+                  'background-color',
+                  'text-decoration',
+                  'font-size',
+                  'font-family',
+                  'line-height',
+                  'font-weight',
+                  'font-style',
+                  'border',
+                  'border-color',
+                  'border-width',
+                  'border-style',
+                  'border-radius',
+                  'padding',
+                  'padding-left',
+                  'padding-right',
+                  'padding-top',
+                  'padding-bottom',
+                  'margin',
+                  'margin-left',
+                  'margin-right',
+                  'margin-top',
+                  'margin-bottom',
+                  'vertical-align',
+                  'text-align',
+                  'width',
+                  'height',
+                ],
+              } as unknown as DOMPurify.Config;
+              html = DOMPurify.sanitize(
+                $generateHtmlFromNodes(editor),
+                SANITIZE_OPTIONS,
+              );
+            });
+          } catch {}
+          const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="ie=edge"/><style>
             body { font-family: ${fontFamily}; font-size: ${fontSize}pt; line-height: ${lineHeight}; }
             p { margin: 0 0 8px 0; }
-            h1 { font-size: 24pt; margin: 16pt 0 8pt; }
-            h2 { font-size: 18pt; margin: 14pt 0 6pt; }
-            h3 { font-size: 14pt; margin: 12pt 0 6pt; }
+            /* Custom heading sizes & decorations */
+            h1 { font-size: 16pt; margin: 12pt 0 8pt; font-weight: normal; text-decoration: none; }
+            h2 { font-size: 14pt; margin: 10pt 0 6pt; font-weight: bold; text-decoration: underline; }
+            h3 { font-size: 12pt; margin: 8pt 0 6pt; font-weight: normal; text-decoration: underline; }
             ul, ol { margin: 0 0 8px 24px; }
             li { margin: 4px 0; }
           </style></head><body>${html}</body></html>`;
-            try {
-              const blob = await toDocxBlob(fullHtml);
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement('a');
-              a.href = url;
-              a.download = `${exportFileName || 'Bilan'}.docx`;
-              document.body.appendChild(a);
-              a.click();
-              a.remove();
-              URL.revokeObjectURL(url);
-            } catch {
-              // ignore for now
-            }
-          }}
-          variant="editor"
-          aria-label="Exporter Word"
-          title="Exporter en Word (.docx)"
-        >
-          <FileDown className="w-4 h-4" />
-        </Button>
-      </div>
+          try {
+            const blob = await toDocxBlob(fullHtml);
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${exportFileName || 'Bilan'}.docx`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+          } catch {
+            // ignore for now
+          }
+        }}
+        variant="editor"
+        aria-label="Exporter Word"
+        title="Exporter en Word (.docx)"
+      >
+        <FileDown className="w-4 h-4" />
+      </Button>
+    ),
+  });
+
+  toolbarItems.push({
+    key: 'text-color',
+    element: (
+      <DropdownMenu onOpenChange={(open) => !open && handleSelectClosed()}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            variant="editor"
+            aria-label="Couleur du texte"
+            title="Couleur du texte"
+          >
+            Couleur
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          {[
+            ['Par défaut', null],
+            ['Noir', '#000000'],
+            ['Gris', '#6B7280'],
+            ['Rouge', '#DC2626'],
+            ['Orange', '#EA580C'],
+            ['Jaune', '#CA8A04'],
+            ['Vert', '#16A34A'],
+            ['Turquoise', '#14B8A6'],
+            ['Bleu', '#2563EB'],
+            ['Violet', '#7C3AED'],
+          ].map(([label, value]) => (
+            <DropdownMenuItem
+              key={label as string}
+              onClick={() => {
+                restoreSelectionAndFocus();
+                setTimeout(
+                  () => setTextColor(editor, value as string | null),
+                  0,
+                );
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-block',
+                  width: 12,
+                  height: 12,
+                  backgroundColor: (value as string) || 'transparent',
+                  border: '1px solid #e5e7eb',
+                  marginRight: 8,
+                }}
+              />
+              {label as string}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    ),
+  });
+
+  toolbarItems.push({
+    key: 'highlight',
+    element: (
+      <DropdownMenu onOpenChange={(open) => !open && handleSelectClosed()}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            variant="editor"
+            aria-label="Surlignage"
+            title="Surlignage"
+          >
+            Surlignage
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          {[
+            ['Aucun', null],
+            ['Jaune', '#FEF08A'],
+            ['Vert clair', '#D9F99D'],
+            ['Bleu clair', '#BAE6FD'],
+            ['Violet clair', '#E9D5FF'],
+            ['Rose clair', '#FBCFE8'],
+          ].map(([label, value]) => (
+            <DropdownMenuItem
+              key={label as string}
+              onClick={() => {
+                restoreSelectionAndFocus();
+                setTimeout(
+                  () => setBackgroundColor(editor, value as string | null),
+                  0,
+                );
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-block',
+                  width: 12,
+                  height: 12,
+                  backgroundColor: (value as string) || 'transparent',
+                  border: '1px solid #e5e7eb',
+                  marginRight: 8,
+                }}
+              />
+              {label as string}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    ),
+  });
+
+  toolbarItems.push({
+    key: 'sep-2',
+    element: <div className="w-px self-stretch bg-wood-200 mx-1" />,
+  });
+
+  toolbarItems.push({
+    key: 'table',
+    element: (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            variant="editor"
+          >
+            +Tableau
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem onClick={() => setShowTableDialog(true)}>
+            Tableau
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    ),
+  });
+
+  toolbarItems.push({
+    key: 'ul',
+    element: (
+      <Button
+        type="button"
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={() => insertList(false)}
+        variant="editor"
+      >
+        •
+      </Button>
+    ),
+  });
+
+  toolbarItems.push({
+    key: 'ol',
+    element: (
+      <Button
+        type="button"
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={() => insertList(true)}
+        variant="editor"
+      >
+        1.
+      </Button>
+    ),
+  });
+
+  return (
+    <>
+      <OverflowToolbar
+        items={toolbarItems}
+        className="sticky top-0 z-10 bg-wood-50 border-b border-wood-200 p-2"
+      />
       <Dialog open={showTableDialog} onOpenChange={setShowTableDialog}>
         <DialogContent>
           <DialogHeader>
