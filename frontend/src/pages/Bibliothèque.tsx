@@ -27,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { SearchField } from '@/components/ui/search-field';
 
 export default function Bibliotheque() {
   const navigate = useNavigate();
@@ -36,6 +37,7 @@ export default function Bibliotheque() {
   const [isDeleting, setIsDeleting] = useState(false);
   const { profile, fetchProfile } = useUserProfileStore();
   const [jobFilter, setJobFilter] = useState<Job | 'ALL'>('ALL');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const profileId = useMemo(() => profile?.id ?? null, [profile]);
 
@@ -90,6 +92,11 @@ export default function Bibliotheque() {
     if (jobFilter === 'ALL') return true;
     // Vérifier que s.job existe et est un tableau, puis vérifier si le métier filtré est inclus
     return Array.isArray(s.job) && s.job.includes(jobFilter as Job);
+  };
+
+  const matchesSearch = (s: Section) => {
+    if (!searchTerm.trim()) return true;
+    return s.title.toLowerCase().includes(searchTerm.toLowerCase());
   };
 
   // Debug: logger les informations sur le filtrage des métiers
@@ -165,17 +172,6 @@ export default function Bibliotheque() {
             ]}
           />
           <div className="mt-2 mb-2 flex flex-wrap items-center gap-3">
-            {/*             <div className="flex-1 min-w-[200px]">
-              <input
-                type="search"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Rechercher une trame…"
-                aria-label="Rechercher une trame"
-                className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-wood-300"
-              />
-            </div> */}
-
             {/* Filtre métier */}
             <div className="w-48">
               <Select
@@ -194,6 +190,16 @@ export default function Bibliotheque() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Recherche par nom de section */}
+            <div className="flex-1 min-w-[220px]">
+              <SearchField
+                value={searchTerm}
+                onChange={setSearchTerm}
+                placeholder="Rechercher une trame..."
+                aria-label="Rechercher une trame..."
+              />
             </div>
 
             {/* Indicateur du filtre actuel */}
@@ -226,7 +232,8 @@ export default function Bibliotheque() {
               const sections = items
                 .filter((s) => s.kind === category.id)
                 .filter(matchesActiveFilter)
-                .filter(matchesJobFilter);
+                .filter(matchesJobFilter)
+                .filter(matchesSearch);
               return (
                 <div
                   key={category.id}

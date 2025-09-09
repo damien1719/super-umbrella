@@ -16,11 +16,13 @@ export default function InlineGroupChips({ titles }: ChipOutlineProps) {
 
   useEffect(() => {
     const root = document.getElementById('dataentry-scroll-root');
-    if (!root) return;
+    // Always disconnect any previous observer
+    obsRef.current?.disconnect();
+    // If there's 0 or 1 title, don't setup an observer
+    if (!root || titles.length <= 1) return;
     const sections = Array.from(
       root.querySelectorAll<HTMLElement>('[data-idx]'),
     );
-    obsRef.current?.disconnect();
     const obs = new IntersectionObserver(
       (entries) => {
         const visible = entries
@@ -56,7 +58,7 @@ export default function InlineGroupChips({ titles }: ChipOutlineProps) {
     root.scrollTo({ top, behavior: 'smooth' });
   };
 
-  if (!titles.length) return null;
+  if (titles.length <= 1) return null;
 
   return (
     <div className="sticky top-0 z-10 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/70 border-b border-wood-200 py-2">

@@ -25,6 +25,8 @@ interface DataEntryProps {
   onChange: (answers: Answers) => void;
   inline?: boolean;
   showGroupNav?: boolean;
+  // When questions start without an explicit titre, use this as the group title instead of "Général"
+  defaultGroupTitle?: string;
 }
 
 export interface DataEntryHandle {
@@ -49,6 +51,7 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
       onChange,
       inline = false,
       showGroupNav = true,
+      defaultGroupTitle,
     }: DataEntryProps,
     ref,
   ) {
@@ -70,7 +73,12 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
           res.push(current);
         } else {
           if (!current) {
-            current = { id: `sec-0`, title: 'Général', index: 0, items: [] };
+            current = {
+              id: `sec-0`,
+              title: defaultGroupTitle || 'Général',
+              index: 0,
+              items: [],
+            };
             res.push(current);
           }
           current.items.push(q);
@@ -152,7 +160,9 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
             }}
             className="space-y-4"
           >
-            <div className="relative z-10 mt-8 border-t border-gray-200 pt-4 flex items-center gap-2">
+            <div
+              className={`relative z-10 ${i === 0 ? '' : 'mt-8'} border-t border-gray-200 pt-4 flex items-center gap-2`}
+            >
               <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary-100">
                 <span className="block h-1.5 w-1.5 rounded-full bg-primary-500" />
               </span>
@@ -233,7 +243,9 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              {questions.map((q) => (
+              {(() => {
+                const firstTitreIndex = questions.findIndex((x) => x.type === 'titre');
+                return questions.map((q, idx) => (
                 <div
                   key={q.id}
                   className={`space-y-2 p-2 rounded-md border ${
@@ -241,7 +253,11 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
                   }`}
                 >
                   {q.type === 'titre' ? (
-                    <div className="relative z-10 mt-8 border-t border-gray-200 pt-4 flex items-center gap-2">
+                    <div
+                      className={`relative z-10 ${
+                        idx === firstTitreIndex ? '' : 'mt-8'
+                      } border-t border-gray-200 pt-4 flex items-center gap-2`}
+                    >
                       <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-100">
                         <span className="block h-1.5 w-1.5 rounded-full bg-blue-700" />
                       </span>
@@ -274,7 +290,8 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
                     </>
                   )}
                 </div>
-              ))}
+              ));
+              })()}
               <Button onClick={save} className="w-full mt-4">
                 Sauvegarder
               </Button>

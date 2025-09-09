@@ -470,9 +470,9 @@ export default function WizardAIRightPanel({
             hasGeneral = true;
           }
         }
-        if (hasGeneral) titles.unshift('Général');
+/*         if (hasGeneral) titles.unshift('Général');
         if (!hasGeneral && titles.length === 0) titles.push('Général');
-        return titles;
+ */        return titles;
       })();
       const activeAnswers =
         (activeBilanSectionId && bilanAnswers[activeBilanSectionId]) || {};
@@ -506,25 +506,17 @@ export default function WizardAIRightPanel({
               if (next) dataEntryRef.current?.load?.(next);
             }}
             onToggleDisabled={(id) => {
+              // Toggle internally; external notification is handled in a useEffect
               setExcludedSectionIds((prev) =>
                 prev.includes(id)
                   ? prev.filter((x) => x !== id)
                   : [...prev, id],
               );
-              // notify outer wrapper for bulk action
-              try {
-                const evt = new CustomEvent('bilan-type:excluded-changed', {
-                  detail: excludedSectionIds.includes(id)
-                    ? excludedSectionIds.filter((x) => x !== id)
-                    : [...excludedSectionIds, id],
-                });
-                window.dispatchEvent(evt);
-              } catch {}
             }}
           />
           <div className="flex-1 flex flex-col">
             {/* In-section outline chips (replaces the inner left nav) */}
-            <Tabs
+{/*             <Tabs
               className="mb-4"
               active={notesMode}
               onChange={(k) => {
@@ -538,7 +530,7 @@ export default function WizardAIRightPanel({
                 { key: 'manual', label: 'Saisie manuelle' },
                 { key: 'import', label: 'Import des notes' },
               ]}
-            />
+            /> */}
             {notesMode === 'manual' && (
               <InlineGroupChips titles={groupTitles} />
             )}
@@ -548,6 +540,7 @@ export default function WizardAIRightPanel({
                 ref={dataEntryRef}
                 questions={activeQuestions}
                 answers={activeAnswers}
+                defaultGroupTitle={active?.title}
                 onChange={(a) => {
                   if (!activeBilanSectionId) return;
                   setBilanAnswers((prev) => ({
@@ -590,6 +583,7 @@ export default function WizardAIRightPanel({
               ref={dataEntryRef}
               questions={questions}
               answers={answers}
+              defaultGroupTitle={sectionInfo.title}
               onChange={onAnswersChange}
               inline
             />
@@ -605,6 +599,16 @@ export default function WizardAIRightPanel({
   }
 
   const [isManualSaving, setIsManualSaving] = useState(false);
+
+  // Broadcast excluded section list changes (kept in sync even for bulk group toggles)
+  useEffect(() => {
+    try {
+      const evt = new CustomEvent('bilan-type:excluded-changed', {
+        detail: excludedSectionIds,
+      });
+      window.dispatchEvent(evt);
+    } catch {}
+  }, [excludedSectionIds]);
 
   const saveNotes = async (
     notes: Answers | undefined,
