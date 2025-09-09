@@ -5,7 +5,7 @@ import type React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { GripVertical, X } from 'lucide-react';
+import { GripVertical, X, Eye, Link, ExternalLink } from 'lucide-react';
 
 type SelectedElement =
   | {
@@ -98,14 +98,28 @@ export function BilanTypeConstructionCard({
             </div>
           )}
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onRemove(index)}
-          className="text-destructive hover:text-destructive"
-        >
-          <X className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-2">
+          {element.kind === 'section' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(`/creation-trame/${element.id}`, '_blank', 'noopener,noreferrer');
+              }}
+            >
+              <ExternalLink className="h-4 w-4 mr-2" />
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onRemove(index)}
+            className="text-destructive hover:text-destructive"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );

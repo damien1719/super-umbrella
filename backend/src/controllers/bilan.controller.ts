@@ -11,8 +11,9 @@ import { BilanTypeService } from "../services/bilanType.service";
 import { BilanSectionInstanceService } from "../services/bilanSectionInstance.service";
 import { prisma } from "../prisma";
 import { hydrateLayout } from "../services/bilan/composeLayout";
-import { answersToMdBlocks } from "../utils/answersMarkdown";
+import { answersToMarkdown } from "../utils/answersMarkdown";
 import { generateFromTemplate as generateFromTemplateSvc } from "../services/ai/generateFromTemplate";
+import { prependSectionContext } from "../services/ai/promptContext";
 
 
 export const BilanController = {
@@ -93,6 +94,10 @@ export const BilanController = {
           userContent = Anonymization.anonymizeText(userContent, { firstName, lastName });
         }
       }
+
+      // Prefix context with section name for clarity
+      const sectionTitle = cfg.title ?? String(section);
+      userContent = prependSectionContext(userContent, sectionTitle);
 
       const text = await generateText({
         instructions: cfg.instructions,
@@ -256,21 +261,22 @@ export const BilanController = {
               contentNotes,
             });
 
-            const aggregatedNotes: Record<string, unknown> = {
-              ...(contentNotes as Record<string, unknown>),
-            };
-
-            // Provide markdownified blocks to the template LLM context as well
+            // Build markdown context from notes using the shared helper
+            let contextMd: string | undefined;
             try {
               const schemaQuestions = ((section?.schema || []) as unknown[]) as any[];
-              const mdBlocks = answersToMdBlocks(schemaQuestions as any[], contentNotes as Record<string, unknown>);
-              aggregatedNotes["_mdBlocks"] = mdBlocks;
-              aggregatedNotes["_md"] = (mdBlocks || []).join("\n\n");
+              contextMd = answersToMarkdown(schemaQuestions as any[], contentNotes as Record<string, unknown>);
+              console.log("contextMd", contextMd);
             } catch {
               // Non-blocking: if markdownification fails, proceed without it
             }
 
-            const result = await generateFromTemplateSvc(templateId, aggregatedNotes, { instanceId });
+            // Prefix markdown context with section title, if available
+            if (typeof contextMd === 'string' && contextMd.length > 0) {
+              contextMd = prependSectionContext(contextMd, title);
+            }
+
+            const result = await generateFromTemplateSvc(templateId, contentNotes as Record<string, unknown>, { instanceId, contextMd });
 
             // Parse returned Lexical state and append its children (fallback aggregation)
             try {
@@ -300,13 +306,15 @@ export const BilanController = {
           })();
           if (!promptKey) continue;
 
-          // Align prompt content with frontend markdownification
+          // Align prompt content with shared markdownification (_md only)
           const schemaQuestions = ((section?.schema || []) as unknown[]) as any[];
-          const mdBlocks = answersToMdBlocks(schemaQuestions as any[], contentNotes as Record<string, unknown>);
-          let userContent = JSON.stringify(mdBlocks);
+          let userContent = answersToMarkdown(schemaQuestions as any[], contentNotes as Record<string, unknown>);
           if (patientNames.firstName || patientNames.lastName) {
             userContent = Anonymization.anonymizeText(userContent, patientNames);
           }
+
+          // Prefix context with section title for clarity
+          userContent = prependSectionContext(userContent, title);
 
           const cfg = promptConfigs[promptKey];
           let text = await generateText({ instructions: cfg.instructions, userContent, job });
