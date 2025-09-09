@@ -49,16 +49,19 @@ export function LeftNavBilanType({
     document.body.style.userSelect = '';
   }, [onMouseMove]);
 
-  const startDragging = React.useCallback((e: React.MouseEvent) => {
-    isDraggingRef.current = true;
-    startXRef.current = e.clientX;
-    startWidthRef.current = width;
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', stopDragging);
-    document.body.style.cursor = 'ew-resize';
-    document.body.style.userSelect = 'none';
-    e.preventDefault();
-  }, [onMouseMove, stopDragging, width]);
+  const startDragging = React.useCallback(
+    (e: React.MouseEvent) => {
+      isDraggingRef.current = true;
+      startXRef.current = e.clientX;
+      startWidthRef.current = width;
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', stopDragging);
+      document.body.style.cursor = 'ew-resize';
+      document.body.style.userSelect = 'none';
+      e.preventDefault();
+    },
+    [onMouseMove, stopDragging, width],
+  );
 
   React.useEffect(() => {
     return () => {
@@ -86,9 +89,13 @@ export function LeftNavBilanType({
                 (x, idx) => idx > i && x.kind === 'separator',
               );
               const group = items
-                .slice(i + 1, nextSeparatorIndex === -1 ? items.length : nextSeparatorIndex)
+                .slice(
+                  i + 1,
+                  nextSeparatorIndex === -1 ? items.length : nextSeparatorIndex,
+                )
                 .filter((x) => x.kind !== 'separator');
-              const allHidden = group.length > 0 && group.every((x) => (x as any).disabled);
+              const allHidden =
+                group.length > 0 && group.every((x) => (x as any).disabled);
               const someVisible = group.some((x) => !(x as any).disabled);
               return (
                 <div
@@ -101,12 +108,18 @@ export function LeftNavBilanType({
                       <button
                         type="button"
                         className="ml-2 p-1 rounded hover:bg-gray-100 text-gray-500"
-                        title={allHidden ? 'Afficher toutes les sections du groupe' : 'Masquer toutes les sections du groupe'}
+                        title={
+                          allHidden
+                            ? 'Afficher toutes les sections du groupe'
+                            : 'Masquer toutes les sections du groupe'
+                        }
                         onClick={(e) => {
                           e.stopPropagation();
                           // If any section is visible, hide all. Else, show all.
                           const shouldHideAll = someVisible;
-                          for (const s of group as Array<LeftNavItem & { disabled?: boolean }>) {
+                          for (const s of group as Array<
+                            LeftNavItem & { disabled?: boolean }
+                          >) {
                             if (shouldHideAll && !s.disabled) {
                               onToggleDisabled?.(s.id);
                             } else if (!shouldHideAll && s.disabled) {

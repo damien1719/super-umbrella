@@ -292,7 +292,7 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
           }
           // If selection is inside a BorderBlock wrapper, introspect its first child for block-type display
           const underlying = $isBorderBlockNode(topLevel)
-            ? ((topLevel as any).getFirstChild?.() || topLevel)
+            ? (topLevel as any).getFirstChild?.() || topLevel
             : topLevel;
           const type = underlying.getType();
           if (type === 'paragraph') setBlockType('paragraph');
@@ -873,12 +873,12 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
                     (value as string) === 'none'
                       ? '1px solid transparent'
                       : (value as string) === 'thin'
-                      ? '1px solid #000'
-                      : (value as string) === 'medium'
-                      ? '2px solid #000'
-                      : (value as string) === 'thick'
-                      ? '3px solid #000'
-                      : '1px dashed #000',
+                        ? '1px solid #000'
+                        : (value as string) === 'medium'
+                          ? '2px solid #000'
+                          : (value as string) === 'thick'
+                            ? '3px solid #000'
+                            : '1px dashed #000',
                   borderRadius: 2,
                   marginRight: 8,
                 }}

@@ -1,4 +1,9 @@
-import { ElementNode, type DOMExportOutput, type LexicalNode, type NodeKey } from 'lexical';
+import {
+  ElementNode,
+  type DOMExportOutput,
+  type LexicalNode,
+  type NodeKey,
+} from 'lexical';
 
 export type BorderPreset = 'none' | 'thin' | 'medium' | 'thick' | 'dashed';
 
@@ -37,7 +42,8 @@ export class BorderBlockNode extends ElementNode {
       el.removeAttribute('style');
       return;
     }
-    const rule = map[this.__preset as Exclude<BorderPreset, 'none'>] || map.thin;
+    const rule =
+      map[this.__preset as Exclude<BorderPreset, 'none'>] || map.thin;
     el.style.cssText = `border: ${rule} #000; padding: 6px 8px; box-sizing: border-box; width: 100%`;
   }
 
@@ -92,4 +98,3 @@ export function $isBorderBlockNode(
 ): node is BorderBlockNode {
   return node instanceof BorderBlockNode;
 }
-

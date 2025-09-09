@@ -244,53 +244,55 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
             </DialogHeader>
             <div className="space-y-4">
               {(() => {
-                const firstTitreIndex = questions.findIndex((x) => x.type === 'titre');
+                const firstTitreIndex = questions.findIndex(
+                  (x) => x.type === 'titre',
+                );
                 return questions.map((q, idx) => (
-                <div
-                  key={q.id}
-                  className={`space-y-2 p-2 rounded-md border ${
-                    q.type === 'notes' ? 'focus-within:bg-wood-200/50' : ''
-                  }`}
-                >
-                  {q.type === 'titre' ? (
-                    <div
-                      className={`relative z-10 ${
-                        idx === firstTitreIndex ? '' : 'mt-8'
-                      } border-t border-gray-200 pt-4 flex items-center gap-2`}
-                    >
-                      <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-100">
-                        <span className="block h-1.5 w-1.5 rounded-full bg-blue-700" />
-                      </span>
-                      <h3 className="text-xl font-bold">{q.titre}</h3>
-                    </div>
-                  ) : (
-                    <>
-                      <Label className="block text-sm font-medium text-gray-800 mb-1">
-                        {q.titre}
-                      </Label>
-                      <QuestionRenderer
-                        question={q}
-                        value={local[q.id]}
-                        onChange={(v) =>
-                          setLocal({
-                            ...local,
-                            [q.id]: v as
-                              | string
-                              | number
-                              | boolean
-                              | string[]
-                              | Record<string, unknown>,
-                          })
-                        }
-                        error={errors[q.id]}
-                        setError={(msg) =>
-                          setErrors((p) => ({ ...p, [q.id]: msg }))
-                        }
-                      />
-                    </>
-                  )}
-                </div>
-              ));
+                  <div
+                    key={q.id}
+                    className={`space-y-2 p-2 rounded-md border ${
+                      q.type === 'notes' ? 'focus-within:bg-wood-200/50' : ''
+                    }`}
+                  >
+                    {q.type === 'titre' ? (
+                      <div
+                        className={`relative z-10 ${
+                          idx === firstTitreIndex ? '' : 'mt-8'
+                        } border-t border-gray-200 pt-4 flex items-center gap-2`}
+                      >
+                        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-100">
+                          <span className="block h-1.5 w-1.5 rounded-full bg-blue-700" />
+                        </span>
+                        <h3 className="text-xl font-bold">{q.titre}</h3>
+                      </div>
+                    ) : (
+                      <>
+                        <Label className="block text-sm font-medium text-gray-800 mb-1">
+                          {q.titre}
+                        </Label>
+                        <QuestionRenderer
+                          question={q}
+                          value={local[q.id]}
+                          onChange={(v) =>
+                            setLocal({
+                              ...local,
+                              [q.id]: v as
+                                | string
+                                | number
+                                | boolean
+                                | string[]
+                                | Record<string, unknown>,
+                            })
+                          }
+                          error={errors[q.id]}
+                          setError={(msg) =>
+                            setErrors((p) => ({ ...p, [q.id]: msg }))
+                          }
+                        />
+                      </>
+                    )}
+                  </div>
+                ));
               })()}
               <Button onClick={save} className="w-full mt-4">
                 Sauvegarder
