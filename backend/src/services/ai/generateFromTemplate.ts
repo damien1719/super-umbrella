@@ -131,7 +131,7 @@ function computeComputed(ids: string[], spec: Record<string, FieldSpec>, notes: 
 export async function generateFromTemplate(
   sectionTemplateId: string,
   contentNotes: Notes,
-  opts: { instanceId: string; userSlots?: Record<string, unknown>; stylePrompt?: string; model?: string; imageBase64?: string },
+  opts: { instanceId: string; userSlots?: Record<string, unknown>; stylePrompt?: string; model?: string; imageBase64?: string; contextMd?: string },
 ) {
 
   const template = await SectionTemplateService.get(sectionTemplateId);
@@ -149,14 +149,12 @@ export async function generateFromTemplate(
   
   const computed = computeComputed(parts.computed, slotsSpec, contentNotes);
 
-  
-  // Add imageBase64 to contentNotes if present
-  const enrichedContentNotes = opts.imageBase64
-    ? { ...contentNotes, _imageBase64: opts.imageBase64 }
+  // Choose LLM context: prefer plain markdown provided by caller; otherwise raw notes
+  const llmContext = (typeof opts.contextMd === 'string' && opts.contextMd.length > 0)
+    ? opts.contextMd
     : contentNotes;
 
-  
-  const llm = await callModel(parts.llm, slotsSpec, enrichedContentNotes, opts.stylePrompt);
+  const llm = await callModel(parts.llm, slotsSpec, llmContext as unknown as Record<string, unknown> | string, opts.stylePrompt, undefined, opts.imageBase64);
 
   console.log('[DEBUG] generateFromTemplate - LLM response received:');
   console.log('[DEBUG] generateFromTemplate - LLM slots generated:', Object.keys(llm.slots || {}));
@@ -346,5 +344,3 @@ export async function regenerateSlots(instanceId: string, slotIds: string[]) {
 }
 
 export const _test = { partitionSlots, computeComputed };
-
-

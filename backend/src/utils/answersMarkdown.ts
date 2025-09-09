@@ -115,7 +115,7 @@ function markdownifyTable(q: Question, ansTable: TableAnswers): string {
 function markdownifyField(q: Question, value: unknown): string {
   switch (q.type) {
     case 'notes':
-      return `${q.titre}\n\n${value ?? ''}`;
+      return `${q.titre}: ${value ?? ''}`;
     case 'choix-multiple': {
       if (value && typeof value === 'object') {
         const selectedOptions = Array.isArray((value as any).options)
@@ -124,18 +124,18 @@ function markdownifyField(q: Question, value: unknown): string {
             ? String((value as any).option)
             : '';
         const comment = (value as any).commentaire || '';
-        return `${q.titre}\n\n${selectedOptions}${
+        return `${q.titre}: ${selectedOptions}${
           comment ? `\n\n> **Commentaire** : ${comment}` : ''
         }`;
       }
-      return `${q.titre}\n\n${value ?? ''}`;
+      return `${q.titre}: ${value ?? ''}`;
     }
     case 'echelle':
-      return `${q.titre}\n\n${value ?? ''}`;
+      return `${q.titre}: ${value ?? ''}`;
     case 'titre':
-      return `## ${q.titre}\n\n${value ?? ''}`;
+      return `## ${q.titre}: ${value ?? ''}`;
     default:
-      return `${q.titre} : ${value ?? ''}`;
+      return `${q.titre}: ${value ?? ''}`;
   }
 }
 
@@ -167,6 +167,6 @@ export function answersToMdBlocks(questions: Question[], ans: Answers): string[]
 }
 
 export function answersToMarkdown(questions: Question[], ans: Answers): string {
-  return answersToMdBlocks(questions, ans).join('\n\n');
+  return answersToMdBlocks(questions, ans).join('\n---\n');
 }
 

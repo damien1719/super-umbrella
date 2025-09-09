@@ -5,7 +5,7 @@ import { DEFAULT_SYSTEM, SYSTEM_ERGO, SYSTEM_NEUROPSY } from './promptbuilder';
 
 import type { SlotSpec } from '../../../types/template';
 
-type Notes = Record<string, unknown>;
+type Notes = Record<string, unknown> | string;
 
 function isFieldSpec(spec: SlotSpec): spec is import('../../../types/template').FieldSpec {
   return spec.kind === 'field';
@@ -54,7 +54,12 @@ export function buildPrompt(_ids: string[], _spec: Record<string, SlotSpec>, not
   }
 
   if (style) promptText += `\n\n###Style à respecter: ${style}`;
-  if (Object.keys(notes).length > 0) promptText += `\n\n###Contexte: ${JSON.stringify(notes)}`;
+  // Context is a plain markdown string when provided; otherwise fallback to JSON
+  console.log("notes", notes);
+  const contextText = (typeof notes === 'string')
+    ? notes
+    : (Object.keys(notes || {}).length > 0 ? JSON.stringify(notes) : '');
+  if (contextText) promptText += `\n\n###Contexte: ${contextText}`;
 
   // Garde les contraintes de style pour les champs rédigés
   promptText += `\n\n###Règles importantes :
@@ -170,10 +175,14 @@ function normalizeToArray(data: unknown): Array<{ id: string; value: unknown }> 
   return [];
 }
 
-export async function callModel(ids: string[], spec: Record<string, SlotSpec>, notes: Notes, style?: string, job?: 'PSYCHOMOTRICIEN' | 'ERGOTHERAPEUTE' | 'NEUROPSYCHOLOGUE') {
-  // Extract imageBase64 from notes if present
-  const { _imageBase64, ...cleanNotes } = notes as Notes & { _imageBase64?: string };
-  const imageBase64 = _imageBase64;
+export async function callModel(
+  ids: string[],
+  spec: Record<string, SlotSpec>,
+  notes: Notes,
+  style?: string,
+  job?: 'PSYCHOMOTRICIEN' | 'ERGOTHERAPEUTE' | 'NEUROPSYCHOLOGUE',
+  imageBase64?: string,
+) {
   console.log('[DEBUG] callModel - STARTED', {
     idsCount: ids.length,
     ids: ids,
@@ -207,7 +216,7 @@ export async function callModel(ids: string[], spec: Record<string, SlotSpec>, n
       batchIds: batch,
     });
 
-    const prompt = buildPrompt(batch, spec, cleanNotes, style, job);
+    const prompt = buildPrompt(batch, spec, notes, style, job);
     console.log(`[DEBUG] callModel - Batch ${batchIndex + 1} prompt built:`, {
       promptLength: prompt.length,
       promptPreview: prompt.slice(0, 300) + '...',
@@ -300,5 +309,3 @@ export async function callModel(ids: string[], spec: Record<string, SlotSpec>, n
 }
 
 export const _test = { buildPrompt, buildZod };
-
-
