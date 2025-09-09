@@ -190,8 +190,10 @@ export const BilanTypeService = {
         where: { bilanTypeId: id },
         select: { sectionId: true },
       });
-      const oldSet = new Set((prev || []).map((e: { sectionId: string }) => e.sectionId));
-      const newSet = new Set(sections.map((s) => s.sectionId));
+      const oldSet: Set<string> = new Set(
+        (prev || []).map((e: { sectionId: string }) => e.sectionId),
+      );
+      const newSet: Set<string> = new Set(sections.map((s) => s.sectionId));
       addedIds = Array.from(newSet).filter((sid) => !oldSet.has(sid));
       removedIds = Array.from(oldSet).filter((sid) => !newSet.has(sid));
     }

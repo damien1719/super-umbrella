@@ -32,7 +32,7 @@ export default function BilanTypes() {
   }, [fetchAll]);
 
   return (
-    <div className="min-h-screen bg-wood-50 p-6">
+    <div className="bg-wood-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8 flex items-center justify-between">
           <div>
