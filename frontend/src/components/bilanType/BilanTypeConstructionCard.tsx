@@ -105,7 +105,11 @@ export function BilanTypeConstructionCard({
               size="sm"
               onClick={(e) => {
                 e.stopPropagation();
-                window.open(`/creation-trame/${element.id}`, '_blank', 'noopener,noreferrer');
+                window.open(
+                  `/creation-trame/${element.id}`,
+                  '_blank',
+                  'noopener,noreferrer',
+                );
               }}
             >
               <ExternalLink className="h-4 w-4 mr-2" />

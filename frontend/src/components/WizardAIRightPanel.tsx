@@ -470,8 +470,9 @@ export default function WizardAIRightPanel({
             hasGeneral = true;
           }
         }
-        if (hasGeneral) titles.unshift('Général');
-        if (!hasGeneral && titles.length === 0) titles.push('Général');
+        const sectionTitle = active?.title || 'Général';
+        if (hasGeneral) titles.unshift(sectionTitle);
+        if (!hasGeneral && titles.length === 0) titles.push(sectionTitle);
         return titles;
       })();
       const activeAnswers =
@@ -506,25 +507,25 @@ export default function WizardAIRightPanel({
               if (next) dataEntryRef.current?.load?.(next);
             }}
             onToggleDisabled={(id) => {
-              setExcludedSectionIds((prev) =>
-                prev.includes(id)
+              // Use functional update to compute "next" and emit it,
+              // avoiding stale closure issues when toggling in batch.
+              setExcludedSectionIds((prev) => {
+                const next = prev.includes(id)
                   ? prev.filter((x) => x !== id)
-                  : [...prev, id],
-              );
-              // notify outer wrapper for bulk action
-              try {
-                const evt = new CustomEvent('bilan-type:excluded-changed', {
-                  detail: excludedSectionIds.includes(id)
-                    ? excludedSectionIds.filter((x) => x !== id)
-                    : [...excludedSectionIds, id],
-                });
-                window.dispatchEvent(evt);
-              } catch {}
+                  : [...prev, id];
+                try {
+                  const evt = new CustomEvent('bilan-type:excluded-changed', {
+                    detail: next,
+                  });
+                  window.dispatchEvent(evt);
+                } catch {}
+                return next;
+              });
             }}
           />
           <div className="flex-1 flex flex-col">
             {/* In-section outline chips (replaces the inner left nav) */}
-            <Tabs
+            {/*             <Tabs
               className="mb-4"
               active={notesMode}
               onChange={(k) => {
@@ -538,7 +539,7 @@ export default function WizardAIRightPanel({
                 { key: 'manual', label: 'Saisie manuelle' },
                 { key: 'import', label: 'Import des notes' },
               ]}
-            />
+            /> */}
             {notesMode === 'manual' && (
               <InlineGroupChips titles={groupTitles} />
             )}
@@ -557,6 +558,7 @@ export default function WizardAIRightPanel({
                 }}
                 inline
                 showGroupNav={false}
+                defaultGroupTitle={active?.title}
               />
             ) : (
               <ImportNotes
@@ -592,6 +594,7 @@ export default function WizardAIRightPanel({
               answers={answers}
               onChange={onAnswersChange}
               inline
+              defaultGroupTitle={sectionInfo.title}
             />
           ) : (
             <ImportNotes
