@@ -1,6 +1,7 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import {
   FORMAT_TEXT_COMMAND,
+  FORMAT_ELEMENT_COMMAND,
   $getSelection,
   $isRangeSelection,
   type LexicalEditor,
@@ -13,7 +14,7 @@ import {
 } from '@lexical/list';
 import { useCallback, useEffect, useState } from 'react';
 import { $patchStyleText, $setBlocksType } from '@lexical/selection';
-import { Save, FileDown } from 'lucide-react';
+import { Save, FileDown, AlignCenter } from 'lucide-react';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -48,6 +49,11 @@ import { $generateHtmlFromNodes } from '@lexical/html';
 import DOMPurify from 'dompurify';
 import { toDocxBlob } from '@/lib/htmlDocx';
 import OverflowToolbar, { type OverflowItem } from './OverflowToolbar';
+import {
+  $createBorderBlockNode,
+  $isBorderBlockNode,
+  type BorderPreset,
+} from '../nodes/BorderBlockNode';
 
 export function setFontSize(editor: LexicalEditor, size: string) {
   editor.update(() => {
@@ -96,6 +102,102 @@ export function setBackgroundColor(
       $patchStyleText(selection, { 'background-color': color || null });
     }
   });
+}
+
+// Bordure de paragraphe: applique/retire une bordure sur l'élément bloc (p/h1/h2/h3/quote)
+function setBlockBorderPreset(editor: LexicalEditor, preset: BorderPreset) {
+  editor.update(() => {
+    const selection = $getSelection();
+    if (!selection || !$isRangeSelection(selection)) return;
+
+    // Collect unique top-level elements affected by selection
+    const tops = new Set<any>();
+    for (const n of selection.getNodes()) {
+      const t = (n as any).getTopLevelElement?.();
+      if (t && !(t as any).isRoot?.()) tops.add(t);
+    }
+    if (tops.size === 0) {
+      const t = selection.anchor.getNode().getTopLevelElement();
+      if (t && !(t as any).isRoot?.()) tops.add(t);
+    }
+
+    for (const top of tops) {
+      // If already a BorderBlock, update or unwrap
+      if ($isBorderBlockNode(top)) {
+        if (preset === 'none') {
+          // Unwrap: move children out, then remove wrapper
+          let child = (top as any).getFirstChild?.();
+          while (child) {
+            (top as any).insertBefore?.(child);
+            child = (top as any).getFirstChild?.();
+          }
+          (top as any).remove?.();
+        } else {
+          (top as any).setPreset?.(preset);
+        }
+        continue;
+      }
+
+      // Not a BorderBlock wrapper
+      if (preset === 'none') continue;
+
+      // Wrap the current top-level block with a BorderBlockNode
+      const wrapper = $createBorderBlockNode(preset);
+      // Replace the top with wrapper, then append the original top inside wrapper
+      (top as any).replace?.(wrapper);
+      (wrapper as any).append?.(top);
+    }
+  });
+}
+
+// Normalise les bordures pour l'export DOCX:
+// - remplace currentColor par une couleur concrète (noir par défaut ou color inline)
+// - convertit les valeurs en px vers pt (mieux compris par Word)
+function normalizeBordersForDocx(html: string): string {
+  try {
+    const container = document.createElement('div');
+    container.innerHTML = html;
+    const nodes = container.querySelectorAll<HTMLElement>('[style*="border"]');
+    nodes.forEach((el) => {
+      let style = el.getAttribute('style') || '';
+      // Remplace currentColor par la couleur inline si présente, sinon noir
+      if (/currentcolor/i.test(style)) {
+        const colorMatch = /color\s*:\s*([^;]+)/i.exec(style);
+        const color = (colorMatch ? colorMatch[1] : '#000000').trim();
+        style = style.replace(/currentcolor/gi, color);
+      }
+      // Si la bordure est sur un span inline, forcer inline-block;
+      // ne pas toucher aux éléments bloc (p, h1-h3, blockquote, li, div, td, th) pour conserver pleine largeur
+      const tag = el.tagName.toUpperCase();
+      const isInlineSpan = tag === 'SPAN';
+      if (isInlineSpan && !/display\s*:\s*inline-block/i.test(style)) {
+        style = `${style.trim()}${style.trim() ? '; ' : ''}display: inline-block`;
+      }
+      // Convertit px -> pt pour border, border-*-width et padding
+      const pxToPt = (px: number) => (px * 0.75).toFixed(2);
+      style = style.replace(
+        /(border(?:-left|-right|-top|-bottom)?-width\s*:\s*)(\d+(?:\.\d+)?)px/gi,
+        (_, p1, px) => `${p1}${pxToPt(parseFloat(px))}pt`,
+      );
+      style = style.replace(
+        /(border\s*:\s*)(\d+(?:\.\d+)?)px/gi,
+        (_, p1, px) => `${p1}${pxToPt(parseFloat(px))}pt`,
+      );
+      style = style.replace(
+        /(padding(?:-left|-right|-top|-bottom)?\s*:\s*)(\d+(?:\.\d+)?)px/gi,
+        (_, p1, px) => `${p1}${pxToPt(parseFloat(px))}pt`,
+      );
+      style = style.replace(
+        /(padding\s*:\s*)([^;]+)/gi,
+        (_, p1, vals) =>
+          `${p1}${vals.replace(/(\d+(?:\.\d+)?)px/gi, (_, v) => `${pxToPt(parseFloat(v))}pt`)}`,
+      );
+      el.setAttribute('style', style);
+    });
+    return container.innerHTML;
+  } catch {
+    return html;
+  }
 }
 
 interface Props {
@@ -169,6 +271,7 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
   const [isBold, setIsBold] = useState(false);
   const [isItalic, setIsItalic] = useState(false);
   const [isUnderline, setIsUnderline] = useState(false);
+  const [isCentered, setIsCentered] = useState(false);
   const [blockType, setBlockType] = useState<
     'paragraph' | 'h1' | 'h2' | 'h3' | 'quote'
   >('paragraph');
@@ -187,19 +290,32 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
             setBlockType('paragraph');
             return;
           }
-          const type = topLevel.getType();
+          // If selection is inside a BorderBlock wrapper, introspect its first child for block-type display
+          const underlying = $isBorderBlockNode(topLevel)
+            ? (topLevel as any).getFirstChild?.() || topLevel
+            : topLevel;
+          const type = underlying.getType();
           if (type === 'paragraph') setBlockType('paragraph');
-          else if ($isHeadingNode(topLevel)) {
-            const tag = topLevel.getTag();
+          else if ($isHeadingNode(underlying)) {
+            const tag = (underlying as any).getTag?.();
             if (tag === 'h1' || tag === 'h2' || tag === 'h3') setBlockType(tag);
             else setBlockType('paragraph');
           } else if (type === 'quote') setBlockType('quote');
+
+          // Track alignment (center) state based on element format
+          try {
+            const formatType = (topLevel as any)?.getFormatType?.() ?? 'left';
+            setIsCentered(formatType === 'center');
+          } catch {
+            setIsCentered(false);
+          }
         } else {
           // caret ou autre sélection → tente une lecture via formats actifs du point courant
           setIsBold(false);
           setIsItalic(false);
           setIsUnderline(false);
           setBlockType('paragraph');
+          setIsCentered(false);
         }
       });
     });
@@ -435,6 +551,35 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
     ),
   });
 
+  // Align center toggle
+  toolbarItems.push({
+    key: 'align-center',
+    element: (
+      <Button
+        type="button"
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={() => {
+          // Restore selection, then toggle alignment
+          restoreSelectionAndFocus();
+          setTimeout(() => {
+            try {
+              editor.dispatchCommand(
+                FORMAT_ELEMENT_COMMAND,
+                isCentered ? 'left' : 'center',
+              );
+            } catch {}
+          }, 0);
+        }}
+        variant="editor"
+        active={isCentered}
+        aria-label="Centrer"
+        title="Centrer le texte"
+      >
+        <AlignCenter className="w-4 h-4" />
+      </Button>
+    ),
+  });
+
   toolbarItems.push({
     key: 'sep-1',
     element: <div className="w-px self-stretch bg-wood-200 mx-1" />,
@@ -537,6 +682,8 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
               );
             });
           } catch {}
+          // Normalisation spécifique à Word/DOCX
+          html = normalizeBordersForDocx(html);
           const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="ie=edge"/><style>
             body { font-family: ${fontFamily}; font-size: ${fontSize}pt; line-height: ${lineHeight}; }
             p { margin: 0 0 8px 0; }
@@ -667,6 +814,72 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
                   height: 12,
                   backgroundColor: (value as string) || 'transparent',
                   border: '1px solid #e5e7eb',
+                  marginRight: 8,
+                }}
+              />
+              {label as string}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    ),
+  });
+
+  // Bordure de paragraphe (pleine largeur)
+  toolbarItems.push({
+    key: 'border',
+    element: (
+      <DropdownMenu onOpenChange={(open) => !open && handleSelectClosed()}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            variant="editor"
+            aria-label="Bordure de paragraphe"
+            title="Bordure de paragraphe (pleine largeur)"
+          >
+            Bordure
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          {[
+            ['Aucune', 'none'],
+            ['Fine', 'thin'],
+            ['Moyenne', 'medium'],
+            ['Épaisse', 'thick'],
+            ['Pointillée', 'dashed'],
+          ].map(([label, value]) => (
+            <DropdownMenuItem
+              key={label as string}
+              onClick={() => {
+                restoreSelectionAndFocus();
+                setTimeout(
+                  () =>
+                    setBlockBorderPreset(
+                      editor,
+                      value as 'none' | 'thin' | 'medium' | 'thick' | 'dashed',
+                    ),
+                  0,
+                );
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-block',
+                  width: 36,
+                  height: 14,
+                  lineHeight: '14px',
+                  border:
+                    (value as string) === 'none'
+                      ? '1px solid transparent'
+                      : (value as string) === 'thin'
+                        ? '1px solid #000'
+                        : (value as string) === 'medium'
+                          ? '2px solid #000'
+                          : (value as string) === 'thick'
+                            ? '3px solid #000'
+                            : '1px dashed #000',
+                  borderRadius: 2,
                   marginRight: 8,
                 }}
               />

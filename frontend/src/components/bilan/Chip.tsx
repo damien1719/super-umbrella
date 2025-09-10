@@ -18,7 +18,7 @@ export function Chip({ selected, children, onClick }: ChipProps) {
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40',
         selected
           ? 'bg-primary-50 text-primary-700 border-primary-400'
-          : 'bg-white text-gray-800 border-gray-300 hover:bg-gray-50',
+          : 'bg-white text-gray-800 border-gray-300 hover:bg-wood-200',
         'shadow-sm',
       ].join(' ')}
     >

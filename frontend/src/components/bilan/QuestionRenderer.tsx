@@ -52,7 +52,7 @@ export function QuestionRenderer({
           : '';
       return (
         <div className="space-y-2">
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-2 md:grid-cols-3">
             {question.options?.map((opt) => {
               const isSelected = selected.includes(opt);
               return (
@@ -81,7 +81,7 @@ export function QuestionRenderer({
                     commentaire: e.target.value,
                   })
                 }
-                placeholder="Commentaire"
+                placeholder="Observations"
               />
             </div>
           )}
@@ -89,7 +89,7 @@ export function QuestionRenderer({
       );
     case 'echelle':
       return (
-        <div className="space-y-1">
+        <div className="space-y-1 max-w-24">
           <Input
             type="number"
             value={String(value ?? '')}

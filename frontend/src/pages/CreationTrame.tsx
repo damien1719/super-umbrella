@@ -43,8 +43,8 @@ export default function CreationTrame() {
   const createExample = useSectionExampleStore((s) => s.create);
 
   const [tab, setTab] = useState<
-    'questions' | 'preview' | 'examples' | 'template' | 'settings'
-  >('questions');
+    'preview' | 'questions' | 'examples' | 'template' | 'settings'
+  >('preview');
   const [previewAnswers, setPreviewAnswers] = useState<Answers>({});
   const [newExamples, setNewExamples] = useState<string[]>([]);
   const [nomTrame, setNomTrame] = useState('');
@@ -352,16 +352,6 @@ export default function CreationTrame() {
             <nav className="flex gap-4">
               <button
                 className={`pb-2 px-1 border-b-2 ${
-                  tab === 'questions'
-                    ? 'border-primary-600'
-                    : 'border-transparent'
-                }`}
-                onClick={() => setTab('questions')}
-              >
-                Questions
-              </button>
-              <button
-                className={`pb-2 px-1 border-b-2 ${
                   tab === 'preview'
                     ? 'border-primary-600'
                     : 'border-transparent'
@@ -369,6 +359,16 @@ export default function CreationTrame() {
                 onClick={() => setTab('preview')}
               >
                 Pré-visualisation
+              </button>
+              <button
+                className={`pb-2 px-1 border-b-2 ${
+                  tab === 'questions'
+                    ? 'border-primary-600'
+                    : 'border-transparent'
+                }`}
+                onClick={() => setTab('questions')}
+              >
+                Questions
               </button>
               <button
                 className={`pb-2 px-1 border-b-2 ${
