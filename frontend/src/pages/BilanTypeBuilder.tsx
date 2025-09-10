@@ -27,6 +27,7 @@ import { Job, jobOptions } from '@/types/job';
 import { hydrateLayout, type LexicalState } from '@/utils/hydrateLayout';
 import { ArrowLeft, Loader2, Save } from 'lucide-react';
 import SharePanel from '@/components/SharePanel';
+import ExitConfirmation from '@/components/ExitConfirmation';
 import LeftNavBilanType from '@/components/bilan/LeftNavBilanType';
 import { DataEntry, type DataEntryHandle } from '@/components/bilan/DataEntry';
 import type { Answers, Question } from '@/types/question';
@@ -76,6 +77,7 @@ export default function BilanTypeBuilder({
   const [apercuAnswers, setApercuAnswers] = useState<Record<string, Answers>>(
     {},
   );
+  const [showConfirm, setShowConfirm] = useState(false);
 
   
 
@@ -489,7 +491,7 @@ export default function BilanTypeBuilder({
 
   // drag end handled inline where needed
 
-  const saveBilanType = async () => {
+  const doSaveBilanType = async () => {
     setIsSaving(true);
     try {
       // Derive sections order from layout placeholders (by appearance order)
@@ -511,10 +513,14 @@ export default function BilanTypeBuilder({
       } else {
         await createBilanType(payload);
       }
-      navigate('/bilan-types');
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const saveBilanType = async () => {
+    await doSaveBilanType();
+    navigate('/bilan-types');
   };
 
   // Small local component to render the left sidebar list of sections
@@ -570,7 +576,7 @@ export default function BilanTypeBuilder({
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => navigate(-1)}
+                onClick={() => setShowConfirm(true)}
                 aria-label="Retour"
               >
                 <ArrowLeft className="h-5 w-5" />
@@ -928,6 +934,15 @@ export default function BilanTypeBuilder({
             />
           </div>
         )}
+        <ExitConfirmation
+          open={showConfirm}
+          onOpenChange={setShowConfirm}
+          onConfirm={async () => {
+            await doSaveBilanType();
+            navigate(-1);
+          }}
+          onCancel={() => navigate(-1)}
+        />
       </div>
     </div>
   );
