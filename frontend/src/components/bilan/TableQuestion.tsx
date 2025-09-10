@@ -102,7 +102,7 @@ export function TableQuestion({
                   [rowKey]: !prev[rowKey],
                 }))
               }
-              className="h-7 px-2 text-xs ml-0"
+              className="h-7 px-2 text-sm ml-0"
             >
               {isExpanded ? (
                 <>
@@ -236,21 +236,21 @@ export function TableQuestion({
   return (
     <div className="space-y-2">
       {question.tableau?.rowsGroups?.map((rowsGroup) => (
-        <div key={rowsGroup.id} className="mb-4">
+        <div key={rowsGroup.id} className="">
           {rowsGroup.title && (
-            <div className="px-2 py-1 font-bold text-sm">{rowsGroup.title}</div>
+            <div className="py-1 font-bold text-sm">{rowsGroup.title}</div>
           )}
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
                 <tr>
-                  <th className="px-2 py-1 text-left max-w-48 w-48">
-                    <div className="text-xs font-medium">Lignes</div>
+                  <th className="px-2 py-1 text-left max-w-48">
+                    <div className="text-sm font-medium"></div>
                   </th>
                   {question.tableau?.columns?.map((col) => (
                     <th
                       key={col.id}
-                      className={`px-2 py-1 text-xs font-medium text-left ${getColumnWidth(col)}`}
+                      className={`px-2 py-1 text-sm font-medium text-left ${getColumnWidth(col)}`}
                     >
                       <div className="truncate" title={col.label}>
                         {col.label}
@@ -262,8 +262,8 @@ export function TableQuestion({
               <tbody>
                 {rowsGroup.rows.map((row) => (
                   <tr key={row.id} className="border-t border-gray-100">
-                    <td className="px-2 py-1 text-xs font-medium max-w-48 w-48">
-                      <div className="truncate" title={row.label}>
+                    <td className="py-1 text-sm font-medium max-w-48">
+                      <div className="whitespace-normal break-words line-clamp-2" title={row.label}>
                         {row.label}
                       </div>
                     </td>
@@ -284,8 +284,8 @@ export function TableQuestion({
       ))}
       {question.tableau?.commentaire && (
         <div>
-          <Label className="text-sm font-medium">Commentaire</Label>
           <Textarea
+            placeholder="Observations complémentaires"
             value={data.commentaire || ''}
             onChange={(e) => onChange({ ...data, commentaire: e.target.value })}
           />

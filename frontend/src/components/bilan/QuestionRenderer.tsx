@@ -89,7 +89,7 @@ export function QuestionRenderer({
       );
     case 'echelle':
       return (
-        <div className="space-y-1">
+        <div className="space-y-1 max-w-24">
           <Input
             type="number"
             value={String(value ?? '')}
