@@ -16,7 +16,7 @@ import { SectionCardSmall } from './SectionCardSmall';
 
 // ✅ use your shared domain types & data
 import type { CategoryId, Category } from '@/types/trame';
-import { categories } from '@/types/trame';
+import { categories, getCategoryLabel } from '@/types/trame';
 import type { Job } from '@/types/job';
 import { jobOptions } from '@/types/job';
 
@@ -35,9 +35,8 @@ interface SectionDisponibleProps {
   onAddElement: (element: BilanElement) => void;
 }
 
-// Helper for the label of a CategoryId using the shared categories array
-const categoryLabel = (id: CategoryId) =>
-  (categories as Category[]).find((c) => c.id === id)?.title ?? id;
+// Use shared label helper from types
+const categoryLabel = (id: CategoryId) => getCategoryLabel(id);
 
 // -------------------- Component --------------------
 
@@ -101,7 +100,7 @@ export function SectionDisponible({
             />
           </div>
 
-          <div className="grid grid-cols-1 gap-2">
+          <div className="flex gap-2">
             {/* Type d'élément (CategoryId) */}
             <Select
               value={filterType}

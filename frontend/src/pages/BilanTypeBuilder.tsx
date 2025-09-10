@@ -27,6 +27,9 @@ import { Job, jobOptions } from '@/types/job';
 import { hydrateLayout, type LexicalState } from '@/utils/hydrateLayout';
 import { ArrowLeft, Loader2, Save } from 'lucide-react';
 import SharePanel from '@/components/SharePanel';
+import LeftNavBilanType from '@/components/bilan/LeftNavBilanType';
+import { DataEntry, type DataEntryHandle } from '@/components/bilan/DataEntry';
+import type { Answers, Question } from '@/types/question';
 
 // Types d'élément composant la construction
 type SectionElement = {
@@ -58,14 +61,23 @@ export default function BilanTypeBuilder({
   const [bilanName, setBilanName] = useState('');
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [mode, setMode] = useState<'build' | 'layout' | 'preview' | 'settings'>(
-    'build',
-  );
+  const [mode, setMode] = useState<
+    'build' | 'layout' | 'apercu' | 'preview' | 'settings'
+  >('build');
   const [layoutJson, setLayoutJson] = useState<unknown | undefined>(undefined);
   const [jobs, setJobs] = useState<Job[]>([]);
   const layoutEditorRef = useRef<RichTextEditorHandle | null>(null);
+  const apercuDataEntryRef = useRef<DataEntryHandle | null>(null);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState('');
+  const [apercuActiveSectionId, setApercuActiveSectionId] = useState<
+    string | null
+  >(null);
+  const [apercuAnswers, setApercuAnswers] = useState<Record<string, Answers>>(
+    {},
+  );
+
+  
 
   const sections = useSectionStore((s) => s.items);
   const fetchSections = useSectionStore((s) => s.fetchAll);
@@ -300,6 +312,46 @@ export default function BilanTypeBuilder({
     return out;
   };
 
+  // Derived: nav items for the Aperçu tab from layout
+  type ApercuNavItem = {
+    id: string;
+    title: string;
+    kind?: 'section' | 'separator';
+    index?: number;
+    schema?: Question[];
+  };
+  const apercuNavItems = useMemo<ApercuNavItem[]>(() => {
+    const { segments } = computeSegments(layoutJson);
+    const items: ApercuNavItem[] = [];
+    let idx = 0;
+    for (let i = 0; i < segments.length; i++) {
+      const s = segments[i];
+      if (s.kind === 'heading') {
+        if ((s.title || '').trim()) {
+          items.push({ id: `__sep__${i}`, title: s.title, kind: 'separator' });
+        }
+      } else {
+        const sec = sections.find((x) => x.id === s.sectionId);
+        items.push({
+          id: s.sectionId,
+          title: (sec?.title as string) || `Section ${idx + 1}`,
+          kind: 'section',
+          index: idx,
+          schema: ((sec?.schema || []) as unknown as Question[]) || [],
+        });
+        idx += 1;
+      }
+    }
+    return items;
+  }, [layoutJson, sections]);
+
+  // Ensure we have an active section selected when items change
+  useEffect(() => {
+    if (apercuActiveSectionId) return;
+    const first = apercuNavItems.find((x) => x.kind !== 'separator');
+    if (first?.id) setApercuActiveSectionId(first.id);
+  }, [apercuActiveSectionId, apercuNavItems]);
+
   const addSectionElement = (element: {
     id: string;
     type: CategoryId;
@@ -509,7 +561,7 @@ export default function BilanTypeBuilder({
   }
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen bg-background p-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
@@ -586,8 +638,9 @@ export default function BilanTypeBuilder({
               tabs={[
                 { key: 'build', label: 'Construction' },
                 { key: 'layout', label: 'Edition Word' },
-                { key: 'preview', label: 'Aperçu complet' },
-                { key: 'settings', label: 'Réglages' },
+                { key: 'apercu', label: 'Aperçu des questions' },
+/*                 { key: 'preview', label: 'Modèle Word (avancé)' },
+ */                { key: 'settings', label: 'Réglages' },
               ]}
               active={mode}
               onChange={(k) => setMode(k as typeof mode)}
@@ -681,6 +734,88 @@ export default function BilanTypeBuilder({
               </CardContent>
             </Card>
           </div>
+        ) : mode === 'apercu' ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Aperçu: nav de gauche + saisie inline sans persistance */}
+            <Card className="lg:col-span-3">
+              <CardContent>
+                {(() => {
+                  const firstSection = apercuNavItems.find(
+                    (x) => x.kind !== 'separator',
+                  );
+                  const activeId =
+                    apercuActiveSectionId || firstSection?.id || null;
+                  const active = apercuNavItems.find(
+                    (x) => x.id === activeId && x.kind !== 'separator',
+                  );
+                  const activeQuestions = (active?.schema ?? []) as Question[];
+                  const activeTitle = active?.title;
+                  const answers = (activeId && apercuAnswers[activeId]) || {};
+
+                  return (
+                    <div className="flex h-[70vh] min-h-[480px] overflow-hidden">
+                      <LeftNavBilanType
+                        items={apercuNavItems.map((s) =>
+                          s.kind === 'separator'
+                            ? {
+                                id: s.id,
+                                title: s.title,
+                                kind: 'separator' as const,
+                              }
+                            : {
+                                id: s.id,
+                                title: s.title,
+                                kind: 'section' as const,
+                                index: s.index,
+                              },
+                        )}
+                        activeId={activeId}
+                        onSelect={(id) => {
+                          if (apercuActiveSectionId) {
+                            try {
+                              const data =
+                                apercuDataEntryRef.current?.getAnswers?.() as
+                                  | Answers
+                                  | undefined;
+                              if (data) {
+                                setApercuAnswers((prev) => ({
+                                  ...prev,
+                                  [apercuActiveSectionId]: data,
+                                }));
+                              }
+                            } catch {}
+                          }
+                          setApercuActiveSectionId(id);
+                          const next = apercuAnswers[id];
+                          if (next) apercuDataEntryRef.current?.load?.(next);
+                          else apercuDataEntryRef.current?.clear?.();
+                        }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <DataEntry
+                          ref={
+                            apercuDataEntryRef as unknown as React.RefObject<DataEntryHandle>
+                          }
+                          questions={activeQuestions}
+                          answers={answers}
+                          onChange={(a) => {
+                            if (!activeId) return;
+                            setApercuAnswers((prev) => ({
+                              ...prev,
+                              [activeId]: a,
+                            }));
+                          }}
+                          inline
+                          showGroupNav={false}
+                          defaultGroupTitle={activeTitle}
+                        />
+                      </div>
+                    </div>
+                  );
+                })()}
+              </CardContent>
+            </Card>
+          </div>
         ) : mode === 'preview' ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Sidebar intentionally removed in preview mode to keep focus on the composed output */}
@@ -689,7 +824,7 @@ export default function BilanTypeBuilder({
               <Card>
                 <CardHeader>
                   <CardTitle>
-                    Aperçu (composé): {bilanName || 'Sans nom'}
+                    Modèle Word (avancé): {bilanName || 'Sans nom'}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>

@@ -44,7 +44,13 @@ export interface SurveyTable {
 
 export interface Question {
   id: string;
-  type: 'notes' | 'choix-multiple' | 'echelle' | 'tableau' | 'titre';
+  type:
+    | 'notes'
+    | 'choix-multiple'
+    | 'choix-unique'
+    | 'echelle'
+    | 'tableau'
+    | 'titre';
   titre: string;
   contenu?: string;
   options?: string[];

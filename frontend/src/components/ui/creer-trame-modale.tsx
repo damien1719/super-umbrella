@@ -41,7 +41,7 @@ export default function CreerTrameModal({
         trigger || (
           <Button variant="primary">
             <Plus className="h-4 w-4 mr-2" />
-            Créer sa trame
+            Créer une section
           </Button>
         )
       }

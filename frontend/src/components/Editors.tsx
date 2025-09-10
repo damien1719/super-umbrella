@@ -618,6 +618,7 @@ export const EDITORS: Record<
 > = {
   notes: NotesEditor,
   'choix-multiple': MultiChoiceEditor,
+  'choix-unique': MultiChoiceEditor,
   echelle: ScaleEditor,
   tableau: TableEditor,
   titre: TitleEditor,

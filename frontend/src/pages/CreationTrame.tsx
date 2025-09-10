@@ -358,7 +358,7 @@ export default function CreationTrame() {
                 }`}
                 onClick={() => setTab('preview')}
               >
-                Pré-visualisation
+                Aperçu
               </button>
               <button
                 className={`pb-2 px-1 border-b-2 ${
@@ -368,7 +368,17 @@ export default function CreationTrame() {
                 }`}
                 onClick={() => setTab('questions')}
               >
-                Questions
+                Edition
+              </button>
+              <button
+                className={`pb-2 px-1 border-b-2 ${
+                  tab === 'template'
+                    ? 'border-primary-600'
+                    : 'border-transparent'
+                }`}
+                onClick={() => setTab('template')}
+              >
+                Modèle Word
               </button>
               <button
                 className={`pb-2 px-1 border-b-2 ${
@@ -379,16 +389,6 @@ export default function CreationTrame() {
                 onClick={() => setTab('examples')}
               >
                 Exemples
-              </button>
-              <button
-                className={`pb-2 px-1 border-b-2 ${
-                  tab === 'template'
-                    ? 'border-primary-600'
-                    : 'border-transparent'
-                }`}
-                onClick={() => setTab('template')}
-              >
-                Template
               </button>
               <button
                 className={`pb-2 px-1 border-b-2 ${
