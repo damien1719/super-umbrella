@@ -42,22 +42,24 @@ export function TableQuestion({
   }
 
   const getColumnWidth = (col: ColumnDef) => {
+    // Largeurs fixes pour un layout table-fixed prédictible
     switch (col.valueType) {
       case 'bool':
-        return 'w-16'; // Juste pour le checkbox
+        return 'w-16';
       case 'choice':
-        return 'max-w-32'; // Largeur maximale pour les listes déroulantes
+        return 'w-48';
       case 'number':
-        return 'max-w-24'; // Largeur maximale pour les nombres
+        return 'w-16';
       case 'image':
-        return 'max-w-40'; // Largeur maximale pour les URLs d'images
+        return 'w-40';
       case 'multi-choice':
+        return 'w-256';
       case 'multi-choice-row':
-        return 'min-w-48'; // Largeur minimale pour les choix multiples
+        return 'w-256';
       case 'text':
-        return 'min-w-32'; // Largeur minimale pour le texte, mais peut s'agrandir
+        return 'w-256';
       default:
-        return 'min-w-32'; // Largeur minimale par défaut
+        return 'w-40';
     }
   };
 
@@ -169,7 +171,7 @@ export function TableQuestion({
             onChange={(e) =>
               update(e.target.value === '' ? '' : Number(e.target.value))
             }
-            className={`${FIELD_BASE} ${FIELD_DENSE}`}
+            className={`${FIELD_BASE} ${FIELD_DENSE} w-full`}
           />
         );
       case 'choice':
@@ -205,7 +207,7 @@ export function TableQuestion({
           <div className="flex items-center justify-center">
             <input
               type="checkbox"
-              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500/40"
+              className="h-5 w-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500/40 accent-primary-600"
               checked={Boolean(cellValue)}
               onChange={(e) => update(e.target.checked)}
             />
@@ -218,7 +220,7 @@ export function TableQuestion({
             value={(cellValue as string) ?? ''}
             onChange={(e) => update(e.target.value)}
             placeholder="URL"
-            className={`${FIELD_BASE} ${FIELD_DENSE}`}
+            className={`${FIELD_BASE} ${FIELD_DENSE} w-full`}
           />
         );
       default:
@@ -241,10 +243,10 @@ export function TableQuestion({
             <div className="py-1 font-bold text-sm">{rowsGroup.title}</div>
           )}
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
+            <table className="table-fixed border-collapse">
               <thead>
                 <tr>
-                  <th className="px-2 py-1 text-left max-w-48">
+                  <th className="px-2 py-1 text-left w-56">
                     <div className="text-sm font-medium"></div>
                   </th>
                   {question.tableau?.columns?.map((col) => (
@@ -262,8 +264,11 @@ export function TableQuestion({
               <tbody>
                 {rowsGroup.rows.map((row) => (
                   <tr key={row.id} className="border-t border-gray-100">
-                    <td className="py-1 text-sm font-medium max-w-48">
-                      <div className="whitespace-normal break-words line-clamp-2" title={row.label}>
+                    <td className="py-1 text-sm font-medium w-56">
+                      <div
+                        className="whitespace-normal break-words line-clamp-2"
+                        title={row.label}
+                      >
                         {row.label}
                       </div>
                     </td>
@@ -285,7 +290,7 @@ export function TableQuestion({
       {question.tableau?.commentaire && (
         <div>
           <Textarea
-            placeholder="Observations complémentaires"
+            placeholder="Observations"
             value={data.commentaire || ''}
             onChange={(e) => onChange({ ...data, commentaire: e.target.value })}
           />

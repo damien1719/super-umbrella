@@ -173,7 +173,7 @@ export default function Bibliotheque() {
           />
           <div className="mt-2 mb-2 flex flex-wrap items-center gap-3">
             {/* Filtre métier */}
-            <div className="w-48">
+            <div className="">
               <Select
                 value={jobFilter}
                 onValueChange={(v) => setJobFilter(v as Job | 'ALL')}
@@ -193,7 +193,7 @@ export default function Bibliotheque() {
             </div>
 
             {/* Recherche par nom de section */}
-            <div className="flex-1 min-w-[220px]">
+            <div className="flex-1 w-64 max-w-64">
               <SearchField
                 value={searchTerm}
                 onChange={setSearchTerm}
