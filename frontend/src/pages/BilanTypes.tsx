@@ -37,15 +37,15 @@ export default function BilanTypes() {
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Trames de bilan complet
+              Trames de bilans
             </h1>
             <p className="text-gray-600">Vos bilans préconfigurés</p>
           </div>
           <CreateWithJobsModal
-            dialogTitle="Créer un Bilan Type"
+            dialogTitle="Créer une trame bilan complet"
             nameLabel="Nom"
             confirmLabel="Valider"
-            trigger={<Button>Créer un Bilan Type</Button>}
+            trigger={<Button>Créer une trame de bilan complet</Button>}
             open={createOpen}
             onOpenChange={setCreateOpen}
             onSubmit={({ name, jobs }) => {

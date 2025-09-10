@@ -51,7 +51,7 @@ const items: {
     icon: LayoutDashboard,
   },
   {
-    title: 'Trames de bilan',
+    title: 'Trames de bilans',
     page: 'BilanTypes',
     path: '/bilan-types',
     icon: FileText,

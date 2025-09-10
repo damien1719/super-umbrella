@@ -66,6 +66,19 @@ export const categories: Category[] = [
   },
 ];
 
+// Public helpers and styles for displaying CategoryId consistently
+export const getCategoryLabel = (id: CategoryId): string =>
+  categories.find((c) => c.id === id)?.title ?? id;
+
+// Tailwind classes to style badges per category
+export const categoryBadgeClass: Record<CategoryId, string> = {
+  anamnese: 'bg-amber-100 text-amber-800 border-amber-200',
+  tests_standards: 'bg-blue-100 text-blue-800 border-blue-200',
+  observations: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+  profil_sensoriel: 'bg-purple-100 text-purple-800 border-purple-200',
+  conclusion: 'bg-rose-100 text-rose-800 border-rose-200',
+};
+
 // Sections avec descriptions pour AiRightPanel
 export const sections: SectionInfo[] = [
   {

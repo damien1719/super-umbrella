@@ -140,7 +140,7 @@ export default function Bibliotheque() {
                 Bibliothèque
               </h1>
               <p className="text-gray-600">
-                Vos trames pour composer le bilan psychomoteur
+                L'ensemble des sections disponibles pour composer vos bilans
               </p>
             </div>
             <CreerTrameModal />
