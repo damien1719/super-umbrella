@@ -87,6 +87,48 @@ export function QuestionRenderer({
           )}
         </div>
       );
+    case 'choix-unique': {
+      const selectedOpt =
+        typeof value === 'object' && value !== null
+          ? (value as { option?: string }).option || ''
+          : '';
+      const commentSingle =
+        typeof value === 'object' && value !== null
+          ? (value as { commentaire?: string }).commentaire || ''
+          : '';
+      return (
+        <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-2 md:grid-cols-3">
+            {question.options?.map((opt) => {
+              const isSelected = selectedOpt === opt;
+              return (
+                <Chip
+                  key={opt}
+                  selected={isSelected}
+                  onClick={() => {
+                    const newValue = isSelected ? '' : opt;
+                    onChange({ option: newValue, commentaire: commentSingle });
+                  }}
+                >
+                  {opt}
+                </Chip>
+              );
+            })}
+          </div>
+          {question.commentaire !== false && (
+            <div className="space-y-1 w-full">
+              <Textarea
+                value={commentSingle}
+                onChange={(e) =>
+                  onChange({ option: selectedOpt, commentaire: e.target.value })
+                }
+                placeholder="Observations"
+              />
+            </div>
+          )}
+        </div>
+      );
+    }
     case 'echelle':
       return (
         <div className="space-y-1 max-w-24">

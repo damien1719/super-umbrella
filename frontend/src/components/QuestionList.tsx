@@ -39,6 +39,7 @@ import { Label } from '@/components/ui/label';
 const typesQuestions = [
   { id: 'notes', title: 'Réponse (prise de notes)' },
   { id: 'choix-multiple', title: 'Choix multiples' },
+  { id: 'choix-unique', title: 'Choix unique' },
   { id: 'echelle', title: 'Échelle chiffrée' },
   { id: 'tableau', title: 'Tableaux de résultats' },
   { id: 'titre', title: 'Titre de section' },
@@ -131,6 +132,7 @@ export default function QuestionList({
         const validTypes = [
           'notes',
           'choix-multiple',
+          'choix-unique',
           'echelle',
           'tableau',
           'titre',
@@ -178,6 +180,7 @@ export default function QuestionList({
         const validTypes = [
           'notes',
           'choix-multiple',
+          'choix-unique',
           'echelle',
           'tableau',
           'titre',

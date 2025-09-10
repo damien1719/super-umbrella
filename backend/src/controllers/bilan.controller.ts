@@ -64,6 +64,7 @@ export const BilanController = {
   async generate(req: Request, res: Response, next: NextFunction) {
     try {
       const section = req.body.section as keyof typeof promptConfigs;
+      const sectionId = typeof req.body.sectionId === 'string' ? req.body.sectionId : undefined;
       const answers = req.body.answers ?? {};
       const rawNotes = typeof req.body.rawNotes === 'string' ? req.body.rawNotes : undefined;
       const stylePrompt = typeof req.body.stylePrompt === 'string' ? req.body.stylePrompt : undefined;
@@ -95,8 +96,20 @@ export const BilanController = {
         }
       }
 
-      // Prefix context with section name for clarity
-      const sectionTitle = cfg.title ?? String(section);
+      // Prefix context with section name for clarity (prefer actual section title when available)
+      let sectionTitle = cfg.title ?? String(section);
+      if (sectionId) {
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const db = prisma as any;
+          const sec = await db.section.findUnique({ where: { id: sectionId } });
+          if (sec && typeof sec.title === 'string' && sec.title.trim().length > 0) {
+            sectionTitle = sec.title;
+          }
+        } catch {
+          // Non-bloquant: en cas d'échec, on retombe sur le titre de la config
+        }
+      }
       userContent = prependSectionContext(userContent, sectionTitle);
 
       const text = await generateText({

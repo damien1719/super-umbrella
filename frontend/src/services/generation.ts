@@ -115,6 +115,7 @@ function markdownifyField(q: Question, value: unknown): string {
     case 'notes':
       return `${q.titre}\n\n${value ?? ''}`;
     case 'choix-multiple':
+    case 'choix-unique':
       if (value && typeof value === 'object') {
         const selectedOptions = Array.isArray((value as any).options)
           ? (value as any).options.join(', ')
@@ -174,6 +175,7 @@ async function doRequestDirect(params: {
   token: string;
   bilanId: string;
   sectionKind: string;
+  sectionId?: string;
   chunks: string[];
   stylePrompt?: string;
   rawNotes?: string;
@@ -181,6 +183,7 @@ async function doRequestDirect(params: {
 }): Promise<GenerationResult> {
   const body: any = {
     section: params.sectionKind,
+    ...(params.sectionId ? { sectionId: params.sectionId } : {}),
     answers: params.chunks,
     stylePrompt: params.stylePrompt,
   };
@@ -381,6 +384,7 @@ export async function generateSection(opts: {
         token,
         bilanId,
         sectionKind,
+        sectionId: trameId,
         chunks,
         stylePrompt,
         rawNotes,
@@ -417,8 +421,8 @@ export async function generateSection(opts: {
     }
 
     if (result.type === 'text') {
-      const header = `## ${section.title}\n\n`;
-      onInsertText?.(header + result.text);
+      // Insert the AI result as-is, without prefixing the section title
+      onInsertText?.(result.text);
       setGenerated?.((g) => ({ ...g, [section.id]: true }));
       //setRegenSection?.(section.id);
       //setRegenPrompt?.('');

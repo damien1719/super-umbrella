@@ -13,6 +13,14 @@ export type MultiChoiceQuestion = {
   commentaire?: boolean;
 };
 
+export type SingleChoiceQuestion = {
+  id: string;
+  type: 'choix-unique';
+  titre: string;
+  options: string[];
+  commentaire?: boolean;
+};
+
 export type ScaleQuestion = {
   id: string;
   type: 'echelle';
@@ -84,6 +92,7 @@ export type TitleQuestion = {
 export type Question =
   | NotesQuestion
   | MultiChoiceQuestion
+  | SingleChoiceQuestion
   | ScaleQuestion
   | TableQuestion
   | TitleQuestion;

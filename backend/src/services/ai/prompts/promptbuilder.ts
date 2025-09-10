@@ -78,11 +78,11 @@ export function buildPrompt(params: PromptParams & { job?: 'PSYCHOMOTRICIEN' | '
 
   // 3. Contexte métier (optionnel)
   if (params.contextData) {
-    msgs.push({ role: 'user', content: `Contexte (Markdown)\n${params.contextData.trim()}` });
+    msgs.push({ role: 'user', content: params.contextData.trim() });
   }
 
   // 4. Instructions spécifiques
-  msgs.push({ role: 'system', content: `INSTRUCTIONS\n${params.instructions.trim()}` });
+  msgs.push({ role: 'system', content: params.instructions.trim() });
 
   // 4bis. Guide de style compact
   if (params.stylePrompt && params.stylePrompt.trim().length > 0) {
@@ -113,7 +113,7 @@ export function buildPrompt(params: PromptParams & { job?: 'PSYCHOMOTRICIEN' | '
       },
       {
         type: 'text' as const,
-        text: `Données du patient actuel (Markdown):\n${params.userContent.trim()}`,
+        text: params.userContent.trim(),
       },
     ];
 
@@ -127,7 +127,7 @@ export function buildPrompt(params: PromptParams & { job?: 'PSYCHOMOTRICIEN' | '
     msgs.push({ role: 'user', content });
   } else {
     // Message texte classique
-    msgs.push({ role: 'user', content: `Données du patient actuel (Markdown):\n${params.userContent.trim()}` });
+    msgs.push({ role: 'user', content: params.userContent.trim() });
 
     if (params.rawNotes && params.rawNotes.trim().length > 0) {
       msgs.push({

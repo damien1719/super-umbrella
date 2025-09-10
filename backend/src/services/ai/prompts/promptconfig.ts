@@ -21,18 +21,22 @@ Réalise un profil sensoriel sur la base des données fournies par la famille
       title: "Observations",
       instructions: `
 ###INSTRUCTIONS OBSERVATIONS
-Décris les résultats puis les observations qualitatives fournies
-Adopte des phrases simples, factuelles et descriptives.
-Très important : n'invente rien et n'oublie rien ce sont des données factuelles clés sur une personne
+À partir des données fournies dans le Contexte : 
+- Reformule chaque résultat ou observation en phrases complètes, factuelles et descriptives. 
+- Restitue toutes les informations présentes, sans rien inventer ni omettre. 
+- N’utilise jamais de listes, ni de puces, ni de style télégraphique. 
+- Conserve un ton professionnel, descriptif et neutre. 
       `.trim(),
     },
     tests_standards: {
       title: "Tests standards",
       instructions: `
-###INSTRUCTIONS:
-Décris les résultats puis les observations qualitatives fournies
-Adopte des phrases simples, factuelles et descriptives.
-Très important : n'invente rien et n'oublie rien ce sont des données factuelles clés sur une personne
+###INSTRUCTIONS TESTS STANDARDS
+À partir des données fournies dans le Contexte : 
+- Reformule chaque résultat ou observation en phrases complètes, factuelles et descriptives. 
+- Restitue toutes les informations présentes, sans rien inventer ni omettre. 
+- N’utilise jamais de listes, ni de puces, ni de style télégraphique. 
+- Conserve un ton professionnel, descriptif et neutre. 
       `.trim(),
     },
     conclusions: {
