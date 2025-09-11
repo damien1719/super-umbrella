@@ -219,7 +219,7 @@ export function scanAndInsertSlots(
                 type: 'text',
                 mode: 'llm',
                 label: label || slotId,
-                prompt: 'Description factuelle simple',
+                prompt: 'Description factuelle en phrases complètes, ton descriptif et professionnel, pas de listes',
                 pattern: '',
                 deps: [],
                 preset: 'description',
