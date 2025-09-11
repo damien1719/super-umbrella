@@ -125,7 +125,7 @@ export default function WizardAIBilanType({
             </Button>
 
             <div className="flex items-center gap-2">
-              <Button
+              {/* <Button
                 variant="secondary"
                 onClick={() => {
                   setIsFooterGenerating(true);
@@ -143,7 +143,7 @@ export default function WizardAIBilanType({
                 ) : (
                   <>Générer "{activeTestTitle}"</>
                 )}
-              </Button>
+              </Button> */}
               <Button
                 onClick={() => {
                   setIsFooterGenerating(true);

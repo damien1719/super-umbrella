@@ -49,7 +49,7 @@ export function TableQuestion({
       case 'choice':
         return 'w-48';
       case 'number':
-        return 'w-16';
+        return 'w-32';
       case 'image':
         return 'w-40';
       case 'multi-choice':
