@@ -173,13 +173,17 @@ export const BilanController = {
         res.status(404).json({ error: 'bilan not found' });
         return;
       }
-      
+
       // Convertir le JSON du bilan en markdown lisible pour le LLM
       const { bilanJsonToMarkdown } = await import('../utils/jsonToMarkdown');
       const markdownContent = bilanJsonToMarkdown(bilan.descriptionJson);
-      
+
+      // Récupère le job du profil actif (si disponible)
+      const profiles = (await ProfileService.list(req.user.id)) as unknown as Array<{ job?: 'PSYCHOMOTRICIEN' | 'ERGOTHERAPEUTE' | 'NEUROPSYCHOLOGUE' | null }>;
+      const job = profiles && profiles.length > 0 ? (profiles[0].job ?? undefined) : undefined;
+
       // Envoyer le markdown au service de conclusion
-      const text = await concludeBilan(markdownContent);
+      const text = await concludeBilan(markdownContent, job);
       res.json({ text });
     } catch (e) {
       next(e);
@@ -391,7 +395,7 @@ export const BilanController = {
           }
 
           // Ask the model to conclude based on the aggregated content
-          let conclusionText = await concludeBilan(markdownContent);
+          let conclusionText = await concludeBilan(markdownContent, job);
           if (patientNames.firstName || patientNames.lastName) {
             conclusionText = Anonymization.deanonymizeText(conclusionText as string, patientNames);
           }
