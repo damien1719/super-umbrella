@@ -25,20 +25,27 @@ import { useSectionTemplateStore } from '../store/sectionTemplates';
 import type { SectionTemplate, SlotSpec } from '../types/template';
 import { apiFetch } from '@/utils/api';
 import { useAuth } from '@/store/auth';
+import { useUserProfileStore } from '@/store/userProfile';
 import { Job } from '../types/job';
 import SharePanel from '@/components/SharePanel';
+import ReadOnlyOverlay from '@/components/ReadOnlyOverlay';
 
 interface ImportResponse {
   result: Question[][];
 }
 
-export default function CreationTrame() {
+interface CreationTrameProps {
+  readOnly?: boolean;
+}
+
+export default function CreationTrame({ readOnly = false }: CreationTrameProps) {
   const { sectionId } = useParams<{ sectionId: string }>();
   const navigate = useNavigate();
   const { state } = useLocation() as {
     state?: { returnTo?: string; wizardSection?: string; trameId?: string };
   };
   const fetchOne = useSectionStore((s) => s.fetchOne);
+  const duplicateSection = useSectionStore((s) => s.duplicate);
   const updateSection = useSectionStore((s) => s.update);
   const createExample = useSectionExampleStore((s) => s.create);
 
@@ -50,6 +57,7 @@ export default function CreationTrame() {
   const [nomTrame, setNomTrame] = useState('');
   const [categorie, setCategorie] = useState<CategoryId | undefined>(undefined);
   const [isPublic, setIsPublic] = useState(false);
+  const [authorId, setAuthorId] = useState<string | null>(null);
   const [coverUrl, setCoverUrl] = useState<string>('');
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -74,6 +82,13 @@ export default function CreationTrame() {
   });
   const [loadingTemplate, setLoadingTemplate] = useState(false);
   const token = useAuth((s) => s.token);
+  const initialized = useAuth((s) => s.initialized);
+  const user = useAuth((s) => s.user);
+  const profileId = useUserProfileStore((s) => s.profileId);
+  const fetchProfile = useUserProfileStore((s) => s.fetchProfile);
+  
+  // Log pour le débogage du mode lecture seule
+  console.log('[DEBUG] Mode lecture seule (readOnly):', readOnly);
 
   const transformTemplateToQuestions = async (content: string) => {
     try {
@@ -176,6 +191,7 @@ export default function CreationTrame() {
       setNomTrame(section.title);
       setCategorie(section.kind);
       setIsPublic(section.isPublic ?? false);
+      setAuthorId(section.authorId ?? null);
       setCoverUrl((section as any)?.coverUrl ?? '');
       setJob(section.job || [Job.PSYCHOMOTRICIEN]);
       setTemplateRefId(section.templateRefId ?? null);
@@ -202,6 +218,13 @@ export default function CreationTrame() {
       if (loaded.length > 0) setSelectedId(loaded[0].id);
     });
   }, [sectionId, fetchOne, getTemplate]);
+
+  // Ensure profile is loaded when on BilanLayout routes
+  useEffect(() => {
+    if (initialized && user && !profileId) {
+      fetchProfile().catch(() => {/* silent */});
+    }
+  }, [initialized, user, profileId, fetchProfile]);
 
   // Debug useEffect to log questions state changes
   useEffect(() => {
@@ -331,6 +354,28 @@ export default function CreationTrame() {
     }
   };
 
+  const isReadOnly = Boolean(
+    isPublic && authorId && profileId && profileId !== authorId,
+  );
+
+  console.log('[CreationTrame] isReadOnly', isReadOnly);
+  console.log('[CreationTrame] authorId', authorId);
+  console.log('[CreationTrame] profileId', profileId);
+  console.log('[CreationTrame] isPublic', isPublic);
+  if (authorId && profileId) {
+    console.log('[CreationTrame] profileId !== authorId', profileId !== authorId);
+  }
+
+  const handleDuplicate = async () => {
+    if (!sectionId) return;
+    try {
+      const created = await duplicateSection(sectionId);
+      navigate(`/creation-trame/${created.id}`);
+    } catch (e) {
+      console.error('Failed to duplicate section', e);
+    }
+  };
+
   return (
     <div className="flex h-dvh w-full flex-col bg-gray-50">
       {/* Header + actions - Fixed */}
@@ -343,9 +388,11 @@ export default function CreationTrame() {
             onPublicChange={setIsPublic}
             onSave={save}
             onImport={() => setShowImport(true)}
-            onBack={() => setShowConfirm(true)}
+            onBack={() => (isReadOnly ? navigate(-1) : setShowConfirm(true))}
             onAdminImport={() => setShowAdminImport(true)}
             showAdminImport={SHOW_ADMIN_IMPORT}
+            readOnly={isReadOnly}
+            onDuplicate={handleDuplicate}
           />
 
           <div className="border-b border-wood-400 mb-4">
@@ -365,7 +412,7 @@ export default function CreationTrame() {
                   tab === 'questions'
                     ? 'border-primary-600'
                     : 'border-transparent'
-                }`}
+                } ${isReadOnly ? 'text-gray-400' : ''}`}
                 onClick={() => setTab('questions')}
               >
                 Edition
@@ -375,7 +422,7 @@ export default function CreationTrame() {
                   tab === 'template'
                     ? 'border-primary-600'
                     : 'border-transparent'
-                }`}
+                } ${isReadOnly ? 'text-gray-400' : ''}`}
                 onClick={() => setTab('template')}
               >
                 Modèle Word
@@ -385,7 +432,7 @@ export default function CreationTrame() {
                   tab === 'examples'
                     ? 'border-primary-600'
                     : 'border-transparent'
-                }`}
+                } ${isReadOnly ? 'text-gray-400' : ''}`}
                 onClick={() => setTab('examples')}
               >
                 Exemples
@@ -395,7 +442,7 @@ export default function CreationTrame() {
                   tab === 'settings'
                     ? 'border-primary-600'
                     : 'border-transparent'
-                }`}
+                } ${isReadOnly ? 'text-gray-400' : ''}`}
                 onClick={() => setTab('settings')}
               >
                 Réglages
@@ -409,18 +456,20 @@ export default function CreationTrame() {
       <div className="flex-1 min-h-0 px-6 pb-6">
         {tab === 'questions' && (
           // Questions: Scroll vertical simple avec auto-scroll vers la question sélectionnée
-          <div className="h-full overflow-y-auto">
-            <QuestionList
-              questions={questions}
-              selectedId={selectedId}
-              onSelect={setSelectedId}
-              onPatch={onPatch}
-              onReorder={onReorder}
-              onDuplicate={onDuplicate}
-              onDelete={onDelete}
-              onAddAfter={onAddAfter}
-            />
-          </div>
+          <ReadOnlyOverlay active={isReadOnly} onCta={handleDuplicate}>
+            <div className="h-full overflow-y-auto">
+              <QuestionList
+                questions={questions}
+                selectedId={selectedId}
+                onSelect={setSelectedId}
+                onPatch={onPatch}
+                onReorder={onReorder}
+                onDuplicate={onDuplicate}
+                onDelete={onDelete}
+                onAddAfter={onAddAfter}
+              />
+            </div>
+          </ReadOnlyOverlay>
         )}
 
         {tab === 'preview' && (
@@ -440,17 +489,20 @@ export default function CreationTrame() {
 
         {tab === 'examples' && (
           // Exemples: Scroll simple
-          <div className="h-full overflow-y-auto">
-            <SaisieExempleTrame
-              examples={newExamples}
-              onAdd={(c) => setNewExamples((p) => [...p, c])}
-            />
-          </div>
+          <ReadOnlyOverlay active={isReadOnly} onCta={handleDuplicate}>
+            <div className="h-full overflow-y-auto">
+              <SaisieExempleTrame
+                examples={newExamples}
+                onAdd={(c) => setNewExamples((p) => [...p, c])}
+              />
+            </div>
+          </ReadOnlyOverlay>
         )}
 
         {tab === 'template' && (
           // Template: Layout spécial avec sidebar fixe et éditeur scrollable
-          <div className="h-full">
+          <ReadOnlyOverlay active={isReadOnly} onCta={handleDuplicate}>
+            <div className="h-full">
             {loadingTemplate && (
               <div className="bg-blue-50 border border-blue-200 rounded p-4 mb-4">
                 <div className="flex items-center gap-2">
@@ -589,22 +641,27 @@ export default function CreationTrame() {
                 />
               </div>
             )}
-          </div>
+            </div>
+          </ReadOnlyOverlay>
         )}
 
         {tab === 'settings' && (
-          <div className="h-full overflow-y-auto space-y-6">
-            <Settings
-              category={categorie}
-              jobs={job}
-              categories={categories}
-              onCategoryChange={(v: string) => setCategorie(v as CategoryId)}
-              onJobsChange={setJob}
-              coverUrl={coverUrl}
-              onCoverUrlChange={setCoverUrl}
-            />
-            <SharePanel resourceType="section" resourceId={sectionId} />
-          </div>
+          <ReadOnlyOverlay active={isReadOnly} onCta={handleDuplicate}>
+            <div className="h-full overflow-y-auto space-y-6">
+              <Settings
+                category={categorie}
+                jobs={job}
+                categories={categories}
+                onCategoryChange={(v: string) => setCategorie(v as CategoryId)}
+                onJobsChange={setJob}
+                coverUrl={coverUrl}
+                onCoverUrlChange={setCoverUrl}
+              />
+              {!isReadOnly && (
+                <SharePanel resourceType="section" resourceId={sectionId} />
+              )}
+            </div>
+          </ReadOnlyOverlay>
         )}
       </div>
 

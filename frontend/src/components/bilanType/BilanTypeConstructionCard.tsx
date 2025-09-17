@@ -99,7 +99,7 @@ export function BilanTypeConstructionCard({
               {element.kind === 'heading' ? (
                 <>
                   <div className="mb-2">
-                    <Badge className={catBadge}>Grande partie</Badge>
+                    <Badge className={catBadge}>Titre</Badge>
                   </div>
                   <Input
                     value={element.title}

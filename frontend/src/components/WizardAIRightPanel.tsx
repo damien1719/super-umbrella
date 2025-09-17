@@ -412,7 +412,7 @@ export default function WizardAIRightPanel({
             trigger={
               <button
                 type="button"
-                aria-label="Créer une nouvelle trame"
+                aria-label="Créer un nouveau test"
                 className="
                   group relative w-full max-w-120
                   rounded-xl border-2 border-dashed

@@ -615,7 +615,6 @@ export default function BilanTypeBuilder({
                   </h1>
                 )}
                 <p className="text-sm text-muted-foreground">
-                  Constructeur de Type de Bilan
                 </p>
               </div>
             </div>

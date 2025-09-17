@@ -13,6 +13,8 @@ interface Props {
   onBack: () => void;
   onAdminImport?: () => void;
   showAdminImport?: boolean;
+  readOnly?: boolean;
+  onDuplicate?: () => void;
 }
 
 export default function TrameHeader(p?: Partial<Props>) {
@@ -26,6 +28,8 @@ export default function TrameHeader(p?: Partial<Props>) {
     onBack = () => {},
     onAdminImport = () => {},
     showAdminImport = false,
+    readOnly = false,
+    onDuplicate = () => {},
   } = p || {};
 
   return (
@@ -38,26 +42,37 @@ export default function TrameHeader(p?: Partial<Props>) {
         value={title}
         onChange={(e) => onTitleChange(e.target.value)}
         placeholder="Titre de la trame"
-        className="text-2xl font-bold text-gray-900 flex-1"
+        className={`text-2xl font-bold text-gray-900 flex-1 ${readOnly ? 'opacity-60 pointer-events-none' : ''}`}
+        disabled={readOnly}
       />
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          checked={isPublic}
-          onChange={(e) => onPublicChange(e.target.checked)}
-          aria-label="Partager la trame"
-        />
-        <Label className="text-md text-gray-700">Partager</Label>
-      </div>
-      <Button onClick={onSave} variant="primary" className="ml-auto">
-        Sauvegarder la trame
-      </Button>
-      <Button variant="outline" onClick={onImport}>
-        Import Magique
-      </Button>
-      {showAdminImport && (
-        <Button variant="primary" onClick={onAdminImport}>
-          Admin Import
+      {!readOnly && (
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={isPublic}
+            onChange={(e) => onPublicChange(e.target.checked)}
+            aria-label="Partager la trame"
+          />
+          <Label className="text-md text-gray-700">Partager</Label>
+        </div>
+      )}
+      {!readOnly ? (
+        <>
+          <Button onClick={onSave} variant="primary" className="ml-auto">
+            Sauvegarder la trame
+          </Button>
+          <Button variant="outline" onClick={onImport}>
+            Import Magique
+          </Button>
+          {showAdminImport && (
+            <Button variant="primary" onClick={onAdminImport}>
+              Admin Import
+            </Button>
+          )}
+        </>
+      ) : (
+        <Button onClick={onDuplicate} variant="primary" className="ml-auto">
+          Dupliquer la trame
         </Button>
       )}
     </div>
