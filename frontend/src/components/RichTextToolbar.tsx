@@ -47,8 +47,9 @@ import {
 import { INSERT_TABLE_COMMAND } from '@lexical/table';
 import { $generateHtmlFromNodes } from '@lexical/html';
 import DOMPurify from 'dompurify';
-import { toDocxBlob } from '@/lib/htmlDocx';
+import { normalizeBordersForDocx, wrapHtmlForDocx, downloadDocx } from '@/lib/docxExport';
 import OverflowToolbar, { type OverflowItem } from './OverflowToolbar';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import {
   $createBorderBlockNode,
   $isBorderBlockNode,
@@ -150,55 +151,6 @@ function setBlockBorderPreset(editor: LexicalEditor, preset: BorderPreset) {
   });
 }
 
-// Normalise les bordures pour l'export DOCX:
-// - remplace currentColor par une couleur concrète (noir par défaut ou color inline)
-// - convertit les valeurs en px vers pt (mieux compris par Word)
-function normalizeBordersForDocx(html: string): string {
-  try {
-    const container = document.createElement('div');
-    container.innerHTML = html;
-    const nodes = container.querySelectorAll<HTMLElement>('[style*="border"]');
-    nodes.forEach((el) => {
-      let style = el.getAttribute('style') || '';
-      // Remplace currentColor par la couleur inline si présente, sinon noir
-      if (/currentcolor/i.test(style)) {
-        const colorMatch = /color\s*:\s*([^;]+)/i.exec(style);
-        const color = (colorMatch ? colorMatch[1] : '#000000').trim();
-        style = style.replace(/currentcolor/gi, color);
-      }
-      // Si la bordure est sur un span inline, forcer inline-block;
-      // ne pas toucher aux éléments bloc (p, h1-h3, blockquote, li, div, td, th) pour conserver pleine largeur
-      const tag = el.tagName.toUpperCase();
-      const isInlineSpan = tag === 'SPAN';
-      if (isInlineSpan && !/display\s*:\s*inline-block/i.test(style)) {
-        style = `${style.trim()}${style.trim() ? '; ' : ''}display: inline-block`;
-      }
-      // Convertit px -> pt pour border, border-*-width et padding
-      const pxToPt = (px: number) => (px * 0.75).toFixed(2);
-      style = style.replace(
-        /(border(?:-left|-right|-top|-bottom)?-width\s*:\s*)(\d+(?:\.\d+)?)px/gi,
-        (_, p1, px) => `${p1}${pxToPt(parseFloat(px))}pt`,
-      );
-      style = style.replace(
-        /(border\s*:\s*)(\d+(?:\.\d+)?)px/gi,
-        (_, p1, px) => `${p1}${pxToPt(parseFloat(px))}pt`,
-      );
-      style = style.replace(
-        /(padding(?:-left|-right|-top|-bottom)?\s*:\s*)(\d+(?:\.\d+)?)px/gi,
-        (_, p1, px) => `${p1}${pxToPt(parseFloat(px))}pt`,
-      );
-      style = style.replace(
-        /(padding\s*:\s*)([^;]+)/gi,
-        (_, p1, vals) =>
-          `${p1}${vals.replace(/(\d+(?:\.\d+)?)px/gi, (_, v) => `${pxToPt(parseFloat(v))}pt`)}`,
-      );
-      el.setAttribute('style', style);
-    });
-    return container.innerHTML;
-  } catch {
-    return html;
-  }
-}
 
 interface Props {
   onSave?: () => void;
@@ -414,6 +366,14 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
     setShowTableDialog(false);
   }, [editor, tableCols, tableRows]);
 
+  // Helper to attach a tooltip to an element
+  const withTooltip = (label: string, node: React.ReactNode) => (
+    <Tooltip>
+      <TooltipTrigger asChild>{node}</TooltipTrigger>
+      <TooltipContent>{label}</TooltipContent>
+    </Tooltip>
+  );
+
   // Build toolbar items for responsive overflow
   const toolbarItems: OverflowItem[] = [];
 
@@ -427,7 +387,12 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
         }
         onOpenChange={(open) => !open && handleSelectClosed()}
       >
-        <SelectTrigger data-testid="block-type" className="w-40">
+        <SelectTrigger
+          data-testid="block-type"
+          className="w-40"
+          title="Style de paragraphe"
+          aria-label="Style de paragraphe"
+        >
           <SelectValue placeholder="Style" />
         </SelectTrigger>
         <SelectContent>
@@ -449,7 +414,12 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
         onValueChange={changeFontSize}
         onOpenChange={(open) => !open && handleSelectClosed()}
       >
-        <SelectTrigger data-testid="font-size" className="w-24">
+        <SelectTrigger
+          data-testid="font-size"
+          className="w-24"
+          title="Taille de police"
+          aria-label="Taille de police"
+        >
           <SelectValue placeholder="Taille" />
         </SelectTrigger>
         <SelectContent>
@@ -471,7 +441,12 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
         onValueChange={changeFontFamily}
         onOpenChange={(open) => !open && handleSelectClosed()}
       >
-        <SelectTrigger data-testid="font-family" className="w-44">
+        <SelectTrigger
+          data-testid="font-family"
+          className="w-44"
+          title="Police"
+          aria-label="Police"
+        >
           <SelectValue placeholder="Police" />
         </SelectTrigger>
         <SelectContent>
@@ -493,7 +468,12 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
         onValueChange={changeLineHeight}
         onOpenChange={(open) => !open && handleSelectClosed()}
       >
-        <SelectTrigger data-testid="line-height" className="w-40">
+        <SelectTrigger
+          data-testid="line-height"
+          className="w-40"
+          title="Interligne"
+          aria-label="Interligne"
+        >
           <SelectValue placeholder="Interligne" />
         </SelectTrigger>
         <SelectContent>
@@ -508,53 +488,63 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
 
   toolbarItems.push({
     key: 'bold',
-    element: (
+    element: withTooltip(
+      'Gras',
       <Button
         type="button"
         onMouseDown={(e) => e.preventDefault()}
         onClick={() => format('bold')}
         variant="editor"
         active={isBold}
+        title="Gras"
+        aria-label="Gras"
       >
         B
-      </Button>
+      </Button>,
     ),
   });
 
   toolbarItems.push({
     key: 'italic',
-    element: (
+    element: withTooltip(
+      'Italique',
       <Button
         type="button"
         onMouseDown={(e) => e.preventDefault()}
         onClick={() => format('italic')}
         variant="editor"
         active={isItalic}
+        title="Italique"
+        aria-label="Italique"
       >
         I
-      </Button>
+      </Button>,
     ),
   });
 
   toolbarItems.push({
     key: 'underline',
-    element: (
+    element: withTooltip(
+      'Souligné',
       <Button
         type="button"
         onMouseDown={(e) => e.preventDefault()}
         onClick={() => format('underline')}
         variant="editor"
         active={isUnderline}
+        title="Souligné"
+        aria-label="Souligné"
       >
         <span style={{ textDecoration: 'underline' }}>U</span>
-      </Button>
+      </Button>,
     ),
   });
 
   // Align center toggle
   toolbarItems.push({
     key: 'align-center',
-    element: (
+    element: withTooltip(
+      'Centrer le texte',
       <Button
         type="button"
         onMouseDown={(e) => e.preventDefault()}
@@ -576,7 +566,7 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
         title="Centrer le texte"
       >
         <AlignCenter className="w-4 h-4" />
-      </Button>
+      </Button>,
     ),
   });
 
@@ -588,22 +578,25 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
   if (onSave) {
     toolbarItems.push({
       key: 'save',
-      element: (
+      element: withTooltip(
+        'Enregistrer',
         <Button
           type="button"
           onClick={onSave}
           variant="editor"
-          aria-label="Save"
+          aria-label="Enregistrer"
+          title="Enregistrer"
         >
           <Save className="w-4 h-4" />
-        </Button>
+        </Button>,
       ),
     });
   }
 
   toolbarItems.push({
     key: 'export',
-    element: (
+    element: withTooltip(
+      'Exporter Word',
       <Button
         type="button"
         onClick={async () => {
@@ -684,26 +677,13 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
           } catch {}
           // Normalisation spécifique à Word/DOCX
           html = normalizeBordersForDocx(html);
-          const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="ie=edge"/><style>
-            body { font-family: ${fontFamily}; font-size: ${fontSize}pt; line-height: ${lineHeight}; }
-            p { margin: 0 0 8px 0; }
-            /* Custom heading sizes & decorations */
-            h1 { font-size: 16pt; margin: 12pt 0 8pt; font-weight: normal; text-decoration: none; }
-            h2 { font-size: 14pt; margin: 10pt 0 6pt; font-weight: bold; text-decoration: underline; }
-            h3 { font-size: 12pt; margin: 8pt 0 6pt; font-weight: normal; text-decoration: underline; }
-            ul, ol { margin: 0 0 8px 24px; }
-            li { margin: 4px 0; }
-          </style></head><body>${html}</body></html>`;
+          const fullHtml = wrapHtmlForDocx(html, {
+            fontFamily,
+            fontSizePt: fontSize,
+            lineHeight,
+          });
           try {
-            const blob = await toDocxBlob(fullHtml);
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${exportFileName || 'Bilan'}.docx`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            URL.revokeObjectURL(url);
+            await downloadDocx(fullHtml, `${exportFileName || 'Bilan'}.docx`);
           } catch {
             // ignore for now
           }
@@ -713,7 +693,7 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
         title="Exporter en Word (.docx)"
       >
         <FileDown className="w-4 h-4" />
-      </Button>
+      </Button>,
     ),
   });
 
@@ -905,6 +885,8 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
             type="button"
             onMouseDown={(e) => e.preventDefault()}
             variant="editor"
+            title="Insérer un tableau"
+            aria-label="Insérer un tableau"
           >
             +Tableau
           </Button>
@@ -920,38 +902,46 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
 
   toolbarItems.push({
     key: 'ul',
-    element: (
+    element: withTooltip(
+      'Liste à puces',
       <Button
         type="button"
         onMouseDown={(e) => e.preventDefault()}
         onClick={() => insertList(false)}
         variant="editor"
+        title="Liste à puces"
+        aria-label="Liste à puces"
       >
         •
-      </Button>
+      </Button>,
     ),
   });
 
   toolbarItems.push({
     key: 'ol',
-    element: (
+    element: withTooltip(
+      'Liste numérotée',
       <Button
         type="button"
         onMouseDown={(e) => e.preventDefault()}
         onClick={() => insertList(true)}
         variant="editor"
+        title="Liste numérotée"
+        aria-label="Liste numérotée"
       >
         1.
-      </Button>
+      </Button>,
     ),
   });
 
   return (
     <>
-      <OverflowToolbar
+      <TooltipProvider delayDuration={200}>
+        <OverflowToolbar
         items={toolbarItems}
         className="sticky top-0 z-10 bg-wood-50 border-b border-wood-200 p-2"
-      />
+        />
+      </TooltipProvider>
       <Dialog open={showTableDialog} onOpenChange={setShowTableDialog}>
         <DialogContent>
           <DialogHeader>
