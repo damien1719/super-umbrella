@@ -6,9 +6,9 @@ export class AzureOpenAIProvider {
   private deploymentName: string;
 
   constructor(
-    apiKey = process.env.AZURE_OPENAI_API_KEY,
-    endpoint = process.env.AZURE_OPENAI_ENDPOINT,
-    deploymentName = process.env.AZURE_OPENAI_DEPLOYMENT,
+    apiKey: string = process.env.AZURE_OPENAI_API_KEY || process.env.OPENAI_API_KEY || "test",
+    endpoint: string = process.env.AZURE_OPENAI_ENDPOINT || "https://bilanplume.openai.azure.com/openai/v1/",
+    deploymentName: string = process.env.AZURE_OPENAI_DEPLOYMENT || "gpt-4.1",
   ) {
     this.client = new OpenAI({ apiKey, baseURL: endpoint });
     this.deploymentName = deploymentName;
