@@ -1,27 +1,33 @@
 import OpenAI from "openai";
 import { ChatCompletionCreateParams } from "openai/resources/index";
-import { AzureOpenAIProvider } from "./azure-openai.provider";
 
-export class OpenAIProvider {
+export class AzureOpenAIProvider {
   private client: OpenAI;
+  private deploymentName: string;
 
-  constructor(apiKey = process.env.OPENAI_API_KEY || "test") {
-    this.client = new OpenAI({ apiKey });
+  constructor(
+    apiKey = process.env.AZURE_OPENAI_API_KEY,
+    endpoint = process.env.AZURE_OPENAI_ENDPOINT,
+    deploymentName = process.env.AZURE_OPENAI_DEPLOYMENT,
+  ) {
+    this.client = new OpenAI({ apiKey, baseURL: endpoint });
+    this.deploymentName = deploymentName;
   }
 
-  /** Appel chat completions, avec retry simple */
+  /** Chat completions against Azure OpenAI (deployment name as model) */
   async chat(
     opts: ChatCompletionCreateParams,
     onChunk?: (delta: string) => void,
     _model?: string
   ) {
     let attempt = 0;
+    const deployment = this.deploymentName;
+
     while (attempt++ < 3) {
       try {
         const res = await this.client.chat.completions.create({
           ...opts,
-          //model: model || "gpt-4.1-mini-2025-04-14",
-          model: "gpt-4.1", //gpt-5-nano gpt-5-mini
+          model: deployment, // For Azure, this is the deployment name
           stream: Boolean(onChunk),
         });
 
@@ -29,23 +35,17 @@ export class OpenAIProvider {
           for await (const chunk of res as AsyncIterable<{ choices: { delta: { content?: string } }[] }>) {
             onChunk(chunk.choices[0].delta.content ?? "");
           }
-          return ""; // le flux est déjà renvoyé au caller
+          return "";
         }
+
         const full = res as { choices: { message: { content?: string } }[] };
         return full.choices[0].message.content ?? "";
       } catch (err) {
         if (attempt >= 3) throw err;
-        await new Promise(r => setTimeout(r, attempt * 500)); // back-off
+        await new Promise((r) => setTimeout(r, attempt * 500));
       }
     }
   }
 }
 
-// Env-based selection between Azure and OpenAI
-// Set `AI_PROVIDER=azure` or `AI_PROVIDER=openai` in environment
-const providerChoice = (process.env.AI_PROVIDER || "azure").toLowerCase();
-const selectedProvider = providerChoice === "openai"
-  ? new OpenAIProvider()
-  : new AzureOpenAIProvider();
-
-export const openaiProvider = selectedProvider;
+export const azureOpenAIProvider = new AzureOpenAIProvider();

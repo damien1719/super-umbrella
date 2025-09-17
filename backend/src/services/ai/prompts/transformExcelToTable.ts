@@ -1,5 +1,5 @@
-import OpenAI from 'openai'
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions'
+import { openaiProvider } from '../providers/openai.provider'
 
 export interface TransformExcelToTableParams {
   sheetName: string
@@ -77,11 +77,9 @@ export function buildTransformExcelToTablePrompt(params: TransformExcelToTablePa
 }
 
 export async function generateTableFromExcel(params: TransformExcelToTableParams) {
-  const openai = new OpenAI()
   const messages = buildTransformExcelToTablePrompt(params)
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4.1-2025-04-14',
-    messages,
+  const raw = await openaiProvider.chat({
+    messages: messages as unknown as import('openai/resources/index').ChatCompletionMessageParam[],
     response_format: {
       type: 'json_schema',
       json_schema: {
@@ -90,10 +88,8 @@ export async function generateTableFromExcel(params: TransformExcelToTableParams
         schema: DEFAULT_SCHEMA,
       },
     },
-  })
-  const content = response.choices[0].message.content
-  if (!content) throw new Error('No content in response from OpenAI API')
-  return JSON.parse(content)
+  } as unknown as import('openai/resources/index').ChatCompletionCreateParams)
+  if (!raw) throw new Error('No content in response from LLM provider')
+  return JSON.parse(raw)
 }
-
 
