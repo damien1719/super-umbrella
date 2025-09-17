@@ -1,5 +1,5 @@
-import OpenAI from 'openai'
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions'
+import { openaiProvider } from '../providers/openai.provider'
 
 export interface TransformTextToTableParams {
   content: string
@@ -85,14 +85,12 @@ export function buildTransformTextToTablePrompt(
 export async function generateTableFromText(
   params: TransformTextToTableParams,
 ) {
-  const openai = new OpenAI()
   const messages = buildTransformTextToTablePrompt(params)
 
   console.log(messages, "messages");
 
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4.1-2025-04-14',
-    messages,
+  const raw = await openaiProvider.chat({
+    messages: messages as unknown as import('openai/resources/index').ChatCompletionMessageParam[],
     response_format: {
       type: 'json_schema',
       json_schema: {
@@ -101,15 +99,13 @@ export async function generateTableFromText(
         schema: DEFAULT_SCHEMA,
       },
     },
-  })
+  } as unknown as import('openai/resources/index').ChatCompletionCreateParams)
 
-  const content = response.choices[0].message.content
-  if (!content) {
-    throw new Error('No content in response from OpenAI API')
+  if (!raw) {
+    throw new Error('No content in response from LLM provider')
   }
 
-  console.log(content, "content");
+  console.log(raw, "content");
 
-  return JSON.parse(content)
+  return JSON.parse(raw)
 }
-
