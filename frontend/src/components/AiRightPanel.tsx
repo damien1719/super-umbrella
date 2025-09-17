@@ -806,7 +806,7 @@ export default function AiRightPanel({
                     {isGenerating ? '...' : 'Commenter des résultats de'}
                 </Button>
  */}
-                <div className="flex flex-col gap-4">
+{/*                 <div className="flex flex-col gap-4">
                   <Button
                     size="default"
                     variant="default"
@@ -814,10 +814,10 @@ export default function AiRightPanel({
                     onClick={handleConclude}
                     disabled={isGenerating}
                   >
-                    {isGenerating ? '...' : 'Conclure le bilan'}
+                    {isGenerating ? '...' : 'Exporter mon bilan'}
                     <Wand2 className="h-4 w-4 ml-1" />
                   </Button>
-                </div>
+                </div> */}
               </div>
             </ScrollArea>
           )}

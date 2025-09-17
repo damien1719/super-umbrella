@@ -905,13 +905,8 @@ export default function WizardAIRightPanel({
         </DialogHeader>
       </div>
 
-      {/* Row 2 — Scrollable content (add bottom padding when outer sticky footer is visible) */}
-      <div
-        className={
-          `flex-1 overflow-y-auto px-4 min-h-0 ` +
-          (mode === 'bilanType' && step === total ? '' : '')
-        }
-      >
+      {/* Row 2 — Scrollable content */}
+      <div className={"flex-1 overflow-y-auto px-4 min-h-0"}>
         {content}
       </div>
 
