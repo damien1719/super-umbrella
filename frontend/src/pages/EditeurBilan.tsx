@@ -73,7 +73,10 @@ export default function Bilan() {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ title: opts?.title ?? bilan.title, descriptionJson }),
+      body: JSON.stringify({
+        title: opts?.title ?? bilan.title,
+        descriptionJson,
+      }),
     });
     setBilan(res);
   };

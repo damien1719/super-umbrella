@@ -79,8 +79,6 @@ export default function BilanTypeBuilder({
   );
   const [showConfirm, setShowConfirm] = useState(false);
 
-  
-
   const sections = useSectionStore((s) => s.items);
   const fetchSections = useSectionStore((s) => s.fetchAll);
   const createBilanType = useBilanTypeStore((s) => s.create);
@@ -614,8 +612,7 @@ export default function BilanTypeBuilder({
                     {bilanName || 'Nouveau type de bilan'}
                   </h1>
                 )}
-                <p className="text-sm text-muted-foreground">
-                </p>
+                <p className="text-sm text-muted-foreground"></p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -644,8 +641,8 @@ export default function BilanTypeBuilder({
                 { key: 'build', label: 'Construction' },
                 { key: 'layout', label: 'Edition Word' },
                 { key: 'apercu', label: 'Aperçu des questions' },
-/*                 { key: 'preview', label: 'Modèle Word (avancé)' },
- */                { key: 'settings', label: 'Réglages' },
+                /*                 { key: 'preview', label: 'Modèle Word (avancé)' },
+                 */ { key: 'settings', label: 'Réglages' },
               ]}
               active={mode}
               onChange={(k) => setMode(k as typeof mode)}

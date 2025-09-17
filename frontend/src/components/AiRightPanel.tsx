@@ -806,7 +806,7 @@ export default function AiRightPanel({
                     {isGenerating ? '...' : 'Commenter des résultats de'}
                 </Button>
  */}
-{/*                 <div className="flex flex-col gap-4">
+                {/*                 <div className="flex flex-col gap-4">
                   <Button
                     size="default"
                     variant="default"

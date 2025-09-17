@@ -60,11 +60,16 @@ export default function ChoixTypeDeValeurTableau({
     <Dialog open={!!column} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-h-[80vh] w-full max-w-lg overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Type de valeur</DialogTitle>
+          <DialogTitle>Personnalise le type de colonne</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Type</Label>
+            <div className="flex flex-col gap-4">
+              <span className="text-sm text-gray-500">
+                Pour chaque colonne tu peux choisir parmi case à cocher, liste déroulante et bien d'autres
+              </span>
+              <Label>Type</Label>
+            </div>
             <Select
               value={local.valueType}
               onValueChange={(v) =>

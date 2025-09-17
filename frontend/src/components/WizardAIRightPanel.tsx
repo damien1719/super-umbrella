@@ -906,9 +906,7 @@ export default function WizardAIRightPanel({
       </div>
 
       {/* Row 2 — Scrollable content */}
-      <div className={"flex-1 overflow-y-auto px-4 min-h-0"}>
-        {content}
-      </div>
+      <div className={'flex-1 overflow-y-auto px-4 min-h-0'}>{content}</div>
 
       {/* Row 3 — Footer glued to bottom (hidden at step 2 in bilanType mode to avoid duplicate footers) */}
       {!(mode === 'bilanType' && step === total) && (

@@ -47,9 +47,18 @@ import {
 import { INSERT_TABLE_COMMAND } from '@lexical/table';
 import { $generateHtmlFromNodes } from '@lexical/html';
 import DOMPurify from 'dompurify';
-import { normalizeBordersForDocx, wrapHtmlForDocx, downloadDocx } from '@/lib/docxExport';
+import {
+  normalizeBordersForDocx,
+  wrapHtmlForDocx,
+  downloadDocx,
+} from '@/lib/docxExport';
 import OverflowToolbar, { type OverflowItem } from './OverflowToolbar';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from './ui/tooltip';
 import {
   $createBorderBlockNode,
   $isBorderBlockNode,
@@ -150,7 +159,6 @@ function setBlockBorderPreset(editor: LexicalEditor, preset: BorderPreset) {
     }
   });
 }
-
 
 interface Props {
   onSave?: () => void;
@@ -938,8 +946,8 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
     <>
       <TooltipProvider delayDuration={200}>
         <OverflowToolbar
-        items={toolbarItems}
-        className="sticky top-0 z-10 bg-wood-50 border-b border-wood-200 p-2"
+          items={toolbarItems}
+          className="sticky top-0 z-10 bg-wood-50 border-b border-wood-200 p-2"
         />
       </TooltipProvider>
       <Dialog open={showTableDialog} onOpenChange={setShowTableDialog}>

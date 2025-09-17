@@ -2,7 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { FileDown } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from './ui/tooltip';
 
 interface Props {
   title: string;
@@ -65,30 +70,30 @@ export default function TopBarEditeurBilan({
           </Tooltip>
         </div>
 
-      <div className="flex items-center justify-center">
-        {editing ? (
-          <Input
-            ref={inputRef}
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onBlur={commit}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') commit();
-              if (e.key === 'Escape') cancel();
-            }}
-            className="max-w-[28rem] text-center"
-            aria-label="Titre du bilan"
-          />
-        ) : (
-          <h1
-            className="text-center text-lg font-semibold truncate cursor-text"
-            title="Cliquer pour renommer"
-            onClick={() => setEditing(true)}
-          >
-            {title}
-          </h1>
-        )}
-      </div>
+        <div className="flex items-center justify-center">
+          {editing ? (
+            <Input
+              ref={inputRef}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onBlur={commit}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') commit();
+                if (e.key === 'Escape') cancel();
+              }}
+              className="max-w-[28rem] text-center"
+              aria-label="Titre du bilan"
+            />
+          ) : (
+            <h1
+              className="text-center text-lg font-semibold truncate cursor-text"
+              title="Cliquer pour renommer"
+              onClick={() => setEditing(true)}
+            >
+              {title}
+            </h1>
+          )}
+        </div>
 
         <div className="flex items-center justify-end">
           <Tooltip>
