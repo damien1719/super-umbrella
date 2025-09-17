@@ -236,7 +236,7 @@ export default function QuestionList({
 
   return (
     <div className="space-y-6 overflow-y-auto h-full relative">
-      {SHOW_EDIT_ALL_JSON && (
+{/*       {SHOW_EDIT_ALL_JSON && (
         <div className="absolute top-0 right-0 z-10">
           <Button
             variant="outline"
@@ -248,7 +248,7 @@ export default function QuestionList({
             <MoreHorizontal className="h-4 w-4 mr-2" />
           </Button>
         </div>
-      )}
+      )} */}
       {questions.map((question, index) => {
         const Editor = EDITORS[question.type];
         return (
@@ -378,7 +378,7 @@ export default function QuestionList({
                   >
                     <ClipboardCopy className="h-4 w-4"/>
                   </Button>
-                  <DropdownMenu>
+{/*                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="outline"
@@ -395,7 +395,7 @@ export default function QuestionList({
                         Éditer JSON
                       </DropdownMenuItem>
                     </DropdownMenuContent>
-                  </DropdownMenu>
+                  </DropdownMenu> */}
                   <Button
                     variant="outline"
                     size="sm"
