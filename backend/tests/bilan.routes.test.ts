@@ -123,6 +123,7 @@ describe("POST /api/v1/bilans/:id/refine", () => {
 describe("POST /api/v1/bilans/:id/conclude", () => {
   it("calls conclude service with markdown content", async () => {
     mockedConclude.mockResolvedValueOnce("conclusion générée");
+    (mockedProfile.list as jest.Mock).mockResolvedValueOnce([]);
     
     const id = "11111111-1111-1111-1111-111111111111";
     
@@ -156,9 +157,8 @@ describe("POST /api/v1/bilans/:id/conclude", () => {
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ text: "conclusion générée" });
     
-    // Vérifier que concludeBilan a été appelé avec du markdown
-    expect(mockedConclude).toHaveBeenCalledWith("Observation du patient\n");
+    // Vérifier que concludeBilan a été appelé avec du markdown et job (indéfini ici)
+    expect(mockedConclude).toHaveBeenCalledWith("Observation du patient\n", undefined);
   });
 });
-
 

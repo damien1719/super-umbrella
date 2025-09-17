@@ -1,5 +1,5 @@
-import OpenAI from 'openai'
 import { SingleMessage } from './promptbuilder'
+import { openaiProvider } from '../providers/openai.provider'
 
 export interface TransformPromptParams {
   systemPrompt?: string
@@ -84,8 +84,6 @@ Pour chaque question en entrée :
 }
 
 export async function generateStructuredJSON(params: TransformPromptParams) {
-  const openai = new OpenAI()
-
   const messages = [...buildTransformPrompt(params)]
   const rawSchema = DEFAULT_SCHEMA
 
@@ -105,9 +103,8 @@ const schemaObject = {
     }
   });
 
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4.1-2025-04-14', // ou gpt-4o-mini
-    messages: openaiMessages,
+  const raw = await openaiProvider.chat({
+    messages: openaiMessages as unknown as import('openai/resources/index').ChatCompletionMessageParam[],
     response_format: {
       type: 'json_schema',
       json_schema: {
@@ -116,14 +113,13 @@ const schemaObject = {
         schema: schemaObject,
       },
     },
-  })
+  } as unknown as import('openai/resources/index').ChatCompletionCreateParams)
 
-  const content = response.choices[0].message.content
-  if (!content) {
-    throw new Error('No content in response from OpenAI API')
+  if (!raw) {
+    throw new Error('No content in response from LLM provider')
   }
 
-  console.log('[DEBUG] generateStructuredJSON - Response content:', content);
+  console.log('[DEBUG] generateStructuredJSON - Response content:', raw);
   
-  return JSON.parse(content)
+  return JSON.parse(raw)
 }
