@@ -34,14 +34,14 @@ export default function CreerTrameModal({
 
   return (
     <CreateWithJobsModal
-      dialogTitle="Créer une nouvelle trame"
-      nameLabel="Nom de la trame"
-      confirmLabel="Créer la trame"
+      dialogTitle="Créer une nouvelle partie"
+      nameLabel="Nom de la partie"
+      confirmLabel="Créer la partie"
       trigger={
         trigger || (
           <Button variant="primary">
             <Plus className="h-4 w-4 mr-2" />
-            Créer une section
+            Créer une partie
           </Button>
         )
       }
