@@ -128,7 +128,6 @@ const SANITIZE_OPTIONS: DOMPurify.Config = {
   ],
 } as unknown as DOMPurify.Config;
 
-
 export interface RichTextEditorHandle {
   importHtml: (html: string) => void;
   insertHtml: (html: string) => void;

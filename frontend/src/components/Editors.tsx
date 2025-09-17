@@ -326,7 +326,7 @@ export function TableEditor({ q, onPatch }: EditorProps) {
                     onDrop={() => handleColDrop(colIdx)}
                   >
                     <div className="flex flex-col items-center gap-2">
-                      <div className="flex gap-1">
+                      <div className="flex items-center gap-1">
                         <button
                           aria-label="Déplacer la colonne"
                           draggable
@@ -338,10 +338,13 @@ export function TableEditor({ q, onPatch }: EditorProps) {
                         </button>
                         <Button
                           variant="icon"
-                          size="micro"
+                          size="default"
                           onClick={() => setEditingColIdx(colIdx)}
                         >
-                          <Settings className="h-4 w-4" />
+                          <span className="flex items-center gap-1 text-sm font-medium">
+                            Type
+                            <Settings className="h-4 w-4" />
+                          </span>
                         </Button>
                         <Button
                           variant="icon"
@@ -359,9 +362,9 @@ export function TableEditor({ q, onPatch }: EditorProps) {
                     </div>
                   </th>
                 ))}
-                <th className="p-1">
+                <th className="p-1 align-bottom">
                   <Input
-                    className="w-40 placeholder:text-accent-500 text-sm"
+                    className="w-40 whitespace-normal break-words placeholder:text-accent-500 text-sm"
                     placeholder="+ Nouvelle colonne"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && e.currentTarget.value.trim()) {

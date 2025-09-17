@@ -140,7 +140,7 @@ export default function Bibliotheque() {
                 Bibliothèque
               </h1>
               <p className="text-gray-600">
-                L'ensemble des parties disponibles pour composer vos bilans 
+                L'ensemble des parties disponibles pour composer vos bilans
               </p>
             </div>
             <CreerTrameModal />

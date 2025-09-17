@@ -27,7 +27,7 @@ export default function ReadOnlyOverlay({
       </div>
       {active && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-gray-100/20 backdrop-blur-[0.01rem]">
-           <div className="flex items-center gap-3 rounded border border-gray-300 bg-white/80 px-3 py-2 text-sm text-gray-800 shadow">
+          <div className="flex items-center gap-3 rounded border border-gray-300 bg-white/80 px-3 py-2 text-sm text-gray-800 shadow">
             <span className="font-medium">{message}</span>
             {onCta && (
               <button
@@ -44,4 +44,3 @@ export default function ReadOnlyOverlay({
     </div>
   );
 }
-

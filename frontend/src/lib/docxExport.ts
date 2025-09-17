@@ -46,11 +46,14 @@ export function normalizeBordersForDocx(html: string): string {
   }
 }
 
-export function wrapHtmlForDocx(html: string, opts?: {
-  fontFamily?: string;
-  fontSizePt?: string | number;
-  lineHeight?: string;
-}): string {
+export function wrapHtmlForDocx(
+  html: string,
+  opts?: {
+    fontFamily?: string;
+    fontSizePt?: string | number;
+    lineHeight?: string;
+  },
+): string {
   const fontFamily =
     opts?.fontFamily ?? "Calibri, 'Helvetica Neue', Arial, sans-serif";
   const fontSize = `${opts?.fontSizePt ?? 11}`;
@@ -77,4 +80,3 @@ export async function downloadDocx(fullHtml: string, fileName: string) {
   a.remove();
   URL.revokeObjectURL(url);
 }
-
