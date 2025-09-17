@@ -39,7 +39,7 @@ export default function BilanTypes() {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               Trames de bilans
             </h1>
-            <p className="text-gray-600">Composer vos trames de bilan à parties des parties disponibles dans la Bibliothèque</p>
+            <p className="text-gray-600">Créez vos trames personnalisées en sélectionnant des parties dans la Bibliothèque</p>
           </div>
           <CreateWithJobsModal
             dialogTitle="Créer une trame bilan complet"
