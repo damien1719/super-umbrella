@@ -12,7 +12,7 @@ interface EmptyStateProps {
 
 export function EmptyState({
   onCreate,
-  title = 'Commencez par créer un nouveau bilan',
+  title = 'Commencez par rédiger un nouveau bilan',
   description,
   ctaLabel = 'Rédiger un nouveau bilan',
   cta,

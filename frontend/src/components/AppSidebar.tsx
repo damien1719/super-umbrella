@@ -45,16 +45,16 @@ const items: {
   icon: React.ComponentType<{ className?: string }>;
 }[] = [
   {
-    title: 'Mes Bilans',
+    title: 'Mes rédactions',
     page: 'MesBilans',
     path: '/',
-    icon: LayoutDashboard,
+    icon: FileText,
   },
   {
-    title: 'Trames de bilans',
+    title: 'Mes trames de bilans',
     page: 'BilanTypes',
     path: '/bilan-types',
-    icon: FileText,
+    icon: LayoutDashboard,
   },
   {
     title: 'Bibliothèque',

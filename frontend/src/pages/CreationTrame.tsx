@@ -305,6 +305,22 @@ export default function CreationTrame({ readOnly = false }: CreationTrameProps) 
     setSelectedId(newQ.id);
   };
 
+  const onPasteAfter = (targetId: string, item: Question) => {
+    // Cloner en profondeur pour éviter les références partagées et générer un nouvel ID
+    const clone: Question = {
+      ...(JSON.parse(JSON.stringify(item)) as Question),
+      id: Date.now().toString(),
+    } as Question;
+
+    setQuestions((qs) => {
+      if (!targetId) return [...qs, clone];
+      const idx = qs.findIndex((q) => q.id === targetId);
+      if (idx === -1) return [...qs, clone];
+      return [...qs.slice(0, idx + 1), clone, ...qs.slice(idx + 1)];
+    });
+    setSelectedId(clone.id);
+  };
+
   const save = async () => {
     if (!sectionId) return;
     if (templateRefId) {
@@ -467,6 +483,7 @@ export default function CreationTrame({ readOnly = false }: CreationTrameProps) 
                 onDuplicate={onDuplicate}
                 onDelete={onDelete}
                 onAddAfter={onAddAfter}
+                onPasteAfter={onPasteAfter}
               />
             </div>
           </ReadOnlyOverlay>

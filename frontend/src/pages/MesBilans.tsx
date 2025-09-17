@@ -100,10 +100,10 @@ export default function Component() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Mes bilans
+                Mes rédactions
               </h1>
               <p className="text-gray-600">
-                Consultez et gérez tous vos bilans
+                Consultez et gérez toutes vos rédactions
               </p>
             </div>
             {/* <Button
@@ -128,7 +128,7 @@ export default function Component() {
                 <div className="flex items-center space-x-4">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
-                      Créer un nouveau bilan
+                      Rédiger un nouveau bilan
                     </h3>
                     <p className="text-gray-600">
                       Commencez la rédaction d&rsquo;un nouveau bilan patient

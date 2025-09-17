@@ -14,6 +14,7 @@ import { hydrateLayout } from "../services/bilan/composeLayout";
 import { answersToMarkdown } from "../utils/answersMarkdown";
 import { generateFromTemplate as generateFromTemplateSvc } from "../services/ai/generateFromTemplate";
 import { prependSectionContext } from "../services/ai/promptContext";
+import { markdownToLexicalChildren } from "../utils/markdownToLexical";
 
 
 export const BilanController = {
@@ -339,35 +340,22 @@ export const BilanController = {
             text = Anonymization.deanonymizeText(text as string, patientNames);
           }
 
-          // Build simple Lexical nodes: heading (h2) + paragraphs
-          // Build per-section state (paragraphs only) for layout composition
+          // Build per-section state from Markdown (headings + paragraphs)
           {
-            const paras = String(text || '').split(/\n{2,}/).map(s => s.trim()).filter(Boolean);
-            const sectionChildren: unknown[] = [];
-            for (const p of paras) {
-              sectionChildren.push({
-                type: 'paragraph', direction: 'ltr', format: '', indent: 0, version: 1,
-                children: [{ type: 'text', text: p, detail: 0, format: 0, style: '', version: 1 }],
-              });
-            }
+            const sectionChildren = markdownToLexicalChildren(String(text || ''));
             sectionsMap[btSec.sectionId] = {
               root: { type: 'root', direction: 'ltr', format: '', indent: 0, version: 1, children: sectionChildren as unknown[] },
             } as { root: Record<string, unknown> };
           }
 
-          // Fallback aggregation: heading + paragraphs
+          // Fallback aggregation: heading for the section title + rendered Markdown content
           {
             children.push({
               type: 'heading', tag: 'h2', direction: 'ltr', format: '', indent: 0, version: 1,
               children: [{ type: 'text', text: String(title), detail: 0, format: 0, style: '', version: 1 }],
             });
-            const paras = String(text || '').split(/\n{2,}/).map(s => s.trim()).filter(Boolean);
-            for (const p of paras) {
-              children.push({
-                type: 'paragraph', direction: 'ltr', format: '', indent: 0, version: 1,
-                children: [{ type: 'text', text: p, detail: 0, format: 0, style: '', version: 1 }],
-              });
-            }
+            const mdNodes = markdownToLexicalChildren(String(text || '')) as unknown[];
+            for (const node of mdNodes) children.push(node);
             // Blank line between sections
             children.push({ type: 'paragraph', direction: 'ltr', format: '', indent: 0, version: 1, children: [] });
           }
@@ -403,11 +391,7 @@ export const BilanController = {
           // Build conclusion per-section states and also append to fallback aggregation
           for (const c of conclusionSections) {
             // Per-section state
-            const cParas = String(conclusionText || '').split(/\n{2,}/).map(s => s.trim()).filter(Boolean);
-            const cChildren: unknown[] = cParas.map((p) => ({
-              type: 'paragraph', direction: 'ltr', format: '', indent: 0, version: 1,
-              children: [{ type: 'text', text: p, detail: 0, format: 0, style: '', version: 1 }],
-            }));
+            const cChildren: unknown[] = markdownToLexicalChildren(String(conclusionText || '')) as unknown[];
             sectionsMap[c.id] = {
               root: { type: 'root', direction: 'ltr', format: '', indent: 0, version: 1, children: cChildren as unknown[] },
             } as { root: Record<string, unknown> };
@@ -417,12 +401,7 @@ export const BilanController = {
               type: 'heading', tag: 'h2', direction: 'ltr', format: '', indent: 0, version: 1,
               children: [{ type: 'text', text: String(c.title || 'Conclusion'), detail: 0, format: 0, style: '', version: 1 }],
             });
-            for (const p of cParas) {
-              children.push({
-                type: 'paragraph', direction: 'ltr', format: '', indent: 0, version: 1,
-                children: [{ type: 'text', text: p, detail: 0, format: 0, style: '', version: 1 }],
-              });
-            }
+            for (const node of cChildren) children.push(node);
             // Blank line after conclusion
             children.push({ type: 'paragraph', direction: 'ltr', format: '', indent: 0, version: 1, children: [] });
           }

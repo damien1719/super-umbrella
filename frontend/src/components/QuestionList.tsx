@@ -18,6 +18,7 @@ import {
   Save,
   X,
   ClipboardCopy,
+  ClipboardPaste,
 } from 'lucide-react';
 import type { Question } from '@/types/Typequestion';
 import { EDITORS } from './Editors';
@@ -35,6 +36,7 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { useClipboardStore } from '@/store/clipboard';
 
 const typesQuestions = [
   { id: 'notes', title: 'Réponse (prise de notes)' },
@@ -54,6 +56,8 @@ interface Props {
   onDuplicate: (id: string) => void;
   onDelete: (id: string) => void;
   onAddAfter: (id: string) => void;
+  /** Insère le contenu du presse-papiers interne après la question cible */
+  onPasteAfter?: (targetId: string, item: Question) => void;
 }
 
 export default function QuestionList({
@@ -65,6 +69,7 @@ export default function QuestionList({
   onDuplicate,
   onDelete,
   onAddAfter,
+  onPasteAfter,
 }: Props) {
   const dragIndex = useRef<number | null>(null);
   const [jsonDialogOpen, setJsonDialogOpen] = useState(false);
@@ -74,6 +79,9 @@ export default function QuestionList({
   const [jsonContent, setJsonContent] = useState('');
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [isEditingAllQuestions, setIsEditingAllQuestions] = useState(false);
+  const clipboardItem = useClipboardStore((s) => s.item);
+  const copyToClipboard = useClipboardStore((s) => s.copy);
+  const clearClipboard = useClipboardStore((s) => s.clear);
 
   const handleDragStart = (index: number) => {
     dragIndex.current = index;
@@ -320,9 +328,26 @@ export default function QuestionList({
                   }
                   onClick={(e) => e.stopPropagation()}
                 >
+                  {/* Coller une réutilisation (visible seulement si un élément est dans le presse-papiers) */}
+                  {clipboardItem && onPasteAfter && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onPasteAfter(question.id, clipboardItem);
+                        // Vider le presse-papiers interne après collage
+                        clearClipboard();
+                      }}
+                    >
+                      <ClipboardPaste className="h-4 w-4 mr-2" />
+                      Coller une réutilisation
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     size="sm"
+                    tooltip="Ajouter une question"
                     onClick={(e) => {
                       e.stopPropagation();
                       onAddAfter(question.id);
@@ -332,6 +357,7 @@ export default function QuestionList({
                   </Button>
                   <Button
                     variant="outline"
+                    tooltip="Dupliquer la question"
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -339,6 +365,18 @@ export default function QuestionList({
                     }}
                   >
                     <Copy className="h-4 w-4" />
+                  </Button>
+                  {/* Copier pour réutiliser */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    tooltip="Copier pour réutiliser"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      copyToClipboard(question);
+                    }}
+                  >
+                    <ClipboardCopy className="h-4 w-4"/>
                   </Button>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -361,6 +399,7 @@ export default function QuestionList({
                   <Button
                     variant="outline"
                     size="sm"
+                    tooltip="Supprimer la question"
                     onClick={(e) => {
                       e.stopPropagation();
                       onDelete(question.id);
