@@ -12,6 +12,7 @@ type Answers = Record<
 import { categories, type CategoryId } from '../types/trame';
 import TrameHeader from '@/components/TrameHeader';
 import QuestionList from '@/components/QuestionList';
+import RightBarEdition from '@/components/RightBarEdition';
 import { DataEntry } from '@/components/bilan/DataEntry';
 import SaisieExempleTrame from '@/components/SaisieExempleTrame';
 import ImportMagique from '@/components/ImportMagique';
@@ -25,20 +26,29 @@ import { useSectionTemplateStore } from '../store/sectionTemplates';
 import type { SectionTemplate, SlotSpec } from '../types/template';
 import { apiFetch } from '@/utils/api';
 import { useAuth } from '@/store/auth';
+import { useUserProfileStore } from '@/store/userProfile';
 import { Job } from '../types/job';
 import SharePanel from '@/components/SharePanel';
+import ReadOnlyOverlay from '@/components/ReadOnlyOverlay';
 
 interface ImportResponse {
   result: Question[][];
 }
 
-export default function CreationTrame() {
+interface CreationTrameProps {
+  readOnly?: boolean;
+}
+
+export default function CreationTrame({
+  readOnly = false,
+}: CreationTrameProps) {
   const { sectionId } = useParams<{ sectionId: string }>();
   const navigate = useNavigate();
   const { state } = useLocation() as {
     state?: { returnTo?: string; wizardSection?: string; trameId?: string };
   };
   const fetchOne = useSectionStore((s) => s.fetchOne);
+  const duplicateSection = useSectionStore((s) => s.duplicate);
   const updateSection = useSectionStore((s) => s.update);
   const createExample = useSectionExampleStore((s) => s.create);
 
@@ -50,6 +60,7 @@ export default function CreationTrame() {
   const [nomTrame, setNomTrame] = useState('');
   const [categorie, setCategorie] = useState<CategoryId | undefined>(undefined);
   const [isPublic, setIsPublic] = useState(false);
+  const [authorId, setAuthorId] = useState<string | null>(null);
   const [coverUrl, setCoverUrl] = useState<string>('');
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -74,6 +85,13 @@ export default function CreationTrame() {
   });
   const [loadingTemplate, setLoadingTemplate] = useState(false);
   const token = useAuth((s) => s.token);
+  const initialized = useAuth((s) => s.initialized);
+  const user = useAuth((s) => s.user);
+  const profileId = useUserProfileStore((s) => s.profileId);
+  const fetchProfile = useUserProfileStore((s) => s.fetchProfile);
+
+  // Log pour le débogage du mode lecture seule
+  console.log('[DEBUG] Mode lecture seule (readOnly):', readOnly);
 
   const transformTemplateToQuestions = async (content: string) => {
     try {
@@ -176,6 +194,7 @@ export default function CreationTrame() {
       setNomTrame(section.title);
       setCategorie(section.kind);
       setIsPublic(section.isPublic ?? false);
+      setAuthorId(section.authorId ?? null);
       setCoverUrl((section as any)?.coverUrl ?? '');
       setJob(section.job || [Job.PSYCHOMOTRICIEN]);
       setTemplateRefId(section.templateRefId ?? null);
@@ -202,6 +221,15 @@ export default function CreationTrame() {
       if (loaded.length > 0) setSelectedId(loaded[0].id);
     });
   }, [sectionId, fetchOne, getTemplate]);
+
+  // Ensure profile is loaded when on BilanLayout routes
+  useEffect(() => {
+    if (initialized && user && !profileId) {
+      fetchProfile().catch(() => {
+        /* silent */
+      });
+    }
+  }, [initialized, user, profileId, fetchProfile]);
 
   // Debug useEffect to log questions state changes
   useEffect(() => {
@@ -282,6 +310,22 @@ export default function CreationTrame() {
     setSelectedId(newQ.id);
   };
 
+  const onPasteAfter = (targetId: string, item: Question) => {
+    // Cloner en profondeur pour éviter les références partagées et générer un nouvel ID
+    const clone: Question = {
+      ...(JSON.parse(JSON.stringify(item)) as Question),
+      id: Date.now().toString(),
+    } as Question;
+
+    setQuestions((qs) => {
+      if (!targetId) return [...qs, clone];
+      const idx = qs.findIndex((q) => q.id === targetId);
+      if (idx === -1) return [...qs, clone];
+      return [...qs.slice(0, idx + 1), clone, ...qs.slice(idx + 1)];
+    });
+    setSelectedId(clone.id);
+  };
+
   const save = async () => {
     if (!sectionId) return;
     if (templateRefId) {
@@ -331,6 +375,31 @@ export default function CreationTrame() {
     }
   };
 
+  const isReadOnly = Boolean(
+    isPublic && authorId && profileId && profileId !== authorId,
+  );
+
+  console.log('[CreationTrame] isReadOnly', isReadOnly);
+  console.log('[CreationTrame] authorId', authorId);
+  console.log('[CreationTrame] profileId', profileId);
+  console.log('[CreationTrame] isPublic', isPublic);
+  if (authorId && profileId) {
+    console.log(
+      '[CreationTrame] profileId !== authorId',
+      profileId !== authorId,
+    );
+  }
+
+  const handleDuplicate = async () => {
+    if (!sectionId) return;
+    try {
+      const created = await duplicateSection(sectionId);
+      navigate(`/creation-trame/${created.id}`);
+    } catch (e) {
+      console.error('Failed to duplicate section', e);
+    }
+  };
+
   return (
     <div className="flex h-dvh w-full flex-col bg-gray-50">
       {/* Header + actions - Fixed */}
@@ -343,9 +412,11 @@ export default function CreationTrame() {
             onPublicChange={setIsPublic}
             onSave={save}
             onImport={() => setShowImport(true)}
-            onBack={() => setShowConfirm(true)}
+            onBack={() => (isReadOnly ? navigate(-1) : setShowConfirm(true))}
             onAdminImport={() => setShowAdminImport(true)}
             showAdminImport={SHOW_ADMIN_IMPORT}
+            readOnly={isReadOnly}
+            onDuplicate={handleDuplicate}
           />
 
           <div className="border-b border-wood-400 mb-4">
@@ -365,7 +436,7 @@ export default function CreationTrame() {
                   tab === 'questions'
                     ? 'border-primary-600'
                     : 'border-transparent'
-                }`}
+                } ${isReadOnly ? 'text-gray-400' : ''}`}
                 onClick={() => setTab('questions')}
               >
                 Edition
@@ -375,7 +446,7 @@ export default function CreationTrame() {
                   tab === 'template'
                     ? 'border-primary-600'
                     : 'border-transparent'
-                }`}
+                } ${isReadOnly ? 'text-gray-400' : ''}`}
                 onClick={() => setTab('template')}
               >
                 Modèle Word
@@ -385,7 +456,7 @@ export default function CreationTrame() {
                   tab === 'examples'
                     ? 'border-primary-600'
                     : 'border-transparent'
-                }`}
+                } ${isReadOnly ? 'text-gray-400' : ''}`}
                 onClick={() => setTab('examples')}
               >
                 Exemples
@@ -395,7 +466,7 @@ export default function CreationTrame() {
                   tab === 'settings'
                     ? 'border-primary-600'
                     : 'border-transparent'
-                }`}
+                } ${isReadOnly ? 'text-gray-400' : ''}`}
                 onClick={() => setTab('settings')}
               >
                 Réglages
@@ -406,21 +477,34 @@ export default function CreationTrame() {
       </div>
 
       {/* Zone des onglets avec scroll personnalisé selon le tab */}
-      <div className="flex-1 min-h-0 px-6 pb-6">
+      <div className="flex-1 min-h-0 pl-6 pb-6">
         {tab === 'questions' && (
           // Questions: Scroll vertical simple avec auto-scroll vers la question sélectionnée
-          <div className="h-full overflow-y-auto">
-            <QuestionList
-              questions={questions}
-              selectedId={selectedId}
-              onSelect={setSelectedId}
-              onPatch={onPatch}
-              onReorder={onReorder}
-              onDuplicate={onDuplicate}
-              onDelete={onDelete}
-              onAddAfter={onAddAfter}
-            />
-          </div>
+          <ReadOnlyOverlay active={isReadOnly} onCta={handleDuplicate}>
+            <div className="h-full relative bg-gray-50">
+              {/* Plan des questions - sticky à droite */}
+              <RightBarEdition
+                items={questions}
+                selected={selectedId}
+                onPick={setSelectedId}
+                onMove={onReorder}
+              />
+              {/* Contenu principal scrollable */}
+              <div className="h-full overflow-y-auto">
+                <QuestionList
+                  questions={questions}
+                  selectedId={selectedId}
+                  onSelect={setSelectedId}
+                  onPatch={onPatch}
+                  onReorder={onReorder}
+                  onDuplicate={onDuplicate}
+                  onDelete={onDelete}
+                  onAddAfter={onAddAfter}
+                  onPasteAfter={onPasteAfter}
+                />
+              </div>
+            </div>
+          </ReadOnlyOverlay>
         )}
 
         {tab === 'preview' && (
@@ -440,171 +524,179 @@ export default function CreationTrame() {
 
         {tab === 'examples' && (
           // Exemples: Scroll simple
-          <div className="h-full overflow-y-auto">
-            <SaisieExempleTrame
-              examples={newExamples}
-              onAdd={(c) => setNewExamples((p) => [...p, c])}
-            />
-          </div>
+          <ReadOnlyOverlay active={isReadOnly} onCta={handleDuplicate}>
+            <div className="h-full overflow-y-auto">
+              <SaisieExempleTrame
+                examples={newExamples}
+                onAdd={(c) => setNewExamples((p) => [...p, c])}
+              />
+            </div>
+          </ReadOnlyOverlay>
         )}
 
         {tab === 'template' && (
           // Template: Layout spécial avec sidebar fixe et éditeur scrollable
-          <div className="h-full">
-            {loadingTemplate && (
-              <div className="bg-blue-50 border border-blue-200 rounded p-4 mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                  <span className="text-blue-800">
-                    Chargement du template...
-                  </span>
+          <ReadOnlyOverlay active={isReadOnly} onCta={handleDuplicate}>
+            <div className="h-full">
+              {loadingTemplate && (
+                <div className="bg-blue-50 border border-blue-200 rounded p-4 mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                    <span className="text-blue-800">
+                      Chargement du template...
+                    </span>
+                  </div>
                 </div>
-              </div>
-            )}
-            {templateRefId ? (
-              <div className="h-full">
-                <TemplateEditor
-                  template={template}
-                  onChange={setTemplate}
-                  onTransformToQuestions={transformTemplateToQuestions}
-                  onDeleteTemplate={async () => {
-                    if (templateRefId && sectionId) {
-                      try {
-                        // Supprimer le template de la base de données
-                        const deleteTemplate =
-                          useSectionTemplateStore.getState().delete;
-                        await deleteTemplate(templateRefId);
+              )}
+              {templateRefId ? (
+                <div className="h-full">
+                  <TemplateEditor
+                    template={template}
+                    onChange={setTemplate}
+                    onTransformToQuestions={transformTemplateToQuestions}
+                    onDeleteTemplate={async () => {
+                      if (templateRefId && sectionId) {
+                        try {
+                          // Supprimer le template de la base de données
+                          const deleteTemplate =
+                            useSectionTemplateStore.getState().delete;
+                          await deleteTemplate(templateRefId);
 
-                        // Supprimer la référence du template de la section
-                        await updateSection(sectionId, {
-                          title: nomTrame,
-                          kind: categorie,
-                          schema: questions,
-                          isPublic,
-                          // Ne pas inclure templateRefId pour le supprimer
-                        });
+                          // Supprimer la référence du template de la section
+                          await updateSection(sectionId, {
+                            title: nomTrame,
+                            kind: categorie,
+                            schema: questions,
+                            isPublic,
+                            // Ne pas inclure templateRefId pour le supprimer
+                          });
 
-                        // Réinitialiser l'état local
-                        setTemplateRefId(null);
-                        setTemplate({
-                          id: Date.now().toString(),
-                          label: nomTrame,
-                          version: 1,
-                          content: null,
-                          slotsSpec: [],
-                          stylePrompt: '',
-                          isDeprecated: false,
-                          createdAt: new Date().toISOString(),
-                          updatedAt: new Date().toISOString(),
-                        });
-                        setTab('questions'); // Retourner à l'onglet questions
-                      } catch (error) {
-                        console.error('Failed to delete template:', error);
-                        // Optionnel: afficher un message d'erreur à l'utilisateur
+                          // Réinitialiser l'état local
+                          setTemplateRefId(null);
+                          setTemplate({
+                            id: Date.now().toString(),
+                            label: nomTrame,
+                            version: 1,
+                            content: null,
+                            slotsSpec: [],
+                            stylePrompt: '',
+                            isDeprecated: false,
+                            createdAt: new Date().toISOString(),
+                            updatedAt: new Date().toISOString(),
+                          });
+                          setTab('questions'); // Retourner à l'onglet questions
+                        } catch (error) {
+                          console.error('Failed to delete template:', error);
+                          // Optionnel: afficher un message d'erreur à l'utilisateur
+                        }
                       }
-                    }
-                  }}
-                />
-              </div>
-            ) : (
-              <div className="h-full overflow-y-auto">
-                <EmptyTemplateState
-                  onAdd={async () => {
-                    if (!sectionId) return;
+                    }}
+                  />
+                </div>
+              ) : (
+                <div className="h-full overflow-y-auto">
+                  <EmptyTemplateState
+                    onAdd={async () => {
+                      if (!sectionId) return;
 
-                    // Créer un template par défaut non vide
-                    const defaultTemplate = {
-                      ...template,
-                      label: nomTrame,
-                      content: {
-                        root: {
-                          type: 'root',
-                          children: [
-                            {
-                              type: 'paragraph',
-                              children: [
-                                {
-                                  type: 'text',
-                                  text: '## Introduction\n\n',
-                                  format: 0,
-                                  style: '',
-                                  version: 1,
-                                },
-                              ],
-                              direction: 'ltr',
-                              format: '',
-                              indent: 0,
-                              version: 1,
-                            },
-                            {
-                              type: 'paragraph',
-                              children: [
-                                {
-                                  type: 'text',
-                                  text: 'Contexte de la demande.',
-                                  format: 0,
-                                  style: '',
-                                  version: 1,
-                                },
-                              ],
-                              direction: 'ltr',
-                              format: '',
-                              indent: 0,
-                              version: 1,
-                            },
-                          ],
-                          direction: 'ltr',
-                          format: '',
-                          indent: 0,
-                          version: 1,
+                      // Créer un template par défaut non vide
+                      const defaultTemplate = {
+                        ...template,
+                        label: nomTrame,
+                        content: {
+                          root: {
+                            type: 'root',
+                            children: [
+                              {
+                                type: 'paragraph',
+                                children: [
+                                  {
+                                    type: 'text',
+                                    text: '## Introduction\n\n',
+                                    format: 0,
+                                    style: '',
+                                    version: 1,
+                                  },
+                                ],
+                                direction: 'ltr',
+                                format: '',
+                                indent: 0,
+                                version: 1,
+                              },
+                              {
+                                type: 'paragraph',
+                                children: [
+                                  {
+                                    type: 'text',
+                                    text: 'Contexte de la demande.',
+                                    format: 0,
+                                    style: '',
+                                    version: 1,
+                                  },
+                                ],
+                                direction: 'ltr',
+                                format: '',
+                                indent: 0,
+                                version: 1,
+                              },
+                            ],
+                            direction: 'ltr',
+                            format: '',
+                            indent: 0,
+                            version: 1,
+                          },
                         },
-                      },
-                      slotsSpec: [
-                        {
-                          kind: 'field' as const,
-                          id: 'Contexte de la demande',
-                          type: 'text' as const,
-                          label: 'Description',
-                          prompt:
-                            'Description factuelle du contexte de la demande',
-                          mode: 'llm' as const,
-                        },
-                      ],
-                      stylePrompt:
-                        'Style professionnel et descriptif, sans jargon excessif.',
-                      mode: 'questionnaire',
-                    };
+                        slotsSpec: [
+                          {
+                            kind: 'field' as const,
+                            id: 'Contexte de la demande',
+                            type: 'text' as const,
+                            label: 'Description',
+                            prompt:
+                              'Description factuelle du contexte de la demande',
+                            mode: 'llm' as const,
+                          },
+                        ],
+                        stylePrompt:
+                          'Style professionnel et descriptif, sans jargon excessif.',
+                        mode: 'questionnaire',
+                      };
 
-                    const created = await createTemplate(defaultTemplate);
-                    setTemplate(created);
-                    setTemplateRefId(created.id);
-                    await updateSection(sectionId, {
-                      title: nomTrame,
-                      kind: categorie,
-                      schema: questions,
-                      isPublic,
-                      templateRefId: created.id,
-                    });
-                  }}
-                />
-              </div>
-            )}
-          </div>
+                      const created = await createTemplate(defaultTemplate);
+                      setTemplate(created);
+                      setTemplateRefId(created.id);
+                      await updateSection(sectionId, {
+                        title: nomTrame,
+                        kind: categorie,
+                        schema: questions,
+                        isPublic,
+                        templateRefId: created.id,
+                      });
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </ReadOnlyOverlay>
         )}
 
         {tab === 'settings' && (
-          <div className="h-full overflow-y-auto space-y-6">
-            <Settings
-              category={categorie}
-              jobs={job}
-              categories={categories}
-              onCategoryChange={(v: string) => setCategorie(v as CategoryId)}
-              onJobsChange={setJob}
-              coverUrl={coverUrl}
-              onCoverUrlChange={setCoverUrl}
-            />
-            <SharePanel resourceType="section" resourceId={sectionId} />
-          </div>
+          <ReadOnlyOverlay active={isReadOnly} onCta={handleDuplicate}>
+            <div className="h-full overflow-y-auto space-y-6">
+              <Settings
+                category={categorie}
+                jobs={job}
+                categories={categories}
+                onCategoryChange={(v: string) => setCategorie(v as CategoryId)}
+                onJobsChange={setJob}
+                coverUrl={coverUrl}
+                onCoverUrlChange={setCoverUrl}
+              />
+              {!isReadOnly && (
+                <SharePanel resourceType="section" resourceId={sectionId} />
+              )}
+            </div>
+          </ReadOnlyOverlay>
         )}
       </div>
 

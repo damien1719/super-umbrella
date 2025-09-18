@@ -376,12 +376,12 @@ export default function WizardAIRightPanel({
                 },
                 {
                   key: 'official',
-                  label: 'Trames Bilan Plume',
+                  label: 'Partagées par Bilan Plume',
                   count: officialTrames.length,
                 },
                 {
                   key: 'community',
-                  label: 'Trames de la communauté',
+                  label: 'Partagées par la communauté',
                   count: communityTrames.length,
                 },
               ]}
@@ -412,7 +412,7 @@ export default function WizardAIRightPanel({
             trigger={
               <button
                 type="button"
-                aria-label="Créer une nouvelle trame"
+                aria-label="Créer un nouveau test"
                 className="
                   group relative w-full max-w-120
                   rounded-xl border-2 border-dashed
@@ -905,15 +905,8 @@ export default function WizardAIRightPanel({
         </DialogHeader>
       </div>
 
-      {/* Row 2 — Scrollable content (add bottom padding when outer sticky footer is visible) */}
-      <div
-        className={
-          `flex-1 overflow-y-auto px-4 min-h-0 ` +
-          (mode === 'bilanType' && step === total ? '' : '')
-        }
-      >
-        {content}
-      </div>
+      {/* Row 2 — Scrollable content */}
+      <div className={'flex-1 overflow-y-auto px-4 min-h-0'}>{content}</div>
 
       {/* Row 3 — Footer glued to bottom (hidden at step 2 in bilanType mode to avoid duplicate footers) */}
       {!(mode === 'bilanType' && step === total) && (

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Plus } from 'lucide-react';
 import BilanTypeCard from '@/components/BilanTypeCard';
 import { Button } from '@/components/ui/button';
 import CreateWithJobsModal from '@/components/ui/create-with-jobs-modal';
@@ -39,13 +39,21 @@ export default function BilanTypes() {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               Trames de bilans
             </h1>
-            <p className="text-gray-600">Vos bilans préconfigurés</p>
+            <p className="text-gray-600">
+              Composez vos trames personnalisées en sélectionnant des parties dans
+              la Bibliothèque
+            </p>
           </div>
           <CreateWithJobsModal
             dialogTitle="Créer une trame bilan complet"
             nameLabel="Nom"
             confirmLabel="Valider"
-            trigger={<Button>Créer une trame de bilan complet</Button>}
+            trigger={
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Composer une trame de bilan
+              </Button>
+            }
             open={createOpen}
             onOpenChange={setCreateOpen}
             onSubmit={({ name, jobs }) => {

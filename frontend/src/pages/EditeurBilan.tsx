@@ -1,15 +1,13 @@
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useEffect, useState, Suspense, lazy, useRef } from 'react';
-import { Button } from '../components/ui/button';
-import OverflowToolbar, {
-  type OverflowItem,
-} from '../components/OverflowToolbar';
+import TopBarEditeurBilan from '../components/TopBarEditeurBilan';
 import ExitConfirmation from '../components/ExitConfirmation';
 import { apiFetch } from '../utils/api';
 import { useAuth } from '../store/auth';
 import { useBilanDraft } from '../store/bilanDraft';
 import SelectionOverlay from '../components/SelectionOverlay';
 import { useEditorUi } from '../store/editorUi';
+import { downloadDocx } from '@/lib/docxExport';
 
 const RichTextEditor = lazy(() => import('../components/RichTextEditor'));
 const AiRightPanel = lazy(() => import('../components/AiRightPanel'));
@@ -67,7 +65,7 @@ export default function Bilan() {
     };
   }, [setMode, setSelection]);
 
-  const save = async () => {
+  const save = async (opts?: { title?: string }) => {
     if (!bilanId || !bilan) return;
     const res = await apiFetch<BilanData>(`/api/v1/bilans/${bilanId}`, {
       method: 'PUT',
@@ -75,35 +73,41 @@ export default function Bilan() {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ title: bilan.title, descriptionJson }),
+      body: JSON.stringify({
+        title: opts?.title ?? bilan.title,
+        descriptionJson,
+      }),
     });
     setBilan(res);
   };
 
   if (!bilan) return <div>Chargement...</div>;
 
-  const headerItems: OverflowItem[] = [
-    {
-      key: 'back',
-      element: (
-        <Button variant="ghost" onClick={handleBack} className="px-2 py-1">
-          Retour
-        </Button>
-      ),
-    },
-  ];
+  const handleSaveTitle = async (newTitle: string) => {
+    if (!bilan) return;
+    setBilan({ ...bilan, title: newTitle });
+    await save({ title: newTitle });
+  };
+
+  const handleExport = async () => {
+    try {
+      const fullHtml = editorRef.current?.getHtmlForExport?.();
+      if (!fullHtml) return;
+      await downloadDocx(fullHtml, `${bilan.title || 'Bilan'}.docx`);
+    } catch (e) {
+      // Silently ignore for now; could add toast
+      console.error('Export DOCX failed', e);
+    }
+  };
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
-      <div className="h-12 grid grid-cols-3 items-center bg-wood-50 border border-wood-300 px-2">
-        <div className="truncate">
-          <OverflowToolbar items={headerItems} className="p-2" />
-        </div>
-        <h1 className="text-center text-lg font-semibold truncate">
-          {bilan.title}
-        </h1>
-        <div />
-      </div>
+      <TopBarEditeurBilan
+        title={bilan.title}
+        onBack={handleBack}
+        onSaveTitle={handleSaveTitle}
+        onExport={handleExport}
+      />
 
       <div className="flex-1 overflow-hidden">
         <div className="flex h-full overflow-hidden">

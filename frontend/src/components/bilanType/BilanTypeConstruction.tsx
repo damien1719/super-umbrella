@@ -55,12 +55,12 @@ export function BilanTypeConstruction({
     <>
       <Card className="lg:col-span-2">
         <CardHeader>
-          <CardTitle>Construction du Type de Bilan</CardTitle>
+          <CardTitle>Composition de votre trame de bilan</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex justify-end mb-4">
             <Button variant="outline" size="sm" onClick={() => onAddHeading()}>
-              <Plus className="h-4 w-4 mr-2" /> Ajouter une grande partie
+              <Plus className="h-4 w-4 mr-2" /> Ajouter un titre
             </Button>
           </div>
           {selectedElements.length === 0 ? (

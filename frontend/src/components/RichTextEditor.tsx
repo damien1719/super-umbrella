@@ -48,6 +48,7 @@ import {
 import { TablePlugin } from '@lexical/react/LexicalTablePlugin';
 import { useVirtualSelection } from '../hooks/useVirtualSelection';
 import { SlotNode, $createSlotNode, $isSlotNode } from '../nodes/SlotNode';
+import { normalizeBordersForDocx, wrapHtmlForDocx } from '@/lib/docxExport';
 import {
   SectionPlaceholderNode,
   $createSectionPlaceholderNode,
@@ -133,6 +134,7 @@ export interface RichTextEditorHandle {
   setEditorStateJson: (state: unknown) => void;
   getEditorStateJson?: () => unknown;
   getPlainText?: () => string;
+  getHtmlForExport?: () => string;
   insertSlot?: (slotId: string, slotLabel: string, slotType: SlotType) => void;
   updateSlot?: (slotId: string, slotLabel: string) => void;
   removeSlot?: (slotId: string) => void;
@@ -342,6 +344,27 @@ const ImperativeHandlePlugin = forwardRef<RichTextEditorHandle, object>(
             });
           } catch (e) {
             console.error('[Lexical] Failed to get plain text:', e);
+            return '';
+          }
+        },
+        getHtmlForExport() {
+          try {
+            const state = editor.getEditorState();
+            let html = '';
+            state.read(() => {
+              html = DOMPurify.sanitize(
+                $generateHtmlFromNodes(editor),
+                SANITIZE_OPTIONS,
+              );
+            });
+            html = normalizeBordersForDocx(html);
+            return wrapHtmlForDocx(html, {
+              fontFamily: "Calibri, 'Helvetica Neue', Arial, sans-serif",
+              fontSizePt: '11',
+              lineHeight: '1.5',
+            });
+          } catch (e) {
+            console.error('[Lexical] Failed to export HTML:', e);
             return '';
           }
         },

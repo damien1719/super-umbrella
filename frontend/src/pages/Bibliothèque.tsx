@@ -140,7 +140,7 @@ export default function Bibliotheque() {
                 Bibliothèque
               </h1>
               <p className="text-gray-600">
-                L'ensemble des sections disponibles pour composer vos bilans
+                L'ensemble des parties disponibles pour composer vos bilans
               </p>
             </div>
             <CreerTrameModal />
@@ -155,18 +155,18 @@ export default function Bibliotheque() {
             tabs={[
               {
                 key: 'mine',
-                label: 'Mes trames',
+                label: 'Mes parties',
                 count: myTrames.length,
                 hidden: myTrames.length === 0,
               },
               {
                 key: 'official',
-                label: 'Trames Bilan Plume',
+                label: 'Partagées Bilan Plume',
                 count: officialTrames.length,
               },
               {
                 key: 'community',
-                label: 'Trames de la communauté',
+                label: 'Partagées par la communauté',
                 count: communityTrames.length,
               },
             ]}
@@ -193,12 +193,12 @@ export default function Bibliotheque() {
             </div>
 
             {/* Recherche par nom de section */}
-            <div className="flex-1 w-64 max-w-64">
+            <div className="flex-1 w-64 max-w-80">
               <SearchField
                 value={searchTerm}
                 onChange={setSearchTerm}
-                placeholder="Rechercher une trame..."
-                aria-label="Rechercher une trame..."
+                placeholder="Rechercher un test, anamnèse..."
+                aria-label="Rechercher une partie..."
               />
             </div>
 

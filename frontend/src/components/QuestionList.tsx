@@ -18,6 +18,7 @@ import {
   Save,
   X,
   ClipboardCopy,
+  ClipboardPaste,
 } from 'lucide-react';
 import type { Question } from '@/types/Typequestion';
 import { EDITORS } from './Editors';
@@ -35,6 +36,7 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { useClipboardStore } from '@/store/clipboard';
 
 const typesQuestions = [
   { id: 'notes', title: 'Réponse (prise de notes)' },
@@ -54,6 +56,8 @@ interface Props {
   onDuplicate: (id: string) => void;
   onDelete: (id: string) => void;
   onAddAfter: (id: string) => void;
+  /** Insère le contenu du presse-papiers interne après la question cible */
+  onPasteAfter?: (targetId: string, item: Question) => void;
 }
 
 export default function QuestionList({
@@ -65,6 +69,7 @@ export default function QuestionList({
   onDuplicate,
   onDelete,
   onAddAfter,
+  onPasteAfter,
 }: Props) {
   const dragIndex = useRef<number | null>(null);
   const [jsonDialogOpen, setJsonDialogOpen] = useState(false);
@@ -74,6 +79,9 @@ export default function QuestionList({
   const [jsonContent, setJsonContent] = useState('');
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [isEditingAllQuestions, setIsEditingAllQuestions] = useState(false);
+  const clipboardItem = useClipboardStore((s) => s.item);
+  const copyToClipboard = useClipboardStore((s) => s.copy);
+  const clearClipboard = useClipboardStore((s) => s.clear);
 
   const handleDragStart = (index: number) => {
     dragIndex.current = index;
@@ -227,8 +235,10 @@ export default function QuestionList({
     import.meta.env.VITE_DISPLAY_IMPORT_BUTTON === 'true';
 
   return (
-    <div className="space-y-6 overflow-y-auto h-full relative">
-      {SHOW_EDIT_ALL_JSON && (
+    <div className="h-full">
+      {/* Leave room for the right bar */}
+      <div className="space-y-2 pr-0">
+        {/*        {SHOW_EDIT_ALL_JSON && (
         <div className="absolute top-0 right-0 z-10">
           <Button
             variant="outline"
@@ -240,107 +250,140 @@ export default function QuestionList({
             <MoreHorizontal className="h-4 w-4 mr-2" />
           </Button>
         </div>
-      )}
-      {questions.map((question, index) => {
-        const Editor = EDITORS[question.type];
-        return (
-          <div
-            key={question.id}
-            ref={(el) => {
-              itemRefs.current[question.id] = el;
-            }}
-            className="relative w-full"
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={() => handleDrop(index)}
-          >
-            <button
-              aria-label="Déplacer la question"
-              draggable
-              onDragStart={() => handleDragStart(index)}
-              onDragEnd={handleDragEnd}
-              className={`absolute top left-1/2 cursor-move p-1 rounded transition-opacity opacity-100`}
+      )} */}
+        {questions.map((question, index) => {
+          const Editor = EDITORS[question.type];
+          return (
+            <div
+              key={question.id}
+              ref={(el) => {
+                itemRefs.current[question.id] = el;
+              }}
+              className="relative w-full"
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => handleDrop(index)}
             >
-              <GripVertical className="h-5 w-5 text-gray-400 rotate-90" />
-            </button>
-            <Card
-              onClick={() => onSelect(question.id)}
-              className={`group w-[90%] mx-auto cursor-pointer transition-shadow ${
-                selectedId === question.id
-                  ? 'border-primary-500 ring-1 ring-primary-500 shadow-md'
-                  : ''
-              }`}
-            >
-              <CardHeader>
-                <div className="flex items-center gap-4">
-                  <Input
-                    className={
-                      question.type === 'titre'
-                        ? 'text-3xl font-bold border-none shadow-none focus-visible:ring-0 p-0 flex-1'
-                        : 'flex-1'
-                    }
-                    placeholder={
-                      question.type === 'titre'
-                        ? 'Titre de section'
-                        : `Question ${index + 1}`
-                    }
-                    value={question.titre}
-                    onChange={(e) =>
-                      onPatch(question.id, { titre: e.target.value })
-                    }
-                  />
-                  {selectedId === question.id && (
-                    <Select
-                      value={question.type}
-                      onValueChange={(v) =>
-                        onPatch(question.id, { type: v as Question['type'] })
+              <button
+                aria-label="Déplacer la question"
+                draggable
+                onDragStart={() => handleDragStart(index)}
+                onDragEnd={handleDragEnd}
+                className={`absolute top left-1/2 cursor-move p-1 rounded transition-opacity opacity-100`}
+              >
+                <GripVertical className="h-5 w-5 text-gray-400 rotate-90" />
+              </button>
+              <Card
+                onClick={() => onSelect(question.id)}
+                className={`group w-[90%] mx-auto cursor-pointer transition-shadow ${
+                  selectedId === question.id
+                    ? 'border-primary-500 ring-1 ring-primary-500 shadow-md'
+                    : ''
+                }`}
+              >
+                <CardHeader>
+                  <div className="flex items-center gap-4">
+                    <Input
+                      className={
+                        question.type === 'titre'
+                          ? 'text-3xl font-bold border-none shadow-none focus-visible:ring-0 p-0 flex-1'
+                          : 'flex-1'
                       }
+                      placeholder={
+                        question.type === 'titre'
+                          ? 'Titre de section'
+                          : `Question ${index + 1}`
+                      }
+                      value={question.titre}
+                      onChange={(e) =>
+                        onPatch(question.id, { titre: e.target.value })
+                      }
+                    />
+                    {selectedId === question.id && (
+                      <Select
+                        value={question.type}
+                        onValueChange={(v) =>
+                          onPatch(question.id, { type: v as Question['type'] })
+                        }
+                      >
+                        <SelectTrigger className="w-44">
+                          <SelectValue placeholder="Type de réponse" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {typesQuestions.map((t) => (
+                            <SelectItem key={t.id} value={t.id}>
+                              {t.title}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <Editor
+                    q={question}
+                    onPatch={(p) => onPatch(question.id, p)}
+                  />
+                  <div
+                    className={
+                      `flex justify-end gap-2 pt-2 transition-opacity duration-200 ` +
+                      (selectedId === question.id
+                        ? 'opacity-100'
+                        : 'opacity-0 group-hover:opacity-100')
+                    }
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {/* Coller une réutilisation (visible seulement si un élément est dans le presse-papiers) */}
+                    {clipboardItem && onPasteAfter && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onPasteAfter(question.id, clipboardItem);
+                          // Vider le presse-papiers interne après collage
+                          clearClipboard();
+                        }}
+                      >
+                        <ClipboardPaste className="h-4 w-4 mr-2" />
+                        Coller une réutilisation
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      tooltip="Ajouter une question"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAddAfter(question.id);
+                      }}
                     >
-                      <SelectTrigger className="w-44">
-                        <SelectValue placeholder="Type de réponse" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {typesQuestions.map((t) => (
-                          <SelectItem key={t.id} value={t.id}>
-                            {t.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Editor q={question} onPatch={(p) => onPatch(question.id, p)} />
-                <div
-                  className={
-                    `flex justify-end gap-2 pt-2 transition-opacity duration-200 ` +
-                    (selectedId === question.id
-                      ? 'opacity-100'
-                      : 'opacity-0 group-hover:opacity-100')
-                  }
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onAddAfter(question.id);
-                    }}
-                  >
-                    <Plus className="h-5 w-5" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDuplicate(question.id);
-                    }}
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                  <DropdownMenu>
+                      <Plus className="h-5 w-5" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      tooltip="Dupliquer la question"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDuplicate(question.id);
+                      }}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                    {/* Copier pour réutiliser */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      tooltip="Copier pour réutiliser"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        copyToClipboard(question);
+                      }}
+                    >
+                      <ClipboardCopy className="h-4 w-4" />
+                    </Button>
+                    {/*                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="outline"
@@ -357,43 +400,44 @@ export default function QuestionList({
                         Éditer JSON
                       </DropdownMenuItem>
                     </DropdownMenuContent>
-                  </DropdownMenu>
+                  </DropdownMenu> */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      tooltip="Supprimer la question"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(question.id);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+              {selectedId === question.id && (
+                <div className="flex flex-col absolute top-1/2 -translate-y-1/2 space-y-2">
                   <Button
-                    variant="outline"
+                    variant="primary"
+                    size="icon"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onAddAfter(question.id);
+                    }}
+                  >
+                    <Plus className="h-6 w-6 text-white" />
+                  </Button>
+                  <Button
+                    variant="primary"
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation();
-                      onDelete(question.id);
+                      onDuplicate(question.id);
                     }}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Copy className="h-4 w-4" />
                   </Button>
-                </div>
-              </CardContent>
-            </Card>
-            {selectedId === question.id && (
-              <div className="flex flex-col absolute top-1/2 -translate-y-1/2 space-y-2">
-                <Button
-                  variant="primary"
-                  size="icon"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onAddAfter(question.id);
-                  }}
-                >
-                  <Plus className="h-6 w-6 text-white" />
-                </Button>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDuplicate(question.id);
-                  }}
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-                {/* <DropdownMenu>
+                  {/* <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="primary"
@@ -409,65 +453,66 @@ export default function QuestionList({
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu> */}
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(question.id);
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" />
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(question.id);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {/* Dialog pour l'édition JSON */}
+        <Dialog open={jsonDialogOpen} onOpenChange={setJsonDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[80vh]">
+            <DialogHeader>
+              <DialogTitle>
+                {isEditingAllQuestions
+                  ? 'Éditer le JSON de toutes les questions'
+                  : 'Éditer le JSON de la question'}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="json-content">Contenu JSON</Label>
+                <Textarea
+                  id="json-content"
+                  value={jsonContent}
+                  onChange={(e) => setJsonContent(e.target.value)}
+                  className="font-mono text-sm h-96 resize-none"
+                  placeholder="Entrez le JSON de la question..."
+                />
+              </div>
+              {jsonError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+                  {jsonError}
+                </div>
+              )}
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={handleJsonCopy}>
+                  <ClipboardCopy className="h-4 w-4 mr-2" />
+                  Copier
+                </Button>
+                <Button variant="outline" onClick={handleJsonCancel}>
+                  <X className="h-4 w-4 mr-2" />
+                  Annuler
+                </Button>
+                <Button onClick={handleJsonSave}>
+                  <Save className="h-4 w-4 mr-2" />
+                  Enregistrer
                 </Button>
               </div>
-            )}
-          </div>
-        );
-      })}
-
-      {/* Dialog pour l'édition JSON */}
-      <Dialog open={jsonDialogOpen} onOpenChange={setJsonDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh]">
-          <DialogHeader>
-            <DialogTitle>
-              {isEditingAllQuestions
-                ? 'Éditer le JSON de toutes les questions'
-                : 'Éditer le JSON de la question'}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="json-content">Contenu JSON</Label>
-              <Textarea
-                id="json-content"
-                value={jsonContent}
-                onChange={(e) => setJsonContent(e.target.value)}
-                className="font-mono text-sm h-96 resize-none"
-                placeholder="Entrez le JSON de la question..."
-              />
             </div>
-            {jsonError && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
-                {jsonError}
-              </div>
-            )}
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={handleJsonCopy}>
-                <ClipboardCopy className="h-4 w-4 mr-2" />
-                Copier
-              </Button>
-              <Button variant="outline" onClick={handleJsonCancel}>
-                <X className="h-4 w-4 mr-2" />
-                Annuler
-              </Button>
-              <Button onClick={handleJsonSave}>
-                <Save className="h-4 w-4 mr-2" />
-                Enregistrer
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }

@@ -8,6 +8,7 @@ import {
   LogOut,
   LayoutDashboard,
   FileText,
+  LifeBuoy,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import {
@@ -45,16 +46,16 @@ const items: {
   icon: React.ComponentType<{ className?: string }>;
 }[] = [
   {
-    title: 'Mes Bilans',
+    title: 'Mes rédactions',
     page: 'MesBilans',
     path: '/',
-    icon: LayoutDashboard,
+    icon: FileText,
   },
   {
-    title: 'Trames de bilans',
+    title: 'Mes trames de bilans',
     page: 'BilanTypes',
     path: '/bilan-types',
-    icon: FileText,
+    icon: LayoutDashboard,
   },
   {
     title: 'Bibliothèque',
@@ -127,23 +128,33 @@ export function AppSidebar({ onNavigate }: SidebarProps) {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
+            <NavLink to="/aide">
+              {({ isActive }) => (
+                <SidebarMenuButton isActive={isActive} className="w-full">
+                  <LifeBuoy className="h-4 w-4" />
+                  <span className="font-normal text-base">Aide</span>
+                </SidebarMenuButton>
+              )}
+            </NavLink>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton
                   size="lg"
                   className="data-[state=open]:bg-blue-50 data-[state=open]:text-blue-700"
                 >
-                  <Avatar className="h-8 w-8 rounded-lg">
+                  <Avatar className="h-4 w-4 rounded-lg">
                     <AvatarImage
                       src="/placeholder.svg?height=32&width=32"
                       alt={profile ? `${profile.prenom} ${profile.nom}` : ''}
                     />
-                    <AvatarFallback className="rounded-lg">
+                    <AvatarFallback className="rounded-lg text-[10px]">
                       {initials}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">
+                  <div className="grid flex-1 text-left text-base leading-tight">
+                    <span className="truncate">
                       {profile ? `${profile.prenom} ${profile.nom}` : ''}
                     </span>
                   </div>
