@@ -140,7 +140,7 @@ export default function Bibliotheque() {
                 Bibliothèque
               </h1>
               <p className="text-gray-600">
-                L'ensemble des questionnaires disponibles pour composer vos bilans
+                L'ensemble des parties disponibles pour composer vos bilans
               </p>
             </div>
             <CreerTrameModal />
@@ -155,7 +155,7 @@ export default function Bibliotheque() {
             tabs={[
               {
                 key: 'mine',
-                label: 'Mes questionnaires',
+                label: 'Mes parties',
                 count: myTrames.length,
                 hidden: myTrames.length === 0,
               },

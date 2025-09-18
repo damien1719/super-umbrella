@@ -376,12 +376,12 @@ export default function WizardAIRightPanel({
                 },
                 {
                   key: 'official',
-                  label: 'Trames Bilan Plume',
+                  label: 'Partagées par Bilan Plume',
                   count: officialTrames.length,
                 },
                 {
                   key: 'community',
-                  label: 'Trames de la communauté',
+                  label: 'Partagées par la communauté',
                   count: communityTrames.length,
                 },
               ]}
