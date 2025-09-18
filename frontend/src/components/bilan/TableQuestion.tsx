@@ -67,7 +67,7 @@ export function TableQuestion({
     opts: string[],
     selected: string[],
     update: (v: string[]) => void,
-    maxVisible = 3,
+    maxVisible = 5,
   ) => {
     const visibleOpts = opts.slice(0, maxVisible);
     const hiddenOpts = opts.slice(maxVisible);
