@@ -338,15 +338,25 @@ export default function WizardAIRightPanel({
     return () => window.removeEventListener('bilan-type:prev', onPrev);
   }, []);
 
-  const stepTitles = [
-    'Trame',
-    "Ecrivez vos notes brutes ou saisissez les résultats de vos observations: c'est la matière brute utilisée par l'IA pour rédiger",
-  ];
+  const stepTitles =
+  mode === 'bilanType'
+    ? [
+        'Trame',
+        "Ecrivez vos notes brutes ou saisissez les résultats de vos observations: c'est la matière brute utilisée par l'IA pour rédiger",
+      ]
+    : [
+        'Partie',
+        "Ecrivez vos notes brutes ou saisissez les résultats de vos observations: c'est la matière brute utilisée par l'IA pour rédiger",
+      ];
 
   const headerTitle =
     step === 1
-      ? 'Choisissez ou créez une trame pour votre rédaction'
-      : 'Ajoutez les données anonymisées du patient';
+      ? mode === 'bilanType'
+        ? 'Choisissez ou créez une trame pour votre rédaction'
+        : 'Choisissez ou créez une partie'
+      : mode === 'bilanType'
+        ? 'Ajoutez les données anonymisées du patient'
+        : 'Ajoutez les données anonymisées du patient';
 
   const headerDescription = `Étape ${step}/${total} – ${stepTitles[step - 1]}`;
 
@@ -370,7 +380,7 @@ export default function WizardAIRightPanel({
               tabs={[
                 {
                   key: 'mine',
-                  label: 'Mes trames',
+                  label: mode === 'bilanType' ? 'Mes trames' : 'Mes parties',
                   count: myTrames.length,
                   hidden: myTrames.length === 0,
                 },
@@ -433,10 +443,10 @@ export default function WizardAIRightPanel({
                   <Plus className="h-5 w-5" />
                 </span>
                 <span className="font-semibold text-primary-700">
-                  Créez votre trame
+                  {mode === 'bilanType' ? 'Créez votre trame' : 'Créez une partie personnalisée'}
                 </span>
                 <span className="mt-1 text-sm text-primary-700/80">
-                  Trame personnalisée à votre pratique
+                {mode === 'bilanType' ? 'Trame personnalisée à votre pratique' : 'Partie de bilan personnalisée à votre pratique'}
                 </span>
               </button>
             }

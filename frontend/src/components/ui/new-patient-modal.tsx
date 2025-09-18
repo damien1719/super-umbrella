@@ -59,7 +59,7 @@ export function NewPatientModal({
               className="col-span-3"
             />
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
+{/*           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="lastName" className="text-right">
               Nom
             </Label>
@@ -69,7 +69,7 @@ export function NewPatientModal({
               onChange={(e) => setLastName(e.target.value)}
               className="col-span-3"
             />
-          </div>
+          </div> */}
         </div>
         <DialogFooter>
           <Button type="submit" onClick={handleSave}>
