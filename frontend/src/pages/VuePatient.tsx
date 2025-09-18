@@ -155,7 +155,7 @@ export default function VuePatient() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5" />
-                Informations personnelles
+                Informations anonymes
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -167,21 +167,21 @@ export default function VuePatient() {
                   disabled={!isEditing}
                   required
                 />
-                <InputField
+                {/* <InputField
                   label="Nom"
                   value={lastName}
                   onChange={setLastName}
                   disabled={!isEditing}
                   required
-                />
+                /> */}
               </div>
-              <InputField
+            {/*   <InputField
                 label="Date de naissance"
                 value={dob}
                 onChange={setDob}
                 type="date"
                 disabled={!isEditing}
-              />
+              /> */}
               <InputField
                 label="Notes"
                 value={notes}
