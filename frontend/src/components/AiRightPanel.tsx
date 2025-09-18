@@ -57,6 +57,7 @@ const useTrames = () => {
           author: s.author,
           templateRefId: s.templateRefId,
           coverUrl: s.coverUrl,
+          source: s.source,
         }));
     });
     return res;
@@ -167,6 +168,9 @@ export default function AiRightPanel({
         author: b.author ?? null,
         coverUrl: b.coverUrl ?? DEFAULT_BILAN_TYPE_COVER,
         templateRefId: undefined,
+        // Bilan types do not currently carry a source flag
+        // so default to 'USER' for filtering purposes
+        source: 'USER' as const,
       })) as TrameOption[],
     [bilanTypes],
   );

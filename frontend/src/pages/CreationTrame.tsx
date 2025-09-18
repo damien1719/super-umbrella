@@ -30,6 +30,7 @@ import { useUserProfileStore } from '@/store/userProfile';
 import { Job } from '../types/job';
 import SharePanel from '@/components/SharePanel';
 import ReadOnlyOverlay from '@/components/ReadOnlyOverlay';
+import SourceParam from '@/components/SourceParam';
 
 interface ImportResponse {
   result: Question[][];
@@ -285,7 +286,7 @@ export default function CreationTrame({
     const clone = {
       ...(JSON.parse(JSON.stringify(original)) as Question),
       id: Date.now().toString(),
-      titre: 'Question sans titre',
+      titre: `${original.titre} (copie)`,
     } as Question;
     setQuestions((qs) => {
       const before = qs.slice(0, idx + 1);
@@ -480,16 +481,22 @@ export default function CreationTrame({
       <div className="flex-1 min-h-0 pl-6 pb-6">
         {tab === 'questions' && (
           // Questions: Scroll vertical simple avec auto-scroll vers la question sélectionnée
-          <ReadOnlyOverlay active={isReadOnly} onCta={handleDuplicate}>
-            <div className="h-full relative bg-gray-50">
-              {/* Plan des questions - sticky à droite */}
-              <RightBarEdition
-                items={questions}
-                selected={selectedId}
-                onPick={setSelectedId}
-                onMove={onReorder}
-              />
-              {/* Contenu principal scrollable */}
+          <div className="h-full relative bg-gray-50">
+            {/* Plan des questions - sticky à droite */}
+            <RightBarEdition
+              items={questions}
+              selected={selectedId}
+              onPick={setSelectedId}
+              onMove={onReorder}
+              onDuplicate={onDuplicate}
+              readOnly={isReadOnly}
+            />
+            {/* Contenu principal scrollable (bloqué en lecture seule) */}
+            <ReadOnlyOverlay
+              active={isReadOnly}
+              onCta={handleDuplicate}
+              className="lg:mr-80"
+            >
               <div className="h-full overflow-y-auto">
                 <QuestionList
                   questions={questions}
@@ -503,8 +510,8 @@ export default function CreationTrame({
                   onPasteAfter={onPasteAfter}
                 />
               </div>
-            </div>
-          </ReadOnlyOverlay>
+            </ReadOnlyOverlay>
+          </div>
         )}
 
         {tab === 'preview' && (
@@ -692,6 +699,8 @@ export default function CreationTrame({
                 coverUrl={coverUrl}
                 onCoverUrlChange={setCoverUrl}
               />
+              {/* Visible uniquement pour les admins (logique interne au composant) */}
+              <SourceParam sectionId={sectionId} />
               {!isReadOnly && (
                 <SharePanel resourceType="section" resourceId={sectionId} />
               )}

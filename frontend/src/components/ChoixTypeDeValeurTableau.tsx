@@ -66,7 +66,8 @@ export default function ChoixTypeDeValeurTableau({
           <div className="space-y-2">
             <div className="flex flex-col gap-4">
               <span className="text-sm text-gray-500">
-                Pour chaque colonne tu peux choisir parmi case à cocher, liste déroulante et bien d'autres
+                Pour chaque colonne tu peux choisir parmi case à cocher, liste
+                déroulante et bien d'autres
               </span>
               <Label>Type</Label>
             </div>

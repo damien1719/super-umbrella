@@ -175,7 +175,7 @@ export default function VuePatient() {
                   required
                 /> */}
               </div>
-            {/*   <InputField
+              {/*   <InputField
                 label="Date de naissance"
                 value={dob}
                 onChange={setDob}

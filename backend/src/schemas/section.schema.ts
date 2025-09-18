@@ -13,6 +13,8 @@ export const createSectionSchema = z.object({
   templateRefId: z.string().optional(),
   templateOptions: z.any().optional(),
   version: z.number().int().optional(),
+  // Optional on create; defaults to USER in DB
+  source: z.enum(['USER', 'BILANPLUME']).optional(),
 });
 
 export const updateSectionSchema = createSectionSchema.partial();

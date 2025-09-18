@@ -21,7 +21,8 @@ export default function Abonnement() {
             Abonnement
           </h2>
           <p className="text-gray-700">
-            Vous faites partis des 1ers à tester Bilan Plume qui est gratuit pendant 1 mois pendant la phase de tests.
+            Vous faites partis des 1ers à tester Bilan Plume qui est gratuit
+            pendant 1 mois pendant la phase de tests.
           </p>
         </div>
       </div>

@@ -21,6 +21,7 @@ import { usePageStore } from './store/pageContext';
 import { useUserProfileStore } from './store/userProfile';
 import { AppSidebar } from './components/AppSidebar';
 import Onboarding from './pages/Onboarding';
+import Clipboard from './components/Clipboard';
 
 /* function useInitAuth() {
   const { loading, initialize } = useAuth();
@@ -67,7 +68,13 @@ function SilentCheckSso() {
 function ProtectedLayout() {
   const setCurrentPage = usePageStore((s) => s.setCurrentPage);
   const { user, initialized } = useAuth();
-  const { profileId, fetchProfile, profile, loading: profileLoading, error: profileError } = useUserProfileStore();
+  const {
+    profileId,
+    fetchProfile,
+    profile,
+    loading: profileLoading,
+    error: profileError,
+  } = useUserProfileStore();
   const loading = useInitAuth();
 
   const location = useLocation();
@@ -167,7 +174,13 @@ function WizardLayout() {
 function BilanLayout() {
   const { user, initialized } = useAuth();
   const loading = useInitAuth();
-  const { profileId, fetchProfile, profile, loading: profileLoading, error: profileError } = useUserProfileStore();
+  const {
+    profileId,
+    fetchProfile,
+    profile,
+    loading: profileLoading,
+    error: profileError,
+  } = useUserProfileStore();
   useRequireAuth();
 
   useEffect(() => {
@@ -228,29 +241,32 @@ const provider = (
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/silent-check-sso" element={<SilentCheckSso />} />
-      <Route path="/login" element={<Login />} />
-      {provider !== 'keycloak' && <Route path="/signup" element={<SignUp />} />}
-      <Route element={<WizardLayout />}></Route>
-      <Route element={<BilanLayout />}>
-        <Route path="/bilan/:bilanId" element={<Bilan />} />
-        <Route path="/onboarding" element={<Onboarding />} />
-        <Route path="/creation-trame/:sectionId" element={<CreationTrame />} />
-        <Route path="/bilan-types/:bilanTypeId" element={<BilanType />} />
-      </Route>
-      <Route element={<ProtectedLayout />}>
-        <Route path="/" element={<BilanV2 />} />
-        <Route path="/patients" element={<Patients />} />
-        <Route path="/patients/:patientId" element={<VuePatient />} />
-        <Route path="/agenda" element={<Agenda />} />
-        <Route path="/bibliotheque" element={<Bibliotheque />} />
-        <Route path="/bilan-types" element={<BilanTypes />} />
-        <Route path="/bilan-types/builder" element={<BilanTypeBuilder />} />
-        <Route path="/abonnement" element={<Abonnement />} />
-        <Route path="/compte" element={<MonCompteV2 />} />
-        <Route path="/aide" element={<Aide />} />
-      </Route>
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/silent-check-sso" element={<SilentCheckSso />} />
+        <Route path="/login" element={<Login />} />
+        {provider !== 'keycloak' && <Route path="/signup" element={<SignUp />} />}
+        <Route element={<WizardLayout />}></Route>
+        <Route element={<BilanLayout />}>
+          <Route path="/bilan/:bilanId" element={<Bilan />} />
+          <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/creation-trame/:sectionId" element={<CreationTrame />} />
+          <Route path="/bilan-types/:bilanTypeId" element={<BilanType />} />
+        </Route>
+        <Route element={<ProtectedLayout />}>
+          <Route path="/" element={<BilanV2 />} />
+          <Route path="/patients" element={<Patients />} />
+          <Route path="/patients/:patientId" element={<VuePatient />} />
+          <Route path="/agenda" element={<Agenda />} />
+          <Route path="/bibliotheque" element={<Bibliotheque />} />
+          <Route path="/bilan-types" element={<BilanTypes />} />
+          <Route path="/bilan-types/builder" element={<BilanTypeBuilder />} />
+          <Route path="/abonnement" element={<Abonnement />} />
+          <Route path="/compte" element={<MonCompteV2 />} />
+          <Route path="/aide" element={<Aide />} />
+        </Route>
+      </Routes>
+      <Clipboard />
+    </>
   );
 }
