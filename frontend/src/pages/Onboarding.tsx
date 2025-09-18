@@ -15,17 +15,13 @@ const ONBOARDING_VERSION = '1';
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  const { profile, fetchProfile, updateProfile, loading, error } =
+  const { profile, updateProfile, loading, error } =
     useUserProfileStore();
   const [form, setForm] = useState<{ nom: string; prenom: string; job?: Job }>({
     nom: '',
     prenom: '',
     job: undefined,
   });
-
-  useEffect(() => {
-    fetchProfile().catch(() => {});
-  }, []);
 
   useEffect(() => {
     if (profile) {

@@ -16,7 +16,7 @@ const DropdownMenuSubTrigger = React.forwardRef<
   <DropdownMenuPrimitive.SubTrigger
     ref={ref}
     className={cn(
-      'flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none focus:bg-blue-50 data-[state=open]:bg-blue-50',
+      'flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none focus:bg-primary-500 data-[state=open]:bg-primary-500',
       inset && 'pl-8',
       className,
     )}
@@ -50,7 +50,7 @@ const DropdownMenuContent = React.forwardRef<
     ref={ref}
     sideOffset={sideOffset}
     className={cn(
-      'z-50 min-w-[8rem] overflow-hidden rounded-md border bg-white bg-opacity-100 text-gray-900 shadow-lg backdrop-blur-0 data-[state=open]:animate-in data-[state=closed]:animate-out',
+      'z-50 min-w-[8rem] overflow-hidden rounded-md border border-wood-400 bg-white bg-opacity-100 text-gray-900 shadow-lg backdrop-blur-0 data-[state=open]:animate-in data-[state=closed]:animate-out',
       className,
     )}
     {...props}
@@ -65,7 +65,7 @@ const DropdownMenuItem = React.forwardRef<
   <DropdownMenuPrimitive.Item
     ref={ref}
     className={cn(
-      'bg-white relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-blue-50 focus:text-blue-700 data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+      'bg-white relative flex cursor-default select-none items-center rounded-sm px-2 py-2 text-sm outline-none transition-colors focus:bg-primary-200 focus:text-primary-700 data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
       inset && 'pl-8',
       className,
     )}
@@ -96,7 +96,7 @@ const DropdownMenuSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DropdownMenuPrimitive.Separator
     ref={ref}
-    className={cn('-mx-1 my-1 h-px bg-gray-200', className)}
+    className={cn('-mx-1 h-px bg-gray-200', className)}
     {...props}
   />
 ));

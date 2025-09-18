@@ -14,6 +14,7 @@ import BilanTypes from './pages/BilanTypes';
 import BilanType from './pages/BilanType';
 import BilanTypeBuilder from './pages/BilanTypeBuilder';
 import CreationTrame from './pages/CreationTrame';
+import Aide from './pages/Aide';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
 import { usePageStore } from './store/pageContext';
@@ -66,7 +67,7 @@ function SilentCheckSso() {
 function ProtectedLayout() {
   const setCurrentPage = usePageStore((s) => s.setCurrentPage);
   const { user, initialized } = useAuth();
-  const { profileId, fetchProfile, profile } = useUserProfileStore();
+  const { profileId, fetchProfile, profile, loading: profileLoading, error: profileError } = useUserProfileStore();
   const loading = useInitAuth();
 
   const location = useLocation();
@@ -96,6 +97,16 @@ function ProtectedLayout() {
       return <SSOLoginRedirect />;
     }
     return <Navigate to="/login" replace />;
+  }
+
+  // Attendre le profil avant d'afficher l'app, pour éviter le flash puis redirection
+  if (!profile && (profileLoading || !profileId)) {
+    return <div>Préparation de votre espace…</div>;
+  }
+
+  // En cas d'erreur de profil, montrer un message simple
+  if (!profile && profileError) {
+    return <div>Erreur de chargement du profil</div>;
   }
 
   // Redirection onboarding
@@ -154,9 +165,18 @@ function WizardLayout() {
 }
 
 function BilanLayout() {
-  const { user } = useAuth();
+  const { user, initialized } = useAuth();
   const loading = useInitAuth();
+  const { profileId, fetchProfile, profile, loading: profileLoading, error: profileError } = useUserProfileStore();
   useRequireAuth();
+
+  useEffect(() => {
+    if (initialized && user && !profileId) {
+      fetchProfile().catch(() => {
+        /* ignore */
+      });
+    }
+  }, [initialized, user, profileId, fetchProfile]);
 
   if (loading) {
     return <div>Chargement...</div>;
@@ -167,6 +187,15 @@ function BilanLayout() {
       return <SSOLoginRedirect />;
     }
     return <Navigate to="/login" replace />;
+  }
+
+  // Ensure profile is loaded before rendering children (e.g., Onboarding form data)
+  if (!profile && (profileLoading || !profileId)) {
+    return <div>Préparation de votre espace…</div>;
+  }
+
+  if (!profile && profileError) {
+    return <div>Erreur de chargement du profil</div>;
   }
 
   return (
@@ -220,6 +249,7 @@ export default function App() {
         <Route path="/bilan-types/builder" element={<BilanTypeBuilder />} />
         <Route path="/abonnement" element={<Abonnement />} />
         <Route path="/compte" element={<MonCompteV2 />} />
+        <Route path="/aide" element={<Aide />} />
       </Route>
     </Routes>
   );
