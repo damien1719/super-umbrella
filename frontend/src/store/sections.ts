@@ -26,6 +26,8 @@ export interface Section {
   coverUrl?: string | null;
   templateRefId?: string | null;
   templateRef?: SectionTemplateRef | null;
+  // Source of this Section (admin-adjustable)
+  source?: 'USER' | 'BILANPLUME';
 }
 
 export type SectionInput = Omit<Section, 'id' | 'author'>;

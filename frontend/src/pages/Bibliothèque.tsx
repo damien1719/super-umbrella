@@ -41,8 +41,6 @@ export default function Bibliotheque() {
 
   const profileId = useMemo(() => profile?.id ?? null, [profile]);
 
-  const OFFICIAL_AUTHOR_ID = import.meta.env.VITE_OFFICIAL_AUTHOR_ID;
-
   useEffect(() => {
     // Charge en parallèle les sections + le profil
     Promise.allSettled([fetchAll(), fetchProfile()]).finally(() =>
@@ -56,13 +54,9 @@ export default function Bibliotheque() {
       !!profileId &&
       (s.authorId === profileId || (!s.isPublic && s.authorId !== profileId)),
   );
-  const officialTrames = items.filter(
-    (s) =>
-      !!OFFICIAL_AUTHOR_ID && s.isPublic && s.authorId === OFFICIAL_AUTHOR_ID,
-  );
+  const officialTrames = items.filter((s) => s.source === 'BILANPLUME');
   const communityTrames = items.filter(
-    (s) =>
-      s.isPublic && (!OFFICIAL_AUTHOR_ID || s.authorId !== OFFICIAL_AUTHOR_ID),
+    (s) => s.isPublic && s.source !== 'BILANPLUME',
   );
 
   const [activeTab, setActiveTab] = useState<'mine' | 'official' | 'community'>(
@@ -79,13 +73,8 @@ export default function Bibliotheque() {
         !!profileId &&
         (s.authorId === profileId || (!s.isPublic && s.authorId !== profileId))
       );
-    if (activeTab === 'official')
-      return (
-        !!OFFICIAL_AUTHOR_ID && s.isPublic && s.authorId === OFFICIAL_AUTHOR_ID
-      );
-    return (
-      s.isPublic && (!OFFICIAL_AUTHOR_ID || s.authorId !== OFFICIAL_AUTHOR_ID)
-    );
+    if (activeTab === 'official') return s.source === 'BILANPLUME';
+    return s.isPublic && s.source !== 'BILANPLUME';
   };
 
   const matchesJobFilter = (s: Section) => {
