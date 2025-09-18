@@ -71,8 +71,8 @@ export default function BilanTypes() {
           </div>
         ) : items.length === 0 ? (
           <EmptyState
-            title="Commencez par créer votre première trame de Bilan complet"
-            ctaLabel="Créer trame"
+            title="Composer votre première trame de bilan"
+            ctaLabel="Composer trame"
             onCreate={() => setCreateOpen(true)}
           />
         ) : (

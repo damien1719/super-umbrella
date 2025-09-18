@@ -222,7 +222,7 @@ export default function Bibliotheque() {
           </div>
         ) : items.length === 0 ? (
           <EmptyState
-            title="Commencez par créer votre première trame"
+            title="Créer votre première partie de bilan"
             cta={<CreerTrameModal />}
           />
         ) : (
