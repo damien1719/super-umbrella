@@ -41,11 +41,11 @@ export default function Aide() {
             <h3 className="text-xl font-semibold">🚀 Get started en 5 étapes</h3>
             <ol className="list-decimal pl-5 space-y-1">
               <li>Explorez la bibliothèque de parties disponibles.</li>
-              <li>Créez votre propre partie si besoin.</li>
-              <li>Rédigez un premier plan (quelques notes, mots-clés).</li>
+              <li>Créez une partie de bilan personnalisée dans "Bibliothèque".</li>
+              <li>Créez votre 1ère rédaction dans "Mes rédactions".</li>
               <li>Générez un texte rédigé avec le panel Assistant IA.</li>
               <li>
-                Assemblez vos parties pour créer votre trame de bilan complet.
+                Assemblez vos parties pour créer votre trame de bilan complet dans "Mes trames de bilan".
               </li>
             </ol>
           </section>
