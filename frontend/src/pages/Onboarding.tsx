@@ -15,8 +15,7 @@ const ONBOARDING_VERSION = '1';
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  const { profile, updateProfile, loading, error } =
-    useUserProfileStore();
+  const { profile, updateProfile, loading, error } = useUserProfileStore();
   const [form, setForm] = useState<{ nom: string; prenom: string; job?: Job }>({
     nom: '',
     prenom: '',

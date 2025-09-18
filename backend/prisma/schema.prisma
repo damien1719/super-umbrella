@@ -95,6 +95,13 @@ model BilanType {
   @@schema("psychomot")
 }
 
+enum SectionSource {
+  USER
+  BILANPLUME
+
+  @@schema("psychomot")
+}
+
 model Section {
   id                String                 @id @default(uuid())
   title             String
@@ -103,6 +110,7 @@ model Section {
   schema            Json?
   defaultContent    Json?
   isPublic          Boolean                @default(false)
+  source            SectionSource @default(USER)
   authorId          String?                @db.Uuid
   createdAt         DateTime               @default(now())
   instances         BilanSectionInstance[]

@@ -86,7 +86,6 @@ export default function WizardAIRightPanel({
       profile?.id ?? (profile as any)?.id ?? null,
     [profile],
   );
-  const OFFICIAL_AUTHOR_ID = import.meta.env.VITE_OFFICIAL_AUTHOR_ID;
 
   const [notesMode, setNotesMode] = useState<'manual' | 'import'>('manual');
   const [rawNotes, setRawNotes] = useState('');
@@ -119,13 +118,9 @@ export default function WizardAIRightPanel({
   const myTrames = trameOptions.filter(
     (s) => (!!profileId && s.authorId === profileId) || isSharedWithMe(s),
   );
-  const officialTrames = trameOptions.filter(
-    (s) =>
-      !!OFFICIAL_AUTHOR_ID && s.isPublic && s.authorId === OFFICIAL_AUTHOR_ID,
-  );
+  const officialTrames = trameOptions.filter((s) => s.source === 'BILANPLUME');
   const communityTrames = trameOptions.filter(
-    (s) =>
-      s.isPublic && (!OFFICIAL_AUTHOR_ID || s.authorId !== OFFICIAL_AUTHOR_ID),
+    (s) => s.isPublic && s.source !== 'BILANPLUME',
   );
 
   const [activeTab, setActiveTab] = useState<'mine' | 'official' | 'community'>(
@@ -139,13 +134,8 @@ export default function WizardAIRightPanel({
   const matchesActiveFilter = (s: TrameOption) => {
     if (activeTab === 'mine')
       return (!!profileId && s.authorId === profileId) || isSharedWithMe(s);
-    if (activeTab === 'official')
-      return (
-        !!OFFICIAL_AUTHOR_ID && s.isPublic && s.authorId === OFFICIAL_AUTHOR_ID
-      );
-    return (
-      s.isPublic && (!OFFICIAL_AUTHOR_ID || s.authorId !== OFFICIAL_AUTHOR_ID)
-    );
+    if (activeTab === 'official') return s.source === 'BILANPLUME';
+    return s.isPublic && s.source !== 'BILANPLUME';
   };
 
   // BilanType-specific state and helpers
@@ -339,15 +329,15 @@ export default function WizardAIRightPanel({
   }, []);
 
   const stepTitles =
-  mode === 'bilanType'
-    ? [
-        'Trame',
-        "Ecrivez vos notes brutes ou saisissez les résultats de vos observations: c'est la matière brute utilisée par l'IA pour rédiger",
-      ]
-    : [
-        'Partie',
-        "Ecrivez vos notes brutes ou saisissez les résultats de vos observations: c'est la matière brute utilisée par l'IA pour rédiger",
-      ];
+    mode === 'bilanType'
+      ? [
+          'Trame',
+          "Ecrivez vos notes brutes ou saisissez les résultats de vos observations: c'est la matière brute utilisée par l'IA pour rédiger",
+        ]
+      : [
+          'Partie',
+          "Ecrivez vos notes brutes ou saisissez les résultats de vos observations: c'est la matière brute utilisée par l'IA pour rédiger",
+        ];
 
   const headerTitle =
     step === 1
@@ -443,10 +433,14 @@ export default function WizardAIRightPanel({
                   <Plus className="h-5 w-5" />
                 </span>
                 <span className="font-semibold text-primary-700">
-                  {mode === 'bilanType' ? 'Créez votre trame' : 'Créez une partie personnalisée'}
+                  {mode === 'bilanType'
+                    ? 'Créez votre trame'
+                    : 'Créez une partie personnalisée'}
                 </span>
                 <span className="mt-1 text-sm text-primary-700/80">
-                {mode === 'bilanType' ? 'Trame personnalisée à votre pratique' : 'Partie de bilan personnalisée à votre pratique'}
+                  {mode === 'bilanType'
+                    ? 'Trame personnalisée à votre pratique'
+                    : 'Partie de bilan personnalisée à votre pratique'}
                 </span>
               </button>
             }

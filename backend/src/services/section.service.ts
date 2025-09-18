@@ -18,6 +18,8 @@ export type SectionData = {
   templateRefId?: string | null;
   templateOptions?: unknown;
   version?: number;
+  // new: allow setting the Section source (admin UI only)
+  source?: 'USER' | 'BILANPLUME';
 };
 
 
@@ -127,9 +129,12 @@ export const SectionService = {
   },
 
   async update(userId: string, id: string, data: Partial<SectionData>) {
+    // Admins may update any field, including source
     if (await isAdminUser(userId)) {
       return db.section.update({ where: { id }, data, include: { templateRef: true } });
     }
+    // For non-admins, prevent source changes even if passed accidentally
+    const { source, ...rest } = data as Partial<SectionData> & { source?: SectionData['source'] };
     // Support shares granted by email OR by userId (like list/get)
     const profile = await db.profile.findUnique({ where: { userId } });
     const email = (profile?.email as string | undefined)?.trim().toLowerCase();
@@ -151,7 +156,7 @@ export const SectionService = {
           },
         ],
       },
-      data,
+      data: rest,
     });
     if (count === 0) throw new NotFoundError();
     return db.section.findUnique({ where: { id }, include: { templateRef: true } });

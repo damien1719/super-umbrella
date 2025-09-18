@@ -40,8 +40,8 @@ export default function BilanTypes() {
               Trames de bilans
             </h1>
             <p className="text-gray-600">
-              Composez vos trames personnalisées en sélectionnant des parties dans
-              la Bibliothèque
+              Composez vos trames personnalisées en sélectionnant des parties
+              dans la Bibliothèque
             </p>
           </div>
           <CreateWithJobsModal

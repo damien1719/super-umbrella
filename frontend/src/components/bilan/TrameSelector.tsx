@@ -30,6 +30,7 @@ export interface TrameOption {
   author?: { prenom?: string | null } | null;
   templateRefId?: string | null;
   coverUrl?: string | null;
+  source?: 'USER' | 'BILANPLUME';
 }
 
 export interface TrameExample {
