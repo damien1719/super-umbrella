@@ -245,12 +245,17 @@ export default function App() {
       <Routes>
         <Route path="/silent-check-sso" element={<SilentCheckSso />} />
         <Route path="/login" element={<Login />} />
-        {provider !== 'keycloak' && <Route path="/signup" element={<SignUp />} />}
+        {provider !== 'keycloak' && (
+          <Route path="/signup" element={<SignUp />} />
+        )}
         <Route element={<WizardLayout />}></Route>
         <Route element={<BilanLayout />}>
           <Route path="/bilan/:bilanId" element={<Bilan />} />
           <Route path="/onboarding" element={<Onboarding />} />
-          <Route path="/creation-trame/:sectionId" element={<CreationTrame />} />
+          <Route
+            path="/creation-trame/:sectionId"
+            element={<CreationTrame />}
+          />
           <Route path="/bilan-types/:bilanTypeId" element={<BilanType />} />
         </Route>
         <Route element={<ProtectedLayout />}>

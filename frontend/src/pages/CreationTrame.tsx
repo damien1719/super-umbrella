@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useSectionStore } from '../store/sections';
 import { useSectionExampleStore } from '../store/sectionExamples';
@@ -85,10 +85,15 @@ export default function CreationTrame({
     updatedAt: new Date().toISOString(),
   });
   const [loadingTemplate, setLoadingTemplate] = useState(false);
+  // Save UX states
+  const [savedSnapshot, setSavedSnapshot] = useState<string>('');
+  const [saving, setSaving] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const token = useAuth((s) => s.token);
   const initialized = useAuth((s) => s.initialized);
   const user = useAuth((s) => s.user);
   const profileId = useUserProfileStore((s) => s.profileId);
+  const profile = useUserProfileStore((s) => s.profile);
   const fetchProfile = useUserProfileStore((s) => s.fetchProfile);
 
   // Log pour le débogage du mode lecture seule
@@ -179,8 +184,21 @@ export default function CreationTrame({
     }
   };
 
-  const SHOW_ADMIN_IMPORT =
-    import.meta.env.VITE_DISPLAY_IMPORT_BUTTON === 'true';
+  // Même logique d'admin que SharePanel.tsx
+  const adminEnv = (import.meta.env.VITE_ADMIN_MAILS ||
+    import.meta.env.VITE_ADMIN_MAIL ||
+    '') as string;
+  const adminSet = useMemo(
+    () =>
+      new Set(
+        adminEnv
+          .split(',')
+          .map((s) => s.trim().toLowerCase())
+          .filter(Boolean),
+      ),
+    [adminEnv],
+  );
+  const isAdmin = !!profile?.email && adminSet.has(profile.email.toLowerCase());
 
   const createDefaultNote = (): Question => ({
     id: Date.now().toString(),
@@ -191,7 +209,8 @@ export default function CreationTrame({
 
   useEffect(() => {
     if (!sectionId) return;
-    fetchOne(sectionId).then((section) => {
+    (async () => {
+      const section = await fetchOne(sectionId);
       setNomTrame(section.title);
       setCategorie(section.kind);
       setIsPublic(section.isPublic ?? false);
@@ -199,10 +218,13 @@ export default function CreationTrame({
       setCoverUrl((section as any)?.coverUrl ?? '');
       setJob(section.job || [Job.PSYCHOMOTRICIEN]);
       setTemplateRefId(section.templateRefId ?? null);
+
+      let initialTemplate: SectionTemplate;
       if (section.templateRefId) {
-        getTemplate(section.templateRefId).then((tpl) => setTemplate(tpl));
+        initialTemplate = await getTemplate(section.templateRefId);
+        setTemplate(initialTemplate);
       } else {
-        setTemplate({
+        initialTemplate = {
           id: Date.now().toString(),
           label: section.title,
           version: 1,
@@ -212,15 +234,39 @@ export default function CreationTrame({
           isDeprecated: false,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-        });
+        };
+        setTemplate(initialTemplate);
       }
+
       const loaded: Question[] =
         Array.isArray(section.schema) && section.schema.length > 0
           ? (section.schema as Question[])
           : [createDefaultNote()];
       setQuestions(loaded);
       if (loaded.length > 0) setSelectedId(loaded[0].id);
-    });
+
+      // Initialize snapshot after everything is set
+      const snapshotObj = {
+        nomTrame: section.title,
+        categorie: section.kind,
+        isPublic: section.isPublic ?? false,
+        coverUrl: (section as any)?.coverUrl ?? '',
+        job: section.job || [Job.PSYCHOMOTRICIEN],
+        questions: loaded,
+        template: section.templateRefId
+          ? {
+              label: initialTemplate.label,
+              version: initialTemplate.version,
+              content: initialTemplate.content,
+              slotsSpec: initialTemplate.slotsSpec,
+              stylePrompt: initialTemplate.stylePrompt,
+            }
+          : null,
+        newExamples: [] as string[],
+      };
+      setSavedSnapshot(JSON.stringify(snapshotObj));
+      setLastSavedAt(null);
+    })();
   }, [sectionId, fetchOne, getTemplate]);
 
   // Ensure profile is loaded when on BilanLayout routes
@@ -231,6 +277,11 @@ export default function CreationTrame({
       });
     }
   }, [initialized, user, profileId, fetchProfile]);
+
+  // Fallback pour charger le profil si nécessaire (aligné avec SharePanel)
+  useEffect(() => {
+    if (!profile) fetchProfile().catch(() => {});
+  }, [profile, fetchProfile]);
 
   // Debug useEffect to log questions state changes
   useEffect(() => {
@@ -327,11 +378,36 @@ export default function CreationTrame({
     setSelectedId(clone.id);
   };
 
-  const save = async () => {
+  const buildSnapshot = () => {
+    return JSON.stringify({
+      nomTrame,
+      categorie,
+      isPublic,
+      coverUrl,
+      job,
+      questions,
+      template: templateRefId
+        ? {
+            label: template.label,
+            version: template.version,
+            content: template.content,
+            slotsSpec: template.slotsSpec,
+            stylePrompt: template.stylePrompt,
+          }
+        : null,
+      newExamples,
+    });
+  };
+
+  const isDirty = savedSnapshot !== buildSnapshot();
+
+  const saveOnly = async () => {
     if (!sectionId) return;
-    if (templateRefId) {
-      await updateTemplate(templateRefId, { ...template, label: nomTrame });
-    }
+    try {
+      setSaving(true);
+      if (templateRefId) {
+        await updateTemplate(templateRefId, { ...template, label: nomTrame });
+      }
 
     // Préparer les données de mise à jour en excluant les champs null
     const updateData: {
@@ -367,6 +443,15 @@ export default function CreationTrame({
       await createExample({ sectionId, content });
     }
     setNewExamples([]);
+      setSavedSnapshot(buildSnapshot());
+      setLastSavedAt(new Date().toISOString());
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const saveAndExit = async () => {
+    await saveOnly();
     if (state?.returnTo) {
       navigate(state.returnTo, {
         state: { wizardSection: state.wizardSection, trameId: sectionId },
@@ -411,13 +496,18 @@ export default function CreationTrame({
             isPublic={isPublic}
             onTitleChange={setNomTrame}
             onPublicChange={setIsPublic}
-            onSave={save}
+            onSave={saveOnly}
             onImport={() => setShowImport(true)}
-            onBack={() => (isReadOnly ? navigate(-1) : setShowConfirm(true))}
+            onBack={() =>
+              isReadOnly || !isDirty ? navigate(-1) : setShowConfirm(true)
+            }
             onAdminImport={() => setShowAdminImport(true)}
-            showAdminImport={SHOW_ADMIN_IMPORT}
+            showAdminImport={isAdmin}
             readOnly={isReadOnly}
             onDuplicate={handleDuplicate}
+            isDirty={isDirty}
+            saving={saving}
+            lastSavedAt={lastSavedAt}
           />
 
           <div className="border-b border-wood-400 mb-4">
@@ -828,7 +918,7 @@ export default function CreationTrame({
       <ExitConfirmation
         open={showConfirm}
         onOpenChange={setShowConfirm}
-        onConfirm={save}
+        onConfirm={saveAndExit}
         onCancel={() => navigate(-1)}
       />
     </div>

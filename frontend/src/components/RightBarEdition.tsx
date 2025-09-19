@@ -45,7 +45,9 @@ export default function RightBarEdition({
       aria-disabled={readOnly}
     >
       <div className="p-3">
-        <div className={`sticky top-0 z-10 bg-white/80 backdrop-blur-sm text-base font-medium text-gray-500 mb-2 ${readOnly ? 'opacity-60' : ''}`}>
+        <div
+          className={`sticky top-0 z-10 bg-white/80 backdrop-blur-sm text-base font-medium text-gray-500 mb-2 ${readOnly ? 'opacity-60' : ''}`}
+        >
           Plan des questions
         </div>
         <ul className="">
@@ -69,11 +71,13 @@ export default function RightBarEdition({
               }}
               title={q.titre}
             >
-              <GripVertical className={`h-4 w-4 text-gray-400 ${readOnly ? 'opacity-60' : ''}`} />
+              <GripVertical
+                className={`h-4 w-4 text-gray-400 ${readOnly ? 'opacity-60' : ''}`}
+              />
               <span
                 className={`pl-2 truncate flex-1 ${q.type === 'titre' ? 'font-semibold' : ''} ${readOnly ? 'opacity-60' : ''}`}
               >
-              {idx + 1}. {q.titre || '(Sans titre)'}
+                {idx + 1}. {q.titre || '(Sans titre)'}
               </span>
               <Button
                 variant="ghost"

@@ -67,8 +67,8 @@ export function SourceParam({
       <CardContent>
         <div className="space-y-2">
           <p className="text-sm text-gray-600">
-            Définissez l&apos;origine de cette section. Ce paramètre est réservé aux
-            administrateurs.
+            Définissez l&apos;origine de cette section. Ce paramètre est réservé
+            aux administrateurs.
           </p>
           <div className="w-60 space-y-3">
             <Select
@@ -79,7 +79,9 @@ export function SourceParam({
                 <SelectValue placeholder="Sélectionner la source" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="USER">Créée par l&apos;utilisateur</SelectItem>
+                <SelectItem value="USER">
+                  Créée par l&apos;utilisateur
+                </SelectItem>
                 <SelectItem value="BILANPLUME">BilanPlume</SelectItem>
               </SelectContent>
             </Select>
@@ -104,7 +106,8 @@ export function SourceParam({
                   }
                 }}
                 disabled={
-                  isSaving || value === ((section?.source as SectionSource) || 'USER')
+                  isSaving ||
+                  value === ((section?.source as SectionSource) || 'USER')
                 }
               >
                 {isSaving ? 'Enregistrement…' : 'Enregistrer'}
