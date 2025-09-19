@@ -4,6 +4,7 @@ import CreationTrame from './CreationTrame';
 import { useSectionStore } from '../store/sections';
 import { useSectionExampleStore } from '../store/sectionExamples';
 import { useSectionTemplateStore } from '../store/sectionTemplates';
+import { useUserProfileStore } from '../store/userProfile';
 import { vi } from 'vitest';
 
 const tplCreate = vi.fn().mockResolvedValue({
@@ -15,9 +16,11 @@ const tplCreate = vi.fn().mockResolvedValue({
 });
 
 const originalDisplay = import.meta.env.VITE_DISPLAY_IMPORT_BUTTON;
+const originalAdmins = import.meta.env.VITE_ADMIN_MAILS;
 
 afterEach(() => {
   import.meta.env.VITE_DISPLAY_IMPORT_BUTTON = originalDisplay;
+  import.meta.env.VITE_ADMIN_MAILS = originalAdmins;
 });
 
 it('shows navigation tabs', async () => {
@@ -156,13 +159,26 @@ it('shows empty template state and creates template on demand', async () => {
   expect(update).toHaveBeenCalled();
 });
 
-it('shows admin import button when enabled', async () => {
-  import.meta.env.VITE_DISPLAY_IMPORT_BUTTON = 'true';
+it('shows admin import button for admins', async () => {
+  // Simule un administrateur comme dans SharePanel.tsx
+  import.meta.env.VITE_ADMIN_MAILS = 'admin@example.com';
   useSectionStore.setState({
     fetchOne: vi.fn().mockResolvedValue({ title: '', kind: '', schema: [] }),
     update: vi.fn(),
   });
   useSectionTemplateStore.setState({ create: tplCreate });
+
+  // Pré-remplit le store de profil pour éviter un fetch
+  useUserProfileStore.setState({
+    profile: {
+      id: 'p1',
+      nom: 'Admin',
+      prenom: 'User',
+      email: 'admin@example.com',
+    },
+    profileId: 'p1',
+  });
+
   render(
     <MemoryRouter initialEntries={['/creation-trame/1']}>
       <Routes>
