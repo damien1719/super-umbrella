@@ -33,6 +33,7 @@ export interface BilanElement {
 interface SectionDisponibleProps {
   availableElements: BilanElement[];
   onAddElement: (element: BilanElement) => void;
+  onOpenExplorer?: () => void;
 }
 
 // Use shared label helper from types
@@ -43,6 +44,7 @@ const categoryLabel = (id: CategoryId) => getCategoryLabel(id);
 export function SectionDisponible({
   availableElements,
   onAddElement,
+  onOpenExplorer,
 }: SectionDisponibleProps) {
   const [searchText, setSearchText] = useState('');
   const [filterType, setFilterType] = useState<'all' | CategoryId>('all');
@@ -82,12 +84,24 @@ export function SectionDisponible({
   };
 
   return (
-    <Card className="lg:col-span-1">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Plus className="h-5 w-5" />
-          Liste des parties disponibles
-        </CardTitle>
+    <Card className="lg:col-span-1 flex flex-col h-[90vh]">
+      <CardHeader className="flex-shrink-0">
+        <div className="flex items-start justify-between gap-3">
+          <CardTitle className="flex items-center gap-2">
+            <Plus className="h-5 w-5" />
+            Liste des parties disponibles
+          </CardTitle>
+          {onOpenExplorer && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onOpenExplorer}
+              className="whitespace-nowrap"
+            >
+              Explorer les parties
+            </Button>
+          )}
+        </div>
 
         <div className="space-y-3 pt-4">
           <div className="relative">
@@ -152,7 +166,7 @@ export function SectionDisponible({
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-3 flex-1 overflow-y-auto pr-1">
         {filteredElements.map((element) => (
           <SectionCardSmall
             key={element.id}

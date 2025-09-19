@@ -20,11 +20,12 @@ import { useBilanTypeStore, type BilanType } from '@/store/bilanTypes';
 
 export default function BilanTypes() {
   const navigate = useNavigate();
-  const { items, fetchAll, remove } = useBilanTypeStore();
+  const { items, fetchAll, remove, create } = useBilanTypeStore();
   const [toDelete, setToDelete] = useState<BilanType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
   // no local dialog state anymore; handled by the shared modal
 
   useEffect(() => {
@@ -56,12 +57,40 @@ export default function BilanTypes() {
             }
             open={createOpen}
             onOpenChange={setCreateOpen}
-            onSubmit={({ name, jobs }) => {
-              const params = new URLSearchParams({
-                name,
-                jobs: jobs.join(','),
-              });
-              navigate(`/bilan-types/builder?${params.toString()}`);
+            onSubmit={async ({ name, jobs }) => {
+              if (isCreating) return;
+              setIsCreating(true);
+              try {
+                const payload = {
+                  name,
+                  job: jobs,
+                };
+                const created = await create(payload);
+                const params = new URLSearchParams();
+                if (created?.id) {
+                  params.set('id', created.id);
+                }
+                const resolvedName = created?.name ?? name;
+                if (resolvedName) params.set('name', resolvedName);
+                const resolvedJobs = created?.job ?? jobs ?? [];
+                if (resolvedJobs.length) {
+                  params.set('jobs', resolvedJobs.join(','));
+                }
+                const search = params.toString();
+                navigate(
+                  search
+                    ? `/bilan-types/builder?${search}`
+                    : '/bilan-types/builder',
+                );
+              } catch (error) {
+                console.error(
+                  'Erreur lors de la création du bilan type',
+                  error,
+                );
+                setCreateOpen(true);
+              } finally {
+                setIsCreating(false);
+              }
             }}
           />
         </div>

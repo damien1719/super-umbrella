@@ -15,6 +15,10 @@ interface Props {
   showAdminImport?: boolean;
   readOnly?: boolean;
   onDuplicate?: () => void;
+  // New for save UX
+  isDirty?: boolean;
+  saving?: boolean;
+  lastSavedAt?: string | null;
 }
 
 export default function TrameHeader(p?: Partial<Props>) {
@@ -30,6 +34,9 @@ export default function TrameHeader(p?: Partial<Props>) {
     showAdminImport = false,
     readOnly = false,
     onDuplicate = () => {},
+    isDirty = false,
+    saving = false,
+    lastSavedAt = null,
   } = p || {};
 
   return (
@@ -58,9 +65,33 @@ export default function TrameHeader(p?: Partial<Props>) {
       )}
       {!readOnly ? (
         <>
-          <Button onClick={onSave} variant="primary" className="ml-auto">
-            Sauvegarder la trame
-          </Button>
+          <div className="ml-auto flex items-center gap-3">
+            <div className="text-sm text-gray-600">
+              {saving ? (
+                <span className="inline-flex items-center gap-2">
+                  <span className="inline-block h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
+                  Enregistrement…
+                </span>
+              ) : isDirty ? (
+                <span className="inline-flex items-center gap-2">
+                  <span className="inline-block h-2 w-2 rounded-full bg-amber-500" />
+                  Modifications non enregistrées
+                </span>
+              ) : lastSavedAt ? (
+                <span className="inline-flex items-center gap-2">
+                  <span className="inline-block h-2 w-2 rounded-full bg-green-500" />
+                  Enregistré
+                </span>
+              ) : null}
+            </div>
+            <Button
+              onClick={onSave}
+              variant="primary"
+              disabled={!isDirty || saving}
+            >
+              Enregistrer
+            </Button>
+          </div>
           <Button variant="outline" onClick={onImport}>
             Import Magique
           </Button>

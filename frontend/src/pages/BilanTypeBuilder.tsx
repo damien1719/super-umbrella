@@ -4,8 +4,9 @@ import type React from 'react';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { SectionDisponible } from '@/components/bilanType/SectionDisponible';
+import ExplorerSectionsModal from '@/components/bilanType/ExplorerSectionsModal';
 import { BilanTypeConstruction } from '@/components/bilanType/BilanTypeConstruction';
-import { useSectionStore } from '@/store/sections';
+import { useSectionStore, type Section } from '@/store/sections';
 import { useBilanTypeStore } from '@/store/bilanTypes';
 import RichTextEditor, {
   type RichTextEditorHandle,
@@ -59,6 +60,9 @@ interface BilanTypeBuilderProps {
 export default function BilanTypeBuilder({
   initialBilanTypeId,
 }: BilanTypeBuilderProps) {
+  const [currentBilanTypeId, setCurrentBilanTypeId] = useState<
+    string | undefined
+  >(initialBilanTypeId);
   const [bilanName, setBilanName] = useState('');
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -77,6 +81,11 @@ export default function BilanTypeBuilder({
   const [apercuAnswers, setApercuAnswers] = useState<Record<string, Answers>>(
     {},
   );
+  const [isExplorerOpen, setIsExplorerOpen] = useState(false);
+  const [selectedExplorerSectionId, setSelectedExplorerSectionId] = useState<
+    string | null
+  >(null);
+  const [isFetchingSections, setIsFetchingSections] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
   const sections = useSectionStore((s) => s.items);
@@ -88,7 +97,28 @@ export default function BilanTypeBuilder({
   const location = useLocation();
 
   useEffect(() => {
-    fetchSections().catch(console.error);
+    setCurrentBilanTypeId(initialBilanTypeId);
+  }, [initialBilanTypeId]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const idFromParams = params.get('id');
+    if (idFromParams && idFromParams !== currentBilanTypeId) {
+      setCurrentBilanTypeId(idFromParams);
+    }
+  }, [location.search, currentBilanTypeId]);
+
+  useEffect(() => {
+    let isMounted = true;
+    setIsFetchingSections(true);
+    fetchSections()
+      .catch(console.error)
+      .finally(() => {
+        if (isMounted) setIsFetchingSections(false);
+      });
+    return () => {
+      isMounted = false;
+    };
   }, [fetchSections]);
 
   // Initialize from query params (name, jobs) when coming from creation modal
@@ -114,10 +144,10 @@ export default function BilanTypeBuilder({
 
   // Initialize from an existing BilanType id if provided
   useEffect(() => {
-    if (!initialBilanTypeId) return;
+    if (!currentBilanTypeId) return;
     (async () => {
       try {
-        const bt = await fetchBilanType(initialBilanTypeId);
+        const bt = await fetchBilanType(currentBilanTypeId);
         setBilanName(bt.name || '');
         setLayoutJson(bt.layoutJson ?? undefined);
         if (Array.isArray(bt.job)) {
@@ -128,7 +158,7 @@ export default function BilanTypeBuilder({
         }
       } catch {}
     })();
-  }, [initialBilanTypeId, fetchBilanType]);
+  }, [currentBilanTypeId, fetchBilanType]);
 
   // Set des CategoryId valides d'après ta source unique de vérité
   const validCategoryIds = useMemo(
@@ -192,6 +222,33 @@ export default function BilanTypeBuilder({
         ),
     [sections, validCategoryIds],
   );
+
+  const handleExplorerOpenChange = (open: boolean) => {
+    setIsExplorerOpen(open);
+    if (!open) {
+      setSelectedExplorerSectionId(null);
+    }
+  };
+
+  const handleExplorerValidate = (section: Section) => {
+    const existing = availableElements.find((el) => el.id === section.id);
+    if (existing) {
+      addSectionElement(existing);
+    } else {
+      const normalized = normalizeKind(section.kind);
+      if (normalized) {
+        addSectionElement({
+          id: section.id,
+          type: normalized,
+          title: section.title,
+          description: section.description ?? '',
+        });
+      }
+    }
+    setSelectedExplorerSectionId(null);
+  };
+
+  const explorerLoading = isFetchingSections && sections.length === 0;
 
   const handleDragStart = (e: React.DragEvent, index: number) => {
     setDraggedIndex(index);
@@ -506,10 +563,11 @@ export default function BilanTypeBuilder({
         layoutJson: layoutJson ?? { root: { type: 'root', children: [] } },
         job: jobs,
       };
-      if (initialBilanTypeId) {
-        await updateBilanType(initialBilanTypeId, payload);
+      if (currentBilanTypeId) {
+        await updateBilanType(currentBilanTypeId, payload);
       } else {
-        await createBilanType(payload);
+        const created = await createBilanType(payload);
+        setCurrentBilanTypeId(created.id);
       }
     } finally {
       setIsSaving(false);
@@ -655,6 +713,7 @@ export default function BilanTypeBuilder({
             <SectionDisponible
               availableElements={availableElements}
               onAddElement={addSectionElement}
+              onOpenExplorer={() => handleExplorerOpenChange(true)}
             />
 
             <BilanTypeConstruction
@@ -926,10 +985,20 @@ export default function BilanTypeBuilder({
             </Card>
             <SharePanel
               resourceType="bilan-type"
-              resourceId={initialBilanTypeId}
+              resourceId={currentBilanTypeId}
             />
           </div>
         )}
+        <ExplorerSectionsModal
+          open={isExplorerOpen}
+          onOpenChange={handleExplorerOpenChange}
+          sections={sections}
+          isLoading={explorerLoading}
+          selectedSectionId={selectedExplorerSectionId}
+          onSelectedSectionChange={setSelectedExplorerSectionId}
+          onValidate={handleExplorerValidate}
+        />
+
         <ExitConfirmation
           open={showConfirm}
           onOpenChange={setShowConfirm}

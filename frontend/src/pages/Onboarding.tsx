@@ -45,7 +45,7 @@ export default function Onboarding() {
       onboardingDone: true,
       onboardingVersion: ONBOARDING_VERSION,
     });
-    navigate('/', { replace: true });
+    navigate('/bilan-types', { replace: true });
   };
 
   return (
