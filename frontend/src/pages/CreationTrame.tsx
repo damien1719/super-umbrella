@@ -409,40 +409,40 @@ export default function CreationTrame({
         await updateTemplate(templateRefId, { ...template, label: nomTrame });
       }
 
-    // Préparer les données de mise à jour en excluant les champs null
-    const updateData: {
-      title: string;
-      kind: CategoryId | undefined;
-      job: Job[];
-      schema: Question[];
-      isPublic: boolean;
-      templateRefId?: string;
-      coverUrl?: string | null;
-    } = {
-      title: nomTrame,
-      kind: categorie,
-      job,
-      schema: questions,
-      isPublic,
-    };
+      // Préparer les données de mise à jour en excluant les champs null
+      const updateData: {
+        title: string;
+        kind: CategoryId | undefined;
+        job: Job[];
+        schema: Question[];
+        isPublic: boolean;
+        templateRefId?: string;
+        coverUrl?: string | null;
+      } = {
+        title: nomTrame,
+        kind: categorie,
+        job,
+        schema: questions,
+        isPublic,
+      };
 
-    // N'ajouter templateRefId que s'il n'est pas null
-    if (templateRefId) {
-      updateData.templateRefId = templateRefId;
-    }
+      // N'ajouter templateRefId que s'il n'est pas null
+      if (templateRefId) {
+        updateData.templateRefId = templateRefId;
+      }
 
-    // Normaliser coverUrl: vide -> null pour effacer
-    const normalizedCover =
-      coverUrl && coverUrl.trim().length > 0 ? coverUrl.trim() : null;
-    await updateSection(sectionId, {
-      ...updateData,
-      coverUrl: normalizedCover,
-    });
+      // Normaliser coverUrl: vide -> null pour effacer
+      const normalizedCover =
+        coverUrl && coverUrl.trim().length > 0 ? coverUrl.trim() : null;
+      await updateSection(sectionId, {
+        ...updateData,
+        coverUrl: normalizedCover,
+      });
 
-    for (const content of newExamples) {
-      await createExample({ sectionId, content });
-    }
-    setNewExamples([]);
+      for (const content of newExamples) {
+        await createExample({ sectionId, content });
+      }
+      setNewExamples([]);
       setSavedSnapshot(buildSnapshot());
       setLastSavedAt(new Date().toISOString());
     } finally {

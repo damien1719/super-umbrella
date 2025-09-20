@@ -8,9 +8,7 @@ type TableAnswers = Record<string, unknown> & { commentaire?: string };
 
 export type GenerationMode = 'direct' | 'template';
 
-export type GenerationResult =
-  | { type: 'text'; text: string }
-  | { type: 'lexical'; state: unknown };
+export type GenerationResult = { type: 'lexical'; state: unknown };
 
 function getStylePrompt(
   trameId: string | undefined,
@@ -190,7 +188,7 @@ async function doRequestDirect(params: {
   if (params.rawNotes?.trim()) body.rawNotes = params.rawNotes;
   if (params.imageBase64) body.imageBase64 = params.imageBase64;
 
-  const res = await apiFetch<{ text: string }>(
+  const res = await apiFetch<{ assembledState: unknown }>(
     `/api/v1/bilans/${params.bilanId}/generate`,
     {
       method: 'POST',
@@ -199,7 +197,7 @@ async function doRequestDirect(params: {
     },
   );
 
-  return { type: 'text', text: res.text };
+  return { type: 'lexical', state: res.assembledState };
 }
 
 async function doRequestFromTemplate(params: {
@@ -332,7 +330,6 @@ export async function generateSection(opts: {
   ) => void;
   setRegenSection?: (id: string | null) => void;
   setRegenPrompt?: (s: string) => void;
-  onInsertText?: (text: string) => void;
   onSetEditorStateJson?: (state: unknown) => void;
 
   examples: Array<{ sectionId: string; stylePrompt?: string }>;
@@ -358,7 +355,6 @@ export async function generateSection(opts: {
     setGenerated,
     setRegenSection,
     setRegenPrompt,
-    onInsertText,
     onSetEditorStateJson,
 
     examples,
@@ -420,116 +416,106 @@ export async function generateSection(opts: {
       );
     }
 
-    if (result.type === 'text') {
-      // Insert the AI result as-is, without prefixing the section title
-      onInsertText?.(result.text);
-      setGenerated?.((g) => ({ ...g, [section.id]: true }));
-      //setRegenSection?.(section.id);
-      //setRegenPrompt?.('');
+    if (result.type !== 'lexical') {
+      console.warn('[DEBUG] Generation - Unexpected result type', result);
       return;
-    } else if (result.type === 'lexical') {
-      console.log(
-        '[DEBUG] Generation - Received lexical result - START processing',
-      );
-      console.log(
-        '[DEBUG] Generation - Result state type:',
-        typeof result.state,
-      );
-      console.log(
-        '[DEBUG] Generation - Result state is null/undefined:',
-        result.state == null,
-      );
-      console.log(
-        '[DEBUG] Generation - Result state length:',
-        typeof result.state === 'string' ? result.state.length : 'N/A',
-      );
-      console.log(
-        '[DEBUG] Generation - Result state preview:',
-        typeof result.state === 'string'
-          ? result.state.slice(0, 300)
-          : JSON.stringify(result.state).slice(0, 300),
-      );
+    }
 
-      // Additional detailed logging for lexical state
-      if (typeof result.state === 'object' && result.state !== null) {
-        console.log(
-          '[DEBUG] Generation - Lexical state is object with keys:',
-          Object.keys(result.state),
-        );
-        console.log(
-          '[DEBUG] Generation - Lexical state has root:',
-          !!(result.state as any).root,
-        );
-        console.log(
-          '[DEBUG] Generation - Lexical state has version:',
-          (result.state as any).version !== undefined,
-        );
-      }
+    console.log(
+      '[DEBUG] Generation - Received lexical result - START processing',
+    );
+    console.log('[DEBUG] Generation - Result state type:', typeof result.state);
+    console.log(
+      '[DEBUG] Generation - Result state is null/undefined:',
+      result.state == null,
+    );
+    console.log(
+      '[DEBUG] Generation - Result state length:',
+      typeof result.state === 'string' ? result.state.length : 'N/A',
+    );
+    console.log(
+      '[DEBUG] Generation - Result state preview:',
+      typeof result.state === 'string'
+        ? result.state.slice(0, 300)
+        : JSON.stringify(result.state).slice(0, 300),
+    );
 
-      console.log('[DEBUG] Generation - onSetEditorStateJson availability:', {
-        exists: !!onSetEditorStateJson,
-        isFunction: typeof onSetEditorStateJson === 'function',
-      });
+    if (typeof result.state === 'object' && result.state !== null) {
+      console.log(
+        '[DEBUG] Generation - Lexical state is object with keys:',
+        Object.keys(result.state),
+      );
+      console.log(
+        '[DEBUG] Generation - Lexical state has root:',
+        !!(result.state as any).root,
+      );
+      console.log(
+        '[DEBUG] Generation - Lexical state has version:',
+        (result.state as any).version !== undefined,
+      );
+    }
 
-      if (onSetEditorStateJson) {
-        console.log(
-          '[DEBUG] Generation - onSetEditorStateJson is available, preparing to call it',
-        );
-        console.log(
-          '[DEBUG] Generation - About to call onSetEditorStateJson with state:',
-          {
-            hasState: !!result.state,
-            stateType: typeof result.state,
-            stateSize:
-              typeof result.state === 'string' ? result.state.length : 'N/A',
-          },
-        );
+    console.log('[DEBUG] Generation - onSetEditorStateJson availability:', {
+      exists: !!onSetEditorStateJson,
+      isFunction: typeof onSetEditorStateJson === 'function',
+    });
 
-        try {
-          onSetEditorStateJson(result.state);
-          console.log(
-            '[DEBUG] Generation - onSetEditorStateJson called successfully - EDITOR STATE UPDATED',
-          );
-        } catch (error) {
-          console.error(
-            '[DEBUG] Generation - ERROR calling onSetEditorStateJson:',
-            error,
-          );
-          console.error('[DEBUG] Generation - Error details:', {
-            error: error,
-            message: error instanceof Error ? error.message : 'Unknown error',
-            stack: error instanceof Error ? error.stack : 'No stack trace',
-          });
-        }
-      } else {
-        console.log(
-          '[DEBUG] Generation - onSetEditorStateJson is NOT available, using fallback custom event',
-        );
-        console.log('[DEBUG] Generation - Creating custom event with state:', {
+    if (onSetEditorStateJson) {
+      console.log(
+        '[DEBUG] Generation - onSetEditorStateJson is available, preparing to call it',
+      );
+      console.log(
+        '[DEBUG] Generation - About to call onSetEditorStateJson with state:',
+        {
           hasState: !!result.state,
           stateType: typeof result.state,
-        });
+          stateSize:
+            typeof result.state === 'string' ? result.state.length : 'N/A',
+        },
+      );
 
-        const event = new CustomEvent('lexical:set-json', {
-          detail: result.state,
-        });
-
-        console.log('[DEBUG] Generation - Dispatching custom event...');
-        window.dispatchEvent(event);
+      try {
+        onSetEditorStateJson(result.state);
         console.log(
-          '[DEBUG] Generation - Custom event dispatched successfully',
+          '[DEBUG] Generation - onSetEditorStateJson called successfully - EDITOR STATE UPDATED',
         );
-
-        // Listen for potential errors in event handling
-        setTimeout(() => {
-          console.log(
-            '[DEBUG] Generation - Checking if custom event was handled (5s after dispatch)',
-          );
-        }, 5000);
+      } catch (error) {
+        console.error(
+          '[DEBUG] Generation - ERROR calling onSetEditorStateJson:',
+          error,
+        );
+        console.error('[DEBUG] Generation - Error details:', {
+          error: error,
+          message: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : 'No stack trace',
+        });
       }
+    } else {
+      console.log(
+        '[DEBUG] Generation - onSetEditorStateJson is NOT available, using fallback custom event',
+      );
+      console.log('[DEBUG] Generation - Creating custom event with state:', {
+        hasState: !!result.state,
+        stateType: typeof result.state,
+      });
 
-      console.log('[DEBUG] Generation - Lexical result processing completed');
+      const event = new CustomEvent('lexical:set-json', {
+        detail: result.state,
+      });
+
+      console.log('[DEBUG] Generation - Dispatching custom event...');
+      window.dispatchEvent(event);
+      console.log('[DEBUG] Generation - Custom event dispatched successfully');
+
+      setTimeout(() => {
+        console.log(
+          '[DEBUG] Generation - Checking if custom event was handled (5s after dispatch)',
+        );
+      }, 5000);
     }
+
+    setGenerated?.((g) => ({ ...g, [section.id]: true }));
+    console.log('[DEBUG] Generation - Lexical result processing completed');
   } finally {
     setIsGenerating(false);
     setSelectedSection(null);
