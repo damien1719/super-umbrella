@@ -17,6 +17,13 @@ interface Props {
 }
 
 export function GroupedQuestionsNav({ groups, active, onNavigate }: Props) {
+  const hasAnyTitle = React.useMemo(
+    () => groups.some((g) => (g.title ?? '').trim().length > 0),
+    [groups],
+  );
+
+  if (!hasAnyTitle) return null;
+
   return (
     <aside className="hidden md:flex w-60 shrink-0 border-r border-wood-200 bg-white sticky top-0 h-[calc(100vh-120px)]">
       <div className="flex flex-col w-full">

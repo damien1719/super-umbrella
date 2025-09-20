@@ -94,6 +94,10 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
       groupEls.current = Array(groups.length).fill(null);
     }
 
+    const hasAnyGroupTitle = groups.some(
+      (g) => (g.title ?? '').trim().length > 0,
+    );
+
     useEffect(() => {
       const obs = new IntersectionObserver(
         (entries) => {
@@ -160,14 +164,16 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
             }}
             className="space-y-4"
           >
-            <div
-              className={`relative z-10 ${i === 0 ? '' : 'mt-8'} border-t border-gray-200 pt-4 flex items-center gap-2`}
-            >
-              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary-100">
-                <span className="block h-1.5 w-1.5 rounded-full bg-primary-500" />
-              </span>
-              <h3 className="text-xl font-bold">{group.title}</h3>
-            </div>
+            {group.title?.trim() ? (
+              <div
+                className={`relative z-10 ${i === 0 ? '' : 'mt-8'} border-t border-gray-200 pt-4 flex items-center gap-2`}
+              >
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary-100">
+                  <span className="block h-1.5 w-1.5 rounded-full bg-primary-500" />
+                </span>
+                <h3 className="text-xl font-bold">{group.title}</h3>
+              </div>
+            ) : null}
             {group.items.map((q) => (
               <div
                 key={q.id}
@@ -205,7 +211,7 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
       return (
         <div className="flex h-full min-h-0 overflow-hidden">
           {/* Nav gauche */}
-          {showGroupNav && (
+          {showGroupNav && hasAnyGroupTitle && (
             <GroupedQuestionsNav
               groups={groups}
               active={activeSec}
