@@ -23,6 +23,7 @@ export type FieldSpec = {
   type: SlotType;
   mode: SlotMode;
   label?: string;
+  answerPath?: string;          // chemin vers contentNotes pour les slots "user"
   pattern?: string;
   deps?: string[];
   prompt?: string;
@@ -56,4 +57,3 @@ export type UseKitSpec = {
 };
 
 export type SlotSpec = FieldSpec | GroupSpec | RepeatSpec | UseKitSpec;
-

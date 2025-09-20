@@ -262,6 +262,8 @@ export default function AiRightPanel({
     instId?: string,
     imageBase64?: string,
   ) => {
+
+    console.log("newAnswers", newAnswers);
     console.log(
       '[DEBUG] AiRightPanel - handleGenerateFromTemplate called with:',
       {

@@ -76,6 +76,18 @@ export const BilanController = {
         res.status(400).json({ error: 'invalid section' });
         return;
       }
+
+
+      console.log("section", section);
+      console.log("sectionId", sectionId);
+      console.log("answers", answers);
+      console.log("rawNotes", rawNotes);
+      console.log("stylePrompt", stylePrompt);
+      console.log("examples", examples);
+      console.log("imageBase64", imageBase64);
+      console.log("cfg", cfg);
+      console.log("job", job);
+      
       // Récupère le job du profil actif (si disponible)
       const profiles = (await ProfileService.list(req.user.id)) as unknown as Array<{ job?: 'PSYCHOMOTRICIEN' | 'ERGOTHERAPEUTE' | 'NEUROPSYCHOLOGUE' | null }>;
       const job = profiles && profiles.length > 0 ? (profiles[0].job ?? undefined) : undefined;
