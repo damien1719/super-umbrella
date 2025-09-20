@@ -47,6 +47,7 @@ export type FieldSpec = {
   label?: string;
   mode: SlotMode;
   type: SlotType;
+  answerPath?: string;
   pattern?: string;
   deps?: string[];
   prompt?: string;

@@ -203,7 +203,7 @@ export default function CreationTrame({
   const createDefaultNote = (): Question => ({
     id: Date.now().toString(),
     type: 'notes',
-    titre: 'Question sans titre',
+    titre: '',
     contenu: '',
   });
 
@@ -486,6 +486,57 @@ export default function CreationTrame({
     }
   };
 
+  // Compute available answer paths from current questions (for SlotEditor suggestions)
+  const pathOptions = useMemo(() => {
+    const out: { path: string; label: string }[] = [];
+    for (const q of questions || []) {
+      if (!q || !q.id) continue;
+      switch (q.type) {
+        case 'titre':
+          // No answer path for titles
+          break;
+        case 'tableau': {
+          const t = q.tableau;
+          if (t?.rowsGroups && t?.columns) {
+            for (const grp of t.rowsGroups) {
+              for (const row of grp.rows || []) {
+                for (const col of t.columns) {
+                  out.push({
+                    path: `${q.id}.${row.id}.${col.id}`,
+                    label: `${q.titre} — ${row.label} / ${col.label}`,
+                  });
+                }
+              }
+            }
+          }
+          if ((t as any)?.commentaire) {
+            out.push({
+              path: `${q.id}.commentaire`,
+              label: `${q.titre} — Commentaire`,
+            });
+          }
+          break;
+        }
+        case 'choix-multiple':
+        case 'choix-unique': {
+          out.push({ path: `${q.id}`, label: `${q.titre}` });
+          if ((q as any)?.commentaire !== false) {
+            out.push({
+              path: `${q.id}.commentaire`,
+              label: `${q.titre} — Commentaire`,
+            });
+          }
+          break;
+        }
+        case 'notes':
+        case 'echelle':
+        default:
+          out.push({ path: `${q.id}`, label: `${q.titre}` });
+      }
+    }
+    return out;
+  }, [questions]);
+
   return (
     <div className="flex h-dvh w-full flex-col bg-gray-50">
       {/* Header + actions - Fixed */}
@@ -540,7 +591,7 @@ export default function CreationTrame({
                 } ${isReadOnly ? 'text-gray-400' : ''}`}
                 onClick={() => setTab('template')}
               >
-                Modèle Word
+                Mode avancé
               </button>
               <button
                 className={`pb-2 px-1 border-b-2 ${
@@ -688,6 +739,7 @@ export default function CreationTrame({
                         }
                       }
                     }}
+                    pathOptions={pathOptions}
                   />
                 </div>
               ) : (

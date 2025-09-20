@@ -76,6 +76,7 @@ export const BilanController = {
         res.status(400).json({ error: 'invalid section' });
         return;
       }
+      
       // Récupère le job du profil actif (si disponible)
       const profiles = (await ProfileService.list(req.user.id)) as unknown as Array<{ job?: 'PSYCHOMOTRICIEN' | 'ERGOTHERAPEUTE' | 'NEUROPSYCHOLOGUE' | null }>;
       const job = profiles && profiles.length > 0 ? (profiles[0].job ?? undefined) : undefined;
@@ -92,9 +93,20 @@ export const BilanController = {
         };
         const firstName = p.firstName || p.patient?.firstName;
         const lastName = p.lastName || p.patient?.lastName;
-        if (firstName || lastName) {
-          userContent = Anonymization.anonymizeText(userContent, { firstName, lastName });
+        // Ajoute le prénom au contexte utilisateur avant anonymisation, si disponible
+        if (firstName && typeof firstName === 'string' && firstName.trim().length > 0) {
+          userContent = `Prenom: "${firstName}"\n${userContent}`;
         }
+        
+        console.log("userContent", userContent);
+        console.log("firstName", firstName);
+        console.log("lastName", lastName);
+        // Puis anonymise l'ensemble du contenu
+        if (firstName || lastName) {
+          //userContent = Anonymization.anonymizeText(userContent, { firstName, lastName });
+        }
+
+        console.log("userContent anonymized", userContent);
       }
 
       // Prefix context with section name for clarity (prefer actual section title when available)
@@ -111,7 +123,7 @@ export const BilanController = {
           // Non-bloquant: en cas d'échec, on retombe sur le titre de la config
         }
       }
-      userContent = prependSectionContext(userContent, sectionTitle);
+      //userContent = prependSectionContext(userContent, sectionTitle);
 
       const text = await generateText({
         instructions: cfg.instructions,
@@ -133,7 +145,7 @@ export const BilanController = {
         const firstName = p.firstName || p.patient?.firstName;
         const lastName = p.lastName || p.patient?.lastName;
         if (firstName || lastName) {
-          postText = Anonymization.deanonymizeText(postText, { firstName, lastName });
+          //postText = Anonymization.deanonymizeText(postText, { firstName, lastName });
         }
       }
       res.json({ text: postText });
@@ -289,9 +301,14 @@ export const BilanController = {
               // Non-blocking: if markdownification fails, proceed without it
             }
 
+            // Ajoute le prénom au contexte si disponible, avant le préfixe de section
+            if (typeof contextMd === 'string' && contextMd.length > 0 && patientNames.firstName) {
+              contextMd = `Prenom: "${patientNames.firstName}"\n${contextMd}`;
+            }
+
             // Prefix markdown context with section title, if available
             if (typeof contextMd === 'string' && contextMd.length > 0) {
-              contextMd = prependSectionContext(contextMd, title);
+              //contextMd = prependSectionContext(contextMd, title);
             }
 
             const result = await generateFromTemplateSvc(templateId, contentNotes as Record<string, unknown>, { instanceId, contextMd });
@@ -327,17 +344,21 @@ export const BilanController = {
           // Align prompt content with shared markdownification (_md only)
           const schemaQuestions = ((section?.schema || []) as unknown[]) as any[];
           let userContent = answersToMarkdown(schemaQuestions as any[], contentNotes as Record<string, unknown>);
+          // Ajoute le prénom au contexte utilisateur avant anonymisation, si disponible
+          if (patientNames.firstName && typeof patientNames.firstName === 'string' && patientNames.firstName.trim().length > 0) {
+            userContent = `Prenom: "${patientNames.firstName}"\n${userContent}`;
+          }
           if (patientNames.firstName || patientNames.lastName) {
-            userContent = Anonymization.anonymizeText(userContent, patientNames);
+            //userContent = Anonymization.anonymizeText(userContent, patientNames);
           }
 
           // Prefix context with section title for clarity
-          userContent = prependSectionContext(userContent, title);
+          //userContent = prependSectionContext(userContent, title);
 
           const cfg = promptConfigs[promptKey];
           let text = await generateText({ instructions: cfg.instructions, userContent, job });
           if (patientNames.firstName || patientNames.lastName) {
-            text = Anonymization.deanonymizeText(text as string, patientNames);
+            //text = Anonymization.deanonymizeText(text as string, patientNames);
           }
 
           // Build per-section state from Markdown (headings + paragraphs)
@@ -379,13 +400,13 @@ export const BilanController = {
           const { bilanJsonToMarkdown } = await import('../utils/jsonToMarkdown');
           let markdownContent = bilanJsonToMarkdown(preEditorState);
           if (patientNames.firstName || patientNames.lastName) {
-            markdownContent = Anonymization.anonymizeText(markdownContent, patientNames);
+            //markdownContent = Anonymization.anonymizeText(markdownContent, patientNames);
           }
 
           // Ask the model to conclude based on the aggregated content
           let conclusionText = await concludeBilan(markdownContent, job);
           if (patientNames.firstName || patientNames.lastName) {
-            conclusionText = Anonymization.deanonymizeText(conclusionText as string, patientNames);
+            //conclusionText = Anonymization.deanonymizeText(conclusionText as string, patientNames);
           }
 
           // Build conclusion per-section states and also append to fallback aggregation

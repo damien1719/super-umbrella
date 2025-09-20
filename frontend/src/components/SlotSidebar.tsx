@@ -46,6 +46,8 @@ interface Props {
   onMagicTemplating?: () => void;
   onDeleteTemplate?: () => void;
   isTransforming?: boolean;
+  // Optional: available answer paths for current section
+  pathOptions?: { path: string; label: string }[];
 }
 
 export default function SlotSidebar({
@@ -58,6 +60,7 @@ export default function SlotSidebar({
   onMagicTemplating,
   onDeleteTemplate,
   isTransforming = false,
+  pathOptions,
 }: Props) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -503,6 +506,7 @@ export default function SlotSidebar({
             onRemove={() => removeSlot((slots[selectedIndex] as any).id)}
             onAddSlot={onAddSlot}
             onUpdateSlot={onUpdateSlot}
+            pathOptions={pathOptions}
           />
         </div>
       )}

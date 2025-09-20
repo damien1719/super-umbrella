@@ -113,6 +113,68 @@ function partitionSlots(spec: Record<string, FieldSpec>) {
   return res;
 }
 
+function getByPath(source: unknown, rawPath?: string): unknown {
+  if (!source || typeof source !== 'object' || !rawPath) return undefined;
+  const segments = rawPath.split('.').filter(Boolean);
+  if (segments.length === 0) return undefined;
+
+  let current: unknown = source;
+  for (const segment of segments) {
+    if (current == null) return undefined;
+
+    if (Array.isArray(current)) {
+      const idx = Number(segment);
+      if (Number.isInteger(idx) && idx >= 0 && idx < current.length) {
+        current = current[idx];
+        continue;
+      }
+      return undefined;
+    }
+
+    if (typeof current === 'object' && segment in (current as Record<string, unknown>)) {
+      current = (current as Record<string, unknown>)[segment];
+      continue;
+    }
+
+    return undefined;
+  }
+
+  return current;
+}
+
+function resolveUserSlots(ids: string[], spec: Record<string, FieldSpec>, notes: Notes) {
+  const out: Record<string, unknown> = {};
+  if (!ids.length) return out;
+
+  console.log("notes", notes);
+
+  const notesMap = (notes && typeof notes === 'object') ? (notes as Record<string, unknown>) : {};
+
+  console.log("notesMap", notesMap);
+
+  for (const id of ids) {
+    const field = spec[id];
+    if (!field) continue;
+
+    const byPath = field.answerPath ? getByPath(notesMap, field.answerPath) : getByPath(notesMap, id);
+    if (byPath !== undefined) {
+      out[id] = byPath;
+      continue;
+    }
+
+    if (field.answerPath && field.answerPath in notesMap) {
+      out[id] = notesMap[field.answerPath];
+      continue;
+    }
+
+    if (id in notesMap) {
+      out[id] = notesMap[id];
+    }
+  }
+
+  return out;
+}
+
 function computeComputed(ids: string[], spec: Record<string, FieldSpec>, notes: Notes) {
   const out: Record<string, unknown> = {};
   for (const id of ids) {
@@ -146,6 +208,12 @@ export async function generateFromTemplate(
 
   const parts = partitionSlots(slotsSpec);
 
+  console.log("user", parts.user);
+
+  const user = resolveUserSlots(parts.user, slotsSpec, contentNotes);
+
+  console.log("user", user);
+
   
   const computed = computeComputed(parts.computed, slotsSpec, contentNotes);
 
@@ -162,7 +230,7 @@ export async function generateFromTemplate(
   console.log('[DEBUG] generateFromTemplate - LLM slots content preview:', JSON.stringify(llm.slots, null, 2).slice(0, 1000));
   console.log('[DEBUG] generateFromTemplate - LLM full response object:', JSON.stringify(llm, null, 2));
 
-  const slots = { ...(opts.userSlots || {}), ...computed, ...(llm.slots as Record<string, string | number | null | undefined>) };
+  const slots = { ...user, ...(opts.userSlots || {}), ...computed, ...(llm.slots as Record<string, string | number | null | undefined>) };
 
   // DEBUG mapping for templated ids: log unmatched ids
   const allIds = Object.keys(slotsSpec);
@@ -298,6 +366,7 @@ export async function regenerateSlots(instanceId: string, slotIds: string[]) {
   const computedIds = slotIds.filter((id) => parts.computed.includes(id));
   const llmIds = slotIds.filter((id) => parts.llm.includes(id));
   const computed = computeComputed(computedIds, slotsSpec, instance.contentNotes as Notes);
+  const user = resolveUserSlots(parts.user, slotsSpec, instance.contentNotes as Notes);
 
   console.log('[DEBUG] regenerateSlots - About to call LLM with:');
   console.log('[DEBUG] regenerateSlots - LLM slots to regenerate:', llmIds);
@@ -310,7 +379,12 @@ export async function regenerateSlots(instanceId: string, slotIds: string[]) {
   console.log('[DEBUG] regenerateSlots - LLM slots regenerated:', Object.keys(llm.slots || {}));
   console.log('[DEBUG] regenerateSlots - LLM slots content:', JSON.stringify(llm.slots, null, 2));
   const existing = (instance.generatedContent as Record<string, unknown>)?.slots || {};
-  const slots = { ...existing, ...computed, ...(llm.slots as Record<string, string | number | null | undefined>) };
+  const slots = {
+    ...existing,
+    ...user,
+    ...computed,
+    ...(llm.slots as Record<string, string | number | null | undefined>),
+  };
   const hydratedState = hydrate(template.content, slots as Record<string, string | number | null | undefined>, slotsSpec);
 
   const editorState = {

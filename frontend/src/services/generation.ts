@@ -131,7 +131,7 @@ function markdownifyField(q: Question, value: unknown): string {
     case 'echelle':
       return `${q.titre}\n\n${value ?? ''}`;
     case 'titre':
-      return `## ${q.titre}\n\n${value ?? ''}`;
+      return `### ${q.titre}\n\n${value ?? ''}`;
     default:
       return `${q.titre} : ${value ?? ''}`;
   }

@@ -5,6 +5,7 @@ import type {
   RepeatSpec,
   SlotType,
   FieldPreset,
+  SlotMode,
 } from '../types/template';
 import { FIELD_PRESETS } from '../types/template';
 import { Card, CardHeader, CardContent } from './ui/card';
@@ -29,9 +30,12 @@ interface Props {
   onAddSlot?: (slot: FieldSpec) => void;
   onUpdateSlot?: (slotId: string, slotLabel: string) => void;
   onRemoveSlot?: (slotId: string) => void;
+  // Optional: list of available answer paths for the current section
+  pathOptions?: { path: string; label: string }[];
 }
 
 const types: SlotType[] = ['text', 'number', 'list', 'table'];
+const modes: SlotMode[] = ['llm', 'user', 'computed'];
 const presets: FieldPreset[] = [
   'description',
   'score',
@@ -47,6 +51,7 @@ export default function SlotEditor({
   onAddSlot,
   onUpdateSlot,
   onRemoveSlot,
+  pathOptions,
 }: Props) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -123,35 +128,63 @@ export default function SlotEditor({
         </div>
 
         <div>
-          <Label htmlFor={`preset-${field.id}`} className="text-xs">
-            Préset
+          <Label htmlFor={`mode-${field.id}`} className="text-xs">
+            Mode
           </Label>
           <Select
-            value={field.preset}
-            onValueChange={(value) => {
-              const preset = value as FieldPreset;
-              onChange({
-                ...field,
-                preset,
-                prompt: FIELD_PRESETS[preset].prompt,
-              });
-            }}
+            value={field.mode}
+            onValueChange={(value) =>
+              onChange({ ...field, mode: value as SlotMode })
+            }
           >
             <SelectTrigger
-              id={`preset-${field.id}`}
+              id={`mode-${field.id}`}
               className="mt-0.5 h-8 text-sm"
             >
-              <SelectValue placeholder="Sélectionner" />
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {presets.map((p) => (
-                <SelectItem key={p} value={p}>
-                  {p}
+              {modes.map((mode) => (
+                <SelectItem key={mode} value={mode}>
+                  {mode}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
+
+        {field.mode === 'llm' && (
+          <div>
+            <Label htmlFor={`preset-${field.id}`} className="text-xs">
+              Préset
+            </Label>
+            <Select
+              value={field.preset}
+              onValueChange={(value) => {
+                const preset = value as FieldPreset;
+                onChange({
+                  ...field,
+                  preset,
+                  prompt: FIELD_PRESETS[preset].prompt,
+                });
+              }}
+            >
+              <SelectTrigger
+                id={`preset-${field.id}`}
+                className="mt-0.5 h-8 text-sm"
+              >
+                <SelectValue placeholder="Sélectionner" />
+              </SelectTrigger>
+              <SelectContent>
+                {presets.map((p) => (
+                  <SelectItem key={p} value={p}>
+                    {p}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         {field.mode === 'computed' && (
           <>
@@ -192,18 +225,62 @@ export default function SlotEditor({
           </>
         )}
 
-        <div>
-          <Label htmlFor={`prompt-${field.id}`} className="text-xs">
-            Prompt
-          </Label>
-          <Textarea
-            id={`prompt-${field.id}`}
-            value={field.prompt ?? ''}
-            onChange={(e) => onChange({ ...field, prompt: e.target.value })}
-            className="mt-0.5 min-h-[50px] text-sm"
-            placeholder="Instructions pour l'IA..."
-          />
-        </div>
+        {field.mode === 'user' && (
+          <div>
+            <Label htmlFor={`answerPath-${field.id}`} className="text-xs">
+              Answer path
+            </Label>
+            <Input
+              id={`answerPath-${field.id}`}
+              value={field.answerPath ?? ''}
+              onChange={(e) =>
+                onChange({ ...field, answerPath: e.target.value || undefined })
+              }
+              placeholder="ex: questionId.rowId.colId ou questionId.commentaire"
+              className="mt-0.5 h-8 text-sm"
+            />
+            {Array.isArray(pathOptions) && pathOptions.length > 0 && (
+              <div className="mt-2">
+                <div className="text-[11px] text-gray-500 mb-1">
+                  Chemins disponibles pour cette section
+                </div>
+                <div className="max-h-40 overflow-auto border rounded-md bg-white">
+                  {pathOptions.map((opt) => (
+                    <button
+                      key={`${opt.path}`}
+                      type="button"
+                      onClick={() =>
+                        onChange({ ...field, answerPath: opt.path })
+                      }
+                      className="w-full text-left px-2 py-1.5 text-xs hover:bg-gray-50 border-b last:border-b-0"
+                      title={opt.path}
+                    >
+                      <div className="text-gray-900 truncate">{opt.label}</div>
+                      <div className="text-[10px] text-gray-500 truncate">
+                        {opt.path}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {field.mode === 'llm' && (
+          <div>
+            <Label htmlFor={`prompt-${field.id}`} className="text-xs">
+              Prompt
+            </Label>
+            <Textarea
+              id={`prompt-${field.id}`}
+              value={field.prompt ?? ''}
+              onChange={(e) => onChange({ ...field, prompt: e.target.value })}
+              className="mt-0.5 min-h-[50px] text-sm"
+              placeholder="Instructions pour l'IA..."
+            />
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -323,6 +400,7 @@ export default function SlotEditor({
                 onAddSlot={onAddSlot}
                 onUpdateSlot={onUpdateSlot}
                 onRemoveSlot={onRemoveSlot}
+                pathOptions={pathOptions}
               />
             ))}
           </div>
@@ -620,6 +698,7 @@ export default function SlotEditor({
                   onAddSlot={onAddSlot}
                   onUpdateSlot={onUpdateSlot}
                   onRemoveSlot={onRemoveSlot}
+                  pathOptions={pathOptions}
                 />
               ))}
             </div>
