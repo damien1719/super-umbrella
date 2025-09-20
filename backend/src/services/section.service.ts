@@ -155,7 +155,10 @@ export const SectionService = {
       return db.section.update({ where: { id }, data, include: { templateRef: true } });
     }
     // For non-admins, prevent source changes even if passed accidentally
-    const { source, ...rest } = data as Partial<SectionData> & { source?: SectionData['source'] };
+    const rest = { ...(data as Partial<SectionData>) };
+    if ('source' in rest) {
+      delete (rest as { source?: SectionData['source'] }).source;
+    }
     // Support shares granted by email OR by userId (like list/get)
     const profile = await db.profile.findUnique({ where: { userId } });
     const email = (profile?.email as string | undefined)?.trim().toLowerCase();

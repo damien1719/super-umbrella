@@ -174,7 +174,7 @@ async function doRequestDirect(params: {
   bilanId: string;
   sectionKind: string;
   sectionId?: string;
-  chunks: string[];
+  answers: Answers;
   stylePrompt?: string;
   rawNotes?: string;
   imageBase64?: string;
@@ -182,7 +182,7 @@ async function doRequestDirect(params: {
   const body: any = {
     section: params.sectionKind,
     ...(params.sectionId ? { sectionId: params.sectionId } : {}),
-    answers: params.chunks,
+    answers: params.answers,
     stylePrompt: params.stylePrompt,
   };
   if (params.rawNotes?.trim()) body.rawNotes = params.rawNotes;
@@ -367,9 +367,10 @@ export async function generateSection(opts: {
     const trameId = selectedTrames[section.id];
     const trame = trames[section.id]?.find((t) => t.value === trameId);
     const questions: Question[] = (trame?.schema as Question[]) || [];
-    const current = newAnswers || answers[section.id] || {};
+    const current: Answers = (newAnswers ??
+      answers[section.id] ??
+      {}) as Answers;
 
-    const { promptMarkdown, chunks } = markdownifyAnswers(questions, current);
     const stylePrompt = getStylePrompt(trameId, examples);
     const sectionKind = kindMap[section.id];
 
@@ -381,13 +382,14 @@ export async function generateSection(opts: {
         bilanId,
         sectionKind,
         sectionId: trameId,
-        chunks,
+        answers: current,
         stylePrompt,
         rawNotes,
         imageBase64,
       });
     } else {
       if (!instanceId) throw new Error('Missing instanceId for template mode');
+      const { chunks } = markdownifyAnswers(questions, current);
       console.log(
         '[DEBUG] generateSection - About to call doRequestFromTemplate with:',
         {
