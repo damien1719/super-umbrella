@@ -66,7 +66,7 @@ const useTrames = () => {
 
 interface AiRightPanelProps {
   bilanId: string;
-  onInsertText: (text: string) => void;
+  onInsertText?: (text: string) => void;
   onSetEditorStateJson?: (state: unknown) => void;
   initialWizardSection?: string;
   initialTrameId?: string;
@@ -249,7 +249,6 @@ export default function AiRightPanel({
       setWizardSection,
       setGenerated,
       setRegenPrompt,
-      onInsertText,
       onSetEditorStateJson,
       examples: examples as Array<{ sectionId: string; stylePrompt?: string }>,
     });
@@ -262,8 +261,7 @@ export default function AiRightPanel({
     instId?: string,
     imageBase64?: string,
   ) => {
-
-    console.log("newAnswers", newAnswers);
+    console.log('newAnswers', newAnswers);
     console.log(
       '[DEBUG] AiRightPanel - handleGenerateFromTemplate called with:',
       {
@@ -319,7 +317,6 @@ export default function AiRightPanel({
         setIsGenerating,
         setSelectedSection,
         setWizardSection,
-        onInsertText,
         onSetEditorStateJson,
         examples: examples as Array<{
           sectionId: string;
@@ -338,7 +335,6 @@ export default function AiRightPanel({
           hasNewAnswers: !!generationParams.newAnswers,
           hasRawNotes: !!generationParams.rawNotes,
           hasOnSetEditorStateJson: !!generationParams.onSetEditorStateJson,
-          hasOnInsertText: !!generationParams.onInsertText,
         },
       );
 
@@ -408,7 +404,7 @@ export default function AiRightPanel({
           headers: { Authorization: `Bearer ${token}` },
         },
       );
-      onInsertText(res.text);
+      onInsertText?.(res.text);
     } finally {
       setIsGenerating(false);
     }
@@ -484,7 +480,7 @@ export default function AiRightPanel({
                       size="sm"
                       onClick={() => {
                         if (selection?.restore()) {
-                          onInsertText(refinedText);
+                          onInsertText?.(refinedText);
                           selection.clear();
                         }
                         setRefinedText('');

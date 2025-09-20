@@ -14,7 +14,11 @@ import { hydrateLayout } from "../services/bilan/composeLayout";
 import { answersToMarkdown } from "../utils/answersMarkdown";
 import { generateFromTemplate as generateFromTemplateSvc } from "../services/ai/generateFromTemplate";
 import { buildSectionPromptContext } from "../services/ai/promptContext";
-import { markdownToLexicalChildren } from "../utils/markdownToLexical";
+import {
+  lexicalStateToJSON,
+  markdownToLexicalState,
+  normalizeLexicalEditorState,
+} from "../utils/lexicalEditorState";
 
 
 export const BilanController = {
@@ -107,7 +111,9 @@ export const BilanController = {
       if (patientNames.firstName || patientNames.lastName) {
         //postText = Anonymization.deanonymizeText(postText, patientNames);
       }
-      res.json({ text: postText });
+      const editorState = markdownToLexicalState(postText);
+      const assembledState = lexicalStateToJSON(editorState);
+      res.json({ assembledState });
     } catch (e) {
       next(e);
     }
@@ -322,10 +328,11 @@ export const BilanController = {
           }
 
           // Build per-section state from Markdown (headings + paragraphs)
+          const sectionState = markdownToLexicalState(String(text || ''));
+
           {
-            const sectionChildren = markdownToLexicalChildren(String(text || ''));
             sectionsMap[btSec.sectionId] = {
-              root: { type: 'root', direction: 'ltr', format: '', indent: 0, version: 1, children: sectionChildren as unknown[] },
+              root: sectionState.root as Record<string, unknown>,
             } as { root: Record<string, unknown> };
           }
 
@@ -335,7 +342,7 @@ export const BilanController = {
               type: 'heading', tag: 'h2', direction: 'ltr', format: '', indent: 0, version: 1,
               children: [{ type: 'text', text: String(title), detail: 0, format: 0, style: '', version: 1 }],
             });
-            const mdNodes = markdownToLexicalChildren(String(text || '')) as unknown[];
+            const mdNodes = ((sectionState.root as Record<string, unknown>)?.children ?? []) as unknown[];
             for (const node of mdNodes) children.push(node);
             // Blank line between sections
             children.push({ type: 'paragraph', direction: 'ltr', format: '', indent: 0, version: 1, children: [] });
@@ -372,9 +379,10 @@ export const BilanController = {
           // Build conclusion per-section states and also append to fallback aggregation
           for (const c of conclusionSections) {
             // Per-section state
-            const cChildren: unknown[] = markdownToLexicalChildren(String(conclusionText || '')) as unknown[];
+            const conclusionState = markdownToLexicalState(String(conclusionText || ''));
+            const cChildren = ((conclusionState.root as Record<string, unknown>)?.children ?? []) as unknown[];
             sectionsMap[c.id] = {
-              root: { type: 'root', direction: 'ltr', format: '', indent: 0, version: 1, children: cChildren as unknown[] },
+              root: conclusionState.root as Record<string, unknown>,
             } as { root: Record<string, unknown> };
 
             // Fallback aggregation: heading + paragraphs
@@ -397,7 +405,9 @@ export const BilanController = {
       if (layout && typeof layout === 'object' && layout.root) {
         try {
           const composed = hydrateLayout(layout as { root: Record<string, unknown> }, sectionsMap);
-          const assembledState = JSON.stringify({ root: composed.root, version: 1 });
+          const assembledState = lexicalStateToJSON(
+            normalizeLexicalEditorState({ root: composed.root }),
+          );
           res.json({ assembledState });
           return;
         } catch (err) {
@@ -406,11 +416,10 @@ export const BilanController = {
         }
       }
 
-      const editorState = {
-        root: { type: 'root', direction: 'ltr', format: '', indent: 0, version: 1, children },
-        version: 1,
-      };
-      res.json({ assembledState: JSON.stringify(editorState) });
+      const fallbackState = normalizeLexicalEditorState({
+        root: { children },
+      });
+      res.json({ assembledState: lexicalStateToJSON(fallbackState) });
     } catch (e) {
       next(e);
     }

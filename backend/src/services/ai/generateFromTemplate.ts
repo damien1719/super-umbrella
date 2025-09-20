@@ -4,6 +4,10 @@ import { prisma } from '../../prisma';
 import { SectionTemplateService } from '../sectionTemplate.service';
 import { callModel } from './prompts/generateSlots';
 import { hydrate } from './templates/hydrate';
+import {
+  lexicalStateToJSON,
+  normalizeLexicalEditorState,
+} from '../../utils/lexicalEditorState';
 
 type Notes = Record<string, unknown>;
 
@@ -251,70 +255,8 @@ export async function generateFromTemplate(
   console.log('[DEBUG] generateFromTemplate - Hydrated state preview:', JSON.stringify(hydratedState).slice(0, 500) + '...');
   console.log('[DEBUG] generateFromTemplate - Hydrated state full length:', JSON.stringify(hydratedState).length);
 
-  function toArray<T>(val: unknown): T[] {
-    if (Array.isArray(val)) return val as T[];
-    if (val == null) return [] as T[];
-    return [val as T];
-  }
-  
-  function ensureTextDefaults(node: any): any {
-    if (node?.type !== 'text') return node;
-    return {
-      ...node,
-      detail: node.detail ?? 0,
-      format: node.format ?? 0,
-      style: node.style ?? '',
-      version: node.version ?? 1,
-      // mode: node.mode ?? 'normal', // seulement si ta version le requiert
-    };
-  }
-  
-  function ensureParagraphDefaults(node: any): any {
-    if (node?.type !== 'paragraph') return node;
-    return {
-      ...node,
-      direction: node.direction ?? 'ltr',
-      format: node.format ?? '',
-      indent: node.indent ?? 0,
-      version: node.version ?? 1,
-      children: toArray<any>(node.children).map(ensureTextDefaults),
-    };
-  }
-  
-  function wrapInParagraph(child: any): any {
-    if (child?.type === 'paragraph') return ensureParagraphDefaults(child);
-    if (child?.type === 'text') {
-      return ensureParagraphDefaults({
-        type: 'paragraph',
-        children: [ensureTextDefaults(child)],
-      });
-    }
-    return child;
-  }
-  
-  function normalizeChildren(children: any): any[] {
-    return toArray<any>(children).map((c) => wrapInParagraph(ensureTextDefaults(c)));
-  }
-  
-  function buildLexicalRoot(input: any) {
-    const maybeRoot = input?.root ?? input;
-    const children = normalizeChildren(maybeRoot?.children ?? maybeRoot);
-    return {
-      type: 'root',
-      direction: maybeRoot?.direction ?? 'ltr',
-      format: '',
-      indent: 0,
-      version: 1,
-      children,
-    };
-  }
-  
-  const editorState = {
-    root: buildLexicalRoot(hydratedState),
-    version: 1,
-  };
-  
-  const assembledState = JSON.stringify(editorState);
+  const editorState = normalizeLexicalEditorState(hydratedState);
+  const assembledState = lexicalStateToJSON(editorState);
   
 
   console.log('[DEBUG] generateFromTemplate - About to return result:', {
@@ -387,11 +329,8 @@ export async function regenerateSlots(instanceId: string, slotIds: string[]) {
   };
   const hydratedState = hydrate(template.content, slots as Record<string, string | number | null | undefined>, slotsSpec);
 
-  const editorState = {
-    root: (hydratedState as any)?.root || hydratedState,
-    version: 1,
-  };
-  const assembledState = JSON.stringify(editorState);
+  const editorState = normalizeLexicalEditorState(hydratedState);
+  const assembledState = lexicalStateToJSON(editorState);
 
   console.log('[DEBUG] regenerateSlots - About to update database with regenerated content');
   console.log('[DEBUG] regenerateSlots - Editor state created:', {
