@@ -3,7 +3,6 @@ import { BilanService } from "../services/bilan.service";
 import { ProfileService } from "../services/profile.service";
 // No HTML sanitization needed for JSON editor state
 import { generateText } from "../services/ai/generate.service";
-import { Anonymization } from "../services/ai/anonymize.service";
 import { promptConfigs } from "../services/ai/prompts/promptconfig";
 import { refineSelection } from "../services/ai/refineSelection.service";
 import { concludeBilan } from "../services/ai/conclude.service";
@@ -14,11 +13,15 @@ import { hydrateLayout } from "../services/bilan/composeLayout";
 import { answersToMarkdown } from "../utils/answersMarkdown";
 import { generateFromTemplate as generateFromTemplateSvc } from "../services/ai/generateFromTemplate";
 import { buildSectionPromptContext } from "../services/ai/promptContext";
+import { AnchorService, type AnchorSpecification } from "../services/ai/anchor.service";
+import { PostProcessor } from "../services/ai/postProcessor";
 import {
   lexicalStateToJSON,
   markdownToLexicalState,
   normalizeLexicalEditorState,
 } from "../utils/lexicalEditorState";
+import type { Question as SectionQuestion } from "../utils/answersMarkdown";
+import { LexicalAssembler } from "../services/bilan/lexicalAssembler";
 
 
 export const BilanController = {
@@ -70,7 +73,11 @@ export const BilanController = {
     try {
       const section = req.body.section as keyof typeof promptConfigs;
       const sectionId = typeof req.body.sectionId === 'string' ? req.body.sectionId : undefined;
-      const answers = req.body.answers ?? {};
+      const answersPayload = req.body.answers;
+      const answersObject =
+        answersPayload && typeof answersPayload === 'object' && !Array.isArray(answersPayload)
+          ? (answersPayload as Record<string, unknown>)
+          : {};
       const rawNotes = typeof req.body.rawNotes === 'string' ? req.body.rawNotes : undefined;
       const stylePrompt = typeof req.body.stylePrompt === 'string' ? req.body.stylePrompt : undefined;
       const examples = Array.isArray(req.body.examples) ? req.body.examples : [];
@@ -80,6 +87,71 @@ export const BilanController = {
         res.status(400).json({ error: 'invalid section' });
         return;
       }
+
+      let anchors: AnchorSpecification[] = [];
+      let schemaQuestions: SectionQuestion[] = [];
+      let answersMarkdown = '';
+      let contentNotes: Record<string, unknown> = {};
+      if (sectionId) {
+        try {
+          const sectionRecord = await prisma.section.findUnique({
+            where: { id: sectionId },
+            select: { schema: true },
+          });
+          const rawSchema = sectionRecord?.schema;
+          schemaQuestions = Array.isArray(rawSchema)
+            ? (rawSchema as SectionQuestion[])
+            : [];
+          anchors = AnchorService.collect(schemaQuestions);
+          console.log('[ANCHOR] generate - anchors collected', {
+            sectionId,
+            anchors: anchors.map((a) => a.id),
+          });
+          if (schemaQuestions.length > 0 && Object.keys(answersObject).length > 0) {
+            try {
+              answersMarkdown = answersToMarkdown(schemaQuestions, answersObject);
+            } catch (err) {
+              console.warn('[generate] unable to markdownify answers from schema', err);
+            }
+          }
+        } catch (err) {
+          console.warn('[generate] unable to collect anchors', err);
+        }
+
+        try {
+          const latestInstances = await BilanSectionInstanceService.list(
+            req.user.id,
+            req.params.bilanId,
+            sectionId,
+            true,
+          );
+          if (latestInstances.length > 0) {
+            const latest = latestInstances[0];
+            contentNotes = (latest?.contentNotes ?? {}) as Record<string, unknown>;
+            console.log('[ANCHOR] generate - contentNotes loaded', {
+              hasContentNotes: Object.keys(contentNotes || {}).length > 0,
+            });
+          }
+        } catch (err) {
+          console.warn('[generate] unable to load content notes', err);
+        }
+      }
+
+      if (!answersMarkdown) {
+        if (Array.isArray(answersPayload)) {
+          answersMarkdown = answersPayload
+            .filter((part): part is string => typeof part === 'string')
+            .map((part) => part.trim())
+            .filter((part) => part.length > 0)
+            .join('\n\n');
+        } else if (typeof answersPayload === 'string') {
+          answersMarkdown = answersPayload;
+        } else if (Object.keys(answersObject).length > 0) {
+          answersMarkdown = JSON.stringify(answersObject);
+        }
+      }
+
+      const instructions = AnchorService.injectPrompt(cfg.instructions, anchors);
       
       // Récupère le job du profil actif (si disponible)
       const profiles = (await ProfileService.list(req.user.id)) as unknown as Array<{ job?: 'PSYCHOMOTRICIEN' | 'ERGOTHERAPEUTE' | 'NEUROPSYCHOLOGUE' | null }>;
@@ -90,7 +162,7 @@ export const BilanController = {
       const promptContext = await buildSectionPromptContext({
         userId: req.user.id,
         bilanId: req.params.bilanId,
-        baseContent: JSON.stringify(answers ?? {}),
+        baseContent: answersMarkdown,
         sectionId,
         fallbackSectionTitle: cfg.title ?? String(section),
       });
@@ -98,7 +170,7 @@ export const BilanController = {
       const patientNames = promptContext.patientNames;
 
       const text = await generateText({
-        instructions: cfg.instructions,
+        instructions,
         userContent,
         examples,
         stylePrompt,
@@ -111,9 +183,24 @@ export const BilanController = {
       if (patientNames.firstName || patientNames.lastName) {
         //postText = Anonymization.deanonymizeText(postText, patientNames);
       }
-      const editorState = markdownToLexicalState(postText);
-      const assembledState = lexicalStateToJSON(editorState);
-      res.json({ assembledState });
+      const { text: processedText, anchorsStatus } = PostProcessor.process({ text: postText, anchors });
+      const assembly = LexicalAssembler.assemble({
+        text: processedText,
+        anchors,
+        missingAnchorIds: anchorsStatus.missing,
+        questions: schemaQuestions,
+        answers: contentNotes,
+      });
+      console.log('[ANCHOR] generate - response summary', {
+        anchors: anchors.map((a) => a.id),
+        anchorsStatus,
+        autoInserted: assembly.autoInserted,
+      });
+      res.json({
+        assembledState: assembly.assembledState,
+        anchorsStatus,
+        autoInsertedAnchors: assembly.autoInserted,
+      });
     } catch (e) {
       next(e);
     }
@@ -206,6 +293,7 @@ export const BilanController = {
       const conclusionSections: Array<{ id: string; title: string }> = [];
       // Per-section editor state map for layout composition
       const sectionsMap: Record<string, { root: Record<string, unknown> }> = {};
+      const anchorsStatusBySection: Record<string, { ok: boolean; missing: string[]; autoInserted: string[] }> = {};
 
       // helper: detect if notes contain any meaningful data
       const hasMeaningful = (val: unknown): boolean => {
@@ -231,6 +319,17 @@ export const BilanController = {
           const kind: string = section.kind;
           const title: string = section.title;
           const templateId: string | null = section.templateRefId ?? null;
+          const rawSchema = section?.schema;
+          const schemaQuestions: SectionQuestion[] = Array.isArray(rawSchema)
+            ? (rawSchema as SectionQuestion[])
+            : [];
+          const anchors = AnchorService.collect(schemaQuestions);
+          if (anchors.length > 0) {
+            console.log('[ANCHOR] generateBilanType - anchors collected', {
+              sectionId: btSec.sectionId,
+              anchors: anchors.map((a) => a.id),
+            });
+          }
 
           // Defer conclusion sections to the end
           if (kind === 'conclusion') {
@@ -259,7 +358,6 @@ export const BilanController = {
             // Build markdown context from notes using the shared helper
             let rawContextMd = '';
             try {
-              const schemaQuestions = ((section?.schema || []) as unknown[]) as any[];
               rawContextMd = answersToMarkdown(schemaQuestions as any[], contentNotes as Record<string, unknown>);
               console.log("contextMd", rawContextMd);
             } catch {
@@ -306,7 +404,6 @@ export const BilanController = {
           if (!promptKey) continue;
 
           // Align prompt content with shared markdownification (_md only)
-          const schemaQuestions = ((section?.schema || []) as unknown[]) as any[];
           const sectionPromptContext = await buildSectionPromptContext({
             userId,
             bilanId,
@@ -322,28 +419,50 @@ export const BilanController = {
           }
 
           const cfg = promptConfigs[promptKey];
-          let text = await generateText({ instructions: cfg.instructions, userContent, job });
+          const instructions = AnchorService.injectPrompt(cfg.instructions, anchors);
+          let text = await generateText({ instructions, userContent, job });
           if (patientNames.firstName || patientNames.lastName) {
             //text = Anonymization.deanonymizeText(text as string, patientNames);
           }
 
-          // Build per-section state from Markdown (headings + paragraphs)
-          const sectionState = markdownToLexicalState(String(text || ''));
+          const { text: processedText, anchorsStatus } = PostProcessor.process({ text: String(text || ''), anchors });
+          const assembly = LexicalAssembler.assemble({
+            text: processedText,
+            anchors,
+            missingAnchorIds: anchorsStatus.missing,
+            questions: schemaQuestions,
+            answers: contentNotes as Record<string, unknown>,
+          });
+
+          anchorsStatusBySection[btSec.sectionId] = {
+            ok: anchorsStatus.ok,
+            missing: anchorsStatus.missing,
+            autoInserted: assembly.autoInserted,
+          };
+          if (anchors.length > 0) {
+            console.log('[ANCHOR] generateBilanType - section summary', {
+              sectionId: btSec.sectionId,
+              anchors: anchors.map((a) => a.id),
+              anchorsStatus: anchorsStatusBySection[btSec.sectionId],
+            });
+          }
+
+          const sectionState = JSON.parse(assembly.assembledState);
 
           {
             sectionsMap[btSec.sectionId] = {
-              root: sectionState.root as Record<string, unknown>,
+              root: (sectionState?.root || sectionState) as Record<string, unknown>,
             } as { root: Record<string, unknown> };
           }
 
-          // Fallback aggregation: heading for the section title + rendered Markdown content
+          // Fallback aggregation: heading for the section title + rendered Lexical content
           {
             children.push({
               type: 'heading', tag: 'h2', direction: 'ltr', format: '', indent: 0, version: 1,
               children: [{ type: 'text', text: String(title), detail: 0, format: 0, style: '', version: 1 }],
             });
-            const mdNodes = ((sectionState.root as Record<string, unknown>)?.children ?? []) as unknown[];
-            for (const node of mdNodes) children.push(node);
+            const nodes = (((sectionState as Record<string, unknown>)?.root as Record<string, unknown>)?.children ?? []) as unknown[];
+            for (const node of nodes) children.push(node);
             // Blank line between sections
             children.push({ type: 'paragraph', direction: 'ltr', format: '', indent: 0, version: 1, children: [] });
           }
@@ -408,7 +527,10 @@ export const BilanController = {
           const assembledState = lexicalStateToJSON(
             normalizeLexicalEditorState({ root: composed.root }),
           );
-          res.json({ assembledState });
+          console.log('[ANCHOR] generateBilanType - final response (layout)', {
+            sectionsWithAnchors: Object.keys(anchorsStatusBySection),
+          });
+          res.json({ assembledState, anchorsStatus: anchorsStatusBySection });
           return;
         } catch (err) {
           // eslint-disable-next-line no-console
@@ -419,7 +541,13 @@ export const BilanController = {
       const fallbackState = normalizeLexicalEditorState({
         root: { children },
       });
-      res.json({ assembledState: lexicalStateToJSON(fallbackState) });
+      console.log('[ANCHOR] generateBilanType - final response (fallback)', {
+        sectionsWithAnchors: Object.keys(anchorsStatusBySection),
+      });
+      res.json({
+        assembledState: lexicalStateToJSON(fallbackState),
+        anchorsStatus: anchorsStatusBySection,
+      });
     } catch (e) {
       next(e);
     }

@@ -32,6 +32,8 @@ type SurveyTable = {
   columns: ColumnDef[];
   rowsGroups: RowsGroup[];
   commentaire?: boolean;
+  crInsert?: boolean;
+  crTableId?: string;
 };
 
 export type Question = {
@@ -46,6 +48,13 @@ export type Question = {
 
 type Answers = Record<string, unknown>;
 type TableAnswers = Record<string, unknown> & { commentaire?: string };
+
+const TABLE_ANCHOR_TYPE = 'CR:TBL';
+
+function formatTableAnchor(id: string): string {
+  const normalized = id.trim();
+  return normalized ? '`[[' + TABLE_ANCHOR_TYPE + '|id=' + normalized + ']]`' : '';
+}
 
 function markdownifyTable(q: Question, ansTable: TableAnswers): string {
   if (!q.tableau?.columns) return '';
@@ -133,7 +142,7 @@ function markdownifyField(q: Question, value: unknown): string {
     case 'echelle':
       return `${q.titre}: ${value ?? ''}`;
     case 'titre':
-      return `## ${q.titre}: ${value ?? ''}`;
+      return `### ${q.titre}: ${value ?? ''}`;
     default:
       return `${q.titre}: ${value ?? ''}`;
   }
@@ -143,6 +152,18 @@ export function answersToMdBlocks(questions: Question[], ans: Answers): string[]
   const mdBlocks: string[] = [];
   for (const q of questions || []) {
     if (q.type === 'tableau') {
+      const table = q.tableau;
+      console.log("HERRE", table)
+      if (table?.crInsert) {
+        console.log('MDBLOCS -table', table);
+        const anchorId = typeof table.crTableId === 'string' ? table.crTableId.trim() : '';
+        console.log('MDBLOCS - anchorId', anchorId);
+        if (anchorId) {
+          mdBlocks.push(formatTableAnchor(anchorId));
+          console.log('MDBLOCS - anchorId', anchorId);
+          continue;
+        }
+      }
       const ansTable = (ans?.[q.id] as TableAnswers) || {};
       const md = markdownifyTable(q, ansTable);
       if (md.trim()) mdBlocks.push(md);
@@ -169,4 +190,3 @@ export function answersToMdBlocks(questions: Question[], ans: Answers): string[]
 export function answersToMarkdown(questions: Question[], ans: Answers): string {
   return answersToMdBlocks(questions, ans).join('\n---\n');
 }
-
