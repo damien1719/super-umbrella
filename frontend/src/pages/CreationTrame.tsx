@@ -591,7 +591,7 @@ export default function CreationTrame({
                 } ${isReadOnly ? 'text-gray-400' : ''}`}
                 onClick={() => setTab('template')}
               >
-                Modèle Word
+                Mode avancé
               </button>
               <button
                 className={`pb-2 px-1 border-b-2 ${

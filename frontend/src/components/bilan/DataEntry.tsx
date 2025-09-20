@@ -75,7 +75,7 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
           if (!current) {
             current = {
               id: `sec-0`,
-              title: defaultGroupTitle || 'Général',
+              title: '',
               index: 0,
               items: [],
             };
