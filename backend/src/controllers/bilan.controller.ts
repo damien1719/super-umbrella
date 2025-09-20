@@ -13,7 +13,7 @@ import { prisma } from "../prisma";
 import { hydrateLayout } from "../services/bilan/composeLayout";
 import { answersToMarkdown } from "../utils/answersMarkdown";
 import { generateFromTemplate as generateFromTemplateSvc } from "../services/ai/generateFromTemplate";
-import { prependSectionContext } from "../services/ai/promptContext";
+import { buildSectionPromptContext } from "../services/ai/promptContext";
 import { markdownToLexicalChildren } from "../utils/markdownToLexical";
 
 
@@ -83,47 +83,15 @@ export const BilanController = {
 
       // Anonymisation en entrée (remplace le nom du patient par un placeholder générique)
       // Récupère nom/prénom si disponibles
-      const patient = await BilanService.get(req.user.id, req.params.bilanId);
-      let userContent = JSON.stringify(answers);
-      if (patient && typeof patient === 'object') {
-        const p = patient as {
-          firstName?: string;
-          lastName?: string;
-          patient?: { firstName?: string; lastName?: string };
-        };
-        const firstName = p.firstName || p.patient?.firstName;
-        const lastName = p.lastName || p.patient?.lastName;
-        // Ajoute le prénom au contexte utilisateur avant anonymisation, si disponible
-        if (firstName && typeof firstName === 'string' && firstName.trim().length > 0) {
-          userContent = `Prenom: "${firstName}"\n${userContent}`;
-        }
-        
-        console.log("userContent", userContent);
-        console.log("firstName", firstName);
-        console.log("lastName", lastName);
-        // Puis anonymise l'ensemble du contenu
-        if (firstName || lastName) {
-          //userContent = Anonymization.anonymizeText(userContent, { firstName, lastName });
-        }
-
-        console.log("userContent anonymized", userContent);
-      }
-
-      // Prefix context with section name for clarity (prefer actual section title when available)
-      let sectionTitle = cfg.title ?? String(section);
-      if (sectionId) {
-        try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const db = prisma as any;
-          const sec = await db.section.findUnique({ where: { id: sectionId } });
-          if (sec && typeof sec.title === 'string' && sec.title.trim().length > 0) {
-            sectionTitle = sec.title;
-          }
-        } catch {
-          // Non-bloquant: en cas d'échec, on retombe sur le titre de la config
-        }
-      }
-      //userContent = prependSectionContext(userContent, sectionTitle);
+      const promptContext = await buildSectionPromptContext({
+        userId: req.user.id,
+        bilanId: req.params.bilanId,
+        baseContent: JSON.stringify(answers ?? {}),
+        sectionId,
+        fallbackSectionTitle: cfg.title ?? String(section),
+      });
+      const userContent = promptContext.content;
+      const patientNames = promptContext.patientNames;
 
       const text = await generateText({
         instructions: cfg.instructions,
@@ -136,17 +104,8 @@ export const BilanController = {
       });
       // Post-traitement: réinjecte le nom du patient si connu, sinon renvoie tel quel
       let postText = text as string;
-      if (patient && typeof patient === 'object') {
-        const p = patient as {
-          firstName?: string;
-          lastName?: string;
-          patient?: { firstName?: string; lastName?: string };
-        };
-        const firstName = p.firstName || p.patient?.firstName;
-        const lastName = p.lastName || p.patient?.lastName;
-        if (firstName || lastName) {
-          //postText = Anonymization.deanonymizeText(postText, { firstName, lastName });
-        }
+      if (patientNames.firstName || patientNames.lastName) {
+        //postText = Anonymization.deanonymizeText(postText, patientNames);
       }
       res.json({ text: postText });
     } catch (e) {
@@ -292,26 +251,25 @@ export const BilanController = {
             });
 
             // Build markdown context from notes using the shared helper
-            let contextMd: string | undefined;
+            let rawContextMd = '';
             try {
               const schemaQuestions = ((section?.schema || []) as unknown[]) as any[];
-              contextMd = answersToMarkdown(schemaQuestions as any[], contentNotes as Record<string, unknown>);
-              console.log("contextMd", contextMd);
+              rawContextMd = answersToMarkdown(schemaQuestions as any[], contentNotes as Record<string, unknown>);
+              console.log("contextMd", rawContextMd);
             } catch {
               // Non-blocking: if markdownification fails, proceed without it
             }
 
-            // Ajoute le prénom au contexte si disponible, avant le préfixe de section
-            if (typeof contextMd === 'string' && contextMd.length > 0 && patientNames.firstName) {
-              contextMd = `Prenom: "${patientNames.firstName}"\n${contextMd}`;
-            }
+            const templatePromptContext = await buildSectionPromptContext({
+              userId,
+              bilanId,
+              baseContent: rawContextMd,
+              sectionId: section.id,
+              fallbackSectionTitle: title,
+              patientNames,
+            });
 
-            // Prefix markdown context with section title, if available
-            if (typeof contextMd === 'string' && contextMd.length > 0) {
-              //contextMd = prependSectionContext(contextMd, title);
-            }
-
-            const result = await generateFromTemplateSvc(templateId, contentNotes as Record<string, unknown>, { instanceId, contextMd });
+            const result = await generateFromTemplateSvc(templateId, contentNotes as Record<string, unknown>, { instanceId, contextMd: templatePromptContext.content });
 
             // Parse returned Lexical state and append its children (fallback aggregation)
             try {
@@ -343,17 +301,19 @@ export const BilanController = {
 
           // Align prompt content with shared markdownification (_md only)
           const schemaQuestions = ((section?.schema || []) as unknown[]) as any[];
-          let userContent = answersToMarkdown(schemaQuestions as any[], contentNotes as Record<string, unknown>);
-          // Ajoute le prénom au contexte utilisateur avant anonymisation, si disponible
-          if (patientNames.firstName && typeof patientNames.firstName === 'string' && patientNames.firstName.trim().length > 0) {
-            userContent = `Prenom: "${patientNames.firstName}"\n${userContent}`;
-          }
+          const sectionPromptContext = await buildSectionPromptContext({
+            userId,
+            bilanId,
+            baseContent: answersToMarkdown(schemaQuestions as any[], contentNotes as Record<string, unknown>),
+            sectionId: section.id,
+            fallbackSectionTitle: title,
+            patientNames,
+          });
+          let userContent = sectionPromptContext.content;
           if (patientNames.firstName || patientNames.lastName) {
-            //userContent = Anonymization.anonymizeText(userContent, patientNames);
+            //const anonymizedContent = Anonymization.anonymizeText(userContent, patientNames);
+            //userContent = anonymizedContent;
           }
-
-          // Prefix context with section title for clarity
-          //userContent = prependSectionContext(userContent, title);
 
           const cfg = promptConfigs[promptKey];
           let text = await generateText({ instructions: cfg.instructions, userContent, job });
