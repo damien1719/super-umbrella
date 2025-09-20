@@ -1,4 +1,5 @@
 import { prisma } from '../prisma';
+import { randomUUID } from 'crypto';
 import { NotFoundError } from './profile.service';
 import type { Job } from '../types/job';
 import { isAdminUser } from '../utils/admin';
@@ -27,8 +28,28 @@ export const SectionService = {
   async create(userId: string, data: SectionData) {
     const profile = await db.profile.findUnique({ where: { userId } });
     if (!profile) throw new Error('Profile not found for user');
+    // Ensure newly created Sections have a minimal default schema
+    // If caller did not provide a non-empty schema, inject [1 title + 1 notes]
+    const hasSchema =
+      Array.isArray((data as any).schema) && (data as any).schema.length > 0;
+    const defaultSchema = [
+      { id: randomUUID(), type: 'titre', titre: data.title },
+      {
+        id: randomUUID(),
+        type: 'notes',
+        titre: '',
+        contenu: '',
+      },
+    ];
+
+    const payload = {
+      ...data,
+      schema: hasSchema ? (data as any).schema : (defaultSchema as unknown),
+      authorId: profile.id,
+    } as const;
+
     return db.section.create({
-      data: { ...data, authorId: profile.id },
+      data: payload,
       include: { templateRef: true },
     });
   },

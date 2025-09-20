@@ -203,7 +203,7 @@ export default function CreationTrame({
   const createDefaultNote = (): Question => ({
     id: Date.now().toString(),
     type: 'notes',
-    titre: 'Question sans titre',
+    titre: '',
     contenu: '',
   });
 

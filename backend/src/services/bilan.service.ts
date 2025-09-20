@@ -27,6 +27,9 @@ export const BilanService = {
   get(userId: string, id: string) {
     return db.bilan.findFirst({
       where: { id, patient: { profile: { userId } } },
+      include: {
+        patient: { select: { firstName: true, lastName: true } },
+      },
     });
   },
 
