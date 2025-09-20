@@ -9,6 +9,8 @@ interface Props {
   onUpdateSlot?: (slotId: string, slotLabel: string) => void;
   onTransformToQuestions?: (content: string) => void;
   onDeleteTemplate?: () => void;
+  // Optional: available answer paths for current section
+  pathOptions?: { path: string; label: string }[];
 }
 
 export default function TemplateEditor({
@@ -17,6 +19,7 @@ export default function TemplateEditor({
   onUpdateSlot,
   onTransformToQuestions,
   onDeleteTemplate,
+  pathOptions,
 }: Props) {
   const editorRef = React.useRef<RichTextEditorHandle>(null);
   const [isTransforming, setIsTransforming] = React.useState(false);
@@ -173,6 +176,7 @@ export default function TemplateEditor({
             }}
             onDeleteTemplate={onDeleteTemplate}
             isTransforming={isTransforming}
+            pathOptions={pathOptions}
           />
         </div>
       </div>
