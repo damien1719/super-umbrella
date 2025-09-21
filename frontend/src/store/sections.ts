@@ -53,7 +53,6 @@ export const useSectionStore = create<SectionState>((set, get) => ({
     const token = useAuth.getState().token;
     if (!token) throw new Error('Non authentifié');
     // Avoid duplicate calls (StrictMode double-mount, multiple callers)
-    if (get().items.length > 0) return;
     if (fetchAllPromise) return fetchAllPromise;
     fetchAllPromise = (async () => {
       const items = await apiFetch<Section[]>(endpoint, {

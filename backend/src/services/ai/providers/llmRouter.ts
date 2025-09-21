@@ -116,7 +116,7 @@ export class LlmRouter {
         const r = await this.tryReserve(dep, tokens);
         if (r.ok) {
           try {
-            return await this.azure.chat(opts, onChunk, dep.id);
+            return (await this.azure.chat(opts, onChunk, dep.id)) ?? "";
           } catch (e: any) {
             // On 429, try next deployment; otherwise rethrow
             const code = String((e?.status ?? e?.code ?? "")).toLowerCase();
