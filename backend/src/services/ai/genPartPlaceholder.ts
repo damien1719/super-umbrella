@@ -1,6 +1,7 @@
 import { prisma } from '../../prisma';
 import { normalizeGenPartsSpecPayload, type GenPartSpecEntry } from '../templateSync.service';
-import { promptConfigs } from './prompts/promptconfig';
+import { genPartPromptConfigs, type GenPartPromptKey } from './prompts/genPart.promptconfig';
+import { GENPART_OUTPUT_FORMAT } from './prompts/template/genPartOutputFormat';
 import { generateText } from './generate.service';
 import { AnchorService, type AnchorSpecification } from './anchor.service';
 import { PostProcessor } from './postProcessor';
@@ -8,6 +9,7 @@ import { answersToMarkdown, type Question } from '../../utils/answersMarkdown';
 import { LexicalAssembler } from '../bilan/lexicalAssembler';
 import { buildSectionPromptContext } from './promptContext';
 import { ProfileService } from '../profile.service';
+import { getInstanceContext, type InstanceContext } from './instanceContext.service';
 
 export type Notes = Record<string, unknown>;
 
@@ -32,15 +34,7 @@ type LexicalNode = Record<string, unknown> & {
 
 type PlaceholderReplacement = Map<string, LexicalNode[]>;
 
-type InstanceContext = {
-  bilanId: string;
-  sectionId: string;
-  sectionTitle?: string | null;
-  sectionKind?: string | null;
-  sectionQuestions: Question[];
-  userId?: string;
-  patientNames?: { firstName?: string; lastName?: string };
-};
+// InstanceContext is now provided by instanceContext.service
 
 type PlaceholderRuntimeEntry = GenPartSpecEntry & {
   placeholderId: string;
@@ -94,51 +88,7 @@ function extractPlaceholderIdsFromAst(ast: unknown): Set<string> {
 
 async function loadInstanceContext(instanceId: string): Promise<InstanceContext> {
   console.log(`[loadInstanceContext] Chargement du contexte pour l'instance ${instanceId}`);
-  const instance = await db.bilanSectionInstance.findUnique({
-    where: { id: instanceId },
-    include: {
-      bilan: {
-        select: {
-          id: true,
-          patient: {
-            select: {
-              firstName: true,
-              lastName: true,
-              profile: { select: { userId: true } },
-            },
-          },
-        },
-      },
-      section: {
-        select: {
-          id: true,
-          title: true,
-          kind: true,
-          schema: true,
-        },
-      },
-    },
-  });
-
-  if (!instance) {
-    throw new Error('BilanSectionInstance not found');
-  }
-
-  const sectionQuestions = ensureQuestionArray(instance.section?.schema);
-  const patient = instance.bilan?.patient;
-  const patientNames = patient
-    ? { firstName: patient.firstName ?? undefined, lastName: patient.lastName ?? undefined }
-    : undefined;
-
-  return {
-    bilanId: instance.bilanId,
-    sectionId: instance.sectionId,
-    sectionTitle: instance.section?.title ?? null,
-    sectionKind: instance.section?.kind ?? null,
-    sectionQuestions,
-    userId: patient?.profile?.userId ?? undefined,
-    patientNames,
-  };
+  return getInstanceContext(instanceId);
 }
 
 function filterQuestionsByIds(questions: Question[], questionIds: string[]): Question[] {
@@ -194,16 +144,17 @@ function hasMeaningfulAnswers(questionIds: string[], notes: Notes): boolean {
 function resolvePromptKey(
   entry: PlaceholderRuntimeEntry,
   sectionKind?: string | null,
-): keyof typeof promptConfigs | null {
+): GenPartPromptKey | null {
   const candidates = [entry.recipeId, sectionKind, ''];
   for (const raw of candidates) {
     if (!raw) continue;
     const normalized = raw === 'conclusion' ? 'conclusions' : raw;
-    if (normalized in promptConfigs) {
-      return normalized as keyof typeof promptConfigs;
+    if (normalized in genPartPromptConfigs) {
+      return normalized as GenPartPromptKey;
     }
   }
-  return null;
+  // Fallback vers le prompt générique gen-part
+  return 'default' in genPartPromptConfigs ? ('default' as GenPartPromptKey) : null;
 }
 
 function combineStylePrompts(...parts: Array<string | undefined | null>): string | undefined {
@@ -290,7 +241,7 @@ async function resolvePlaceholderEntry(
     return null;
   }
 
-  const promptConfig = promptConfigs[key];
+  const promptConfig = genPartPromptConfigs[key];
   const stylePrompt = combineStylePrompts(templateStylePrompt, opts.stylePrompt);
 
   const anchors: AnchorSpecification[] = AnchorService.collect(questions);
@@ -333,6 +284,7 @@ async function resolvePlaceholderEntry(
     rawNotes: undefined,
     imageBase64: opts.imageBase64,
     job,
+    outputFormat: (promptConfig as { outputFormat?: string }).outputFormat ?? GENPART_OUTPUT_FORMAT,
   });
 
   const { text: processedText, anchorsStatus } = PostProcessor.process({ text: text as string, anchors });

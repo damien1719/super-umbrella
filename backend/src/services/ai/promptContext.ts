@@ -90,7 +90,7 @@ export async function buildSectionPromptContext(
   const firstName = typeof patientNames.firstName === 'string' ? patientNames.firstName.trim() : '';
 
   if (firstName.length > 0) {
-    content = `Prenom: "${firstName}"\n${content}`;
+    content = `Prenom: "${firstName}"\nNotes brutes: "${content}`;
   }
 
   if (prependSectionTitle && sectionTitle) {

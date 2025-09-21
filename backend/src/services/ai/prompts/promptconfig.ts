@@ -21,22 +21,24 @@ Réalise un profil sensoriel sur la base des données fournies par la famille
       title: "Observations",
       instructions: `
 ###INSTRUCTIONS OBSERVATIONS
-À partir des données fournies dans le Contexte : 
+À partir des Notes brutes fournies : 
 - Reformule chaque résultat ou observation en phrases complètes, factuelles et descriptives. 
 - Restitue toutes les informations présentes, sans rien inventer ni omettre. 
 - N’utilise jamais de listes, ni de puces, ni de style télégraphique. 
 - Conserve un ton professionnel, descriptif et neutre. 
+- Ecris les résultats chiffrés en chiffres
       `.trim(),
     },
     tests_standards: {
       title: "Tests standards",
       instructions: `
 ###INSTRUCTIONS TESTS STANDARDS
-À partir des données fournies dans le Contexte : 
+À partir des données Notes brutes fournies : 
 - Reformule chaque résultat ou observation en phrases complètes, factuelles et descriptives. 
 - Restitue toutes les informations présentes, sans rien inventer ni omettre. 
 - N’utilise jamais de listes, ni de puces, ni de style télégraphique. 
 - Conserve un ton professionnel, descriptif et neutre. 
+- Ecris les résultats chiffrés en chiffres
       `.trim(),
     },
     conclusions: {

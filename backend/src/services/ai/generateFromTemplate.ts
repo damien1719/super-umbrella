@@ -11,12 +11,11 @@ import {
 import { applyGenPartPlaceholders, type Notes } from './genPartPlaceholder';
 import { LexicalAssembler } from '../bilan/lexicalAssembler';
 import { AnchorService, type AnchorSpecification } from './anchor.service';
+import { getSectionQuestions } from './instanceContext.service';
 import type { Question } from '../../utils/answersMarkdown';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = prisma as any;
-
-
 
 
 type Item = { key: string; label: string };
@@ -246,10 +245,6 @@ export async function generateFromTemplate(
   const llm = await callModel(parts.llm, slotsSpec, llmContext as unknown as Record<string, unknown> | string, opts.stylePrompt, undefined, opts.imageBase64);
 
   console.log('[DEBUG] generateFromTemplate - LLM response received:');
-  console.log('[DEBUG] generateFromTemplate - LLM slots generated:', Object.keys(llm.slots || {}));
-  console.log('[DEBUG] generateFromTemplate - LLM slots count:', Object.keys(llm.slots || {}).length);
-  console.log('[DEBUG] generateFromTemplate - LLM slots content preview:', JSON.stringify(llm.slots, null, 2).slice(0, 1000));
-  console.log('[DEBUG] generateFromTemplate - LLM full response object:', JSON.stringify(llm, null, 2));
 
   const slots = { ...user, ...(opts.userSlots || {}), ...computed, ...(llm.slots as Record<string, string | number | null | undefined>) };
 
@@ -260,17 +255,8 @@ export async function generateFromTemplate(
     console.warn('[generateFromTemplate] Missing slot values for:', missing.slice(0, 20));
   }
 
-  console.log('[DEBUG] generateFromTemplate - About to hydrate AST:');
-  console.log('[DEBUG] generateFromTemplate - AST input:', JSON.stringify(ast).slice(0, 200));
-  console.log('[DEBUG] generateFromTemplate - Slots for hydration:', Object.keys(slots));
-  console.log('[DEBUG] generateFromTemplate - First few slot values:', Object.entries(slots).slice(0, 3));
-
   const hydratedState = hydrate(ast, slots as Record<string, string | number | null | undefined>, slotsSpec);
 
-  console.log('[DEBUG] generateFromTemplate - Hydrated state type:', typeof hydratedState);
-  console.log('[DEBUG] generateFromTemplate - Hydrated state keys:', Object.keys(hydratedState || {}));
-  console.log('[DEBUG] generateFromTemplate - Hydrated state preview:', JSON.stringify(hydratedState).slice(0, 500) + '...');
-  console.log('[DEBUG] generateFromTemplate - Hydrated state full length:', JSON.stringify(hydratedState).length);
 
   const editorState = normalizeLexicalEditorState(hydratedState);
 
@@ -279,27 +265,6 @@ export async function generateFromTemplate(
   const anchorAssembledState = await anchorAssemble(editorState, opts.instanceId, contentNotes);
   const assembledState = anchorAssembledState ?? lexicalStateToJSON(editorState);
   
-
-  console.log('[DEBUG] generateFromTemplate - About to return result:', {
-    hasSlots: !!slots,
-    slotsKeys: Object.keys(slots || {}),
-    hasAssembledState: !!assembledState,
-    assembledStateLength: assembledState?.length || 0,
-    assembledStatePreview: assembledState?.slice(0, 300),
-    instanceId: opts.instanceId,
-    assembledStateType: typeof assembledState,
-    assembledStateKeys: typeof assembledState === 'object' ? Object.keys(assembledState || {}) : 'N/A',
-  });
-
-  console.log('[DEBUG] generateFromTemplate - About to update database with:', {
-    instanceId: opts.instanceId,
-    hasGeneratedContent: true,
-    templateIdUsed: sectionTemplateId,
-    templateVersionUsed: template.version,
-    generatedContentSlotsKeys: Object.keys(slots || {}),
-    generatedContentAssembledStateLength: assembledState?.length || 0,
-  });
-
   await db.bilanSectionInstance.update({
     where: { id: opts.instanceId },
     data: {
@@ -310,12 +275,6 @@ export async function generateFromTemplate(
     },
   });
 
-  console.log('[DEBUG] generateFromTemplate - Database updated successfully, returning result');
-  console.log('[DEBUG] generateFromTemplate - Final return object:', {
-    slotsKeys: Object.keys(slots || {}),
-    assembledStateLength: assembledState?.length || 0,
-    assembledStatePreview: assembledState?.slice(0, 1000),
-  });
   return { slots, assembledState };
 }
 
@@ -331,16 +290,9 @@ export async function regenerateSlots(instanceId: string, slotIds: string[]) {
   const computed = computeComputed(computedIds, slotsSpec, instance.contentNotes as Notes);
   const user = resolveUserSlots(parts.user, slotsSpec, instance.contentNotes as Notes);
 
-  console.log('[DEBUG] regenerateSlots - About to call LLM with:');
-  console.log('[DEBUG] regenerateSlots - LLM slots to regenerate:', llmIds);
-  console.log('[DEBUG] regenerateSlots - LLM slotsSpec preview:', JSON.stringify(slotsSpec, null, 2));
-  console.log('[DEBUG] regenerateSlots - LLM contentNotes preview:', JSON.stringify(instance.contentNotes, null, 2));
 
   const llm = await callModel(llmIds, slotsSpec, instance.contentNotes as Notes, undefined);
 
-  console.log('[DEBUG] regenerateSlots - LLM response received:');
-  console.log('[DEBUG] regenerateSlots - LLM slots regenerated:', Object.keys(llm.slots || {}));
-  console.log('[DEBUG] regenerateSlots - LLM slots content:', JSON.stringify(llm.slots, null, 2));
   const existing = (instance.generatedContent as Record<string, unknown>)?.slots || {};
   const slots = {
     ...existing,
@@ -354,13 +306,6 @@ export async function regenerateSlots(instanceId: string, slotIds: string[]) {
   const anchorAssembledState2 = await anchorAssemble(editorState, instanceId, instance.contentNotes as Notes);
   const assembledState = anchorAssembledState2 ?? lexicalStateToJSON(editorState);
 
-  console.log('[DEBUG] regenerateSlots - About to update database with regenerated content');
-  console.log('[DEBUG] regenerateSlots - Editor state created:', {
-    hasRoot: !!editorState.root,
-    version: editorState.version,
-    assembledStateLength: assembledState.length,
-    assembledStatePreview: assembledState.slice(0, 200),
-  });
 
   await db.bilanSectionInstance.update({
     where: { id: instanceId },
@@ -370,11 +315,6 @@ export async function regenerateSlots(instanceId: string, slotIds: string[]) {
     },
   });
 
-  console.log('[DEBUG] regenerateSlots - Database updated successfully');
-  console.log('[DEBUG] regenerateSlots - Returning result:', {
-    slotsKeys: Object.keys(slots || {}),
-    assembledStateLength: assembledState.length,
-  });
   return { slots, assembledState };
 }
 
@@ -409,13 +349,8 @@ async function anchorAssemble(
       return null;
     }
 
-    // Load section questions to resolve anchors -> table questions mapping
-    const instance = await db.bilanSectionInstance.findUnique({
-      where: { id: instanceId },
-      select: { section: { select: { schema: true } } },
-    });
-    const schema = (instance?.section?.schema ?? []) as unknown;
-    const questions: Question[] = Array.isArray(schema) ? (schema as Question[]) : [];
+    // Load section questions once (cached) to resolve anchors
+    const questions = await getSectionQuestions(instanceId);
 
     const anchors: AnchorSpecification[] = AnchorService.collect(questions);
     if (anchors.length === 0) {

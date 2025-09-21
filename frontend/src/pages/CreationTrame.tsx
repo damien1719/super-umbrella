@@ -683,7 +683,7 @@ export default function CreationTrame({
               >
                 Mode avancé
               </button>
-              <button
+              {/* <button
                 className={`pb-2 px-1 border-b-2 ${
                   tab === 'examples'
                     ? 'border-primary-600'
@@ -692,7 +692,7 @@ export default function CreationTrame({
                 onClick={() => setTab('examples')}
               >
                 Exemples
-              </button>
+              </button> */}
               <button
                 className={`pb-2 px-1 border-b-2 ${
                   tab === 'settings'
@@ -843,29 +843,38 @@ export default function CreationTrame({
                   <EmptyTemplateState
                     onAdd={async () => {
                       if (!sectionId) return;
+                      setLoadingTemplate(true);
+                      try {
+                        // 1) Créer un template (version 2 côté backend) pour pouvoir le synchroniser
+                        const defaultTemplate = {
+                          ...template,
+                          label: nomTrame,
+                          content: {
+                            root: {},
+                          },
+                          slotsSpec: [],
+                        };
 
-                      // Créer un template par défaut non vide
-                      const defaultTemplate = {
-                        ...template,
-                        label: nomTrame,
-                        content: {
-                          root: {},
-                        },
-                        slotsSpec: [],
-                      };
+                        const created = await createTemplate(defaultTemplate);
 
-                      const created = await createTemplate(defaultTemplate);
-                      setTemplate(created);
-                      setTemplateRefId(created.id);
-                      syncSavedSnapshotTemplate(created, created.id);
-                      setFormattingEditMode(true);
-                      await updateSection(sectionId, {
-                        title: nomTrame,
-                        kind: categorie,
-                        schema: questions,
-                        isPublic,
-                        templateRefId: created.id,
-                      });
+                        // 2) Associer le template à la section ET envoyer le schema pour déclencher la sync backend
+                        await updateSection(sectionId, {
+                          title: nomTrame,
+                          kind: categorie,
+                          schema: questions,
+                          isPublic,
+                          templateRefId: created.id,
+                        });
+
+                        // 3) Recharger le template (après sync) pour éviter d'afficher un template vide
+                        const synced = await getTemplate(created.id);
+                        setTemplate(synced);
+                        setTemplateRefId(synced.id);
+                        syncSavedSnapshotTemplate(synced, synced.id);
+                        setFormattingEditMode(true);
+                      } finally {
+                        setLoadingTemplate(false);
+                      }
                     }}
                   />
                 </div>

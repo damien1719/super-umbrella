@@ -91,7 +91,7 @@ export const BilanController = {
         | null = null;
       if (sectionId) {
         try {
-          sectionRecord = await prisma.section.findUnique({
+          sectionRecord = await (prisma as any).section.findUnique({
             where: { id: sectionId },
             select: { schema: true, templateRefId: true, kind: true, title: true },
           });

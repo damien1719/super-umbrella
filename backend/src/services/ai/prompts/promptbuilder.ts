@@ -24,6 +24,8 @@ export interface PromptParams {
   model?: string;
   /** Image importée en base64 (optionnel) */
   imageBase64?: string;
+  /** Bloc de formatage de sortie spécifique (override) */
+  outputFormat?: string;
 }
 
 /** Valeur par défaut pour ton system prompt */
@@ -46,6 +48,16 @@ export type PromptResult = {
 };
 
 /**
+ * Bloc de formatage par défaut (utilisé si aucun outputFormat n'est fourni).
+ * Garde un cadre générique pour les générations "texte".
+ */
+export const DEFAULT_OUTPUT_FORMAT = `
+###FORMAT DE SORTIE
+1. Pour chaque titre de section markdown repéré dans les données du patient, tu dois reproduire exactement ce même titre markdown dans ta réponse.
+2. Pour chaque tableau ou bloc de données, rédige des phrases descriptives et factuelles sans bullet points ni listes.
+`.trim();
+
+/**
  * Construit les messages pour l'API OpenAI en structurant le prompt en plusieurs parties
  */
 export function buildPrompt(params: PromptParams & { job?: 'PSYCHOMOTRICIEN' | 'ERGOTHERAPEUTE' | 'NEUROPSYCHOLOGUE' }): PromptResult {
@@ -57,13 +69,8 @@ export function buildPrompt(params: PromptParams & { job?: 'PSYCHOMOTRICIEN' | '
     : DEFAULT_SYSTEM;
   msgs.push({ role: 'system', content: (params.systemPrompt ?? byJob).trim() });
 
-  // 2. Format de sortie pour limiter les hallucinations
-  msgs.push({ role: 'system', content: 
-    `###FORMAT DE SORTIE
-      1. Pour chaque titre de section markdown repéré dans les données du patient, tu dois reproduire exactement ce même titre markdown dans ta réponse.   
-      2. Pour chaque tableau ou bloc de données, rédige des phrases descriptives et factuelles sans bullet points ni listes.`  
-    .trim()
-  });
+  // 2. Format de sortie pour limiter les hallucinations (surcharge possible)
+  msgs.push({ role: 'system', content: (params.outputFormat ?? DEFAULT_OUTPUT_FORMAT).trim() });
 
   // 3. Contexte métier (optionnel)
   if (params.contextData) {
@@ -132,5 +139,4 @@ export function buildPrompt(params: PromptParams & { job?: 'PSYCHOMOTRICIEN' | '
 
 // Alias pour la rétrocompatibilité
 export const buildSinglePrompt = buildPrompt;
-
 
