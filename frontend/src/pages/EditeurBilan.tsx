@@ -30,6 +30,7 @@ export default function Bilan() {
   const [bilan, setBilan] = useState<BilanData | null>(null);
   const { descriptionJson, setStateJson, reset } = useBilanDraft();
   const editorRef = useRef<RichTextEditorHandle>(null);
+  const fetchKeyRef = useRef<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const setMode = useEditorUi((s) => s.setMode);
   const setSelection = useEditorUi((s) => s.setSelection);
@@ -49,13 +50,22 @@ export default function Bilan() {
   };
 
   useEffect(() => {
-    if (!bilanId) return;
+    if (!bilanId || !token) return;
+    const key = `${bilanId}:${token}`;
+    if (fetchKeyRef.current === key) return;
+    fetchKeyRef.current = key;
     apiFetch<BilanData>(`/api/v1/bilans/${bilanId}`, {
       headers: { Authorization: `Bearer ${token}` },
-    }).then((data) => {
-      setBilan(data);
-      setStateJson(data.descriptionJson ?? null);
-    });
+    })
+      .then((data) => {
+        setBilan(data);
+        setStateJson(data.descriptionJson ?? null);
+      })
+      .catch((e) => {
+        console.error('[EditeurBilan] fetch bilan failed', e);
+        // Allow retry on next render in case of error
+        fetchKeyRef.current = null;
+      });
   }, [bilanId, token, setStateJson]);
 
   useEffect(() => {

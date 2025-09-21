@@ -230,7 +230,6 @@ export default function AiRightPanel({
   ) => {
     setLastGeneratedSection(section.id);
     await generateSection({
-      mode: 'direct',
       section,
       trames: trames as Record<
         string,
@@ -243,7 +242,6 @@ export default function AiRightPanel({
       imageBase64,
       token: token || '',
       bilanId,
-      kindMap,
       setIsGenerating,
       setSelectedSection,
       setWizardSection,
@@ -297,9 +295,23 @@ export default function AiRightPanel({
       console.log(
         '[AiRightPanel] handleGenerateFromTemplate - Preparing generation params...',
       );
+      // Persist latest answers into the targeted instance so backend can rebuild context
+      if (instId && newAnswers && Object.keys(newAnswers || {}).length > 0) {
+        try {
+          await apiFetch(
+            `/api/v1/bilan-section-instances/${instId}`,
+            {
+              method: 'PUT',
+              headers: { Authorization: `Bearer ${token}` },
+              body: JSON.stringify({ contentNotes: newAnswers }),
+            },
+          );
+        } catch (err) {
+          console.warn('[AiRightPanel] upserting contentNotes failed (non-blocking)', err);
+        }
+      }
 
       const generationParams = {
-        mode: 'template' as const,
         section,
         trames: trames as Record<
           string,
@@ -313,7 +325,6 @@ export default function AiRightPanel({
         instanceId: instId,
         token: token || '',
         bilanId,
-        kindMap,
         setIsGenerating,
         setSelectedSection,
         setWizardSection,

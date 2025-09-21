@@ -557,7 +557,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
           // H3: 12pt underlined
           h1: 'text-[14pt] mb-3',
           h2: 'text-[12pt] font-bold underline mb-2',
-          h3: 'text-[12pt] underline mb-2',
+          h3: 'text-[11pt] underline mb-2',
         },
         text: {
           underline: 'underline',

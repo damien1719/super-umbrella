@@ -59,6 +59,7 @@ function expandSlotsSpec(slots: SlotSpec[]): Record<string, FieldSpec> {
           prompt: node.prompt, // laissé tel quel
           template: node.template,
           optional: node.optional,
+          answerPath: node.answerPath,
         };
         push(field, trace);
         return;
@@ -112,6 +113,7 @@ function expandSlotsSpec(slots: SlotSpec[]): Record<string, FieldSpec> {
 
 
 function partitionSlots(spec: Record<string, FieldSpec>) {
+  console.log("partition - spec", spec);
   const res = { user: [] as string[], computed: [] as string[], llm: [] as string[] };
   for (const [id, s] of Object.entries(spec || {})) {
     res[s.mode].push(id);

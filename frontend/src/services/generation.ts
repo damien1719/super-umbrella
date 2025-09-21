@@ -1,12 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 import { apiFetch } from '@/utils/api';
-import { splitBlocksIntoStringChunks } from '@/lib/chunkAnswers';
 import type { Question, Answers } from '@/types/question';
 import type { SectionInfo } from '@/components/bilan/SectionCard';
-
-type TableAnswers = Record<string, unknown> & { commentaire?: string };
-
-export type GenerationMode = 'direct' | 'template';
 
 export type GenerationResult = { type: 'lexical'; state: unknown };
 
@@ -21,170 +16,22 @@ function getStylePrompt(
     .slice(0, 1)[0];
 }
 
-function markdownifyTable(q: Question, ansTable: TableAnswers): string {
-  if (!q.tableau?.columns) {
-    return '';
-  }
-
-  const columns = q.tableau.columns;
-  const allRows = q.tableau.rowsGroups?.flatMap((rg) => rg.rows) || [];
-
-  console.log('columns', columns);
-  console.log('allRows', allRows);
-
-  const isNonEmpty = (v: unknown, col?: { valueType?: string }) => {
-    if (col?.valueType === 'bool') return v === true || v === false;
-    if (
-      col?.valueType === 'multi-choice' ||
-      col?.valueType === 'multi-choice-row'
-    )
-      return Array.isArray(v) && v.length > 0;
-    if (typeof v === 'number') return true;
-    if (typeof v === 'string') return (v as string).trim() !== '';
-    if (typeof v === 'boolean') return v === true;
-    return false;
-  };
-
-  const formatCell = (
-    v: unknown,
-    col?: { valueType?: string; label?: string },
-  ) => {
-    if (col?.valueType === 'bool')
-      return v === true ? (col.label ?? 'true') : '';
-    if (
-      col?.valueType === 'multi-choice' ||
-      col?.valueType === 'multi-choice-row'
-    )
-      return Array.isArray(v) ? (v as string[]).join(', ') : '';
-    if (v == null) return '';
-    if (typeof v === 'string') return (v as string).trim();
-    if (typeof v === 'number') return String(v);
-    if (typeof v === 'boolean') return v ? 'true' : '';
-    return '';
-  };
-
-  const keptColumns = columns.filter((col) =>
-    allRows.some((row) => {
-      const rowData = ansTable[row.id] as Record<string, unknown> | undefined;
-      const v = rowData?.[col.id];
-      return isNonEmpty(v, col);
-    }),
-  );
-
-  const titleLine = `**${q.titre}**\n\n`;
-
-  let tablePart = '';
-  if (keptColumns.length > 0) {
-    const headerLine = `| ${['Ligne', ...keptColumns.map((c) => c.label)].join(' | ')} |`;
-    const sepLine = `| ${['---', ...keptColumns.map(() => '---')].join(' | ')} |`;
-    const bodyLines = allRows
-      .filter((row) => {
-        const rowData = ansTable[row.id] as Record<string, unknown> | undefined;
-        // garde la ligne si au moins UNE cellule est non vide
-        return keptColumns.some((col) => isNonEmpty(rowData?.[col.id], col));
-      })
-      .map((row) => {
-        const rowData = ansTable[row.id] as Record<string, unknown> | undefined;
-        const cells = keptColumns.map((col) =>
-          formatCell(rowData?.[col.id], col),
-        );
-        console.log('cells', cells);
-        return `| ${[row.label, ...cells].join(' | ')} |`;
-      })
-      .join('\n');
-    tablePart = `${headerLine}\n${sepLine}\n${bodyLines}`;
-  }
-
-  console.log('tablePart', tablePart);
-
-  const commentVal = ansTable.commentaire;
-  const comment =
-    typeof commentVal === 'string' && (commentVal as string).trim() !== ''
-      ? `\n\n> **Commentaire** : ${commentVal}`
-      : '';
-
-  if (tablePart.trim() === '' && comment.trim() === '') return '';
-  if (tablePart.trim() === '') return titleLine + comment;
-  return titleLine + tablePart + comment;
-}
-
-function markdownifyField(q: Question, value: unknown): string {
-  switch (q.type) {
-    case 'notes':
-      return `${q.titre}\n\n${value ?? ''}`;
-    case 'choix-multiple':
-    case 'choix-unique':
-      if (value && typeof value === 'object') {
-        const selectedOptions = Array.isArray((value as any).options)
-          ? (value as any).options.join(', ')
-          : (value as any).option
-            ? String((value as any).option)
-            : '';
-        const comment = (value as any).commentaire || '';
-        return `${q.titre}\n\n${selectedOptions}${
-          comment ? `\n\n> **Commentaire** : ${comment}` : ''
-        }`;
-      }
-      return `${q.titre}\n\n${value ?? ''}`;
-    case 'echelle':
-      return `${q.titre}\n\n${value ?? ''}`;
-    case 'titre':
-      return `### ${q.titre}\n\n${value ?? ''}`;
-    default:
-      return `${q.titre} : ${value ?? ''}`;
-  }
-}
-
-function markdownifyAnswers(
-  questions: Question[],
-  ans: Answers,
-): { mdBlocks: string[]; promptMarkdown: string; chunks: string[] } {
-  const mdBlocks: string[] = [];
-
-  for (const q of questions) {
-    if (q.type === 'tableau') {
-      const ansTable = (ans[q.id] as TableAnswers) || {};
-      const md = markdownifyTable(q, ansTable);
-      if (md.trim()) mdBlocks.push(md);
-    } else if (q.type === 'titre') {
-      mdBlocks.push(markdownifyField(q, ''));
-    } else {
-      const val = (ans as any)[q.id];
-      if (val !== undefined && val !== null) {
-        if (typeof val === 'object') {
-          const hasContent = Object.values(val as Record<string, unknown>).some(
-            (v) => String(v || '').trim() !== '',
-          );
-          if (hasContent) mdBlocks.push(markdownifyField(q, val));
-        } else {
-          const raw = String(val).trim();
-          if (raw) mdBlocks.push(markdownifyField(q, raw));
-        }
-      }
-    }
-  }
-
-  const promptMarkdown = mdBlocks.join('\n\n');
-  const chunks = splitBlocksIntoStringChunks(mdBlocks, { maxChars: 1800 });
-  return { mdBlocks, promptMarkdown, chunks };
-}
-
-async function doRequestDirect(params: {
+async function requestGenerate(params: {
   token: string;
   bilanId: string;
-  sectionKind: string;
-  sectionId?: string;
-  answers: Answers;
+  sectionId: string;
+  instanceId?: string;
+  answers?: Answers;
   stylePrompt?: string;
   rawNotes?: string;
   imageBase64?: string;
 }): Promise<GenerationResult> {
   const body: any = {
-    section: params.sectionKind,
-    ...(params.sectionId ? { sectionId: params.sectionId } : {}),
-    answers: params.answers,
-    stylePrompt: params.stylePrompt,
+    sectionId: params.sectionId,
   };
+  if (params.instanceId) body.instanceId = params.instanceId;
+  if (!params.instanceId && params.answers) body.answers = params.answers;
+  if (params.stylePrompt) body.stylePrompt = params.stylePrompt;
   if (params.rawNotes?.trim()) body.rawNotes = params.rawNotes;
   if (params.imageBase64) body.imageBase64 = params.imageBase64;
 
@@ -196,47 +43,10 @@ async function doRequestDirect(params: {
       body: JSON.stringify(body),
     },
   );
-
   return { type: 'lexical', state: res.assembledState };
 }
 
-async function doRequestFromTemplate(params: {
-  token: string;
-  bilanId: string;
-  instanceId: string;
-  trameId: string; // Section.id
-  chunks: string[]; // kept for logs, not sent anymore
-  stylePrompt?: string;
-  contentNotes?: Answers;
-  rawNotes?: string;
-  imageBase64?: string;
-}): Promise<GenerationResult> {
-
-  // Unified route: send only sectionId + instanceId (+ style/image)
-  const body: any = {
-    sectionId: params.trameId,
-    instanceId: params.instanceId,
-    stylePrompt: params.stylePrompt,
-  };
-  if (params.imageBase64) body.imageBase64 = params.imageBase64;
-
-
-  const res = await apiFetch<{ assembledState: unknown }>(
-    `/api/v1/bilans/${params.bilanId}/generate`,
-    {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${params.token}` },
-      body: JSON.stringify(body),
-    },
-  );
-
-  const result = { type: 'lexical' as const, state: res.assembledState };
-
-  return result;
-}
-
 export async function generateSection(opts: {
-  mode: GenerationMode;
   section: SectionInfo;
   trames: Record<string, Array<{ value: string; schema: Question[] }>>;
   selectedTrames: Record<string, string>;
@@ -248,7 +58,6 @@ export async function generateSection(opts: {
 
   token: string;
   bilanId: string;
-  kindMap: Record<string, string>;
 
   setIsGenerating: (b: boolean) => void;
   setSelectedSection: (id: string | null) => void;
@@ -263,7 +72,6 @@ export async function generateSection(opts: {
   examples: Array<{ sectionId: string; stylePrompt?: string }>;
 }) {
   const {
-    mode,
     section,
     trames,
     selectedTrames,
@@ -275,7 +83,6 @@ export async function generateSection(opts: {
 
     token,
     bilanId,
-    kindMap,
 
     setIsGenerating,
     setSelectedSection,
@@ -300,36 +107,20 @@ export async function generateSection(opts: {
       {}) as Answers;
 
     const stylePrompt = getStylePrompt(trameId, examples);
-    const sectionKind = kindMap[section.id];
 
     let result: GenerationResult;
 
-    if (mode === 'direct') {
-      result = await doRequestDirect({
-        token,
-        bilanId,
-        sectionKind,
-        sectionId: trameId,
-        answers: current,
-        stylePrompt,
-        rawNotes,
-        imageBase64,
-      });
-    } else {
-      if (!instanceId) throw new Error('Missing instanceId for template mode');
-      
-      result = await doRequestFromTemplate({
-        token,
-        bilanId,
-        instanceId,
-        trameId,
-        chunks,
-        stylePrompt,
-        contentNotes: current,
-        rawNotes,
-        imageBase64,
-      });
-    }
+    result = await requestGenerate({
+      token,
+      bilanId,
+      sectionId: trameId,
+      instanceId,
+      // Only send answers when not using a template instance
+      answers: instanceId ? undefined : current,
+      stylePrompt,
+      rawNotes,
+      imageBase64,
+    });
 
     if (result.type !== 'lexical') {
       console.warn('[DEBUG] Generation - Unexpected result type', result);

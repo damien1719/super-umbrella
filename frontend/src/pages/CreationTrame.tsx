@@ -849,62 +849,9 @@ export default function CreationTrame({
                         ...template,
                         label: nomTrame,
                         content: {
-                          root: {
-                            type: 'root',
-                            children: [
-                              {
-                                type: 'paragraph',
-                                children: [
-                                  {
-                                    type: 'text',
-                                    text: '## Introduction\n\n',
-                                    format: 0,
-                                    style: '',
-                                    version: 1,
-                                  },
-                                ],
-                                direction: 'ltr',
-                                format: '',
-                                indent: 0,
-                                version: 1,
-                              },
-                              {
-                                type: 'paragraph',
-                                children: [
-                                  {
-                                    type: 'text',
-                                    text: 'Contexte de la demande.',
-                                    format: 0,
-                                    style: '',
-                                    version: 1,
-                                  },
-                                ],
-                                direction: 'ltr',
-                                format: '',
-                                indent: 0,
-                                version: 1,
-                              },
-                            ],
-                            direction: 'ltr',
-                            format: '',
-                            indent: 0,
-                            version: 1,
-                          },
+                          root: {},
                         },
-                        slotsSpec: [
-                          {
-                            kind: 'field' as const,
-                            id: 'Contexte de la demande',
-                            type: 'text' as const,
-                            label: 'Description',
-                            prompt:
-                              'Description factuelle du contexte de la demande',
-                            mode: 'llm' as const,
-                          },
-                        ],
-                        stylePrompt:
-                          'Style professionnel et descriptif, sans jargon excessif.',
-                        mode: 'questionnaire',
+                        slotsSpec: [],
                       };
 
                       const created = await createTemplate(defaultTemplate);
