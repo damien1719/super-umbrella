@@ -202,72 +202,27 @@ async function doRequestDirect(params: {
 
 async function doRequestFromTemplate(params: {
   token: string;
+  bilanId: string;
   instanceId: string;
-  trameId: string;
-  chunks: string[];
+  trameId: string; // Section.id
+  chunks: string[]; // kept for logs, not sent anymore
   stylePrompt?: string;
   contentNotes?: Answers;
   rawNotes?: string;
   imageBase64?: string;
 }): Promise<GenerationResult> {
-  console.log('[DEBUG] doRequestFromTemplate - Starting request with params:');
-  console.log('[DEBUG] doRequestFromTemplate - instanceId:', params.instanceId);
-  console.log('[DEBUG] doRequestFromTemplate - trameId:', params.trameId);
-  console.log(
-    '[DEBUG] doRequestFromTemplate - chunks count:',
-    params.chunks.length,
-  );
-  console.log(
-    '[DEBUG] doRequestFromTemplate - chunks preview:',
-    params.chunks.slice(0, 2),
-  );
-  console.log(
-    '[DEBUG] doRequestFromTemplate - has stylePrompt:',
-    !!params.stylePrompt,
-  );
-  console.log(
-    '[DEBUG] doRequestFromTemplate - has contentNotes:',
-    !!params.contentNotes,
-  );
-  console.log(
-    '[DEBUG] doRequestFromTemplate - has rawNotes:',
-    !!params.rawNotes,
-  );
-  console.log(
-    '[DEBUG] doRequestFromTemplate - contentNotes keys:',
-    Object.keys(params.contentNotes || {}),
-  );
-  console.log(
-    '[DEBUG] doRequestFromTemplate - rawNotes length:',
-    params.rawNotes?.length || 0,
-  );
 
+  // Unified route: send only sectionId + instanceId (+ style/image)
   const body: any = {
+    sectionId: params.trameId,
     instanceId: params.instanceId,
-    trameId: params.trameId,
-    answers: params.chunks,
     stylePrompt: params.stylePrompt,
-    //contentNotes: params.contentNotes,
-    contentNotes: {},
-    rawNotes: params.rawNotes,
   };
   if (params.imageBase64) body.imageBase64 = params.imageBase64;
 
-  console.log('[DEBUG] doRequestFromTemplate - Request body prepared:', {
-    hasInstanceId: !!body.instanceId,
-    hasTrameId: !!body.trameId,
-    answersCount: body.answers?.length || 0,
-    hasStylePrompt: !!body.stylePrompt,
-    hasContentNotes: !!body.contentNotes,
-    hasRawNotes: !!body.rawNotes,
-  });
-
-  console.log(
-    '[DEBUG] doRequestFromTemplate - Making API call to generate-from-template...',
-  );
 
   const res = await apiFetch<{ assembledState: unknown }>(
-    `/api/v1/bilan-section-instances/generate-from-template`,
+    `/api/v1/bilans/${params.bilanId}/generate`,
     {
       method: 'POST',
       headers: { Authorization: `Bearer ${params.token}` },
@@ -275,34 +230,7 @@ async function doRequestFromTemplate(params: {
     },
   );
 
-  console.log('[DEBUG] doRequestFromTemplate - API response received:');
-  console.log('[DEBUG] doRequestFromTemplate - Response type:', typeof res);
-  console.log(
-    '[DEBUG] doRequestFromTemplate - Has assembledState:',
-    !!res.assembledState,
-  );
-  console.log(
-    '[DEBUG] doRequestFromTemplate - AssembledState type:',
-    typeof res.assembledState,
-  );
-  console.log(
-    '[DEBUG] doRequestFromTemplate - AssembledState length:',
-    typeof res.assembledState === 'string' ? res.assembledState.length : 'N/A',
-  );
-  console.log(
-    '[DEBUG] doRequestFromTemplate - AssembledState preview:',
-    typeof res.assembledState === 'string'
-      ? res.assembledState.slice(0, 300)
-      : JSON.stringify(res.assembledState).slice(0, 300),
-  );
-
   const result = { type: 'lexical' as const, state: res.assembledState };
-
-  console.log('[DEBUG] doRequestFromTemplate - Returning result:', {
-    type: result.type,
-    hasState: !!result.state,
-    stateType: typeof result.state,
-  });
 
   return result;
 }
@@ -389,20 +317,10 @@ export async function generateSection(opts: {
       });
     } else {
       if (!instanceId) throw new Error('Missing instanceId for template mode');
-      console.log(
-        '[DEBUG] generateSection - About to call doRequestFromTemplate with:',
-        {
-          token: '***token***',
-          instanceId,
-          trameId,
-          chunksCount: chunks.length,
-          stylePrompt: stylePrompt ? '***stylePrompt***' : null,
-          contentNotes: current,
-          rawNotes,
-        },
-      );
+      
       result = await doRequestFromTemplate({
         token,
+        bilanId,
         instanceId,
         trameId,
         chunks,
@@ -411,10 +329,6 @@ export async function generateSection(opts: {
         rawNotes,
         imageBase64,
       });
-      console.log(
-        '[DEBUG] generateSection - doRequestFromTemplate result:',
-        result,
-      );
     }
 
     if (result.type !== 'lexical') {

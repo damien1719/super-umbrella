@@ -9,6 +9,9 @@ import {
   normalizeLexicalEditorState,
 } from '../../utils/lexicalEditorState';
 import { applyGenPartPlaceholders, type Notes } from './genPartPlaceholder';
+import { LexicalAssembler } from '../bilan/lexicalAssembler';
+import { AnchorService, type AnchorSpecification } from './anchor.service';
+import type { Question } from '../../utils/answersMarkdown';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = prisma as any;
@@ -268,7 +271,11 @@ export async function generateFromTemplate(
   console.log('[DEBUG] generateFromTemplate - Hydrated state full length:', JSON.stringify(hydratedState).length);
 
   const editorState = normalizeLexicalEditorState(hydratedState);
-  const assembledState = lexicalStateToJSON(editorState);
+
+  // Try anchor assembly: if template contains anchors (explicit anchor-node or inline markers),
+  // replace them with rendered tables based on instance questions/answers.
+  const anchorAssembledState = await anchorAssemble(editorState, opts.instanceId, contentNotes);
+  const assembledState = anchorAssembledState ?? lexicalStateToJSON(editorState);
   
 
   console.log('[DEBUG] generateFromTemplate - About to return result:', {
@@ -342,7 +349,8 @@ export async function regenerateSlots(instanceId: string, slotIds: string[]) {
   const hydratedState = hydrate(template.content, slots as Record<string, string | number | null | undefined>, slotsSpec);
 
   const editorState = normalizeLexicalEditorState(hydratedState);
-  const assembledState = lexicalStateToJSON(editorState);
+  const anchorAssembledState2 = await anchorAssemble(editorState, instanceId, instance.contentNotes as Notes);
+  const assembledState = anchorAssembledState2 ?? lexicalStateToJSON(editorState);
 
   console.log('[DEBUG] regenerateSlots - About to update database with regenerated content');
   console.log('[DEBUG] regenerateSlots - Editor state created:', {
@@ -369,3 +377,130 @@ export async function regenerateSlots(instanceId: string, slotIds: string[]) {
 }
 
 export const _test = { partitionSlots, computeComputed };
+
+// --- Anchor assembly helpers ---
+
+type LexicalNode = Record<string, unknown> & {
+  type?: string;
+  tag?: string;
+  text?: string;
+  anchorId?: string;
+  children?: unknown;
+};
+
+type LexicalState = { root?: { children?: unknown } };
+
+async function anchorAssemble(
+  editorState: ReturnType<typeof normalizeLexicalEditorState>,
+  instanceId: string,
+  answers: Record<string, unknown>,
+): Promise<string | null> {
+  try {
+    const root = (editorState?.root ?? {}) as LexicalNode;
+    const children = Array.isArray((root as any).children)
+      ? ((root as any).children as unknown[])
+      : [];
+
+    // Fast check: does the tree contain an anchor-node or inline marker?
+    const hasAnchorsInTree = containsAnchors(children);
+    if (!hasAnchorsInTree) {
+      return null;
+    }
+
+    // Load section questions to resolve anchors -> table questions mapping
+    const instance = await db.bilanSectionInstance.findUnique({
+      where: { id: instanceId },
+      select: { section: { select: { schema: true } } },
+    });
+    const schema = (instance?.section?.schema ?? []) as unknown;
+    const questions: Question[] = Array.isArray(schema) ? (schema as Question[]) : [];
+
+    const anchors: AnchorSpecification[] = AnchorService.collect(questions);
+    if (anchors.length === 0) {
+      return null;
+    }
+
+    // Convert current Lexical tree to a minimal Markdown with inline anchor markers
+    const markdown = lexicalToMarkdownWithAnchors({ root: { children } });
+
+    const result = LexicalAssembler.assemble({
+      text: markdown,
+      anchors,
+      questions,
+      answers,
+      missingAnchorIds: [],
+    });
+    return result.assembledState ?? null;
+  } catch (error) {
+    console.warn('[generateFromTemplate] anchorAssemble failed, falling back to raw editorState', error);
+    return null;
+  }
+}
+
+function containsAnchors(nodes: unknown[]): boolean {
+  const stack = [...nodes];
+  while (stack.length) {
+    const node = stack.pop() as LexicalNode | undefined;
+    if (!node) continue;
+    if (node.type === 'anchor-node' && typeof node.anchorId === 'string' && node.anchorId.trim()) {
+      return true;
+    }
+    if (node.type === 'text' && typeof node.text === 'string' && node.text.includes('[[CR:TBL|id=')) {
+      return true;
+    }
+    const children = (node as any)?.children;
+    if (Array.isArray(children)) {
+      for (const child of children) stack.push(child as unknown as LexicalNode);
+    }
+  }
+  return false;
+}
+
+function extractInlineText(node: LexicalNode): string {
+  if (!node) return '';
+  if (node.type === 'text') return String(node.text ?? '');
+  if (node.type === 'anchor-node' && typeof node.anchorId === 'string' && node.anchorId.trim()) {
+    return `[[CR:TBL|id=${node.anchorId.trim()}]]`;
+  }
+  const parts: string[] = [];
+  const children = (node as any)?.children;
+  if (Array.isArray(children)) {
+    for (const child of children) {
+      parts.push(extractInlineText(child as LexicalNode));
+    }
+  }
+  return parts.join(' ').replace(/\s+/g, ' ').trim();
+}
+
+function lexicalToMarkdownWithAnchors(state: LexicalState): string {
+  const root = (state?.root ?? {}) as LexicalNode;
+  const children = Array.isArray((root as any).children)
+    ? ((root as any).children as LexicalNode[])
+    : [];
+
+  const blocks: string[] = [];
+  for (const node of children) {
+    if (!node) continue;
+    if (node.type === 'heading') {
+      const tag = typeof node.tag === 'string' ? node.tag : 'h1';
+      const level = Math.min(Math.max(Number(tag?.replace(/[^0-9]/g, '') || 1), 1), 6);
+      const text = extractInlineText(node);
+      if (text) blocks.push(`${'#'.repeat(level)} ${text}`);
+      continue;
+    }
+    if (node.type === 'paragraph') {
+      const text = extractInlineText(node);
+      if (text) blocks.push(text);
+      continue;
+    }
+    if (node.type === 'anchor-node' && typeof node.anchorId === 'string') {
+      const id = node.anchorId.trim();
+      if (id) blocks.push(`[[CR:TBL|id=${id}]]`);
+      continue;
+    }
+    // Fallback: treat as paragraph-like if it has children/text
+    const text = extractInlineText(node);
+    if (text) blocks.push(text);
+  }
+  return blocks.join('\n\n');
+}
