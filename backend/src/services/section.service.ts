@@ -3,9 +3,45 @@ import { randomUUID } from 'crypto';
 import { NotFoundError } from './profile.service';
 import type { Job } from '../types/job';
 import { isAdminUser } from '../utils/admin';
+import { schemaToLayout, type LexicalState } from './templateSync.service';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = prisma as any;
+
+function ensureLexicalState(input: unknown): LexicalState {
+  if (!input || typeof input !== 'object') {
+    return { root: { type: 'root', format: '', indent: 0, direction: 'ltr', version: 1, children: [] } };
+  }
+  const candidate = input as LexicalState;
+  if (candidate.root && typeof candidate.root === 'object') return candidate;
+  return { root: { type: 'root', format: '', indent: 0, direction: 'ltr', version: 1, children: [] } };
+}
+
+async function syncTemplateFromSchema(section: any): Promise<void> {
+  if (!section?.templateRefId) return;
+  const schema = Array.isArray(section?.schema) ? section.schema : null;
+  if (!schema) return;
+
+  const template = await db.sectionTemplate.findUnique({ where: { id: section.templateRefId } });
+  if (!template) return;
+
+  const previousLayout = ensureLexicalState(template.content);
+  const syncResult = schemaToLayout(schema, previousLayout, template.genPartsSpec);
+
+  await db.sectionTemplate.update({
+    where: { id: section.templateRefId },
+    data: {
+      content: syncResult.content,
+      genPartsSpec: syncResult.genPartsSpec,
+    },
+  });
+
+  section.templateRef = {
+    ...(section.templateRef ?? template),
+    content: syncResult.content,
+    genPartsSpec: syncResult.genPartsSpec,
+  };
+}
 
 
 export type SectionData = {
@@ -48,10 +84,13 @@ export const SectionService = {
       authorId: profile.id,
     } as const;
 
-    return db.section.create({
+    const created = await db.section.create({
       data: payload,
       include: { templateRef: true },
     });
+
+    await syncTemplateFromSchema(created);
+    return created;
   },
 
   async list(userId: string) {
@@ -151,8 +190,14 @@ export const SectionService = {
 
   async update(userId: string, id: string, data: Partial<SectionData>) {
     // Admins may update any field, including source
+    const requiresSync = Object.prototype.hasOwnProperty.call(data, 'schema');
+
     if (await isAdminUser(userId)) {
-      return db.section.update({ where: { id }, data, include: { templateRef: true } });
+      const updated = await db.section.update({ where: { id }, data, include: { templateRef: true } });
+      if (requiresSync) {
+        await syncTemplateFromSchema(updated);
+      }
+      return updated;
     }
     // For non-admins, prevent source changes even if passed accidentally
     const rest = { ...(data as Partial<SectionData>) };
@@ -183,7 +228,11 @@ export const SectionService = {
       data: rest,
     });
     if (count === 0) throw new NotFoundError();
-    return db.section.findUnique({ where: { id }, include: { templateRef: true } });
+    const section = await db.section.findUnique({ where: { id }, include: { templateRef: true } });
+    if (section && requiresSync) {
+      await syncTemplateFromSchema(section);
+    }
+    return section;
   },
 
   async remove(userId: string, id: string) {

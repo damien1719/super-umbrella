@@ -85,6 +85,9 @@ export default function CreationTrame({
     updatedAt: new Date().toISOString(),
   });
   const [loadingTemplate, setLoadingTemplate] = useState(false);
+  const [formattingEditMode, setFormattingEditMode] = useState(false);
+  const [templateSaving, setTemplateSaving] = useState(false);
+  const [formattingSavedSnapshot, setFormattingSavedSnapshot] = useState('');
   // Save UX states
   const [savedSnapshot, setSavedSnapshot] = useState<string>('');
   const [saving, setSaving] = useState(false);
@@ -95,6 +98,52 @@ export default function CreationTrame({
   const profileId = useUserProfileStore((s) => s.profileId);
   const profile = useUserProfileStore((s) => s.profile);
   const fetchProfile = useUserProfileStore((s) => s.fetchProfile);
+
+  const snapshotTemplate = (tpl: SectionTemplate | null) =>
+    JSON.stringify(
+      tpl
+        ? {
+            id: tpl.id,
+            label: tpl.label,
+            version: tpl.version,
+            content: tpl.content,
+            slotsSpec: tpl.slotsSpec,
+            stylePrompt: tpl.stylePrompt ?? '',
+          }
+        : null,
+    );
+
+  const templateStateSignature = useMemo(
+    () => snapshotTemplate(template),
+    [template],
+  );
+  const formattingDirty = templateStateSignature !== formattingSavedSnapshot;
+
+  const syncSavedSnapshotTemplate = (
+    nextTemplate: SectionTemplate | null,
+    overrideTemplateRefId?: string | null,
+  ) => {
+    setFormattingSavedSnapshot(snapshotTemplate(nextTemplate));
+    setSavedSnapshot((prev) => {
+      if (!prev) return prev;
+      try {
+        const parsed = JSON.parse(prev);
+        const refId = overrideTemplateRefId ?? templateRefId;
+        if (refId && nextTemplate) {
+          parsed.template = {
+            label: nextTemplate.label,
+            version: nextTemplate.version,
+            content: nextTemplate.content,
+            slotsSpec: nextTemplate.slotsSpec,
+            stylePrompt: nextTemplate.stylePrompt,
+          };
+        }
+        return JSON.stringify(parsed);
+      } catch {
+        return prev;
+      }
+    });
+  };
 
   // Log pour le débogage du mode lecture seule
   console.log('[DEBUG] Mode lecture seule (readOnly):', readOnly);
@@ -237,6 +286,7 @@ export default function CreationTrame({
         };
         setTemplate(initialTemplate);
       }
+      syncSavedSnapshotTemplate(initialTemplate, section.templateRefId);
 
       const loaded: Question[] =
         Array.isArray(section.schema) && section.schema.length > 0
@@ -406,7 +456,12 @@ export default function CreationTrame({
     try {
       setSaving(true);
       if (templateRefId) {
-        await updateTemplate(templateRefId, { ...template, label: nomTrame });
+        const updatedTemplate = await updateTemplate(templateRefId, {
+          ...template,
+          label: template.label || nomTrame,
+        });
+        setTemplate(updatedTemplate);
+        syncSavedSnapshotTemplate(updatedTemplate);
       }
 
       // Préparer les données de mise à jour en excluant les champs null
@@ -483,6 +538,41 @@ export default function CreationTrame({
       navigate(`/creation-trame/${created.id}`);
     } catch (e) {
       console.error('Failed to duplicate section', e);
+    }
+  };
+
+  useEffect(() => {
+    if (tab !== 'template') {
+      setFormattingEditMode(false);
+    }
+  }, [tab]);
+
+  useEffect(() => {
+    if (isReadOnly) {
+      setFormattingEditMode(false);
+    }
+  }, [isReadOnly]);
+
+  const activateFormattingEditMode = () => {
+    if (isReadOnly) return;
+    setFormattingEditMode(true);
+  };
+
+  const handleSaveTemplate = async () => {
+    if (!templateRefId) return;
+    try {
+      setTemplateSaving(true);
+      const updatedTemplate = await updateTemplate(templateRefId, {
+        ...template,
+        label: template.label || nomTrame,
+      });
+      setTemplate(updatedTemplate);
+      syncSavedSnapshotTemplate(updatedTemplate);
+      setFormattingEditMode(false);
+    } catch (error) {
+      console.error('Failed to save template', error);
+    } finally {
+      setTemplateSaving(false);
     }
   };
 
@@ -740,6 +830,12 @@ export default function CreationTrame({
                       }
                     }}
                     pathOptions={pathOptions}
+                    formattingEditMode={formattingEditMode}
+                    onEnterFormattingMode={activateFormattingEditMode}
+                    onSaveTemplate={handleSaveTemplate}
+                    templateSaving={templateSaving}
+                    templateDirty={formattingDirty}
+                    canEdit={!isReadOnly}
                   />
                 </div>
               ) : (
@@ -814,6 +910,8 @@ export default function CreationTrame({
                       const created = await createTemplate(defaultTemplate);
                       setTemplate(created);
                       setTemplateRefId(created.id);
+                      syncSavedSnapshotTemplate(created, created.id);
+                      setFormattingEditMode(true);
                       await updateSection(sectionId, {
                         title: nomTrame,
                         kind: categorie,

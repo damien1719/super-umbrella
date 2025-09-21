@@ -54,6 +54,7 @@ import {
   $createSectionPlaceholderNode,
 } from '../nodes/SectionPlaceholderNode';
 import { BorderBlockNode } from '../nodes/BorderBlockNode';
+import { GenPartPlaceholderNode } from '../nodes/GenPartPlaceholderNode';
 import type { SlotType, FieldSpec } from '../types/template';
 import { scanAndInsertSlots as runScanAndInsertSlots } from '../utils/scanAndInsertSlots';
 import TableContextMenuPlugin from './TableContextMenuPlugin';
@@ -379,6 +380,16 @@ const ImperativeHandlePlugin = forwardRef<RichTextEditorHandle, object>(
   },
 );
 
+function EditablePlugin({ readOnly }: { readOnly: boolean }) {
+  const [editor] = useLexicalComposerContext();
+
+  useEffect(() => {
+    editor.setEditable(!readOnly);
+  }, [editor, readOnly]);
+
+  return null;
+}
+
 function TableDeletePlugin() {
   const [editor] = useLexicalComposerContext();
   useEffect(() => {
@@ -565,6 +576,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
         TableCellNode,
         SlotNode,
         SectionPlaceholderNode,
+        GenPartPlaceholderNode,
         BorderBlockNode,
       ],
     };
@@ -596,6 +608,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
           editorState: initialEditorState, // ← état initial sans plugin ni update()
         }}
       >
+        <EditablePlugin readOnly={readOnly} />
         {!readOnly && (
           <ToolbarPlugin onSave={onSave} exportFileName={exportFileName} />
         )}

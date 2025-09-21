@@ -112,6 +112,7 @@ describe('SlotSidebar - Suppression en cascade', () => {
         onAddSlot={mockOnAddSlot}
         onUpdateSlot={mockOnUpdateSlot}
         onRemoveSlot={mockOnRemoveSlot}
+        formattingEditMode
       />,
     );
 
@@ -166,6 +167,7 @@ describe('SlotSidebar - Suppression en cascade', () => {
         onAddSlot={mockOnAddSlot}
         onUpdateSlot={mockOnUpdateSlot}
         onRemoveSlot={mockOnRemoveSlot}
+        formattingEditMode
       />,
     );
 

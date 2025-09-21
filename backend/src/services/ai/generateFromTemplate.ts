@@ -8,8 +8,7 @@ import {
   lexicalStateToJSON,
   normalizeLexicalEditorState,
 } from '../../utils/lexicalEditorState';
-
-type Notes = Record<string, unknown>;
+import { applyGenPartPlaceholders, type Notes } from './genPartPlaceholder';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = prisma as any;
@@ -205,7 +204,16 @@ export async function generateFromTemplate(
     throw new Error('Template not found');
   }
 
-  const ast = template.content;
+  const ast = await applyGenPartPlaceholders({
+    instanceId: opts.instanceId,
+    contentNotes,
+    templateContent: template.content,
+    genPartsSpec: template.genPartsSpec,
+    templateStylePrompt: template.stylePrompt,
+    stylePrompt: opts.stylePrompt,
+    imageBase64: opts.imageBase64,
+    contextMd: opts.contextMd,
+  });
   
   const slotsSpec = expandSlotsSpec(template.slotsSpec);
 
