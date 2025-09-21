@@ -196,13 +196,15 @@ function computeComputed(ids: string[], spec: Record<string, FieldSpec>, notes: 
 export async function generateFromTemplate(
   sectionTemplateId: string,
   contentNotes: Notes,
-  opts: { instanceId: string; userSlots?: Record<string, unknown>; stylePrompt?: string; model?: string; imageBase64?: string; contextMd?: string },
+  opts: { instanceId: string; userSlots?: Record<string, unknown>; stylePrompt?: string; model?: string; imageBase64?: string; contextMd?: string; placeholdersUseContextFallback?: boolean },
 ) {
 
   const template = await SectionTemplateService.get(sectionTemplateId);
   if (!template) {
     throw new Error('Template not found');
   }
+
+  console.log("contentNotes - GENRETATE FREO TEMPLATE", contentNotes);
 
   const ast = await applyGenPartPlaceholders({
     instanceId: opts.instanceId,
@@ -212,7 +214,9 @@ export async function generateFromTemplate(
     templateStylePrompt: template.stylePrompt,
     stylePrompt: opts.stylePrompt,
     imageBase64: opts.imageBase64,
-    contextMd: opts.contextMd,
+    // For gen-part placeholders we want to use RAW notes only when requested.
+    // Default behavior keeps current fallback to contextMd to preserve retro-compat.
+    contextMd: opts.placeholdersUseContextFallback === false ? undefined : opts.contextMd,
   });
   
   const slotsSpec = expandSlotsSpec(template.slotsSpec);

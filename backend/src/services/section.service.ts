@@ -25,6 +25,12 @@ async function syncTemplateFromSchema(section: any): Promise<void> {
   const template = await db.sectionTemplate.findUnique({ where: { id: section.templateRefId } });
   if (!template) return;
 
+  // Do not trigger template sync when the template version is 1
+  // (legacy templates should not be auto-synchronized)
+  if (typeof template.version === 'number' && template.version === 1) {
+    return;
+  }
+
   const previousLayout = ensureLexicalState(template.content);
   const syncResult = schemaToLayout(schema, previousLayout, template.genPartsSpec);
 

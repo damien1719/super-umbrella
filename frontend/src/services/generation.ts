@@ -389,7 +389,6 @@ export async function generateSection(opts: {
       });
     } else {
       if (!instanceId) throw new Error('Missing instanceId for template mode');
-      const { chunks } = markdownifyAnswers(questions, current);
       console.log(
         '[DEBUG] generateSection - About to call doRequestFromTemplate with:',
         {

@@ -6,6 +6,7 @@ import {
   type GenPartPlaceholderNodeJSON,
   type GenPartPlaceholderPolicy,
 } from '../types/genPartPlaceholder';
+import { createAnchorNode, isAnchorNode } from '../types/anchorNode';
 
 // Generic Lexical structures used in the sync service
 export type LexicalNode = Record<string, unknown> & {
@@ -464,7 +465,11 @@ function mergeTargetNodes(
   const merged: LexicalNode[] = [];
 
   for (const child of previousChildren) {
-    if (child && typeof child === 'object' && (child.type === 'heading' || child.type === 'group-heading' || isGenPartNode(child))) {
+    if (
+      child &&
+      typeof child === 'object' &&
+      (child.type === 'heading' || child.type === 'group-heading' || isGenPartNode(child) || isAnchorNode(child))
+    ) {
       if (queue.length) {
         merged.push(queue.shift()!);
       }
@@ -538,6 +543,19 @@ export function schemaToLayout(
   const nextSpecMap: GenPartsSpecMap = {};
   const usedQuestionIds = new Set<string>();
 
+  // Util to detect anchor questions (table with crInsert + crTableId)
+  const getAnchorIdIfAny = (q: QuestionRecord): string | null => {
+    if (!q || q.type !== 'tableau') return null;
+    const src = q.source as Record<string, unknown>;
+    const table = (src?.tableau ?? null) as
+      | { crInsert?: boolean; crTableId?: string }
+      | null
+      | undefined;
+    if (!table || table.crInsert !== true) return null;
+    const id = typeof table.crTableId === 'string' ? table.crTableId.trim() : '';
+    return id.length > 0 ? id : null;
+  };
+
   groups.forEach((group, groupIndex) => {
     const groupId = resolveGroupId(
       group,
@@ -558,51 +576,76 @@ export function schemaToLayout(
       targetNodes.push(createHeadingNode(title, headingId, groupId));
     }
 
-    const questionIds = uniqueOrdered(group.questions.map((q) => q.id));
-    if (questionIds.length === 0) {
-      return;
-    }
+    // Split questions by anchors and create placeholders for each segment.
+    let segment: QuestionRecord[] = [];
+    const flushSegment = () => {
+      const ids = uniqueOrdered(segment.map((q) => q.id));
+      if (ids.length === 0) return;
 
-    const selection = selectPlaceholder(
-      group,
-      groupIndex,
-      groupId,
-      questionIds,
-      placeholdersByGroup,
-      assignedPlaceholderIds,
-      placeholderIdPool,
-      report,
-    );
+      const selection = selectPlaceholder(
+        group,
+        groupIndex,
+        groupId,
+        ids,
+        placeholdersByGroup,
+        assignedPlaceholderIds,
+        placeholderIdPool,
+        report,
+      );
 
-    selection.entry.groupId = groupId;
-    nextSpecMap[selection.placeholderId] = selection.entry;
+      selection.entry.groupId = groupId;
+      nextSpecMap[selection.placeholderId] = selection.entry;
 
-    if (selection.reused) {
-      remainingPlaceholderIds.delete(selection.placeholderId);
-    }
-
-    recordQuestionDiff(selection.previousEntry, selection.entry.questionIds, report);
-
-    for (const questionId of selection.entry.questionIds) {
-      if (usedQuestionIds.has(questionId)) {
-        report.notes.push(`Question ${questionId} assigned multiple times; keeping latest order.`);
+      if (selection.reused) {
+        remainingPlaceholderIds.delete(selection.placeholderId);
       }
-      usedQuestionIds.add(questionId);
+
+      recordQuestionDiff(selection.previousEntry, selection.entry.questionIds, report);
+
+      for (const questionId of selection.entry.questionIds) {
+        if (usedQuestionIds.has(questionId)) {
+          report.notes.push(`Question ${questionId} assigned multiple times; keeping latest order.`);
+        }
+        usedQuestionIds.add(questionId);
+      }
+
+      targetNodes.push(
+        createPlaceholderNode({
+          type: 'gen-part-placeholder',
+          placeholderId: selection.placeholderId,
+          groupId: selection.entry.groupId ?? undefined,
+          scope: { type: 'questions-list' },
+          questionIds: selection.entry.questionIds,
+          recipeId: selection.entry.recipeId ?? null,
+          policyIfEmpty: selection.entry.policyIfEmpty ?? null,
+          deps: selection.entry.deps ? [...selection.entry.deps] : undefined,
+          version: 1,
+        }),
+      );
+
+      segment = [];
+    };
+
+    for (const q of group.questions) {
+      const anchorId = getAnchorIdIfAny(q);
+      if (anchorId) {
+        // Flush collected non-anchor questions before the anchor
+        flushSegment();
+
+        // Mark the anchor question as used (it won’t be part of any placeholder)
+        usedQuestionIds.add(q.id);
+
+        // Insert anchor node in the layout as a structural node
+        targetNodes.push(
+          createAnchorNode({ anchorId, groupId, questionId: q.id }) as unknown as LexicalNode,
+        );
+        continue;
+      }
+      segment.push(q);
     }
 
-    targetNodes.push(
-      createPlaceholderNode({
-        type: 'gen-part-placeholder',
-        placeholderId: selection.placeholderId,
-        groupId: selection.entry.groupId ?? undefined,
-        scope: { type: 'questions-list' },
-        questionIds: selection.entry.questionIds,
-        recipeId: selection.entry.recipeId ?? null,
-        policyIfEmpty: selection.entry.policyIfEmpty ?? null,
-        deps: selection.entry.deps ? [...selection.entry.deps] : undefined,
-        version: 1,
-      }),
-    );
+    // Flush trailing segment
+    flushSegment();
   });
 
   for (const removedId of remainingPlaceholderIds) {
@@ -653,7 +696,7 @@ function walkNodes(nodes: LexicalNode[]): LexicalNode[] {
   const out: LexicalNode[] = [];
   for (const node of nodes) {
     if (!node || typeof node !== 'object') continue;
-    if (node.type === 'heading' || isGenPartNode(node)) {
+    if (node.type === 'heading' || isGenPartNode(node) || isAnchorNode(node)) {
       out.push(node);
       continue;
     }
@@ -745,6 +788,25 @@ export function layoutToSchema(
         } as Record<string, unknown>;
         newSchema.push(headingQuestion);
         report.injectedHeadingIds.push(headingQuestion.id as string);
+      }
+      continue;
+    }
+
+    if (isAnchorNode(node)) {
+      const anchorId = (node as { anchorId?: string }).anchorId ?? '';
+      if (anchorId) {
+        // Find matching table question (crInsert=true && crTableId == anchorId)
+        const match = baseQuestions.find((q) => {
+          if (q.type !== 'tableau') return false;
+          const tbl = (q.source as any)?.tableau as { crInsert?: boolean; crTableId?: string } | undefined;
+          return tbl?.crInsert === true && typeof tbl?.crTableId === 'string' && tbl.crTableId?.trim() === anchorId;
+        });
+        if (match) {
+          newSchema.push(deepClone(match.source));
+          usedQuestionIds.add(match.id);
+        } else {
+          report.notes.push(`Anchor ${anchorId} has no matching table question in base schema`);
+        }
       }
       continue;
     }

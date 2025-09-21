@@ -98,7 +98,7 @@ export const BilanSectionInstanceController = {
       console.log('sectionTemplateId', sectionTemplateId);
       console.log('answers', answers);
       console.log('rawNotes', rawNotes);
-      console.log('contentNotes', contentNotes);
+      console.log('BilanSectionInstance - contentNotes', contentNotes);
       console.log('userSlots', userSlots);
       console.log('imageBase64', imageBase64 ? '[PRESENT]' : '[ABSENT]');
       console.log('stylePrompt', stylePrompt);

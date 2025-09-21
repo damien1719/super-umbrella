@@ -54,7 +54,8 @@ export const SectionTemplateService = {
     const payload = {
       id: data.id,
       label: data.label,
-      version: data.version,
+      // New templates default to version 2 unless explicitly provided
+      version: data.version ?? 2,
       content: syncResult.content,
       slotsSpec: data.slotsSpec,
       genPartsSpec: syncResult.genPartsSpec,

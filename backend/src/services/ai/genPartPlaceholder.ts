@@ -160,7 +160,12 @@ function extractAnswersSubset(questionIds: string[], notes: Notes): Record<strin
   const subset: Record<string, unknown> = {};
   if (!questionIds.length) return subset;
   for (const id of questionIds) {
+    console.log(`
+      [extractAnswersSubset] Extracting answer for question ${id}`);
+    console.log('notes', notes);
     if (id in notes) {
+      console.log(`
+        [extractAnswersSubset] Answer found for question ${id}`);
       subset[id] = notes[id];
     }
   }
@@ -423,6 +428,9 @@ export async function applyGenPartPlaceholders({
   console.log(`[applyGenPartPlaceholders] Instance ID: ${instanceId}`);
   console.log(`[applyGenPartPlaceholders] Nombre de notes: ${Object.keys(contentNotes).length}`);
   const placeholderIds = extractPlaceholderIdsFromAst(templateContent);
+
+  console.log('contentNotes', contentNotes);
+
   console.log(`[applyGenPartPlaceholders] ${placeholderIds.size} placeholders trouvés dans le template`);
   const normalizedGenPartsSpec = normalizeGenPartsSpecPayload(genPartsSpec);
   const placeholderEntries: PlaceholderRuntimeEntry[] = [];

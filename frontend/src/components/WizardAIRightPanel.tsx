@@ -588,7 +588,7 @@ export default function WizardAIRightPanel({
             }}
             tabs={[
               { key: 'manual', label: 'Saisie manuelle' },
-              { key: 'import', label: 'Import des notes' },
+              /* { key: 'import', label: 'Import des notes' }, */
             ]}
           />
           {notesMode === 'manual' ? (

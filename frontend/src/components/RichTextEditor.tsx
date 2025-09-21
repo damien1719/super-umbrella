@@ -55,6 +55,7 @@ import {
 } from '../nodes/SectionPlaceholderNode';
 import { BorderBlockNode } from '../nodes/BorderBlockNode';
 import { GenPartPlaceholderNode } from '../nodes/GenPartPlaceholderNode';
+import { AnchorNode } from '../nodes/AnchorNode';
 import type { SlotType, FieldSpec } from '../types/template';
 import { scanAndInsertSlots as runScanAndInsertSlots } from '../utils/scanAndInsertSlots';
 import TableContextMenuPlugin from './TableContextMenuPlugin';
@@ -577,6 +578,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
         SlotNode,
         SectionPlaceholderNode,
         GenPartPlaceholderNode,
+        AnchorNode,
         BorderBlockNode,
       ],
     };
