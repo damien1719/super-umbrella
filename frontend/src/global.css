@@ -88,6 +88,7 @@ html, body, #root {
 .editor-content {
   font-family: Calibri, 'Helvetica Neue', Arial, sans-serif;
   font-size: 11pt;
+  line-height: 1.15;
 }
 .editor-content u,
 .editor-content [style*="text-decoration: underline"] {

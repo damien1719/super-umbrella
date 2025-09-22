@@ -112,7 +112,11 @@ export function $createGenPartPlaceholderNode(
   questionIds: string[],
   groupId?: string | null,
 ): GenPartPlaceholderNode {
-  return new GenPartPlaceholderNode(placeholderId, questionIds, groupId ?? null);
+  return new GenPartPlaceholderNode(
+    placeholderId,
+    questionIds,
+    groupId ?? null,
+  );
 }
 
 export function $isGenPartPlaceholderNode(

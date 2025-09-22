@@ -59,6 +59,7 @@ import { AnchorNode } from '../nodes/AnchorNode';
 import type { SlotType, FieldSpec } from '../types/template';
 import { scanAndInsertSlots as runScanAndInsertSlots } from '../utils/scanAndInsertSlots';
 import TableContextMenuPlugin from './TableContextMenuPlugin';
+import { LineHeightPlugin } from '../plugins/LineHeightPlugin';
 
 // Sanitize options that preserve safe inline styles (colors, backgrounds, borders)
 const SANITIZE_OPTIONS: DOMPurify.Config = {
@@ -363,7 +364,7 @@ const ImperativeHandlePlugin = forwardRef<RichTextEditorHandle, object>(
             return wrapHtmlForDocx(html, {
               fontFamily: "Calibri, 'Helvetica Neue', Arial, sans-serif",
               fontSizePt: '11',
-              lineHeight: '1.5',
+              lineHeight: '1.15',
             });
           } catch (e) {
             console.error('[Lexical] Failed to export HTML:', e);
@@ -629,12 +630,14 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
                         fontFamily:
                           "Calibri, 'Helvetica Neue', Arial, sans-serif",
                         fontSize: '11pt',
+                        lineHeight: '1.15',
                       }}
                     />
                   }
                   placeholder={<div className="text-gray-400">…</div>}
                   ErrorBoundary={LexicalErrorBoundary}
                 />
+                <LineHeightPlugin />
                 <HistoryPlugin />
                 <ListPlugin />
                 <LinkPlugin />

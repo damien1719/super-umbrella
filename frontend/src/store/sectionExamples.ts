@@ -25,54 +25,56 @@ const endpoint = '/api/v1/section-examples';
 
 let fetchAllExamplesPromise: Promise<void> | null = null;
 
-export const useSectionExampleStore = create<SectionExampleState>((set, get) => ({
-  items: [],
-  async fetchAll() {
-    const token = useAuth.getState().token;
-    if (!token) throw new Error('Non authentifié');
-    if (get().items.length > 0) return;
-    if (fetchAllExamplesPromise) return fetchAllExamplesPromise;
-    fetchAllExamplesPromise = (async () => {
-      const items = await apiFetch<SectionExample[]>(endpoint, {
+export const useSectionExampleStore = create<SectionExampleState>(
+  (set, get) => ({
+    items: [],
+    async fetchAll() {
+      const token = useAuth.getState().token;
+      if (!token) throw new Error('Non authentifié');
+      if (get().items.length > 0) return;
+      if (fetchAllExamplesPromise) return fetchAllExamplesPromise;
+      fetchAllExamplesPromise = (async () => {
+        const items = await apiFetch<SectionExample[]>(endpoint, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        set({ items });
+      })().finally(() => {
+        fetchAllExamplesPromise = null;
+      });
+      return fetchAllExamplesPromise;
+    },
+    async create(data) {
+      const token = useAuth.getState().token;
+      if (!token) throw new Error('Non authentifié');
+      const item = await apiFetch<SectionExample>(endpoint, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: JSON.stringify(data),
+      });
+      set((state) => ({ items: [...state.items, item] }));
+      return item;
+    },
+    async update(id, data) {
+      const token = useAuth.getState().token;
+      if (!token) throw new Error('Non authentifié');
+      const item = await apiFetch<SectionExample>(`${endpoint}/${id}`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}` },
+        body: JSON.stringify(data),
+      });
+      set((state) => ({
+        items: state.items.map((i) => (i.id === id ? item : i)),
+      }));
+      return item;
+    },
+    async remove(id) {
+      const token = useAuth.getState().token;
+      if (!token) throw new Error('Non authentifié');
+      await apiFetch(`${endpoint}/${id}`, {
+        method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
-      set({ items });
-    })().finally(() => {
-      fetchAllExamplesPromise = null;
-    });
-    return fetchAllExamplesPromise;
-  },
-  async create(data) {
-    const token = useAuth.getState().token;
-    if (!token) throw new Error('Non authentifié');
-    const item = await apiFetch<SectionExample>(endpoint, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-      body: JSON.stringify(data),
-    });
-    set((state) => ({ items: [...state.items, item] }));
-    return item;
-  },
-  async update(id, data) {
-    const token = useAuth.getState().token;
-    if (!token) throw new Error('Non authentifié');
-    const item = await apiFetch<SectionExample>(`${endpoint}/${id}`, {
-      method: 'PUT',
-      headers: { Authorization: `Bearer ${token}` },
-      body: JSON.stringify(data),
-    });
-    set((state) => ({
-      items: state.items.map((i) => (i.id === id ? item : i)),
-    }));
-    return item;
-  },
-  async remove(id) {
-    const token = useAuth.getState().token;
-    if (!token) throw new Error('Non authentifié');
-    await apiFetch(`${endpoint}/${id}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    set((state) => ({ items: state.items.filter((i) => i.id !== id) }));
-  },
-}));
+      set((state) => ({ items: state.items.filter((i) => i.id !== id) }));
+    },
+  }),
+);

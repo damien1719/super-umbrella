@@ -104,4 +104,3 @@ export function $createAnchorNode(
 export function $isAnchorNode(node: unknown): node is AnchorNode {
   return node instanceof AnchorNode;
 }
-
