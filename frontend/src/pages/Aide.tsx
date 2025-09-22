@@ -19,7 +19,7 @@ export default function Aide() {
         </div>
 
         <div className="max-w-3xl space-y-8">
-{/*           <section className="space-y-2">
+          {/*           <section className="space-y-2">
             <h3 className="text-xl font-semibold">✨ Les notions clés</h3>
             <ul className="list-disc pl-5 space-y-1">
               <li>
@@ -38,12 +38,15 @@ export default function Aide() {
           </section> */}
 
           <section className="space-y-2">
-            <h3 className="text-xl font-semibold">
-              🚀 Get started :
-            </h3>
+            <h3 className="text-xl font-semibold">🚀 Get started :</h3>
             <ol className="list-decimal pl-5 space-y-1">
-              <li>Depuis Mes rédactions : créer une nouvelle rédaction de bilan</li>
-              <li>Choisissiez dans le panel Assistant IA une catégorie à générer via "Démarrer"</li>
+              <li>
+                Depuis Mes rédactions : créer une nouvelle rédaction de bilan
+              </li>
+              <li>
+                Choisissiez dans le panel Assistant IA une catégorie à générer
+                via "Démarrer"
+              </li>
               <li>Choisissez une partie de bilan à générer</li>
               <li>Remplissez les questions puis cliquer sur "Générer</li>
               <li>Et voilà vous avez générer votre 1e bilan !</li>
@@ -55,20 +58,36 @@ export default function Aide() {
               🚀 Comment personnaliser vos rédactions : la trame de bilan
             </h3>
             <ol className="list-decimal pl-5 space-y-1">
-              <li>Dans "Mes trames de bilan" vous pourrez composer et modifier vos trames</li>
-              <li>Une trame est composée de différentes parties de bilan personnalisées ou des parties publiques</li>
-              <li>Vous pourrez ensuite rédiger via cette trame depuis Mes rédactions pour directement accéder à l'ensemble des tests/observations</li>
+              <li>
+                Dans "Mes trames de bilan" vous pourrez composer et modifier vos
+                trames
+              </li>
+              <li>
+                Une trame est composée de différentes parties de bilan
+                personnalisées ou des parties publiques
+              </li>
+              <li>
+                Vous pourrez ensuite rédiger via cette trame depuis Mes
+                rédactions pour directement accéder à l'ensemble des
+                tests/observations
+              </li>
             </ol>
           </section>
 
           <section className="space-y-2">
             <h3 className="text-xl font-semibold">
-              🚀 Comment personnaliser vos rédactions : les parties personnalisées
+              🚀 Comment personnaliser vos rédactions : les parties
+              personnalisées
             </h3>
             <ol className="list-decimal pl-5 space-y-1">
-              <li>Pour plus de personnalisation vous pouvez créer des parties personnalisées</li>
+              <li>
+                Pour plus de personnalisation vous pouvez créer des parties
+                personnalisées
+              </li>
               <li>Soit en dupliquant des parties existantes</li>
-              <li>Soit en créant une partie via import magique ou manuellement</li>
+              <li>
+                Soit en créant une partie via import magique ou manuellement
+              </li>
             </ol>
           </section>
 
@@ -89,9 +108,16 @@ export default function Aide() {
                     <h4 className="font-medium group-hover:underline">
                       Rédiger son 1e bilan avec BilanPlume
                     </h4>
-                    <p className="text-sm text-muted-foreground">Tutoriel vidéo</p>
+                    <p className="text-sm text-muted-foreground">
+                      Tutoriel vidéo
+                    </p>
                   </div>
-                  <span aria-hidden className="text-sm opacity-60 group-hover:opacity-100">↗</span>
+                  <span
+                    aria-hidden
+                    className="text-sm opacity-60 group-hover:opacity-100"
+                  >
+                    ↗
+                  </span>
                 </a>
               </li>
               <li>
@@ -107,9 +133,16 @@ export default function Aide() {
                     <h4 className="font-medium group-hover:underline">
                       Créer une trame de bilan
                     </h4>
-                    <p className="text-sm text-muted-foreground">Tutoriel vidéo</p>
+                    <p className="text-sm text-muted-foreground">
+                      Tutoriel vidéo
+                    </p>
                   </div>
-                  <span aria-hidden className="text-sm opacity-60 group-hover:opacity-100">↗</span>
+                  <span
+                    aria-hidden
+                    className="text-sm opacity-60 group-hover:opacity-100"
+                  >
+                    ↗
+                  </span>
                 </a>
               </li>
 
@@ -126,9 +159,16 @@ export default function Aide() {
                     <h4 className="font-medium group-hover:underline">
                       Créer une partie de bilan via l’import magique
                     </h4>
-                    <p className="text-sm text-muted-foreground">Tutoriel vidéo</p>
+                    <p className="text-sm text-muted-foreground">
+                      Tutoriel vidéo
+                    </p>
                   </div>
-                  <span aria-hidden className="text-sm opacity-60 group-hover:opacity-100">↗</span>
+                  <span
+                    aria-hidden
+                    className="text-sm opacity-60 group-hover:opacity-100"
+                  >
+                    ↗
+                  </span>
                 </a>
               </li>
 
@@ -145,14 +185,20 @@ export default function Aide() {
                     <h4 className="font-medium group-hover:underline">
                       Créer et éditer une partie de bilan manuellement
                     </h4>
-                    <p className="text-sm text-muted-foreground">Tutoriel vidéo</p>
+                    <p className="text-sm text-muted-foreground">
+                      Tutoriel vidéo
+                    </p>
                   </div>
-                  <span aria-hidden className="text-sm opacity-60 group-hover:opacity-100">↗</span>
+                  <span
+                    aria-hidden
+                    className="text-sm opacity-60 group-hover:opacity-100"
+                  >
+                    ↗
+                  </span>
                 </a>
               </li>
             </ul>
           </section>
-
 
           <section className="border-t pt-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

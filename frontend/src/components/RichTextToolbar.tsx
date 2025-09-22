@@ -64,6 +64,28 @@ import {
   $isBorderBlockNode,
   type BorderPreset,
 } from '../nodes/BorderBlockNode';
+import { SET_LINE_HEIGHT_COMMAND } from '../plugins/LineHeightPlugin';
+
+function parseInlineStyle(style: string): Record<string, string> {
+  const map: Record<string, string> = {};
+  if (!style) return map;
+  for (const declaration of style.split(';')) {
+    if (!declaration) continue;
+    const [prop, ...valueParts] = declaration.split(':');
+    if (!prop || valueParts.length === 0) continue;
+    const value = valueParts.join(':').trim();
+    if (!value) continue;
+    map[prop.trim()] = value;
+  }
+  return map;
+}
+
+function readLineHeightFromNode(node: any): string {
+  if (!node || typeof node.getStyle !== 'function') return '1';
+  const style = node.getStyle() as string;
+  const map = parseInlineStyle(style);
+  return map['line-height'] || '1';
+}
 
 export function setFontSize(editor: LexicalEditor, size: string) {
   editor.update(() => {
@@ -85,12 +107,7 @@ export function setFontFamily(editor: LexicalEditor, family: string) {
 }
 
 export function setLineHeight(editor: LexicalEditor, value: string) {
-  editor.update(() => {
-    const selection = $getSelection();
-    if ($isRangeSelection(selection)) {
-      $patchStyleText(selection, { 'line-height': value || null });
-    }
-  });
+  editor.dispatchCommand(SET_LINE_HEIGHT_COMMAND, value);
 }
 
 export function setTextColor(editor: LexicalEditor, color: string | null) {
@@ -212,7 +229,7 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
   const [fontFamily, setFontFamilyState] = useState(
     "Calibri, 'Helvetica Neue', Arial, sans-serif",
   );
-  const [lineHeight, setLineHeightState] = useState('1.15');
+  const [lineHeight, setLineHeightState] = useState('1');
   // Appliquer le style par défaut au focus initial (caret)
   // pour démarrer en Calibri 11pt
   useEffect(() => {
@@ -248,6 +265,7 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
           const topLevel = anchor.getTopLevelElement();
           if (!topLevel || $isRootOrShadowRoot(topLevel)) {
             setBlockType('paragraph');
+            setLineHeightState('1');
             return;
           }
           // If selection is inside a BorderBlock wrapper, introspect its first child for block-type display
@@ -262,6 +280,8 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
             else setBlockType('paragraph');
           } else if (type === 'quote') setBlockType('quote');
 
+          setLineHeightState(readLineHeightFromNode(underlying));
+
           // Track alignment (center) state based on element format
           try {
             const formatType = (topLevel as any)?.getFormatType?.() ?? 'left';
@@ -269,13 +289,25 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
           } catch {
             setIsCentered(false);
           }
-        } else {
+        } else if (selection) {
           // caret ou autre sélection → tente une lecture via formats actifs du point courant
           setIsBold(false);
           setIsItalic(false);
           setIsUnderline(false);
           setBlockType('paragraph');
           setIsCentered(false);
+          try {
+            const anchorNode = selection.anchor.getNode();
+            const topLevel = anchorNode.getTopLevelElement();
+            const target = $isBorderBlockNode(topLevel)
+              ? (topLevel as any).getFirstChild?.() || topLevel
+              : topLevel;
+            setLineHeightState(readLineHeightFromNode(target));
+          } catch {
+            setLineHeightState('1');
+          }
+        } else {
+          setLineHeightState('1');
         }
       });
     });

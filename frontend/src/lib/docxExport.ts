@@ -11,7 +11,11 @@ export function normalizeBordersForDocx(html: string): string {
       const current = table.getAttribute('style') || '';
       const hasCollapse = /border-collapse\s*:/i.test(current);
       const hasSpacing = /border-spacing\s*:/i.test(current);
-      const next = [current.trim(), !hasCollapse ? 'border-collapse: collapse' : '', !hasSpacing ? 'border-spacing: 0' : '']
+      const next = [
+        current.trim(),
+        !hasCollapse ? 'border-collapse: collapse' : '',
+        !hasSpacing ? 'border-spacing: 0' : '',
+      ]
         .filter(Boolean)
         .join('; ');
       if (next) table.setAttribute('style', next);
