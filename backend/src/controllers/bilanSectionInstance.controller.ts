@@ -3,6 +3,7 @@ import { BilanSectionInstanceService } from '../services/bilanSectionInstance.se
 import { generateFromTemplate as generateFromTemplateSvc } from '../services/ai/generateFromTemplate';
 import { buildSectionPromptContext } from '../services/ai/promptContext';
 import { prisma } from '../prisma';
+import { getInstanceContext } from '../services/ai/instanceContext.service';
 
 export const BilanSectionInstanceController = {
   async create(req: Request, res: Response, next: NextFunction) {
@@ -90,15 +91,11 @@ export const BilanSectionInstanceController = {
         res.status(400).json({ error: 'Section has no associated templateRef' });
         return;
       }
-      const instance = await (prisma as any).bilanSectionInstance.findUnique({ where: { id: instanceId }, select: { bilanId: true } });
-      if (!instance) {
-        res.status(404).json({ error: 'Bilan section instance not found' });
-        return;
-      }
+      const instanceCtx = await getInstanceContext(instanceId);
       console.log('sectionTemplateId', sectionTemplateId);
       console.log('answers', answers);
       console.log('rawNotes', rawNotes);
-      console.log('contentNotes', contentNotes);
+      console.log('BilanSectionInstance - contentNotes', contentNotes);
       console.log('userSlots', userSlots);
       console.log('imageBase64', imageBase64 ? '[PRESENT]' : '[ABSENT]');
       console.log('stylePrompt', stylePrompt);
@@ -112,7 +109,7 @@ export const BilanSectionInstanceController = {
 
       const promptContext = await buildSectionPromptContext({
         userId: req.user.id,
-        bilanId: instance.bilanId,
+        bilanId: instanceCtx.bilanId,
         baseContent: JSON.stringify(aggregatedNotes ?? {}),
         sectionId: trameId,
         fallbackSectionTitle: section?.title,

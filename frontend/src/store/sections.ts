@@ -44,16 +44,25 @@ interface SectionState {
 
 const endpoint = '/api/v1/sections';
 
-export const useSectionStore = create<SectionState>((set) => ({
+let fetchAllPromise: Promise<void> | null = null;
+
+export const useSectionStore = create<SectionState>((set, get) => ({
   items: [],
 
   async fetchAll() {
     const token = useAuth.getState().token;
     if (!token) throw new Error('Non authentifié');
-    const items = await apiFetch<Section[]>(endpoint, {
-      headers: { Authorization: `Bearer ${token}` },
+    // Avoid duplicate calls (StrictMode double-mount, multiple callers)
+    if (fetchAllPromise) return fetchAllPromise;
+    fetchAllPromise = (async () => {
+      const items = await apiFetch<Section[]>(endpoint, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      set({ items });
+    })().finally(() => {
+      fetchAllPromise = null;
     });
-    set({ items });
+    return fetchAllPromise;
   },
 
   async fetchOne(id) {

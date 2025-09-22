@@ -203,7 +203,13 @@ export const TableRenderer = {
       anchorId: anchor.id,
       nodesCount: nodes.length,
     });
-    console.log("nodes", nodes[0].children[0]);
+    if (nodes.length > 0) {
+      const firstNode = nodes[0];
+      const children = Array.isArray(firstNode?.children)
+        ? (firstNode.children as LexicalNode[])
+        : [];
+      console.log('nodes', children[0]);
+    }
     return nodes;
   },
 };

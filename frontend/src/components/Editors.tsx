@@ -587,22 +587,12 @@ export function TableEditor({ q, onPatch }: EditorProps) {
               htmlFor={`table-cr-toggle-${q.id}`}
               className="text-sm text-gray-700"
             >
-              Activer l'ancre CR pour ce tableau
+              Cocher pour insérer le tableau dans le bilan lors de la rédaction
             </label>
-            {tableau.crInsert && (
-              <Input
-                className="w-24"
-                value={tableau.crTableId ?? ''}
-                onChange={(e) => updateAnchorId(e.target.value)}
-                onBlur={(e) => updateAnchorId(e.target.value.trim())}
-                placeholder="ID (ex: T1)"
-              />
-            )}
           </div>
           <p className="text-xs text-gray-500">
-            {tableau.crInsert
-              ? `L'IA devra restituer l'ancre \`[[CR:TBL|id=${tableau.crTableId ?? ''}]]\` dans le texte.`
-              : 'Active ce mode pour tester l’insertion automatique du tableau côté génération.'}
+            Le tableau sera inséré directement dans le bilan avec les valeurs
+            que vous avez remplie lors de la rédaction.
           </p>
         </div>
         <ChoixTypeDeValeurTableau

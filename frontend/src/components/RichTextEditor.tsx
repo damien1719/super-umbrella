@@ -54,6 +54,8 @@ import {
   $createSectionPlaceholderNode,
 } from '../nodes/SectionPlaceholderNode';
 import { BorderBlockNode } from '../nodes/BorderBlockNode';
+import { GenPartPlaceholderNode } from '../nodes/GenPartPlaceholderNode';
+import { AnchorNode } from '../nodes/AnchorNode';
 import type { SlotType, FieldSpec } from '../types/template';
 import { scanAndInsertSlots as runScanAndInsertSlots } from '../utils/scanAndInsertSlots';
 import TableContextMenuPlugin from './TableContextMenuPlugin';
@@ -379,6 +381,16 @@ const ImperativeHandlePlugin = forwardRef<RichTextEditorHandle, object>(
   },
 );
 
+function EditablePlugin({ readOnly }: { readOnly: boolean }) {
+  const [editor] = useLexicalComposerContext();
+
+  useEffect(() => {
+    editor.setEditable(!readOnly);
+  }, [editor, readOnly]);
+
+  return null;
+}
+
 function TableDeletePlugin() {
   const [editor] = useLexicalComposerContext();
   useEffect(() => {
@@ -545,7 +557,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
           // H3: 12pt underlined
           h1: 'text-[14pt] mb-3',
           h2: 'text-[12pt] font-bold underline mb-2',
-          h3: 'text-[12pt] underline mb-2',
+          h3: 'text-[11pt] underline mb-2',
         },
         text: {
           underline: 'underline',
@@ -565,6 +577,8 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
         TableCellNode,
         SlotNode,
         SectionPlaceholderNode,
+        GenPartPlaceholderNode,
+        AnchorNode,
         BorderBlockNode,
       ],
     };
@@ -596,6 +610,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
           editorState: initialEditorState, // ← état initial sans plugin ni update()
         }}
       >
+        <EditablePlugin readOnly={readOnly} />
         {!readOnly && (
           <ToolbarPlugin onSave={onSave} exportFileName={exportFileName} />
         )}

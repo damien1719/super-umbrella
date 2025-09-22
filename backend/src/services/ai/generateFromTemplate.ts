@@ -8,13 +8,14 @@ import {
   lexicalStateToJSON,
   normalizeLexicalEditorState,
 } from '../../utils/lexicalEditorState';
-
-type Notes = Record<string, unknown>;
+import { applyGenPartPlaceholders, type Notes } from './genPartPlaceholder';
+import { LexicalAssembler } from '../bilan/lexicalAssembler';
+import { AnchorService, type AnchorSpecification } from './anchor.service';
+import { getSectionQuestions } from './instanceContext.service';
+import type { Question } from '../../utils/answersMarkdown';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = prisma as any;
-
-
 
 
 type Item = { key: string; label: string };
@@ -57,6 +58,7 @@ function expandSlotsSpec(slots: SlotSpec[]): Record<string, FieldSpec> {
           prompt: node.prompt, // laissé tel quel
           template: node.template,
           optional: node.optional,
+          answerPath: node.answerPath,
         };
         push(field, trace);
         return;
@@ -110,6 +112,7 @@ function expandSlotsSpec(slots: SlotSpec[]): Record<string, FieldSpec> {
 
 
 function partitionSlots(spec: Record<string, FieldSpec>) {
+  console.log("partition - spec", spec);
   const res = { user: [] as string[], computed: [] as string[], llm: [] as string[] };
   for (const [id, s] of Object.entries(spec || {})) {
     res[s.mode].push(id);
@@ -197,7 +200,7 @@ function computeComputed(ids: string[], spec: Record<string, FieldSpec>, notes: 
 export async function generateFromTemplate(
   sectionTemplateId: string,
   contentNotes: Notes,
-  opts: { instanceId: string; userSlots?: Record<string, unknown>; stylePrompt?: string; model?: string; imageBase64?: string; contextMd?: string },
+  opts: { instanceId: string; userSlots?: Record<string, unknown>; stylePrompt?: string; model?: string; imageBase64?: string; contextMd?: string; placeholdersUseContextFallback?: boolean },
 ) {
 
   const template = await SectionTemplateService.get(sectionTemplateId);
@@ -205,7 +208,20 @@ export async function generateFromTemplate(
     throw new Error('Template not found');
   }
 
-  const ast = template.content;
+  console.log("contentNotes - GENRETATE FREO TEMPLATE", contentNotes);
+
+  const ast = await applyGenPartPlaceholders({
+    instanceId: opts.instanceId,
+    contentNotes,
+    templateContent: template.content,
+    genPartsSpec: template.genPartsSpec,
+    templateStylePrompt: template.stylePrompt,
+    stylePrompt: opts.stylePrompt,
+    imageBase64: opts.imageBase64,
+    // For gen-part placeholders we want to use RAW notes only when requested.
+    // Default behavior keeps current fallback to contextMd to preserve retro-compat.
+    contextMd: opts.placeholdersUseContextFallback === false ? undefined : opts.contextMd,
+  });
   
   const slotsSpec = expandSlotsSpec(template.slotsSpec);
 
@@ -229,10 +245,6 @@ export async function generateFromTemplate(
   const llm = await callModel(parts.llm, slotsSpec, llmContext as unknown as Record<string, unknown> | string, opts.stylePrompt, undefined, opts.imageBase64);
 
   console.log('[DEBUG] generateFromTemplate - LLM response received:');
-  console.log('[DEBUG] generateFromTemplate - LLM slots generated:', Object.keys(llm.slots || {}));
-  console.log('[DEBUG] generateFromTemplate - LLM slots count:', Object.keys(llm.slots || {}).length);
-  console.log('[DEBUG] generateFromTemplate - LLM slots content preview:', JSON.stringify(llm.slots, null, 2).slice(0, 1000));
-  console.log('[DEBUG] generateFromTemplate - LLM full response object:', JSON.stringify(llm, null, 2));
 
   const slots = { ...user, ...(opts.userSlots || {}), ...computed, ...(llm.slots as Record<string, string | number | null | undefined>) };
 
@@ -243,42 +255,16 @@ export async function generateFromTemplate(
     console.warn('[generateFromTemplate] Missing slot values for:', missing.slice(0, 20));
   }
 
-  console.log('[DEBUG] generateFromTemplate - About to hydrate AST:');
-  console.log('[DEBUG] generateFromTemplate - AST input:', JSON.stringify(ast).slice(0, 200));
-  console.log('[DEBUG] generateFromTemplate - Slots for hydration:', Object.keys(slots));
-  console.log('[DEBUG] generateFromTemplate - First few slot values:', Object.entries(slots).slice(0, 3));
-
   const hydratedState = hydrate(ast, slots as Record<string, string | number | null | undefined>, slotsSpec);
 
-  console.log('[DEBUG] generateFromTemplate - Hydrated state type:', typeof hydratedState);
-  console.log('[DEBUG] generateFromTemplate - Hydrated state keys:', Object.keys(hydratedState || {}));
-  console.log('[DEBUG] generateFromTemplate - Hydrated state preview:', JSON.stringify(hydratedState).slice(0, 500) + '...');
-  console.log('[DEBUG] generateFromTemplate - Hydrated state full length:', JSON.stringify(hydratedState).length);
 
   const editorState = normalizeLexicalEditorState(hydratedState);
-  const assembledState = lexicalStateToJSON(editorState);
+
+  // Try anchor assembly: if template contains anchors (explicit anchor-node or inline markers),
+  // replace them with rendered tables based on instance questions/answers.
+  const anchorAssembledState = await anchorAssemble(editorState, opts.instanceId, contentNotes);
+  const assembledState = anchorAssembledState ?? lexicalStateToJSON(editorState);
   
-
-  console.log('[DEBUG] generateFromTemplate - About to return result:', {
-    hasSlots: !!slots,
-    slotsKeys: Object.keys(slots || {}),
-    hasAssembledState: !!assembledState,
-    assembledStateLength: assembledState?.length || 0,
-    assembledStatePreview: assembledState?.slice(0, 300),
-    instanceId: opts.instanceId,
-    assembledStateType: typeof assembledState,
-    assembledStateKeys: typeof assembledState === 'object' ? Object.keys(assembledState || {}) : 'N/A',
-  });
-
-  console.log('[DEBUG] generateFromTemplate - About to update database with:', {
-    instanceId: opts.instanceId,
-    hasGeneratedContent: true,
-    templateIdUsed: sectionTemplateId,
-    templateVersionUsed: template.version,
-    generatedContentSlotsKeys: Object.keys(slots || {}),
-    generatedContentAssembledStateLength: assembledState?.length || 0,
-  });
-
   await db.bilanSectionInstance.update({
     where: { id: opts.instanceId },
     data: {
@@ -289,12 +275,6 @@ export async function generateFromTemplate(
     },
   });
 
-  console.log('[DEBUG] generateFromTemplate - Database updated successfully, returning result');
-  console.log('[DEBUG] generateFromTemplate - Final return object:', {
-    slotsKeys: Object.keys(slots || {}),
-    assembledStateLength: assembledState?.length || 0,
-    assembledStatePreview: assembledState?.slice(0, 1000),
-  });
   return { slots, assembledState };
 }
 
@@ -310,16 +290,9 @@ export async function regenerateSlots(instanceId: string, slotIds: string[]) {
   const computed = computeComputed(computedIds, slotsSpec, instance.contentNotes as Notes);
   const user = resolveUserSlots(parts.user, slotsSpec, instance.contentNotes as Notes);
 
-  console.log('[DEBUG] regenerateSlots - About to call LLM with:');
-  console.log('[DEBUG] regenerateSlots - LLM slots to regenerate:', llmIds);
-  console.log('[DEBUG] regenerateSlots - LLM slotsSpec preview:', JSON.stringify(slotsSpec, null, 2));
-  console.log('[DEBUG] regenerateSlots - LLM contentNotes preview:', JSON.stringify(instance.contentNotes, null, 2));
 
   const llm = await callModel(llmIds, slotsSpec, instance.contentNotes as Notes, undefined);
 
-  console.log('[DEBUG] regenerateSlots - LLM response received:');
-  console.log('[DEBUG] regenerateSlots - LLM slots regenerated:', Object.keys(llm.slots || {}));
-  console.log('[DEBUG] regenerateSlots - LLM slots content:', JSON.stringify(llm.slots, null, 2));
   const existing = (instance.generatedContent as Record<string, unknown>)?.slots || {};
   const slots = {
     ...existing,
@@ -330,15 +303,9 @@ export async function regenerateSlots(instanceId: string, slotIds: string[]) {
   const hydratedState = hydrate(template.content, slots as Record<string, string | number | null | undefined>, slotsSpec);
 
   const editorState = normalizeLexicalEditorState(hydratedState);
-  const assembledState = lexicalStateToJSON(editorState);
+  const anchorAssembledState2 = await anchorAssemble(editorState, instanceId, instance.contentNotes as Notes);
+  const assembledState = anchorAssembledState2 ?? lexicalStateToJSON(editorState);
 
-  console.log('[DEBUG] regenerateSlots - About to update database with regenerated content');
-  console.log('[DEBUG] regenerateSlots - Editor state created:', {
-    hasRoot: !!editorState.root,
-    version: editorState.version,
-    assembledStateLength: assembledState.length,
-    assembledStatePreview: assembledState.slice(0, 200),
-  });
 
   await db.bilanSectionInstance.update({
     where: { id: instanceId },
@@ -348,12 +315,129 @@ export async function regenerateSlots(instanceId: string, slotIds: string[]) {
     },
   });
 
-  console.log('[DEBUG] regenerateSlots - Database updated successfully');
-  console.log('[DEBUG] regenerateSlots - Returning result:', {
-    slotsKeys: Object.keys(slots || {}),
-    assembledStateLength: assembledState.length,
-  });
   return { slots, assembledState };
 }
 
 export const _test = { partitionSlots, computeComputed };
+
+// --- Anchor assembly helpers ---
+
+type LexicalNode = Record<string, unknown> & {
+  type?: string;
+  tag?: string;
+  text?: string;
+  anchorId?: string;
+  children?: unknown;
+};
+
+type LexicalState = { root?: { children?: unknown } };
+
+async function anchorAssemble(
+  editorState: ReturnType<typeof normalizeLexicalEditorState>,
+  instanceId: string,
+  answers: Record<string, unknown>,
+): Promise<string | null> {
+  try {
+    const root = (editorState?.root ?? {}) as LexicalNode;
+    const children = Array.isArray((root as any).children)
+      ? ((root as any).children as unknown[])
+      : [];
+
+    // Fast check: does the tree contain an anchor-node or inline marker?
+    const hasAnchorsInTree = containsAnchors(children);
+    if (!hasAnchorsInTree) {
+      return null;
+    }
+
+    // Load section questions once (cached) to resolve anchors
+    const questions = await getSectionQuestions(instanceId);
+
+    const anchors: AnchorSpecification[] = AnchorService.collect(questions);
+    if (anchors.length === 0) {
+      return null;
+    }
+
+    // Convert current Lexical tree to a minimal Markdown with inline anchor markers
+    const markdown = lexicalToMarkdownWithAnchors({ root: { children } });
+
+    const result = LexicalAssembler.assemble({
+      text: markdown,
+      anchors,
+      questions,
+      answers,
+      missingAnchorIds: [],
+    });
+    return result.assembledState ?? null;
+  } catch (error) {
+    console.warn('[generateFromTemplate] anchorAssemble failed, falling back to raw editorState', error);
+    return null;
+  }
+}
+
+function containsAnchors(nodes: unknown[]): boolean {
+  const stack = [...nodes];
+  while (stack.length) {
+    const node = stack.pop() as LexicalNode | undefined;
+    if (!node) continue;
+    if (node.type === 'anchor-node' && typeof node.anchorId === 'string' && node.anchorId.trim()) {
+      return true;
+    }
+    if (node.type === 'text' && typeof node.text === 'string' && node.text.includes('[[CR:TBL|id=')) {
+      return true;
+    }
+    const children = (node as any)?.children;
+    if (Array.isArray(children)) {
+      for (const child of children) stack.push(child as unknown as LexicalNode);
+    }
+  }
+  return false;
+}
+
+function extractInlineText(node: LexicalNode): string {
+  if (!node) return '';
+  if (node.type === 'text') return String(node.text ?? '');
+  if (node.type === 'anchor-node' && typeof node.anchorId === 'string' && node.anchorId.trim()) {
+    return `[[CR:TBL|id=${node.anchorId.trim()}]]`;
+  }
+  const parts: string[] = [];
+  const children = (node as any)?.children;
+  if (Array.isArray(children)) {
+    for (const child of children) {
+      parts.push(extractInlineText(child as LexicalNode));
+    }
+  }
+  return parts.join(' ').replace(/\s+/g, ' ').trim();
+}
+
+function lexicalToMarkdownWithAnchors(state: LexicalState): string {
+  const root = (state?.root ?? {}) as LexicalNode;
+  const children = Array.isArray((root as any).children)
+    ? ((root as any).children as LexicalNode[])
+    : [];
+
+  const blocks: string[] = [];
+  for (const node of children) {
+    if (!node) continue;
+    if (node.type === 'heading') {
+      const tag = typeof node.tag === 'string' ? node.tag : 'h1';
+      const level = Math.min(Math.max(Number(tag?.replace(/[^0-9]/g, '') || 1), 1), 6);
+      const text = extractInlineText(node);
+      if (text) blocks.push(`${'#'.repeat(level)} ${text}`);
+      continue;
+    }
+    if (node.type === 'paragraph') {
+      const text = extractInlineText(node);
+      if (text) blocks.push(text);
+      continue;
+    }
+    if (node.type === 'anchor-node' && typeof node.anchorId === 'string') {
+      const id = node.anchorId.trim();
+      if (id) blocks.push(`[[CR:TBL|id=${id}]]`);
+      continue;
+    }
+    // Fallback: treat as paragraph-like if it has children/text
+    const text = extractInlineText(node);
+    if (text) blocks.push(text);
+  }
+  return blocks.join('\n\n');
+}

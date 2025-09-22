@@ -36,11 +36,17 @@ export const SectionTemplateController = {
 
   async update(req: Request, res: Response, next: NextFunction) {
     try {
-      const template = await SectionTemplateService.update(
+      const result = await SectionTemplateService.update(
         req.params.sectionTemplateId,
         req.body,
       );
-      res.json(template);
+      res.json({
+        template: result.template,
+        schema: result.schema,
+        content: (result.template as { content?: unknown })?.content,
+        genPartsSpec: result.genPartsSpec,
+        report: result.report,
+      });
     } catch (e) {
       next(e);
     }

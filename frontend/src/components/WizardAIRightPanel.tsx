@@ -79,7 +79,9 @@ export default function WizardAIRightPanel({
   const token = useAuth((s) => s.token);
   const [instanceId, setInstanceId] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
-  const { profile, fetchProfile } = useUserProfileStore();
+  // Le profil est chargé au niveau de l'application (App.tsx layouts)
+  // Ici on se contente de le consommer pour filtrer les trames
+  const { profile } = useUserProfileStore();
   const profileId = useMemo(
     () =>
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -100,9 +102,8 @@ export default function WizardAIRightPanel({
     });
   }, [imageBase64]);
 
-  useEffect(() => {
-    fetchProfile().catch(() => {});
-  }, [fetchProfile]);
+  // Ne pas refetch ici pour éviter les doublons (StrictMode double les effets en dev)
+  // Le chargement initial du profil est géré dans App.tsx
 
   useEffect(() => {
     setStep(initialStep);
@@ -588,7 +589,7 @@ export default function WizardAIRightPanel({
             }}
             tabs={[
               { key: 'manual', label: 'Saisie manuelle' },
-              { key: 'import', label: 'Import des notes' },
+              /* { key: 'import', label: 'Import des notes' }, */
             ]}
           />
           {notesMode === 'manual' ? (

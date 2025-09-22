@@ -22,6 +22,7 @@ import {
 } from "../utils/lexicalEditorState";
 import type { Question as SectionQuestion } from "../utils/answersMarkdown";
 import { LexicalAssembler } from "../services/bilan/lexicalAssembler";
+import { buildInstanceNotesContext } from "../services/ai/preprocessSectionNotes.service";
 
 
 export const BilanController = {
@@ -71,8 +72,10 @@ export const BilanController = {
 
   async generate(req: Request, res: Response, next: NextFunction) {
     try {
-      const section = req.body.section as keyof typeof promptConfigs;
+      // Inputs
       const sectionId = typeof req.body.sectionId === 'string' ? req.body.sectionId : undefined;
+      const instanceId = typeof req.body.instanceId === 'string' ? req.body.instanceId : undefined;
+      const sectionKeyBody = req.body.section as keyof typeof promptConfigs | undefined;
       const answersPayload = req.body.answers;
       const answersObject =
         answersPayload && typeof answersPayload === 'object' && !Array.isArray(answersPayload)
@@ -82,23 +85,79 @@ export const BilanController = {
       const stylePrompt = typeof req.body.stylePrompt === 'string' ? req.body.stylePrompt : undefined;
       const examples = Array.isArray(req.body.examples) ? req.body.examples : [];
       const imageBase64 = typeof req.body.imageBase64 === 'string' ? req.body.imageBase64 : undefined;
-      const cfg = promptConfigs[section];
-      if (!cfg) {
-        res.status(400).json({ error: 'invalid section' });
-        return;
+      // Resolve Section details if sectionId is provided
+      let sectionRecord:
+        | { schema?: unknown; templateRefId?: string | null; kind?: string; title?: string | null }
+        | null = null;
+      if (sectionId) {
+        try {
+          sectionRecord = await (prisma as any).section.findUnique({
+            where: { id: sectionId },
+            select: { schema: true, templateRefId: true, kind: true, title: true },
+          });
+        } catch (err) {
+          console.warn('[generate] unable to load section record', err);
+        }
       }
 
+      // If the Section references a template, route to the template generation service
+      if (sectionRecord?.templateRefId) {
+        if (!instanceId) {
+          res.status(400).json({ error: 'instanceId is required for templated sections' });
+          return;
+        }
+
+        try {
+          // Guard: ensure the instance belongs to the same bilan and user
+          const inst = await BilanSectionInstanceService.get(req.user.id, instanceId);
+          if (!inst) {
+            res.status(404).json({ error: 'bilan section instance not found' });
+            return;
+          }
+          if ((inst as { bilanId?: string }).bilanId !== req.params.bilanId) {
+            res.status(400).json({ error: 'instance does not belong to target bilan' });
+            return;
+          }
+
+          const { contentNotes, contextMd } = await buildInstanceNotesContext(
+            req.user.id,
+            instanceId,
+          );
+
+          const userSlots =
+            req.body.userSlots && typeof req.body.userSlots === 'object'
+              ? (req.body.userSlots as Record<string, unknown>)
+              : undefined;
+
+          const result = await generateFromTemplateSvc(
+            sectionRecord.templateRefId,
+            contentNotes,
+            {
+              instanceId,
+              userSlots,
+              stylePrompt,
+              imageBase64,
+              contextMd,
+              // Ensure placeholders use RAW notes only (no markdown fallback)
+              placeholdersUseContextFallback: false,
+            },
+          );
+          res.json(result);
+          return;
+        } catch (err) {
+          next(err);
+          return;
+        }
+      }
+
+      // PROMPT-based generation (no template)
       let anchors: AnchorSpecification[] = [];
       let schemaQuestions: SectionQuestion[] = [];
       let answersMarkdown = '';
       let contentNotes: Record<string, unknown> = {};
-      if (sectionId) {
+      if (sectionRecord?.schema) {
         try {
-          const sectionRecord = await prisma.section.findUnique({
-            where: { id: sectionId },
-            select: { schema: true },
-          });
-          const rawSchema = sectionRecord?.schema;
+          const rawSchema = sectionRecord.schema;
           schemaQuestions = Array.isArray(rawSchema)
             ? (rawSchema as SectionQuestion[])
             : [];
@@ -151,6 +210,19 @@ export const BilanController = {
         }
       }
 
+      // Resolve prompt key (either provided in body or derived from section.kind)
+      const promptKey = ((): keyof typeof promptConfigs | null => {
+        if (sectionKeyBody && (promptConfigs as any)[sectionKeyBody]) return sectionKeyBody;
+        const kind = sectionRecord?.kind as string | undefined;
+        if (kind && (promptConfigs as any)[kind]) return kind as keyof typeof promptConfigs;
+        return null;
+      })();
+      if (!promptKey) {
+        res.status(400).json({ error: 'invalid section' });
+        return;
+      }
+      const cfg = promptConfigs[promptKey];
+
       const instructions = AnchorService.injectPrompt(cfg.instructions, anchors);
       
       // Récupère le job du profil actif (si disponible)
@@ -164,7 +236,7 @@ export const BilanController = {
         bilanId: req.params.bilanId,
         baseContent: answersMarkdown,
         sectionId,
-        fallbackSectionTitle: cfg.title ?? String(section),
+        fallbackSectionTitle: cfg.title ?? (sectionRecord?.title ?? String(promptKey)),
       });
       const userContent = promptContext.content;
       const patientNames = promptContext.patientNames;

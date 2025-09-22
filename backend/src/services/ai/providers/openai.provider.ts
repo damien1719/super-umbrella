@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { ChatCompletionCreateParams } from "openai/resources/index";
 import { AzureOpenAIProvider } from "./azure-openai.provider";
+import { LlmRouter } from "./llmRouter";
 
 export class OpenAIProvider {
   private client: OpenAI;
@@ -44,8 +45,29 @@ export class OpenAIProvider {
 // Env-based selection between Azure and OpenAI
 // Set `AI_PROVIDER=azure` or `AI_PROVIDER=openai` in environment
 const providerChoice = (process.env.AI_PROVIDER || "azure").toLowerCase();
-const selectedProvider = providerChoice === "openai"
-  ? new OpenAIProvider()
-  : new AzureOpenAIProvider();
 
-export const openaiProvider = selectedProvider;
+let selected: any;
+if (providerChoice === "openai") {
+  selected = new OpenAIProvider();
+} else {
+  const azure = new AzureOpenAIProvider();
+  const primaryId = process.env.LLM_PRIMARY_DEPLOYMENT || process.env.AZURE_OPENAI_DEPLOYMENT || "gpt-4.1";
+  const fallbackId = process.env.LLM_FALLBACK_DEPLOYMENT || "gpt-4o";
+
+  const primary = {
+    id: primaryId,
+    rpm: Number(process.env.LLM_PRIMARY_RPM || 50),
+    tpm: Number(process.env.LLM_PRIMARY_TPM || 50000),
+  };
+  const fallback = fallbackId
+    ? {
+        id: fallbackId,
+        rpm: Number(process.env.LLM_FALLBACK_RPM || 50),
+        tpm: Number(process.env.LLM_FALLBACK_TPM || 50000),
+      }
+    : undefined;
+
+  selected = new LlmRouter(azure, primary, fallback);
+}
+
+export const openaiProvider = selected;

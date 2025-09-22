@@ -21,7 +21,7 @@ export class AzureOpenAIProvider {
     _model?: string
   ) {
     let attempt = 0;
-    const deployment = this.deploymentName;
+    const deployment = _model || this.deploymentName;
 
     while (attempt++ < 3) {
       try {

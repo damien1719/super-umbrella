@@ -1,5 +1,12 @@
 import { prisma } from '../prisma';
 import { NotFoundError } from './profile.service';
+import {
+  layoutToSchema,
+  normalizeGenPartsSpecPayload,
+  type GenPartsSpec,
+  type LexicalState,
+  type TemplateSyncReport,
+} from './templateSync.service';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = prisma as any;
@@ -10,8 +17,23 @@ export type SectionTemplateData = {
   version?: number;
   content: unknown;
   slotsSpec: unknown;
+  genPartsSpec?: unknown;
   isDeprecated?: boolean;
 };
+
+export interface SectionTemplateUpdateResult {
+  template: unknown;
+  schema?: unknown;
+  genPartsSpec: GenPartsSpec;
+  report: TemplateSyncReport;
+}
+
+function ensureLexicalState(input: unknown): LexicalState {
+  if (!input || typeof input !== 'object') return { root: { type: 'root', children: [] } };
+  const candidate = input as LexicalState;
+  if (candidate.root && typeof candidate.root === 'object') return candidate;
+  return { root: { type: 'root', children: [] } };
+}
 
 export const SectionTemplateService = {
   create(data: SectionTemplateData) {
@@ -26,7 +48,21 @@ export const SectionTemplateService = {
       isDeprecated: data.isDeprecated,
     });
 
-    const result = db.sectionTemplate.create({ data });
+    const contentState = ensureLexicalState(data.content);
+    const syncResult = layoutToSchema(contentState, []);
+
+    const payload = {
+      id: data.id,
+      label: data.label,
+      // New templates default to version 2 unless explicitly provided
+      version: data.version ?? 2,
+      content: syncResult.content,
+      slotsSpec: data.slotsSpec,
+      genPartsSpec: syncResult.genPartsSpec,
+      isDeprecated: data.isDeprecated ?? false,
+    };
+
+    const result = db.sectionTemplate.create({ data: payload });
 
     console.log('[DEBUG] SectionTemplateService - create() completed for ID:', data.id);
     return result;
@@ -46,7 +82,7 @@ export const SectionTemplateService = {
     return result;
   },
 
-  async update(id: string, data: Partial<SectionTemplateData>) {
+  async update(id: string, data: Partial<SectionTemplateData>): Promise<SectionTemplateUpdateResult> {
     console.log('[DEBUG] SectionTemplateService - update() called with:', {
       id,
       hasLabel: !!data.label,
@@ -55,13 +91,69 @@ export const SectionTemplateService = {
       version: data.version,
       isDeprecated: data.isDeprecated,
     });
+    const template = await db.sectionTemplate.findUnique({
+      where: { id },
+      include: { sections: { select: { id: true, schema: true } } },
+    });
+    if (!template) throw new NotFoundError();
 
-    const { count } = await db.sectionTemplate.updateMany({ where: { id }, data });
-    if (count === 0) throw new NotFoundError();
+    const contentProvided = data.content !== undefined;
+    const contentState = contentProvided
+      ? ensureLexicalState(data.content)
+      : ensureLexicalState(template.content);
 
-    const result = db.sectionTemplate.findUnique({ where: { id } });
+    const baseSchema = Array.isArray(template.sections?.[0]?.schema)
+      ? template.sections[0].schema
+      : [];
+
+    const existingGenPartsSpec = normalizeGenPartsSpecPayload(template.genPartsSpec);
+
+    const syncResult = contentProvided
+      ? layoutToSchema(contentState, baseSchema)
+      : {
+          schema: baseSchema,
+          content: contentState,
+          genPartsSpec: existingGenPartsSpec,
+          report: {
+            createdPlaceholderIds: [],
+            reusedPlaceholderIds: [],
+            removedPlaceholderIds: [],
+            splitPlaceholderIds: [],
+            injectedHeadingIds: [],
+            addedQuestionIds: [],
+            removedQuestionIds: [],
+            notes: [],
+          },
+        };
+
+    const updatePayload: Record<string, unknown> = {
+      label: data.label ?? template.label,
+      version: data.version ?? template.version,
+      content: syncResult.content,
+      slotsSpec: data.slotsSpec ?? template.slotsSpec,
+      genPartsSpec: syncResult.genPartsSpec,
+      isDeprecated: data.isDeprecated ?? template.isDeprecated,
+    };
+
+    const updatedTemplate = await db.sectionTemplate.update({
+      where: { id },
+      data: updatePayload,
+    });
+
+    if (contentProvided && template.sections?.length) {
+      await db.section.updateMany({
+        where: { templateRefId: id },
+        data: { schema: syncResult.schema },
+      });
+    }
+
     console.log('[DEBUG] SectionTemplateService - update() completed for ID:', id);
-    return result;
+    return {
+      template: updatedTemplate,
+      schema: contentProvided ? syncResult.schema : undefined,
+      genPartsSpec: syncResult.genPartsSpec,
+      report: syncResult.report,
+    };
   },
 
   async remove(id: string) {

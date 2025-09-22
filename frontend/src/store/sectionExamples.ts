@@ -23,15 +23,24 @@ interface SectionExampleState {
 
 const endpoint = '/api/v1/section-examples';
 
-export const useSectionExampleStore = create<SectionExampleState>((set) => ({
+let fetchAllExamplesPromise: Promise<void> | null = null;
+
+export const useSectionExampleStore = create<SectionExampleState>((set, get) => ({
   items: [],
   async fetchAll() {
     const token = useAuth.getState().token;
     if (!token) throw new Error('Non authentifié');
-    const items = await apiFetch<SectionExample[]>(endpoint, {
-      headers: { Authorization: `Bearer ${token}` },
+    if (get().items.length > 0) return;
+    if (fetchAllExamplesPromise) return fetchAllExamplesPromise;
+    fetchAllExamplesPromise = (async () => {
+      const items = await apiFetch<SectionExample[]>(endpoint, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      set({ items });
+    })().finally(() => {
+      fetchAllExamplesPromise = null;
     });
-    set({ items });
+    return fetchAllExamplesPromise;
   },
   async create(data) {
     const token = useAuth.getState().token;

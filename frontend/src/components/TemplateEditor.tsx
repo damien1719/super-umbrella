@@ -11,6 +11,12 @@ interface Props {
   onDeleteTemplate?: () => void;
   // Optional: available answer paths for current section
   pathOptions?: { path: string; label: string }[];
+  formattingEditMode?: boolean;
+  onEnterFormattingMode?: () => void;
+  onSaveTemplate?: () => void | Promise<void>;
+  templateSaving?: boolean;
+  templateDirty?: boolean;
+  canEdit?: boolean;
 }
 
 export default function TemplateEditor({
@@ -20,6 +26,12 @@ export default function TemplateEditor({
   onTransformToQuestions,
   onDeleteTemplate,
   pathOptions,
+  formattingEditMode = false,
+  onEnterFormattingMode,
+  onSaveTemplate,
+  templateSaving = false,
+  templateDirty = false,
+  canEdit = true,
 }: Props) {
   const editorRef = React.useRef<RichTextEditorHandle>(null);
   const [isTransforming, setIsTransforming] = React.useState(false);
@@ -37,10 +49,12 @@ export default function TemplateEditor({
       <div className="basis-3/4 min-w-0 min-h-0">
         <div className="h-full overflow-y-auto overscroll-contain">
           <div className="pb-24">
+            {/** Lock editor if formatting mode disabled or cannot edit */}
             <RichTextEditor
               ref={editorRef}
               templateKey={`${template.id}:${template.updatedAt || ''}`}
               initialStateJson={template.content}
+              readOnly={!formattingEditMode || !canEdit}
               onChangeStateJson={(ast) => {
                 onChange({ ...template, content: ast });
               }}
@@ -177,6 +191,12 @@ export default function TemplateEditor({
             onDeleteTemplate={onDeleteTemplate}
             isTransforming={isTransforming}
             pathOptions={pathOptions}
+            formattingEditMode={formattingEditMode}
+            onEnterFormattingMode={onEnterFormattingMode}
+            onSaveTemplate={onSaveTemplate}
+            templateSaving={templateSaving}
+            templateDirty={templateDirty}
+            canEdit={canEdit}
           />
         </div>
       </div>
