@@ -234,7 +234,8 @@ export function TableEditor({ q, onPatch }: EditorProps) {
       setTable({ ...tableau, crInsert: false, crTableId: undefined });
       return;
     }
-    const fallbackId = `T${tableau.columns.length + tableau.rowsGroups.reduce((sum, group) => sum + group.rows.length, 0) + 1}`;
+    // Use the question id to ensure a unique default anchor id per table
+    const fallbackId = `T-${q.id}`;
     const nextId =
       tableau.crTableId && tableau.crTableId.trim().length > 0
         ? tableau.crTableId.trim()
