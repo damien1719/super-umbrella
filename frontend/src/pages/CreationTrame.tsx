@@ -389,6 +389,11 @@ export default function CreationTrame({
       id: Date.now().toString(),
       titre: `${original.titre} (copie)`,
     } as Question;
+    // If the duplicated question is a table with anchor insertion enabled,
+    // regenerate a unique crTableId to avoid collisions with the original
+    if (clone.type === 'tableau' && clone.tableau?.crInsert) {
+      clone.tableau.crTableId = `T-${clone.id}`;
+    }
     setQuestions((qs) => {
       const before = qs.slice(0, idx + 1);
       const after = qs.slice(idx + 1);
@@ -418,6 +423,11 @@ export default function CreationTrame({
       ...(JSON.parse(JSON.stringify(item)) as Question),
       id: Date.now().toString(),
     } as Question;
+    // If the pasted question is a table with anchor insertion enabled,
+    // regenerate its crTableId to ensure uniqueness
+    if (clone.type === 'tableau' && clone.tableau?.crInsert) {
+      clone.tableau.crTableId = `T-${clone.id}`;
+    }
 
     setQuestions((qs) => {
       if (!targetId) return [...qs, clone];
