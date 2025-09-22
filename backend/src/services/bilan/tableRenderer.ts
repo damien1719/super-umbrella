@@ -180,7 +180,10 @@ export const TableRenderer = {
 
     const nodes: LexicalNode[] = [];
     if (tableRows.length > 0) {
+      // Add an empty paragraph before and after the table to create spacing
+      nodes.push(createParagraph(''));
       nodes.push(tableNode);
+      nodes.push(createParagraph(''));
     }
 
     if (comment) {
