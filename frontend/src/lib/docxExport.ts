@@ -5,6 +5,17 @@ export function normalizeBordersForDocx(html: string): string {
   try {
     const container = document.createElement('div');
     container.innerHTML = html;
+    // Ensure tables collapse borders so Word won't render doubles
+    const tables = container.querySelectorAll<HTMLTableElement>('table');
+    tables.forEach((table) => {
+      const current = table.getAttribute('style') || '';
+      const hasCollapse = /border-collapse\s*:/i.test(current);
+      const hasSpacing = /border-spacing\s*:/i.test(current);
+      const next = [current.trim(), !hasCollapse ? 'border-collapse: collapse' : '', !hasSpacing ? 'border-spacing: 0' : '']
+        .filter(Boolean)
+        .join('; ');
+      if (next) table.setAttribute('style', next);
+    });
     const nodes = container.querySelectorAll<HTMLElement>('[style*="border"]');
     nodes.forEach((el) => {
       let style = el.getAttribute('style') || '';
@@ -66,6 +77,10 @@ export function wrapHtmlForDocx(
     h3 { font-size: 12pt; margin: 8pt 0 6pt; font-weight: normal; text-decoration: underline; }
     ul, ol { margin: 0 0 8px 24px; }
     li { margin: 4px 0; }
+    /* Ensure Word renders tables with single borders like in Lexical */
+    table { border-collapse: collapse; border-spacing: 0; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+    th, td { border: 0.75pt solid #000; padding: 4pt; vertical-align: top; word-break: break-word; }
+    th:empty::before, td:empty::before { content: '\\00a0'; }
   </style></head><body>${html}</body></html>`;
 }
 

@@ -51,9 +51,6 @@ Décris de manière structurée et neutre les informations sensorielles pertinen
   tests_standards: {
     title: 'Tests standards (fragment)',
     instructions: `
-### INSTRUCTIONS TESTS STANDARDS (GEN-PART)
-À partir des résultats, rédige des phrases factuelles (sans interprétation) reprenant les scores/indices si présents.
-- Pas de listes; uniquement du texte.
 - Écris les résultats chiffrés en chiffres.
 `.trim(),
   } as const,

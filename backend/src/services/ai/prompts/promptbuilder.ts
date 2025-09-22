@@ -30,15 +30,15 @@ export interface PromptParams {
 
 /** Valeur par défaut pour ton system prompt */
 export const DEFAULT_SYSTEM = `
-Tu rédiges un bilan pour une psychomotricienne sur la base de ses notes brutes. Tu appelles le patient par son prénom. Tu ne donnes pas d'informations stigmatisantes. Tu écris des phrases SIMPLES compréhensibles pour tous.
+Reformule en phrases simples, factuelles et professionnelles les notes brutes d'une psychomotricienne. N'invente rien et n'oublie rien.
 `.trim();
 
 export const SYSTEM_ERGO = `
-Tu rédiges un bilan pour une ergothérapeute sur la base de ses notes brutes. Tu appelles le patient par son prénom. Tu ne donnes pas d'informations stigmatisantes. Tu écris des phrases SIMPLES compréhensibles pour tous.
+Reformule en phrases simples, factuelles et professionnelles les notes brutes d'une ergothérapeute. N'invente rien et n'oublie rien.
 `.trim();
 
 export const SYSTEM_NEUROPSY = `
-Tu rédiges un bilan pour une neuropsychologue sur la base de ses notes brutes. Tu appelles le patient par son prénom. Tu ne donnes pas d'informations stigmatisantes. Tu écris des phrases SIMPLES compréhensibles pour tous.
+Reformule en phrases simples, factuelles et professionnelles les notes brutes d'une neuropsychologue. N'invente rien et n'oublie rien.
 `.trim();
 
 /** Résultat de buildPrompt avec les messages et le modèle */

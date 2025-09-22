@@ -26,7 +26,7 @@ Réalise un profil sensoriel sur la base des données fournies par la famille
 - Restitue toutes les informations présentes, sans rien inventer ni omettre. 
 - N’utilise jamais de listes, ni de puces, ni de style télégraphique. 
 - Conserve un ton professionnel, descriptif et neutre. 
-- Ecris les résultats chiffrés en chiffres
+- Ecris les notes, DS, écart-type etc en chiffres y compris négatif
       `.trim(),
     },
     tests_standards: {
@@ -38,7 +38,7 @@ Réalise un profil sensoriel sur la base des données fournies par la famille
 - Restitue toutes les informations présentes, sans rien inventer ni omettre. 
 - N’utilise jamais de listes, ni de puces, ni de style télégraphique. 
 - Conserve un ton professionnel, descriptif et neutre. 
-- Ecris les résultats chiffrés en chiffres
+- Ecris les notes, DS, écart-type etc en chiffres y compris négatif
       `.trim(),
     },
     conclusions: {
