@@ -298,16 +298,16 @@ export default function AiRightPanel({
       // Persist latest answers into the targeted instance so backend can rebuild context
       if (instId && newAnswers && Object.keys(newAnswers || {}).length > 0) {
         try {
-          await apiFetch(
-            `/api/v1/bilan-section-instances/${instId}`,
-            {
-              method: 'PUT',
-              headers: { Authorization: `Bearer ${token}` },
-              body: JSON.stringify({ contentNotes: newAnswers }),
-            },
-          );
+          await apiFetch(`/api/v1/bilan-section-instances/${instId}`, {
+            method: 'PUT',
+            headers: { Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ contentNotes: newAnswers }),
+          });
         } catch (err) {
-          console.warn('[AiRightPanel] upserting contentNotes failed (non-blocking)', err);
+          console.warn(
+            '[AiRightPanel] upserting contentNotes failed (non-blocking)',
+            err,
+          );
         }
       }
 
