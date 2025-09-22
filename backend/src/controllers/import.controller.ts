@@ -32,7 +32,7 @@ export const ImportController = {
       const question = {
         id: Date.now().toString(),
         type: 'tableau' as const,
-        titre: 'Question sans titre',
+        titre: 'Tableau',
         tableau: {
           columns: table.columns,
           rowsGroups: table.rowsGroups,
@@ -50,7 +50,7 @@ export const ImportController = {
       const question = {
         id: Date.now().toString(),
         type: 'tableau' as const,
-        titre: 'Question sans titre',
+        titre: '',
         tableau: {
           columns: table.columns,
           rowsGroups: table.rowsGroups,
