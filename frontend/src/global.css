@@ -112,7 +112,7 @@ html, body, #root {
 .editor-content th,
 .editor-content td {
   border: 1px solid black;
-  padding: 6px;               /* donne une largeur minimale même si vide */
+  padding: 2px;               /* donne une largeur minimale même si vide */
   vertical-align: top;
   overflow-wrap: anywhere;     /* casse les mots très longs si besoin */
 }
