@@ -174,8 +174,46 @@ export const SectionService = {
           shareClause,
         ],
       },
+      include: { templateRef: true },
     });
     if (!section) throw new NotFoundError();
+
+    // If there is an associated template, clone it and link to the duplicated section
+    if (section.templateRefId && section.templateRef) {
+      const newTemplateId = randomUUID();
+      const newTemplateData = {
+        id: newTemplateId,
+        label: `${section.templateRef.label} - Copie`,
+        version: section.templateRef.version ?? 1,
+        content: section.templateRef.content,
+        slotsSpec: section.templateRef.slotsSpec,
+        genPartsSpec: section.templateRef.genPartsSpec ?? {},
+        isDeprecated: false,
+      } as const;
+
+      const [, createdSection] = await db.$transaction([
+        db.sectionTemplate.create({ data: newTemplateData }),
+        db.section.create({
+          data: {
+            title: section.title + ' - Copie',
+            kind: section.kind,
+            job: section.job,
+            description: section.description,
+            schema: section.schema,
+            defaultContent: section.defaultContent,
+            isPublic: false,
+            authorId: profile.id,
+            templateRefId: newTemplateId,
+            templateOptions: section.templateOptions,
+            version: section.version,
+          },
+          include: { templateRef: true },
+        }),
+      ]);
+      return createdSection;
+    }
+
+    // No template associated: duplicate as-is without linking to any template
     return db.section.create({
       data: {
         title: section.title + ' - Copie',
@@ -186,7 +224,7 @@ export const SectionService = {
         defaultContent: section.defaultContent,
         isPublic: false,
         authorId: profile.id,
-        templateRefId: section.templateRefId,
+        templateRefId: null,
         templateOptions: section.templateOptions,
         version: section.version,
       },
