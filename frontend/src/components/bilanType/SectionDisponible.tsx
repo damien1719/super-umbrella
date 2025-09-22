@@ -49,7 +49,7 @@ export function SectionDisponible({
   const [searchText, setSearchText] = useState('');
   const [filterType, setFilterType] = useState<'all' | CategoryId>('all');
   const [filterMetier, setFilterMetier] = useState<'all' | Job>('all');
-  const [displayLimit, setDisplayLimit] = useState(8);
+  // Afficher tout: plus de pagination locale
 
   const predicate = (element: BilanElement) => {
     const matchesSearch =
@@ -65,26 +65,18 @@ export function SectionDisponible({
   };
 
   const filteredElements = useMemo(
-    () => availableElements.filter(predicate).slice(0, displayLimit),
-    [searchText, filterType, filterMetier, displayLimit, availableElements],
+    () => availableElements.filter(predicate),
+    [searchText, filterType, filterMetier, availableElements],
   );
-
-  const hasMoreResults = useMemo(
-    () => availableElements.filter(predicate).length > displayLimit,
-    [searchText, filterType, filterMetier, displayLimit, availableElements],
-  );
-
-  const loadMoreResults = () => setDisplayLimit((prev) => prev + 8);
 
   const resetFilters = () => {
     setSearchText('');
     setFilterType('all');
     setFilterMetier('all');
-    setDisplayLimit(8);
   };
 
   return (
-    <Card className="lg:col-span-1 flex flex-col h-[90vh]">
+    <Card className="lg:col-span-1 flex flex-col">
       <CardHeader className="flex-shrink-0">
         <div className="flex items-start justify-between gap-3">
           <CardTitle className="flex items-center gap-2">
@@ -166,7 +158,7 @@ export function SectionDisponible({
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-3 flex-1 overflow-y-auto pr-1">
+      <CardContent className="space-y-3 flex-1 pr-1">
         {filteredElements.map((element) => (
           <SectionCardSmall
             key={element.id}
@@ -174,16 +166,6 @@ export function SectionDisponible({
             onAdd={onAddElement}
           />
         ))}
-
-        {hasMoreResults && (
-          <Button
-            variant="outline"
-            className="w-full mt-4 bg-transparent"
-            onClick={loadMoreResults}
-          >
-            Afficher plus de résultats
-          </Button>
-        )}
 
         {filteredElements.length === 0 && (
           <div className="text-center py-8 text-muted-foreground">
