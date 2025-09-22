@@ -16,6 +16,15 @@ interface ApiSectionTemplate {
   updatedAt?: string;
 }
 
+// Update envelope shape returned by PUT controller
+interface UpdateEnvelope {
+  template: ApiSectionTemplate;
+  schema?: unknown;
+  content?: unknown;
+  genPartsSpec?: unknown;
+  report?: unknown;
+}
+
 interface SectionTemplateState {
   items: SectionTemplate[];
   create: (data: SectionTemplate) => Promise<SectionTemplate>;
@@ -148,13 +157,20 @@ export const useSectionTemplateStore = create<SectionTemplateState>((set) => ({
       stylePrompt: data.stylePrompt,
     };
 
-    const apiItem = await apiFetch<ApiSectionTemplate>(`${endpoint}/${id}`, {
-      method: 'PUT',
-      headers: { Authorization: `Bearer ${token}` },
-      body: JSON.stringify(payload),
-    });
+    const apiItem = await apiFetch<ApiSectionTemplate | UpdateEnvelope>(
+      `${endpoint}/${id}`,
+      {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}` },
+        body: JSON.stringify(payload),
+      },
+    );
 
-    const item = normalizeApiItem(apiItem);
+    const templatePayload: ApiSectionTemplate = (apiItem as any)?.template
+      ? ((apiItem as UpdateEnvelope).template as ApiSectionTemplate)
+      : (apiItem as ApiSectionTemplate);
+
+    const item = normalizeApiItem(templatePayload);
     set((state) => ({
       items: state.items.map((s) => (s.id === id ? item : s)),
     }));

@@ -21,7 +21,7 @@ export async function generateText(
   if (stream) {
     return openaiProvider.chat(
       { messages: chatMessages } as ChatCompletionCreateParams,
-      chunk => process.stdout.write(chunk), // ici on renvoie vers stdout, à toi de brancher SSE/WS
+      (chunk: string) => process.stdout.write(chunk), // ici on renvoie vers stdout, à toi de brancher SSE/WS
       model
     );
   }

@@ -145,6 +145,7 @@ model SectionTemplate {
   /// Spéc des slots attendus par ce template :
   /// [{ id, type: "text"|"list"|"kv"|"table", source: "llm"|"computed"|"user", hint?, pattern?, optional? }, ...]
   slotsSpec   Json
+  genPartsSpec  Json     @db.JsonB @default(dbgenerated("'{}'::jsonb"))
 
   isDeprecated Boolean  @default(false)
   createdAt   DateTime  @default(now())

@@ -66,7 +66,7 @@ const useTrames = () => {
 
 interface AiRightPanelProps {
   bilanId: string;
-  onInsertText: (text: string) => void;
+  onInsertText?: (text: string) => void;
   onSetEditorStateJson?: (state: unknown) => void;
   initialWizardSection?: string;
   initialTrameId?: string;
@@ -230,7 +230,6 @@ export default function AiRightPanel({
   ) => {
     setLastGeneratedSection(section.id);
     await generateSection({
-      mode: 'direct',
       section,
       trames: trames as Record<
         string,
@@ -243,13 +242,11 @@ export default function AiRightPanel({
       imageBase64,
       token: token || '',
       bilanId,
-      kindMap,
       setIsGenerating,
       setSelectedSection,
       setWizardSection,
       setGenerated,
       setRegenPrompt,
-      onInsertText,
       onSetEditorStateJson,
       examples: examples as Array<{ sectionId: string; stylePrompt?: string }>,
     });
@@ -262,8 +259,7 @@ export default function AiRightPanel({
     instId?: string,
     imageBase64?: string,
   ) => {
-
-    console.log("newAnswers", newAnswers);
+    console.log('newAnswers', newAnswers);
     console.log(
       '[DEBUG] AiRightPanel - handleGenerateFromTemplate called with:',
       {
@@ -299,9 +295,23 @@ export default function AiRightPanel({
       console.log(
         '[AiRightPanel] handleGenerateFromTemplate - Preparing generation params...',
       );
+      // Persist latest answers into the targeted instance so backend can rebuild context
+      if (instId && newAnswers && Object.keys(newAnswers || {}).length > 0) {
+        try {
+          await apiFetch(
+            `/api/v1/bilan-section-instances/${instId}`,
+            {
+              method: 'PUT',
+              headers: { Authorization: `Bearer ${token}` },
+              body: JSON.stringify({ contentNotes: newAnswers }),
+            },
+          );
+        } catch (err) {
+          console.warn('[AiRightPanel] upserting contentNotes failed (non-blocking)', err);
+        }
+      }
 
       const generationParams = {
-        mode: 'template' as const,
         section,
         trames: trames as Record<
           string,
@@ -315,11 +325,9 @@ export default function AiRightPanel({
         instanceId: instId,
         token: token || '',
         bilanId,
-        kindMap,
         setIsGenerating,
         setSelectedSection,
         setWizardSection,
-        onInsertText,
         onSetEditorStateJson,
         examples: examples as Array<{
           sectionId: string;
@@ -338,7 +346,6 @@ export default function AiRightPanel({
           hasNewAnswers: !!generationParams.newAnswers,
           hasRawNotes: !!generationParams.rawNotes,
           hasOnSetEditorStateJson: !!generationParams.onSetEditorStateJson,
-          hasOnInsertText: !!generationParams.onInsertText,
         },
       );
 
@@ -408,7 +415,7 @@ export default function AiRightPanel({
           headers: { Authorization: `Bearer ${token}` },
         },
       );
-      onInsertText(res.text);
+      onInsertText?.(res.text);
     } finally {
       setIsGenerating(false);
     }
@@ -484,7 +491,7 @@ export default function AiRightPanel({
                       size="sm"
                       onClick={() => {
                         if (selection?.restore()) {
-                          onInsertText(refinedText);
+                          onInsertText?.(refinedText);
                           selection.clear();
                         }
                         setRefinedText('');

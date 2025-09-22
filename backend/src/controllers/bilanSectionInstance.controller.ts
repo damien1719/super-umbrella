@@ -1,7 +1,9 @@
 import type { Request, Response, NextFunction } from 'express';
 import { BilanSectionInstanceService } from '../services/bilanSectionInstance.service';
 import { generateFromTemplate as generateFromTemplateSvc } from '../services/ai/generateFromTemplate';
+import { buildSectionPromptContext } from '../services/ai/promptContext';
 import { prisma } from '../prisma';
+import { getInstanceContext } from '../services/ai/instanceContext.service';
 
 export const BilanSectionInstanceController = {
   async create(req: Request, res: Response, next: NextFunction) {
@@ -89,10 +91,11 @@ export const BilanSectionInstanceController = {
         res.status(400).json({ error: 'Section has no associated templateRef' });
         return;
       }
+      const instanceCtx = await getInstanceContext(instanceId);
       console.log('sectionTemplateId', sectionTemplateId);
       console.log('answers', answers);
       console.log('rawNotes', rawNotes);
-      console.log('contentNotes', contentNotes);
+      console.log('BilanSectionInstance - contentNotes', contentNotes);
       console.log('userSlots', userSlots);
       console.log('imageBase64', imageBase64 ? '[PRESENT]' : '[ABSENT]');
       console.log('stylePrompt', stylePrompt);
@@ -104,7 +107,15 @@ export const BilanSectionInstanceController = {
         _rawNotes: rawNotes,
       };
 
-      const result = await generateFromTemplateSvc(sectionTemplateId, aggregatedNotes, { instanceId, userSlots, stylePrompt, imageBase64 });
+      const promptContext = await buildSectionPromptContext({
+        userId: req.user.id,
+        bilanId: instanceCtx.bilanId,
+        baseContent: JSON.stringify(aggregatedNotes ?? {}),
+        sectionId: trameId,
+        fallbackSectionTitle: section?.title,
+      });
+
+      const result = await generateFromTemplateSvc(sectionTemplateId, aggregatedNotes, { instanceId, userSlots, stylePrompt, imageBase64, contextMd: promptContext.content });
       res.json(result);
     } catch (e) {
       next(e);
@@ -123,4 +134,3 @@ export const BilanSectionInstanceController = {
     }
   },
 };
-

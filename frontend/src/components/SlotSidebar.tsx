@@ -9,7 +9,6 @@ import SlotEditor from './SlotEditor';
 import { Button } from './ui/button';
 import { Card, CardHeader, CardContent } from './ui/card';
 import { Input } from './ui/input';
-import { Label } from './ui/label';
 import {
   Select,
   SelectContent,
@@ -25,13 +24,12 @@ import {
   MoreHorizontal,
   FileX,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
 } from './ui/dropdown-menu';
 import type { FieldPreset } from '../types/template';
 import { ConfirmDialog } from './ui/confirm-dialog';
@@ -48,6 +46,12 @@ interface Props {
   isTransforming?: boolean;
   // Optional: available answer paths for current section
   pathOptions?: { path: string; label: string }[];
+  formattingEditMode?: boolean;
+  onEnterFormattingMode?: () => void;
+  onSaveTemplate?: () => void | Promise<void>;
+  templateSaving?: boolean;
+  templateDirty?: boolean;
+  canEdit?: boolean;
 }
 
 export default function SlotSidebar({
@@ -61,6 +65,12 @@ export default function SlotSidebar({
   onDeleteTemplate,
   isTransforming = false,
   pathOptions,
+  formattingEditMode = false,
+  onEnterFormattingMode,
+  onSaveTemplate,
+  templateSaving = false,
+  templateDirty = false,
+  canEdit = true,
 }: Props) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -69,13 +79,25 @@ export default function SlotSidebar({
     label: string;
   } | null>(null);
 
+  const lockInteractions = !formattingEditMode || !canEdit;
+
+  useEffect(() => {
+    if (lockInteractions) {
+      setSelectedIndex(null);
+      setShowDeleteConfirm(false);
+      setSlotToDelete(null);
+    }
+  }, [lockInteractions]);
+
   const updateSlot = (index: number, updated: SlotSpec) => {
+    if (lockInteractions) return;
     const next = [...(slots || [])];
     next[index] = updated;
     onChange(next);
   };
 
   const addField = () => {
+    if (lockInteractions) return;
     const slot: FieldSpec = {
       kind: 'field',
       id: `field-${Date.now()}`,
@@ -92,6 +114,7 @@ export default function SlotSidebar({
   };
 
   const addGroup = () => {
+    if (lockInteractions) return;
     const groupId = `group-${Date.now()}`;
     const firstField: FieldSpec = {
       kind: 'field',
@@ -115,6 +138,7 @@ export default function SlotSidebar({
   };
 
   const addRepeat = () => {
+    if (lockInteractions) return;
     const repId = `repeat-${Date.now()}`;
     const rep: RepeatSpec = {
       kind: 'repeat',
@@ -136,7 +160,6 @@ export default function SlotSidebar({
     };
     onChange([...(slots || []), rep]);
     // Insert expanded fields for existing items
-    const ctxName = rep.ctx || 'item';
     if ('enum' in rep.from && rep.slots.length > 0) {
       for (const it of rep.from.enum) {
         for (const child of rep.slots) {
@@ -155,6 +178,7 @@ export default function SlotSidebar({
   };
 
   const removeSlot = (id: string) => {
+    if (lockInteractions) return;
     // Fonction récursive pour collecter tous les IDs de slots à supprimer
     const collectSlotIds = (slot: SlotSpec): string[] => {
       const ids: string[] = [];
@@ -208,10 +232,12 @@ export default function SlotSidebar({
   };
 
   const handleDeleteSlot = (id: string, label: string) => {
+    if (lockInteractions) return;
     setSlotToDelete({ id, label });
   };
 
   const confirmDeleteSlot = () => {
+    if (lockInteractions) return;
     if (slotToDelete) {
       removeSlot(slotToDelete.id);
       setSlotToDelete(null);
@@ -219,6 +245,7 @@ export default function SlotSidebar({
   };
 
   const insertSlot = (slot: SlotSpec) => {
+    if (lockInteractions) return;
     if (slot.kind === 'field') {
       onAddSlot?.(slot);
       return;
@@ -250,6 +277,7 @@ export default function SlotSidebar({
   };
 
   const editLabel = (index: number, newLabel: string) => {
+    if (lockInteractions) return;
     const slot = slots[index] as any;
     updateSlot(index, { ...slot, label: newLabel });
     onUpdateSlot?.(slot.id, newLabel);
@@ -267,6 +295,7 @@ export default function SlotSidebar({
               variant="primary"
               onClick={addField}
               className="flex items-center gap-2"
+              disabled={lockInteractions}
             >
               <Plus className="w-4 h-4" />
               Champ
@@ -279,6 +308,7 @@ export default function SlotSidebar({
                   size="sm"
                   variant="outline"
                   className="h-8 w-8 p-0 border-gray-300 hover:bg-gray-50"
+                  disabled={lockInteractions}
                 >
                   <MoreHorizontal className="w-4 h-4" />
                 </Button>
@@ -286,6 +316,7 @@ export default function SlotSidebar({
               <DropdownMenuContent align="start" className="w-48">
                 <DropdownMenuItem
                   onClick={addGroup}
+                  disabled={lockInteractions}
                   className="flex items-center gap-2 cursor-pointer hover:bg-green-50"
                 >
                   <Plus className="w-4 h-4 text-green-600" />
@@ -293,6 +324,7 @@ export default function SlotSidebar({
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={addRepeat}
+                  disabled={lockInteractions}
                   className="flex items-center gap-2 cursor-pointer hover:bg-purple-50"
                 >
                   <Plus className="w-4 h-4 text-purple-600" />
@@ -303,12 +335,34 @@ export default function SlotSidebar({
           </div>
 
           <div className="flex items-center gap-2 ml-auto">
+            {canEdit && (onEnterFormattingMode || onSaveTemplate) && (
+              <Button
+                size="sm"
+                variant={formattingEditMode ? 'primary' : 'outline'}
+                onClick={
+                  formattingEditMode ? onSaveTemplate : onEnterFormattingMode
+                }
+                disabled={
+                  formattingEditMode
+                    ? templateSaving || !templateDirty
+                    : templateSaving
+                }
+                className="min-w-[112px]"
+              >
+                {templateSaving
+                  ? 'Enregistrement…'
+                  : formattingEditMode
+                    ? 'Enregistrer'
+                    : 'Edit'}
+              </Button>
+            )}
             {onMagicTemplating && (
               <Button
                 size="sm"
                 variant="outline"
                 onClick={onMagicTemplating}
                 className="border-gray-300 hover:bg-gray-50"
+                disabled={lockInteractions}
               >
                 MagicTemplating
               </Button>
@@ -319,7 +373,7 @@ export default function SlotSidebar({
                 variant="outline"
                 onClick={onTransformToQuestions}
                 className="border-gray-300 hover:bg-gray-50"
-                disabled={isTransforming}
+                disabled={isTransforming || lockInteractions}
               >
                 {isTransforming
                   ? 'Transforming...'
@@ -335,6 +389,7 @@ export default function SlotSidebar({
                     size="sm"
                     variant="outline"
                     className="h-8 w-8 p-0 border-gray-300 hover:bg-gray-50"
+                    disabled={lockInteractions}
                   >
                     <MoreHorizontal className="w-4 h-4" />
                   </Button>
@@ -343,6 +398,7 @@ export default function SlotSidebar({
                   <DropdownMenuItem
                     onClick={() => setShowDeleteConfirm(true)}
                     className="flex items-center gap-2 cursor-pointer hover:bg-red-50 text-red-600"
+                    disabled={lockInteractions}
                   >
                     <FileX className="w-4 h-4" />
                     <span>Supprimer le template</span>
@@ -417,6 +473,7 @@ export default function SlotSidebar({
                               onChange={(e) => editLabel(idx, e.target.value)}
                               className="h-8 text-sm border-gray-200 focus:border-blue-300 focus:ring-blue-200"
                               placeholder="Nom du slot..."
+                              disabled={lockInteractions}
                             />
                           </div>
                           {preset && (
@@ -432,10 +489,12 @@ export default function SlotSidebar({
                                   };
                                   updateSlot(idx, updatedSlot);
                                 }}
+                                disabled={lockInteractions}
                               >
                                 <SelectTrigger
                                   id={`preset-${idx}`}
                                   className="h-6 w-20 text-xs border-gray-200"
+                                  disabled={lockInteractions}
                                 >
                                   <SelectValue />
                                 </SelectTrigger>
@@ -457,6 +516,7 @@ export default function SlotSidebar({
                               variant="outline"
                               onClick={() => insertSlot(slot)}
                               className="h-7 px-2 text-xs hover:bg-green-50 hover:border-green-200"
+                              disabled={lockInteractions}
                             >
                               Insérer
                             </Button>
@@ -467,6 +527,7 @@ export default function SlotSidebar({
                                 handleDeleteSlot((slot as any).id, label)
                               }
                               className="h-7 w-7 p-0 hover:bg-red-50 hover:text-red-600"
+                              disabled={lockInteractions}
                             >
                               <Trash2 className="w-3 h-3" />
                             </Button>
@@ -476,6 +537,7 @@ export default function SlotSidebar({
                               aria-label="Détails"
                               onClick={() => setSelectedIndex(idx)}
                               className="h-7 w-7 p-0 hover:bg-gray-100"
+                              disabled={lockInteractions}
                             >
                               <Settings className="w-3 h-3" />
                             </Button>

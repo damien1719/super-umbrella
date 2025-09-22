@@ -15,18 +15,27 @@ interface BilanTypeState {
 
 const endpoint = '/api/v1/bilan-types';
 
+let fetchAllBilanTypesPromise: Promise<void> | null = null;
+
 export type BilanTypeInput = Omit<BilanType, 'id' | 'author'>;
 
-export const useBilanTypeStore = create<BilanTypeState>((set) => ({
+export const useBilanTypeStore = create<BilanTypeState>((set, get) => ({
   items: [],
 
   async fetchAll() {
     const token = useAuth.getState().token;
     if (!token) throw new Error('Non authentifié');
-    const items = await apiFetch<BilanType[]>(endpoint, {
-      headers: { Authorization: `Bearer ${token}` },
+    if (get().items.length > 0) return;
+    if (fetchAllBilanTypesPromise) return fetchAllBilanTypesPromise;
+    fetchAllBilanTypesPromise = (async () => {
+      const items = await apiFetch<BilanType[]>(endpoint, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      set({ items });
+    })().finally(() => {
+      fetchAllBilanTypesPromise = null;
     });
-    set({ items });
+    return fetchAllBilanTypesPromise;
   },
 
   async fetchOne(id) {

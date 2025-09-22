@@ -16,7 +16,7 @@ import { normalize } from './textNormalization';
  */
 function isTableNode(node: LexicalNode): boolean {
   const type = node.getType();
-  return type === 'table' || type === 'table-row' || type === 'table-cell';
+  return type === 'table' || type === 'tablerow' || type === 'tablecell';
 }
 
 /**

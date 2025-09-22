@@ -40,6 +40,13 @@ export interface SurveyTable {
   columns: ColumnDef[];
   rowsGroups: RowsGroup[];
   commentaire?: boolean;
+  /**
+   * Indique si le rapport final doit contenir un tableau généré côté client
+   * identifié par une ancre `[[CR:TBL|id=...]]`.
+   */
+  crInsert?: boolean;
+  /** Identifiant unique de l'ancre, ex: "T1" */
+  crTableId?: string;
 }
 
 export interface Question {

@@ -6,6 +6,7 @@ export const createSectionTemplateSchema = z.object({
   version: z.number().int().optional(),
   content: z.any(),
   slotsSpec: z.any(),
+  genPartsSpec: z.any().optional(),
   isDeprecated: z.boolean().optional(),
 });
 

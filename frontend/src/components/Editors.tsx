@@ -142,6 +142,7 @@ export function TableEditor({ q, onPatch }: EditorProps) {
     : {
         columns: [],
         rowsGroups: [{ id: genId(), title: '', rows: [] }],
+        crInsert: false,
       };
   const setTable = (tb: SurveyTable & { commentaire?: boolean }) => {
     onPatch({ tableau: tb } as Partial<Question>);
@@ -226,6 +227,23 @@ export function TableEditor({ q, onPatch }: EditorProps) {
 
   const toggleComment = () => {
     setTable({ ...tableau, commentaire: !tableau.commentaire });
+  };
+
+  const toggleAnchorInsert = () => {
+    if (tableau.crInsert) {
+      setTable({ ...tableau, crInsert: false, crTableId: undefined });
+      return;
+    }
+    const fallbackId = `T${tableau.columns.length + tableau.rowsGroups.reduce((sum, group) => sum + group.rows.length, 0) + 1}`;
+    const nextId =
+      tableau.crTableId && tableau.crTableId.trim().length > 0
+        ? tableau.crTableId.trim()
+        : fallbackId;
+    setTable({ ...tableau, crInsert: true, crTableId: nextId });
+  };
+
+  const updateAnchorId = (value: string) => {
+    setTable({ ...tableau, crTableId: value });
   };
 
   const [editingColIdx, setEditingColIdx] = React.useState<number | null>(null);
@@ -556,6 +574,26 @@ export function TableEditor({ q, onPatch }: EditorProps) {
               + Ajouter une zone de commentaire
             </Button>
           )}
+        </div>
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <input
+              id={`table-cr-toggle-${q.id}`}
+              type="checkbox"
+              checked={Boolean(tableau.crInsert)}
+              onChange={toggleAnchorInsert}
+            />
+            <label
+              htmlFor={`table-cr-toggle-${q.id}`}
+              className="text-sm text-gray-700"
+            >
+              Cocher pour insérer le tableau dans le bilan lors de la rédaction
+            </label>
+          </div>
+          <p className="text-xs text-gray-500">
+            Le tableau sera inséré directement dans le bilan avec les valeurs
+            que vous avez remplie lors de la rédaction.
+          </p>
         </div>
         <ChoixTypeDeValeurTableau
           column={

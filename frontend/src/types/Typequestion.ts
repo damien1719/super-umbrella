@@ -74,13 +74,16 @@ export type RowsGroup = {
 export type SurveyTable = {
   columns: ColumnDef[];
   rowsGroups: RowsGroup[];
+  commentaire?: boolean;
+  crInsert?: boolean;
+  crTableId?: string;
 };
 
 export type TableQuestion = {
   id: string;
   type: 'tableau';
   titre: string;
-  tableau: SurveyTable & { commentaire?: boolean };
+  tableau: SurveyTable;
 };
 
 export type TitleQuestion = {

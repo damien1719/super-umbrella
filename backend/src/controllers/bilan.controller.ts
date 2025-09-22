@@ -3,7 +3,6 @@ import { BilanService } from "../services/bilan.service";
 import { ProfileService } from "../services/profile.service";
 // No HTML sanitization needed for JSON editor state
 import { generateText } from "../services/ai/generate.service";
-import { Anonymization } from "../services/ai/anonymize.service";
 import { promptConfigs } from "../services/ai/prompts/promptconfig";
 import { refineSelection } from "../services/ai/refineSelection.service";
 import { concludeBilan } from "../services/ai/conclude.service";
@@ -13,8 +12,17 @@ import { prisma } from "../prisma";
 import { hydrateLayout } from "../services/bilan/composeLayout";
 import { answersToMarkdown } from "../utils/answersMarkdown";
 import { generateFromTemplate as generateFromTemplateSvc } from "../services/ai/generateFromTemplate";
-import { prependSectionContext } from "../services/ai/promptContext";
-import { markdownToLexicalChildren } from "../utils/markdownToLexical";
+import { buildSectionPromptContext } from "../services/ai/promptContext";
+import { AnchorService, type AnchorSpecification } from "../services/ai/anchor.service";
+import { PostProcessor } from "../services/ai/postProcessor";
+import {
+  lexicalStateToJSON,
+  markdownToLexicalState,
+  normalizeLexicalEditorState,
+} from "../utils/lexicalEditorState";
+import type { Question as SectionQuestion } from "../utils/answersMarkdown";
+import { LexicalAssembler } from "../services/bilan/lexicalAssembler";
+import { buildInstanceNotesContext } from "../services/ai/preprocessSectionNotes.service";
 
 
 export const BilanController = {
@@ -64,18 +72,158 @@ export const BilanController = {
 
   async generate(req: Request, res: Response, next: NextFunction) {
     try {
-      const section = req.body.section as keyof typeof promptConfigs;
+      // Inputs
       const sectionId = typeof req.body.sectionId === 'string' ? req.body.sectionId : undefined;
-      const answers = req.body.answers ?? {};
+      const instanceId = typeof req.body.instanceId === 'string' ? req.body.instanceId : undefined;
+      const sectionKeyBody = req.body.section as keyof typeof promptConfigs | undefined;
+      const answersPayload = req.body.answers;
+      const answersObject =
+        answersPayload && typeof answersPayload === 'object' && !Array.isArray(answersPayload)
+          ? (answersPayload as Record<string, unknown>)
+          : {};
       const rawNotes = typeof req.body.rawNotes === 'string' ? req.body.rawNotes : undefined;
       const stylePrompt = typeof req.body.stylePrompt === 'string' ? req.body.stylePrompt : undefined;
       const examples = Array.isArray(req.body.examples) ? req.body.examples : [];
       const imageBase64 = typeof req.body.imageBase64 === 'string' ? req.body.imageBase64 : undefined;
-      const cfg = promptConfigs[section];
-      if (!cfg) {
+      // Resolve Section details if sectionId is provided
+      let sectionRecord:
+        | { schema?: unknown; templateRefId?: string | null; kind?: string; title?: string | null }
+        | null = null;
+      if (sectionId) {
+        try {
+          sectionRecord = await (prisma as any).section.findUnique({
+            where: { id: sectionId },
+            select: { schema: true, templateRefId: true, kind: true, title: true },
+          });
+        } catch (err) {
+          console.warn('[generate] unable to load section record', err);
+        }
+      }
+
+      // If the Section references a template, route to the template generation service
+      if (sectionRecord?.templateRefId) {
+        if (!instanceId) {
+          res.status(400).json({ error: 'instanceId is required for templated sections' });
+          return;
+        }
+
+        try {
+          // Guard: ensure the instance belongs to the same bilan and user
+          const inst = await BilanSectionInstanceService.get(req.user.id, instanceId);
+          if (!inst) {
+            res.status(404).json({ error: 'bilan section instance not found' });
+            return;
+          }
+          if ((inst as { bilanId?: string }).bilanId !== req.params.bilanId) {
+            res.status(400).json({ error: 'instance does not belong to target bilan' });
+            return;
+          }
+
+          const { contentNotes, contextMd } = await buildInstanceNotesContext(
+            req.user.id,
+            instanceId,
+          );
+
+          const userSlots =
+            req.body.userSlots && typeof req.body.userSlots === 'object'
+              ? (req.body.userSlots as Record<string, unknown>)
+              : undefined;
+
+          const result = await generateFromTemplateSvc(
+            sectionRecord.templateRefId,
+            contentNotes,
+            {
+              instanceId,
+              userSlots,
+              stylePrompt,
+              imageBase64,
+              contextMd,
+              // Ensure placeholders use RAW notes only (no markdown fallback)
+              placeholdersUseContextFallback: false,
+            },
+          );
+          res.json(result);
+          return;
+        } catch (err) {
+          next(err);
+          return;
+        }
+      }
+
+      // PROMPT-based generation (no template)
+      let anchors: AnchorSpecification[] = [];
+      let schemaQuestions: SectionQuestion[] = [];
+      let answersMarkdown = '';
+      let contentNotes: Record<string, unknown> = {};
+      if (sectionRecord?.schema) {
+        try {
+          const rawSchema = sectionRecord.schema;
+          schemaQuestions = Array.isArray(rawSchema)
+            ? (rawSchema as SectionQuestion[])
+            : [];
+          anchors = AnchorService.collect(schemaQuestions);
+          console.log('[ANCHOR] generate - anchors collected', {
+            sectionId,
+            anchors: anchors.map((a) => a.id),
+          });
+          if (schemaQuestions.length > 0 && Object.keys(answersObject).length > 0) {
+            try {
+              answersMarkdown = answersToMarkdown(schemaQuestions, answersObject);
+            } catch (err) {
+              console.warn('[generate] unable to markdownify answers from schema', err);
+            }
+          }
+        } catch (err) {
+          console.warn('[generate] unable to collect anchors', err);
+        }
+
+        try {
+          const latestInstances = await BilanSectionInstanceService.list(
+            req.user.id,
+            req.params.bilanId,
+            sectionId,
+            true,
+          );
+          if (latestInstances.length > 0) {
+            const latest = latestInstances[0];
+            contentNotes = (latest?.contentNotes ?? {}) as Record<string, unknown>;
+            console.log('[ANCHOR] generate - contentNotes loaded', {
+              hasContentNotes: Object.keys(contentNotes || {}).length > 0,
+            });
+          }
+        } catch (err) {
+          console.warn('[generate] unable to load content notes', err);
+        }
+      }
+
+      if (!answersMarkdown) {
+        if (Array.isArray(answersPayload)) {
+          answersMarkdown = answersPayload
+            .filter((part): part is string => typeof part === 'string')
+            .map((part) => part.trim())
+            .filter((part) => part.length > 0)
+            .join('\n\n');
+        } else if (typeof answersPayload === 'string') {
+          answersMarkdown = answersPayload;
+        } else if (Object.keys(answersObject).length > 0) {
+          answersMarkdown = JSON.stringify(answersObject);
+        }
+      }
+
+      // Resolve prompt key (either provided in body or derived from section.kind)
+      const promptKey = ((): keyof typeof promptConfigs | null => {
+        if (sectionKeyBody && (promptConfigs as any)[sectionKeyBody]) return sectionKeyBody;
+        const kind = sectionRecord?.kind as string | undefined;
+        if (kind && (promptConfigs as any)[kind]) return kind as keyof typeof promptConfigs;
+        return null;
+      })();
+      if (!promptKey) {
         res.status(400).json({ error: 'invalid section' });
         return;
       }
+      const cfg = promptConfigs[promptKey];
+
+      const instructions = AnchorService.injectPrompt(cfg.instructions, anchors);
       
       // Récupère le job du profil actif (si disponible)
       const profiles = (await ProfileService.list(req.user.id)) as unknown as Array<{ job?: 'PSYCHOMOTRICIEN' | 'ERGOTHERAPEUTE' | 'NEUROPSYCHOLOGUE' | null }>;
@@ -83,50 +231,18 @@ export const BilanController = {
 
       // Anonymisation en entrée (remplace le nom du patient par un placeholder générique)
       // Récupère nom/prénom si disponibles
-      const patient = await BilanService.get(req.user.id, req.params.bilanId);
-      let userContent = JSON.stringify(answers);
-      if (patient && typeof patient === 'object') {
-        const p = patient as {
-          firstName?: string;
-          lastName?: string;
-          patient?: { firstName?: string; lastName?: string };
-        };
-        const firstName = p.firstName || p.patient?.firstName;
-        const lastName = p.lastName || p.patient?.lastName;
-        // Ajoute le prénom au contexte utilisateur avant anonymisation, si disponible
-        if (firstName && typeof firstName === 'string' && firstName.trim().length > 0) {
-          userContent = `Prenom: "${firstName}"\n${userContent}`;
-        }
-        
-        console.log("userContent", userContent);
-        console.log("firstName", firstName);
-        console.log("lastName", lastName);
-        // Puis anonymise l'ensemble du contenu
-        if (firstName || lastName) {
-          //userContent = Anonymization.anonymizeText(userContent, { firstName, lastName });
-        }
-
-        console.log("userContent anonymized", userContent);
-      }
-
-      // Prefix context with section name for clarity (prefer actual section title when available)
-      let sectionTitle = cfg.title ?? String(section);
-      if (sectionId) {
-        try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const db = prisma as any;
-          const sec = await db.section.findUnique({ where: { id: sectionId } });
-          if (sec && typeof sec.title === 'string' && sec.title.trim().length > 0) {
-            sectionTitle = sec.title;
-          }
-        } catch {
-          // Non-bloquant: en cas d'échec, on retombe sur le titre de la config
-        }
-      }
-      //userContent = prependSectionContext(userContent, sectionTitle);
+      const promptContext = await buildSectionPromptContext({
+        userId: req.user.id,
+        bilanId: req.params.bilanId,
+        baseContent: answersMarkdown,
+        sectionId,
+        fallbackSectionTitle: cfg.title ?? (sectionRecord?.title ?? String(promptKey)),
+      });
+      const userContent = promptContext.content;
+      const patientNames = promptContext.patientNames;
 
       const text = await generateText({
-        instructions: cfg.instructions,
+        instructions,
         userContent,
         examples,
         stylePrompt,
@@ -136,19 +252,27 @@ export const BilanController = {
       });
       // Post-traitement: réinjecte le nom du patient si connu, sinon renvoie tel quel
       let postText = text as string;
-      if (patient && typeof patient === 'object') {
-        const p = patient as {
-          firstName?: string;
-          lastName?: string;
-          patient?: { firstName?: string; lastName?: string };
-        };
-        const firstName = p.firstName || p.patient?.firstName;
-        const lastName = p.lastName || p.patient?.lastName;
-        if (firstName || lastName) {
-          //postText = Anonymization.deanonymizeText(postText, { firstName, lastName });
-        }
+      if (patientNames.firstName || patientNames.lastName) {
+        //postText = Anonymization.deanonymizeText(postText, patientNames);
       }
-      res.json({ text: postText });
+      const { text: processedText, anchorsStatus } = PostProcessor.process({ text: postText, anchors });
+      const assembly = LexicalAssembler.assemble({
+        text: processedText,
+        anchors,
+        missingAnchorIds: anchorsStatus.missing,
+        questions: schemaQuestions,
+        answers: contentNotes,
+      });
+      console.log('[ANCHOR] generate - response summary', {
+        anchors: anchors.map((a) => a.id),
+        anchorsStatus,
+        autoInserted: assembly.autoInserted,
+      });
+      res.json({
+        assembledState: assembly.assembledState,
+        anchorsStatus,
+        autoInsertedAnchors: assembly.autoInserted,
+      });
     } catch (e) {
       next(e);
     }
@@ -241,6 +365,7 @@ export const BilanController = {
       const conclusionSections: Array<{ id: string; title: string }> = [];
       // Per-section editor state map for layout composition
       const sectionsMap: Record<string, { root: Record<string, unknown> }> = {};
+      const anchorsStatusBySection: Record<string, { ok: boolean; missing: string[]; autoInserted: string[] }> = {};
 
       // helper: detect if notes contain any meaningful data
       const hasMeaningful = (val: unknown): boolean => {
@@ -266,6 +391,17 @@ export const BilanController = {
           const kind: string = section.kind;
           const title: string = section.title;
           const templateId: string | null = section.templateRefId ?? null;
+          const rawSchema = section?.schema;
+          const schemaQuestions: SectionQuestion[] = Array.isArray(rawSchema)
+            ? (rawSchema as SectionQuestion[])
+            : [];
+          const anchors = AnchorService.collect(schemaQuestions);
+          if (anchors.length > 0) {
+            console.log('[ANCHOR] generateBilanType - anchors collected', {
+              sectionId: btSec.sectionId,
+              anchors: anchors.map((a) => a.id),
+            });
+          }
 
           // Defer conclusion sections to the end
           if (kind === 'conclusion') {
@@ -292,26 +428,24 @@ export const BilanController = {
             });
 
             // Build markdown context from notes using the shared helper
-            let contextMd: string | undefined;
+            let rawContextMd = '';
             try {
-              const schemaQuestions = ((section?.schema || []) as unknown[]) as any[];
-              contextMd = answersToMarkdown(schemaQuestions as any[], contentNotes as Record<string, unknown>);
-              console.log("contextMd", contextMd);
+              rawContextMd = answersToMarkdown(schemaQuestions as any[], contentNotes as Record<string, unknown>);
+              console.log("contextMd", rawContextMd);
             } catch {
               // Non-blocking: if markdownification fails, proceed without it
             }
 
-            // Ajoute le prénom au contexte si disponible, avant le préfixe de section
-            if (typeof contextMd === 'string' && contextMd.length > 0 && patientNames.firstName) {
-              contextMd = `Prenom: "${patientNames.firstName}"\n${contextMd}`;
-            }
+            const templatePromptContext = await buildSectionPromptContext({
+              userId,
+              bilanId,
+              baseContent: rawContextMd,
+              sectionId: section.id,
+              fallbackSectionTitle: title,
+              patientNames,
+            });
 
-            // Prefix markdown context with section title, if available
-            if (typeof contextMd === 'string' && contextMd.length > 0) {
-              //contextMd = prependSectionContext(contextMd, title);
-            }
-
-            const result = await generateFromTemplateSvc(templateId, contentNotes as Record<string, unknown>, { instanceId, contextMd });
+            const result = await generateFromTemplateSvc(templateId, contentNotes as Record<string, unknown>, { instanceId, contextMd: templatePromptContext.content });
 
             // Parse returned Lexical state and append its children (fallback aggregation)
             try {
@@ -342,41 +476,65 @@ export const BilanController = {
           if (!promptKey) continue;
 
           // Align prompt content with shared markdownification (_md only)
-          const schemaQuestions = ((section?.schema || []) as unknown[]) as any[];
-          let userContent = answersToMarkdown(schemaQuestions as any[], contentNotes as Record<string, unknown>);
-          // Ajoute le prénom au contexte utilisateur avant anonymisation, si disponible
-          if (patientNames.firstName && typeof patientNames.firstName === 'string' && patientNames.firstName.trim().length > 0) {
-            userContent = `Prenom: "${patientNames.firstName}"\n${userContent}`;
-          }
+          const sectionPromptContext = await buildSectionPromptContext({
+            userId,
+            bilanId,
+            baseContent: answersToMarkdown(schemaQuestions as any[], contentNotes as Record<string, unknown>),
+            sectionId: section.id,
+            fallbackSectionTitle: title,
+            patientNames,
+          });
+          let userContent = sectionPromptContext.content;
           if (patientNames.firstName || patientNames.lastName) {
-            //userContent = Anonymization.anonymizeText(userContent, patientNames);
+            //const anonymizedContent = Anonymization.anonymizeText(userContent, patientNames);
+            //userContent = anonymizedContent;
           }
-
-          // Prefix context with section title for clarity
-          //userContent = prependSectionContext(userContent, title);
 
           const cfg = promptConfigs[promptKey];
-          let text = await generateText({ instructions: cfg.instructions, userContent, job });
+          const instructions = AnchorService.injectPrompt(cfg.instructions, anchors);
+          let text = await generateText({ instructions, userContent, job });
           if (patientNames.firstName || patientNames.lastName) {
             //text = Anonymization.deanonymizeText(text as string, patientNames);
           }
 
-          // Build per-section state from Markdown (headings + paragraphs)
+          const { text: processedText, anchorsStatus } = PostProcessor.process({ text: String(text || ''), anchors });
+          const assembly = LexicalAssembler.assemble({
+            text: processedText,
+            anchors,
+            missingAnchorIds: anchorsStatus.missing,
+            questions: schemaQuestions,
+            answers: contentNotes as Record<string, unknown>,
+          });
+
+          anchorsStatusBySection[btSec.sectionId] = {
+            ok: anchorsStatus.ok,
+            missing: anchorsStatus.missing,
+            autoInserted: assembly.autoInserted,
+          };
+          if (anchors.length > 0) {
+            console.log('[ANCHOR] generateBilanType - section summary', {
+              sectionId: btSec.sectionId,
+              anchors: anchors.map((a) => a.id),
+              anchorsStatus: anchorsStatusBySection[btSec.sectionId],
+            });
+          }
+
+          const sectionState = JSON.parse(assembly.assembledState);
+
           {
-            const sectionChildren = markdownToLexicalChildren(String(text || ''));
             sectionsMap[btSec.sectionId] = {
-              root: { type: 'root', direction: 'ltr', format: '', indent: 0, version: 1, children: sectionChildren as unknown[] },
+              root: (sectionState?.root || sectionState) as Record<string, unknown>,
             } as { root: Record<string, unknown> };
           }
 
-          // Fallback aggregation: heading for the section title + rendered Markdown content
+          // Fallback aggregation: heading for the section title + rendered Lexical content
           {
             children.push({
               type: 'heading', tag: 'h2', direction: 'ltr', format: '', indent: 0, version: 1,
               children: [{ type: 'text', text: String(title), detail: 0, format: 0, style: '', version: 1 }],
             });
-            const mdNodes = markdownToLexicalChildren(String(text || '')) as unknown[];
-            for (const node of mdNodes) children.push(node);
+            const nodes = (((sectionState as Record<string, unknown>)?.root as Record<string, unknown>)?.children ?? []) as unknown[];
+            for (const node of nodes) children.push(node);
             // Blank line between sections
             children.push({ type: 'paragraph', direction: 'ltr', format: '', indent: 0, version: 1, children: [] });
           }
@@ -412,9 +570,10 @@ export const BilanController = {
           // Build conclusion per-section states and also append to fallback aggregation
           for (const c of conclusionSections) {
             // Per-section state
-            const cChildren: unknown[] = markdownToLexicalChildren(String(conclusionText || '')) as unknown[];
+            const conclusionState = markdownToLexicalState(String(conclusionText || ''));
+            const cChildren = ((conclusionState.root as Record<string, unknown>)?.children ?? []) as unknown[];
             sectionsMap[c.id] = {
-              root: { type: 'root', direction: 'ltr', format: '', indent: 0, version: 1, children: cChildren as unknown[] },
+              root: conclusionState.root as Record<string, unknown>,
             } as { root: Record<string, unknown> };
 
             // Fallback aggregation: heading + paragraphs
@@ -437,8 +596,13 @@ export const BilanController = {
       if (layout && typeof layout === 'object' && layout.root) {
         try {
           const composed = hydrateLayout(layout as { root: Record<string, unknown> }, sectionsMap);
-          const assembledState = JSON.stringify({ root: composed.root, version: 1 });
-          res.json({ assembledState });
+          const assembledState = lexicalStateToJSON(
+            normalizeLexicalEditorState({ root: composed.root }),
+          );
+          console.log('[ANCHOR] generateBilanType - final response (layout)', {
+            sectionsWithAnchors: Object.keys(anchorsStatusBySection),
+          });
+          res.json({ assembledState, anchorsStatus: anchorsStatusBySection });
           return;
         } catch (err) {
           // eslint-disable-next-line no-console
@@ -446,11 +610,16 @@ export const BilanController = {
         }
       }
 
-      const editorState = {
-        root: { type: 'root', direction: 'ltr', format: '', indent: 0, version: 1, children },
-        version: 1,
-      };
-      res.json({ assembledState: JSON.stringify(editorState) });
+      const fallbackState = normalizeLexicalEditorState({
+        root: { children },
+      });
+      console.log('[ANCHOR] generateBilanType - final response (fallback)', {
+        sectionsWithAnchors: Object.keys(anchorsStatusBySection),
+      });
+      res.json({
+        assembledState: lexicalStateToJSON(fallbackState),
+        anchorsStatus: anchorsStatusBySection,
+      });
     } catch (e) {
       next(e);
     }

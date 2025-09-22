@@ -110,11 +110,12 @@ export const ImportController = {
         if (section?.templateRefId) {
           console.log('[DEBUG] importMagiqueToTemplate - Section already has template, overriding:', section.templateRefId);
           console.log('[DEBUG] importMagiqueToTemplate - Saving to DB - slotsSpec:', JSON.stringify(slotsSpec, null, 2));
-          saved = await SectionTemplateService.update(section.templateRefId, {
+          const updated = await SectionTemplateService.update(section.templateRefId, {
             label: label || section.title || 'Template généré',
             content: content,
             slotsSpec: slotsSpec,
           });
+          saved = updated.template as { id: string };
         } else {
           const templateId = `${Date.now()}`;
           console.log('[DEBUG] importMagiqueToTemplate - Creating new template - slotsSpec:', JSON.stringify(slotsSpec, null, 2));
