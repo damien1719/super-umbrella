@@ -154,7 +154,7 @@ export function TableEditor({ q, onPatch }: EditorProps) {
     const newCol: ColumnDef = {
       id: genId(),
       label: trimmed,
-      valueType: 'text',
+      valueType: 'number',
     };
     setTable({ ...tableau, columns: [...tableau.columns, newCol] });
   };

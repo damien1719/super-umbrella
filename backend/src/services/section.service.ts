@@ -95,7 +95,7 @@ export const SectionService = {
       include: { templateRef: true },
     });
 
-    await syncTemplateFromSchema(created);
+    //await syncTemplateFromSchema(created);
     return created;
   },
 
@@ -239,7 +239,7 @@ export const SectionService = {
     if (await isAdminUser(userId)) {
       const updated = await db.section.update({ where: { id }, data, include: { templateRef: true } });
       if (requiresSync) {
-        await syncTemplateFromSchema(updated);
+        //await syncTemplateFromSchema(updated);
       }
       return updated;
     }
@@ -274,7 +274,7 @@ export const SectionService = {
     if (count === 0) throw new NotFoundError();
     const section = await db.section.findUnique({ where: { id }, include: { templateRef: true } });
     if (section && requiresSync) {
-      await syncTemplateFromSchema(section);
+      //await syncTemplateFromSchema(section);
     }
     return section;
   },

@@ -165,7 +165,7 @@ export function TableQuestion({
       case 'number':
         return (
           <Input
-            type="number"
+            type="texte"
             size="sm"
             value={(cellValue as number | string | undefined) ?? ''}
             onChange={(e) =>
