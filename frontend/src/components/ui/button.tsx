@@ -49,10 +49,11 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   tooltip?: React.ReactNode;
+  tooltipSide?: 'top' | 'right' | 'bottom' | 'left';
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, tooltip, ...props }, ref) => {
+  ({ className, variant, size, tooltip, tooltipSide = 'top', ...props }, ref) => {
     const buttonEl = (
       <button
         className={cn(buttonVariants({ variant, size, className }))}
@@ -67,7 +68,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>{buttonEl}</TooltipTrigger>
-          <TooltipContent>{tooltip}</TooltipContent>
+          <TooltipContent side={tooltipSide}>{tooltip}</TooltipContent>
         </Tooltip>
       </TooltipProvider>
     );

@@ -846,7 +846,7 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
   });
 
   // Bordure de paragraphe (pleine largeur)
-  toolbarItems.push({
+/*   toolbarItems.push({
     key: 'border',
     element: (
       <DropdownMenu onOpenChange={(open) => !open && handleSelectClosed()}>
@@ -909,14 +909,14 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
         </DropdownMenuContent>
       </DropdownMenu>
     ),
-  });
+  }); */
 
   toolbarItems.push({
     key: 'sep-2',
     element: <div className="w-px self-stretch bg-wood-200 mx-1" />,
   });
 
-  toolbarItems.push({
+/*   toolbarItems.push({
     key: 'table',
     element: (
       <DropdownMenu>
@@ -938,7 +938,7 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
         </DropdownMenuContent>
       </DropdownMenu>
     ),
-  });
+  }); */
 
   toolbarItems.push({
     key: 'ul',
