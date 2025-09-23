@@ -134,7 +134,7 @@ function markdownifyField(q: Question, value: unknown): string {
             : '';
         const comment = (value as any).commentaire || '';
         return `${q.titre}: ${selectedOptions}${
-          comment ? `\n\n> **Commentaire** : ${comment}` : ''
+          comment ? `\n\n> Commentaire : ${comment}` : ''
         }`;
       }
       return `${q.titre}: ${value ?? ''}`;
@@ -188,5 +188,5 @@ export function answersToMdBlocks(questions: Question[], ans: Answers): string[]
 }
 
 export function answersToMarkdown(questions: Question[], ans: Answers): string {
-  return answersToMdBlocks(questions, ans).join('\n---\n');
+  return answersToMdBlocks(questions, ans).join('\n\n');
 }

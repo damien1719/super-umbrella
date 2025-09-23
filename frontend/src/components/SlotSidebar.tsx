@@ -342,11 +342,7 @@ export default function SlotSidebar({
                 onClick={
                   formattingEditMode ? onSaveTemplate : onEnterFormattingMode
                 }
-                disabled={
-                  formattingEditMode
-                    ? templateSaving || !templateDirty
-                    : templateSaving
-                }
+                disabled={templateSaving}
                 className="min-w-[112px]"
               >
                 {templateSaving

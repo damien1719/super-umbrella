@@ -56,6 +56,10 @@ import {
 import { BorderBlockNode } from '../nodes/BorderBlockNode';
 import { GenPartPlaceholderNode } from '../nodes/GenPartPlaceholderNode';
 import { AnchorNode } from '../nodes/AnchorNode';
+import { TitleHeadingNode } from '../nodes/TitleHeadingNode';
+import { GroupHeadingMarkerNode } from '../nodes/GroupHeadingMarkerNode';
+import { QuestionGroupNode } from '../nodes/QuestionGroupNode';
+import { QuestionTypeTitreNode } from '../nodes/QuestionTypeTitreNode';
 import type { SlotType, FieldSpec } from '../types/template';
 import { scanAndInsertSlots as runScanAndInsertSlots } from '../utils/scanAndInsertSlots';
 import TableContextMenuPlugin from './TableContextMenuPlugin';
@@ -580,6 +584,10 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
         SectionPlaceholderNode,
         GenPartPlaceholderNode,
         AnchorNode,
+        TitleHeadingNode,
+        QuestionGroupNode, // legacy read support
+        QuestionTypeTitreNode,
+        GroupHeadingMarkerNode,
         BorderBlockNode,
       ],
     };

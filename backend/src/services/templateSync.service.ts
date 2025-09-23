@@ -138,24 +138,14 @@ function toSpecEntry(node: GenPartPlaceholderNodeJSON): GenPartSpecEntry {
   };
 }
 
-function createHeadingNode(title: string, headingId: string | null, groupId: string): LexicalNode {
+function createParagraphTextNode(text: string): LexicalNode {
   return {
-    type: 'heading',
-    tag: 'h2',
-    direction: 'ltr',
-    format: '',
-    indent: 0,
+    type: 'paragraph',
     version: 1,
-    headingId: headingId ?? undefined,
-    groupId,
-    data: {
-      headingId: headingId ?? null,
-      groupId,
-    },
     children: [
       {
         type: 'text',
-        text: title,
+        text,
         detail: 0,
         format: 0,
         mode: 'normal',
@@ -168,6 +158,26 @@ function createHeadingNode(title: string, headingId: string | null, groupId: str
 
 function createPlaceholderNode(node: GenPartPlaceholderNodeJSON): LexicalNode {
   return cloneGenPartNode(node) as unknown as LexicalNode;
+}
+
+// group-heading support removed
+
+function createQuestionTypeTitreNode(
+  questionId: string,
+  groupId: string,
+  children: LexicalNode[] = [],
+): LexicalNode {
+  return {
+    type: 'question-type-titre',
+    version: 1,
+    questionId,
+    groupId,
+    data: {
+      questionId,
+      groupId,
+    },
+    children,
+  } as LexicalNode;
 }
 
 function createReport(): TemplateSyncReport {
@@ -293,59 +303,29 @@ export function normalizeGenPartsSpecPayload(raw: unknown): GenPartsSpec {
   return { genPartsSpec: normalized, specVersion: 1 };
 }
 
-interface HeadingMetadata {
-  headingId: string | null;
-  groupId: string | null;
-}
+// Simplified: only rely on question-type-titre nodes for mapping questionId -> groupId
 
 interface PlaceholderInfo {
   placeholderId: string;
   entry: GenPartSpecEntry;
 }
 
-function readHeadingMetadata(node: LexicalNode): HeadingMetadata | null {
-  if (!node || typeof node !== 'object') return null;
-  if (node.type !== 'heading' && node.type !== 'group-heading') return null;
-
-  const directHeadingId =
-    typeof (node as { headingId?: unknown }).headingId === 'string'
-      ? ((node as { headingId?: unknown }).headingId as string)
-      : null;
-  const directGroupId =
-    typeof (node as { groupId?: unknown }).groupId === 'string'
-      ? ((node as { groupId?: unknown }).groupId as string)
-      : null;
-
-  const data = (node as { data?: unknown }).data;
-  const dataHeadingId =
-    data && typeof data === 'object' && typeof (data as { headingId?: unknown }).headingId === 'string'
-      ? ((data as { headingId?: unknown }).headingId as string)
-      : null;
-  const dataGroupId =
-    data && typeof data === 'object' && typeof (data as { groupId?: unknown }).groupId === 'string'
-      ? ((data as { groupId?: unknown }).groupId as string)
-      : null;
-
-  const headingId = directHeadingId ?? dataHeadingId;
-  const groupId = directGroupId ?? dataGroupId;
-
-  if (!headingId && !groupId) return null;
-
-  return {
-    headingId: headingId ?? null,
-    groupId: groupId ?? null,
+function collectTitreMap(layout: LexicalState | null | undefined): Map<string, string> {
+  const map = new Map<string, string>();
+  const visit = (node: LexicalNode | undefined) => {
+    if (!node || typeof node !== 'object') return;
+    if (node.type === 'question-type-titre') {
+      const qid = (node as any).questionId;
+      const gid = (node as any).groupId ?? (node as any)?.data?.groupId;
+      if (typeof qid === 'string' && typeof gid === 'string' && qid && gid) {
+        map.set(qid, gid);
+      }
+    }
+    const children = asArray<LexicalNode>((node as LexicalNode).children ?? []);
+    for (const child of children) visit(child);
   };
-}
-
-function collectHeadingMetadata(layout: LexicalState | null | undefined): HeadingMetadata[] {
-  if (!layout?.root || typeof layout.root !== 'object') return [];
-  const children = asArray<LexicalNode>((layout.root as LexicalNode).children ?? []);
-  const result: HeadingMetadata[] = [];
-  for (const child of children) {
-    const metadata = readHeadingMetadata(child);
-    if (metadata) result.push(metadata);
-  }
-  return result;
+  if (layout?.root && typeof layout.root === 'object') visit(layout.root as LexicalNode);
+  return map;
 }
 
 function arraysEqual(a: string[], b: string[]): boolean {
@@ -464,17 +444,119 @@ function mergeTargetNodes(
   const queue = [...targetNodes];
   const merged: LexicalNode[] = [];
 
+  const extractTitleText = (node: LexicalNode | undefined): string => {
+    if (!node) return '';
+    return extractPlainText(node as LexicalNode) ?? '';
+  };
+
+  const getQTitreIds = (node: LexicalNode): { questionId: string; groupId: string } => {
+    const qid = (node as any).questionId ?? (node as any)?.data?.questionId ?? '';
+    const gid = (node as any).groupId ?? (node as any)?.data?.groupId ?? '';
+    return { questionId: typeof qid === 'string' ? qid : '', groupId: typeof gid === 'string' ? gid : '' };
+  };
+
+  const setTextPreserveStructure = (node: LexicalNode, newText: string): LexicalNode => {
+    // Deep clone to avoid mutating the original
+    const copy = deepClone(node);
+
+    // Collect references to all descendant text nodes in order (depth-first)
+    const textNodes: { parent: any; index: number }[] = [];
+    const visit = (n: any) => {
+      if (!n || typeof n !== 'object') return;
+      const children = Array.isArray(n.children) ? (n.children as any[]) : [];
+      for (let i = 0; i < children.length; i += 1) {
+        const c = children[i];
+        if (c && typeof c === 'object' && c.type === 'text') {
+          textNodes.push({ parent: n, index: i });
+        }
+        visit(c);
+      }
+    };
+    visit(copy);
+
+    if (textNodes.length === 0) {
+      // Try to inject a paragraph with a single text child under the title container
+      // while preserving the outer node.
+      if (copy && typeof copy === 'object') {
+        const kids = Array.isArray((copy as any).children) ? ((copy as any).children as any[]) : [];
+        const paragraph = createParagraphTextNode(newText);
+        if (kids.length === 0) {
+          (copy as any).children = [paragraph];
+        } else {
+          // Replace the first child content if it has no text nodes either
+          const first = kids[0];
+          const firstKids = Array.isArray(first?.children) ? (first.children as any[]) : [];
+          const firstHasText = firstKids.some((c: any) => c && typeof c === 'object' && c.type === 'text');
+          if (!firstHasText) {
+            (copy as any).children = [paragraph, ...kids.slice(1)];
+          }
+        }
+      }
+      return copy;
+    }
+
+    // Strategy: distribute the new text across existing text nodes to preserve
+    // inline formatting spans as much as possible.
+    const total = textNodes.length;
+    for (let i = 0; i < total; i += 1) {
+      const start = Math.floor((i * newText.length) / total);
+      const end = Math.floor(((i + 1) * newText.length) / total);
+      const slice = newText.slice(start, end);
+      const { parent, index } = textNodes[i];
+      const t = parent.children[index];
+      if (t && typeof t === 'object' && t.type === 'text') {
+        t.text = slice;
+      }
+    }
+
+    return copy;
+  };
+
   for (const child of previousChildren) {
     if (
       child &&
       typeof child === 'object' &&
-      (child.type === 'heading' || child.type === 'group-heading' || isGenPartNode(child) || isAnchorNode(child))
+      child.type === 'question-type-titre'
+    ) {
+      // Try to find matching target titre by questionId (preferred) or groupId.
+      const { questionId, groupId } = getQTitreIds(child);
+      let matchIndex = -1;
+      for (let i = 0; i < queue.length; i += 1) {
+        const candidate = queue[i];
+        if (!candidate || typeof candidate !== 'object' || candidate.type !== 'question-type-titre') continue;
+        const ids = getQTitreIds(candidate);
+        if ((questionId && ids.questionId === questionId) || (groupId && ids.groupId === groupId)) {
+          matchIndex = i;
+          break;
+        }
+      }
+
+      if (matchIndex >= 0) {
+        const [match] = queue.splice(matchIndex, 1);
+        const newText = extractTitleText(match);
+        const updated = setTextPreserveStructure(child, newText);
+        merged.push(updated);
+        continue;
+      }
+
+      // No matching target titre: fallback to old behavior (consume next target if exists)
+      if (queue.length) {
+        merged.push(queue.shift()!);
+      }
+      continue;
+    }
+
+    if (
+      child &&
+      typeof child === 'object' &&
+      (isGenPartNode(child) || isAnchorNode(child))
     ) {
       if (queue.length) {
         merged.push(queue.shift()!);
       }
       continue;
     }
+
     merged.push(deepClone(child));
   }
 
@@ -526,14 +608,8 @@ export function schemaToLayout(
     previousPlaceholderIds.add(placeholderId);
   }
 
-  const headingMetadata = collectHeadingMetadata(previousLayout ?? null);
-  const headingToGroupId = new Map<string, string>();
-  for (const meta of headingMetadata) {
-    if (meta.headingId && meta.groupId) {
-      headingToGroupId.set(meta.headingId, meta.groupId);
-      existingGroupIds.add(meta.groupId);
-    }
-  }
+  const headingToGroupId = collectTitreMap(previousLayout ?? null);
+  for (const gid of headingToGroupId.values()) existingGroupIds.add(gid);
 
   const assignedGroupIds = new Set<string>();
   const placeholderIdPool = new Set<string>(previousPlaceholderIds);
@@ -566,14 +642,16 @@ export function schemaToLayout(
       existingGroupIds,
     );
 
+    // Emit the title container first (question-type-titre), with a visual child
     if (group.heading) {
-      const headingId = group.heading.id;
+      const questionId = group.heading.id;
       const title = group.heading.titre ?? '';
-      if (!headingToGroupId.has(headingId)) {
-        report.injectedHeadingIds.push(headingId);
+      if (!headingToGroupId.has(questionId)) {
+        report.injectedHeadingIds.push(questionId);
       }
-      headingToGroupId.set(headingId, groupId);
-      targetNodes.push(createHeadingNode(title, headingId, groupId));
+      headingToGroupId.set(questionId, groupId);
+      const titleChild = createParagraphTextNode(title);
+      targetNodes.push(createQuestionTypeTitreNode(questionId, groupId, [titleChild]));
     }
 
     // Split questions by anchors and create placeholders for each segment.
@@ -635,7 +713,7 @@ export function schemaToLayout(
         // Mark the anchor question as used (it won’t be part of any placeholder)
         usedQuestionIds.add(q.id);
 
-        // Insert anchor node in the layout as a structural node
+        // Insert anchor node as a sibling in the layout
         targetNodes.push(
           createAnchorNode({ anchorId, groupId, questionId: q.id }) as unknown as LexicalNode,
         );
@@ -696,14 +774,12 @@ function walkNodes(nodes: LexicalNode[]): LexicalNode[] {
   const out: LexicalNode[] = [];
   for (const node of nodes) {
     if (!node || typeof node !== 'object') continue;
-    if (node.type === 'heading' || isGenPartNode(node) || isAnchorNode(node)) {
+    if (node.type === 'question-type-titre' || isGenPartNode(node) || isAnchorNode(node)) {
       out.push(node);
       continue;
     }
     const children = asArray<LexicalNode>(node.children ?? []);
-    if (children.length) {
-      out.push(...walkNodes(children));
-    }
+    if (children.length) out.push(...walkNodes(children));
   }
   return out;
 }
@@ -771,26 +847,76 @@ export function layoutToSchema(
 
   const placeholderUpdates = new Map<string, GenPartPlaceholderNodeJSON>();
 
-  for (const node of nodes) {
-    if (node.type === 'heading') {
+  const visitChildrenForPlaceholders = (n: LexicalNode | undefined) => {
+    if (!n || typeof n !== 'object') return;
+    const kids = asArray<LexicalNode>((n as any).children ?? []);
+    for (const child of kids) {
+      if (isAnchorNode(child)) {
+        const anchorId = (child as { anchorId?: string }).anchorId ?? '';
+        if (anchorId) {
+          const match = baseQuestions.find((q) => {
+            if (q.type !== 'tableau') return false;
+            const tbl = (q.source as any)?.tableau as { crInsert?: boolean; crTableId?: string } | undefined;
+            return tbl?.crInsert === true && typeof tbl?.crTableId === 'string' && tbl.crTableId?.trim() === anchorId;
+          });
+          if (match) {
+            newSchema.push(deepClone(match.source));
+            usedQuestionIds.add(match.id);
+          } else {
+            report.notes.push(`Anchor ${anchorId} has no matching table question in base schema`);
+          }
+        }
+        continue;
+      }
+      if (isGenPartNode(child)) {
+        const normalized = normalizeGenPartNode(child);
+        if (!normalized) {
+          report.notes.push('Invalid gen-part-placeholder node encountered');
+        } else {
+          const sanitized = sanitizePlaceholder(normalized);
+          placeholderUpdates.set(sanitized.placeholderId, sanitized);
+          genPartsSpecMap[sanitized.placeholderId] = toSpecEntry(sanitized);
+        }
+        continue;
+      }
+      visitChildrenForPlaceholders(child);
+    }
+  };
+
+  for (let idx = 0; idx < nodes.length; idx += 1) {
+    const node = nodes[idx];
+
+    if ((node as any)?.type === 'question-type-titre') {
+      const qid = (node as any).questionId ?? (node as any)?.data?.questionId ?? '';
       const text = extractPlainText(node) ?? '';
-      const existingHeading = headingPool[headingIndex++];
-      if (existingHeading) {
-        const clone = deepClone(existingHeading.source);
+      const byId = typeof qid === 'string' && qid.length ? questionMap.get(qid) : undefined;
+      if (byId) {
+        const clone = deepClone(byId.source);
         clone.titre = text;
         newSchema.push(clone);
-        usedQuestionIds.add(existingHeading.id);
+        usedQuestionIds.add(byId.id);
       } else {
-        const headingQuestion = {
-          id: randomUUID(),
-          type: 'titre',
-          titre: text,
-        } as Record<string, unknown>;
-        newSchema.push(headingQuestion);
-        report.injectedHeadingIds.push(headingQuestion.id as string);
+        const existingHeading = headingPool[headingIndex++];
+        if (existingHeading) {
+          const clone = deepClone(existingHeading.source);
+          clone.titre = text;
+          newSchema.push(clone);
+          usedQuestionIds.add(existingHeading.id);
+        } else {
+          const headingQuestion = {
+            id: randomUUID(),
+            type: 'titre',
+            titre: text,
+          } as Record<string, unknown>;
+          newSchema.push(headingQuestion);
+          report.injectedHeadingIds.push(headingQuestion.id as string);
+        }
       }
+      visitChildrenForPlaceholders(node);
       continue;
     }
+
+    // legacy heading/group-heading support removed
 
     if (isAnchorNode(node)) {
       const anchorId = (node as { anchorId?: string }).anchorId ?? '';

@@ -11,6 +11,8 @@ import {
 import {
   INSERT_UNORDERED_LIST_COMMAND,
   INSERT_ORDERED_LIST_COMMAND,
+  $createListNode,
+  $createListItemNode,
 } from '@lexical/list';
 import { useCallback, useEffect, useState } from 'react';
 import { $patchStyleText, $setBlocksType } from '@lexical/selection';
@@ -65,6 +67,7 @@ import {
   type BorderPreset,
 } from '../nodes/BorderBlockNode';
 import { SET_LINE_HEIGHT_COMMAND } from '../plugins/LineHeightPlugin';
+import { $isTitleHeadingNode } from '../nodes/TitleHeadingNode';
 
 function parseInlineStyle(style: string): Record<string, string> {
   const map: Record<string, string> = {};
@@ -274,7 +277,7 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
             : topLevel;
           const type = underlying.getType();
           if (type === 'paragraph') setBlockType('paragraph');
-          else if ($isHeadingNode(underlying)) {
+          else if ($isHeadingNode(underlying) || $isTitleHeadingNode(underlying as any)) {
             const tag = (underlying as any).getTag?.();
             if (tag === 'h1' || tag === 'h2' || tag === 'h3') setBlockType(tag);
             else setBlockType('paragraph');
@@ -322,6 +325,22 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
         editor.update(() => {
           const selection = $getSelection();
           if ($isRangeSelection(selection)) {
+            const anchor = selection.anchor.getNode();
+            const top = anchor.getTopLevelElement();
+            const underlying = ($isBorderBlockNode(top)
+              ? (top as any).getFirstChild?.() || top
+              : top) as any;
+
+            // If selection is on a TitleHeadingNode, only adjust level for h1/h2/h3.
+            if ($isTitleHeadingNode(underlying)) {
+              if (next === 'h1' || next === 'h2' || next === 'h3') {
+                const level = next === 'h1' ? 1 : next === 'h2' ? 2 : 3;
+                underlying.setLevel?.(level);
+              }
+              // ignore requests to convert to paragraph/quote for title nodes
+              return;
+            }
+
             if (next === 'paragraph')
               $setBlocksType(selection, () => $createParagraphNode());
             else if (next === 'quote')
@@ -387,10 +406,42 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
 
   const insertList = useCallback(
     (ordered: boolean) => {
-      editor.dispatchCommand(
-        ordered ? INSERT_ORDERED_LIST_COMMAND : INSERT_UNORDERED_LIST_COMMAND,
-        undefined,
-      );
+      editor.update(() => {
+        const selection = $getSelection();
+        if (!$isRangeSelection(selection)) {
+          editor.dispatchCommand(
+            ordered
+              ? INSERT_ORDERED_LIST_COMMAND
+              : INSERT_UNORDERED_LIST_COMMAND,
+            undefined,
+          );
+          return;
+        }
+        const anchor = selection.anchor.getNode();
+        const top = anchor.getTopLevelElement();
+        const underlying = ($isBorderBlockNode(top)
+          ? (top as any).getFirstChild?.() || top
+          : top) as any;
+
+        if ($isTitleHeadingNode(underlying)) {
+          // Wrap the title node in a list item so it gets a bullet visually,
+          // without converting the title node itself.
+          const list = $createListNode(ordered ? 'number' : 'bullet');
+          const item = $createListItemNode();
+          // Replace the underlying top-level with the list, then append the title inside the li
+          underlying.replace?.(list);
+          list.append(item);
+          item.append(underlying);
+          return;
+        }
+
+        editor.dispatchCommand(
+          ordered
+            ? INSERT_ORDERED_LIST_COMMAND
+            : INSERT_UNORDERED_LIST_COMMAND,
+          undefined,
+        );
+      });
     },
     [editor],
   );

@@ -459,7 +459,9 @@ export default function CreationTrame({
     });
   };
 
-  const isDirty = savedSnapshot !== buildSnapshot();
+  // Track unsaved changes across both section (questions/settings) and template (advanced mode)
+  const sectionDirty = savedSnapshot !== buildSnapshot();
+  const isDirty = sectionDirty || formattingDirty;
 
   const saveOnly = async () => {
     if (!sectionId) return;
