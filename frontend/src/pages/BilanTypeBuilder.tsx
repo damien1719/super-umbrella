@@ -624,18 +624,14 @@ export default function BilanTypeBuilder({
 
   return (
     <div className="min-h-screen bg-background p-4">
-      <div className="max-w-7xl mx-auto">
+      <div className="mx-auto px-4">
         {/* Header */}
-        <div className="mb-6">
+        <div className="mb-2">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowConfirm(true)}
-                aria-label="Retour"
-              >
-                <ArrowLeft className="h-5 w-5" />
+              <Button variant="outline" onClick={() => setShowConfirm(true)}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Retour
               </Button>
               <div>
                 {isEditingTitle ? (
@@ -692,13 +688,13 @@ export default function BilanTypeBuilder({
         </div>
 
         {/* Tabs with extra spacing from header */}
-        <div className="mb-8">
+        <div className="mb-4">
           <div className="flex-1 mt-4">
             <Tabs
               tabs={[
                 { key: 'build', label: 'Construction' },
-                { key: 'layout', label: 'Edition Word' },
                 { key: 'apercu', label: 'Aperçu des questions' },
+                { key: 'layout', label: 'Edition Word' },
                 /*                 { key: 'preview', label: 'Modèle Word (avancé)' },
                  */ { key: 'settings', label: 'Réglages' },
               ]}
@@ -709,28 +705,32 @@ export default function BilanTypeBuilder({
         </div>
 
         {mode === 'build' ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <SectionDisponible
-              availableElements={availableElements}
-              onAddElement={addSectionElement}
-              onOpenExplorer={() => handleExplorerOpenChange(true)}
-            />
+          <div className="flex flex-col lg:flex-row gap-4 h-[calc(100vh-9rem)] min-h-[500px]">
+            <div className="flex-1 overflow-y-auto">
+              <SectionDisponible
+                availableElements={availableElements}
+                onAddElement={addSectionElement}
+                onOpenExplorer={() => handleExplorerOpenChange(true)}
+              />
+            </div>
 
-            <BilanTypeConstruction
-              bilanName={bilanName}
-              setBilanName={setBilanName}
-              selectedElements={deriveSelectedElements(layoutJson)}
-              isSaving={isSaving}
-              draggedIndex={draggedIndex}
-              onDragStart={handleDragStart}
-              onDragOver={handleDragOver}
-              onDrop={handleDrop}
-              onDragEnd={() => setDraggedIndex(null)}
-              onRemoveElement={removeElementByIndex}
-              onAddHeading={addHeadingElement}
-              onRenameHeading={renameHeadingByIndex}
-              onSave={saveBilanType}
-            />
+            <div className="flex-1 overflow-y-auto">
+              <BilanTypeConstruction
+                bilanName={bilanName}
+                setBilanName={setBilanName}
+                selectedElements={deriveSelectedElements(layoutJson)}
+                isSaving={isSaving}
+                draggedIndex={draggedIndex}
+                onDragStart={handleDragStart}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+                onDragEnd={() => setDraggedIndex(null)}
+                onRemoveElement={removeElementByIndex}
+                onAddHeading={addHeadingElement}
+                onRenameHeading={renameHeadingByIndex}
+                onSave={saveBilanType}
+              />
+            </div>
           </div>
         ) : mode === 'layout' ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
