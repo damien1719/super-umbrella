@@ -188,5 +188,5 @@ export function answersToMdBlocks(questions: Question[], ans: Answers): string[]
 }
 
 export function answersToMarkdown(questions: Question[], ans: Answers): string {
-  return answersToMdBlocks(questions, ans).join('\n---\n');
+  return answersToMdBlocks(questions, ans).join('\n\n');
 }
