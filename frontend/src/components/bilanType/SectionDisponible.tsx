@@ -81,7 +81,7 @@ export function SectionDisponible({
         <div className="flex items-center justify-between gap-2">
           <CardTitle className="flex items-center gap-2">
             <Plus className="h-5 w-5" />
-            Liste des parties
+            Pour composer votre trame de bilan, cliquer sur les parties disponibles
           </CardTitle>
           {onOpenExplorer && (
             <Button
@@ -178,3 +178,4 @@ export function SectionDisponible({
     </Card>
   );
 }
+

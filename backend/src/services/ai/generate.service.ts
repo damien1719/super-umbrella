@@ -52,8 +52,35 @@ export async function transformText(params: TransformPromptParams) {
     JSON.parse(sanitized) as TransformPromptParams,
   );
 
-  // 3. Post-processing (still run through guardrails for consistency)
-  return guardrails.post(structured);
+  // 3. Post-processing: replace all `id` fields with unique IDs based on Date.now() + local counter
+  const baseTs = Date.now();
+  let counter = 0;
+  const nextId = () => `${baseTs+counter}`;
+
+  const replaceIdsDeep = (value: unknown): unknown => {
+    if (Array.isArray(value)) {
+      return value.map((v) => replaceIdsDeep(v));
+    }
+    if (value && typeof value === 'object') {
+      const input = value as Record<string, unknown>;
+      const output: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(input)) {
+        if (k === 'id') {
+          output[k] = nextId();
+          counter++;
+        } else {
+          output[k] = replaceIdsDeep(v);
+        }
+      }
+      return output;
+    }
+    return value;
+  };
+
+  const structuredWithNewIds = replaceIdsDeep(structured);
+
+  // 4. Guardrails post-processing for consistency
+  return guardrails.post(structuredWithNewIds);
 }
 
 
