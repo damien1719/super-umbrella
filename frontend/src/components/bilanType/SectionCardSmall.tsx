@@ -58,6 +58,7 @@ export function SectionCardSmall({ element, onAdd, onPreview }: SectionCardSmall
                 navigate(`/creation-trame/${element.id}`);
               }}
             >
+            <Expand className="w-4 h-4" />
               Ouvrir
             </Button>
     
