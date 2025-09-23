@@ -75,9 +75,9 @@ export const SectionService = {
     const hasSchema =
       Array.isArray((data as any).schema) && (data as any).schema.length > 0;
     const defaultSchema = [
-      { id: randomUUID(), type: 'titre', titre: data.title },
+      { id: `${Date.now()}`, type: 'titre', titre: data.title },
       {
-        id: randomUUID(),
+        id: `${Date.now() + 1}`,
         type: 'notes',
         titre: '',
         contenu: '',

@@ -831,7 +831,7 @@ function TitlePresetDropdown({
 
 export function TitleEditor({ q, onPatch }: EditorProps) {
   const presets = React.useMemo(() => Object.values(DEFAULT_TITLE_PRESETS), []);
-  const defaultPresetId = presets[0]?.id;
+  const defaultPresetId = "t12-underline";
 
   React.useEffect(() => {
     if (!defaultPresetId) return;

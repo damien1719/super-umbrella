@@ -5,7 +5,7 @@ import type React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { GripVertical, X, ExternalLink } from 'lucide-react';
+import { GripVertical, X, Eye as EyeIcon, CornerDownRight, Expand } from 'lucide-react';
 import JobBadge from '@/components/ui/job-badge';
 import {
   categories,
@@ -43,6 +43,8 @@ interface BilanTypeConstructionCardProps {
   onRenameHeading: (index: number, title: string) => void;
 }
 
+import { useNavigate } from 'react-router-dom';
+
 export function BilanTypeConstructionCard({
   element,
   index,
@@ -54,6 +56,7 @@ export function BilanTypeConstructionCard({
   onRemove,
   onRenameHeading,
 }: BilanTypeConstructionCardProps) {
+  const navigate = useNavigate();
   const isSection = element.kind === 'section';
   const categoryId = (isSection ? (element as any).type : undefined) as
     | CategoryId
@@ -140,15 +143,13 @@ export function BilanTypeConstructionCard({
                 size="sm"
                 onClick={(e) => {
                   e.stopPropagation();
-                  window.open(
-                    `/creation-trame/${element.id}`,
-                    '_blank',
-                    'noopener,noreferrer',
-                  );
+                  navigate(`/creation-trame/${element.id}`);
                 }}
-                className="h-8 w-8 p-0"
+                className="ml-2 gap-2"
+                tooltip="Aperçu"
               >
-                <ExternalLink className="h-4 w-4" />
+                <Expand className="h-4 w-4" />
+                  Ouvrir
               </Button>
             )}
             <Button

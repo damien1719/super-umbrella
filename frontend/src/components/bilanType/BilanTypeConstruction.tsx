@@ -53,16 +53,19 @@ export function BilanTypeConstruction({
 }: BilanTypeConstructionProps) {
   return (
     <>
-      <Card className="lg:col-span-2">
-        <CardHeader>
-          <CardTitle>Composition de votre trame de bilan</CardTitle>
+      <Card className="lg:col-span-2 pt-4">
+        <CardHeader className="flex-shrink-0">
+        <div className="flex items-center justify-between gap-2">
+          <CardTitle className="flex items-center gap-2">
+            Les parties qui composent votre bilan
+          </CardTitle>
+            <Button variant="outline" size="sm" onClick={() => onAddHeading()}>
+              <Plus className="mr-2 size-4"/> Titre
+            </Button>
+        </div>
         </CardHeader>
         <CardContent>
-          <div className="flex justify-end mb-4">
-            <Button variant="outline" size="sm" onClick={() => onAddHeading()}>
-              <Plus className="h-4 w-4 mr-2" /> Ajouter un titre
-            </Button>
-          </div>
+
           {selectedElements.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <Plus className="h-12 w-12 mx-auto mb-4 opacity-50" />

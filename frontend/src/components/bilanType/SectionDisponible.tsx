@@ -76,12 +76,12 @@ export function SectionDisponible({
   };
 
   return (
-    <Card className="lg:col-span-1 flex flex-col">
+    <Card className="lg:col-span-1 flex flex-col gap-4 pt-4">
       <CardHeader className="flex-shrink-0">
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center justify-between gap-2">
           <CardTitle className="flex items-center gap-2">
             <Plus className="h-5 w-5" />
-            Liste des parties disponibles
+            Pour composer votre trame de bilan, cliquer sur les parties disponibles
           </CardTitle>
           {onOpenExplorer && (
             <Button
@@ -90,7 +90,7 @@ export function SectionDisponible({
               onClick={onOpenExplorer}
               className="whitespace-nowrap"
             >
-              Explorer les parties
+              Explorer
             </Button>
           )}
         </div>
@@ -178,3 +178,4 @@ export function SectionDisponible({
     </Card>
   );
 }
+

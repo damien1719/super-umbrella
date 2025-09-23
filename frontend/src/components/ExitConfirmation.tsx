@@ -30,6 +30,9 @@ export default function ExitConfirmation({
         <AlertDialogFooter>
           {/* Rester (ferme seulement la modale) */}
           <AlertDialogCancel>Rester</AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm}>
+            Enregistrer et quitter
+          </AlertDialogAction>
           {/* Quitter sans enregistrer */}
           <AlertDialogAction
             className="bg-red-600 hover:bg-red-700 text-white"
@@ -38,9 +41,7 @@ export default function ExitConfirmation({
             Quitter sans enregistrer
           </AlertDialogAction>
           {/* Enregistrer et quitter */}
-          <AlertDialogAction onClick={onConfirm}>
-            Enregistrer et quitter
-          </AlertDialogAction>
+
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
