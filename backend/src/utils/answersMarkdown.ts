@@ -9,6 +9,28 @@ type ValueType =
   | 'multi-choice-row'
   | 'image';
 
+export type TitleAlign = 'left' | 'center' | 'right' | 'justify';
+export type TitleCase = 'none' | 'uppercase' | 'capitalize' | 'lowercase';
+export type TitleKind = 'heading' | 'paragraph' | 'list-item';
+
+export type TitleFormatSpec = {
+  kind: TitleKind;
+  level?: 1 | 2 | 3 | 4 | 5 | 6;
+  align?: TitleAlign;
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  case?: TitleCase;
+  fontSize?: string | number;
+  runs?: Array<{
+    bold?: boolean;
+    italic?: boolean;
+    underline?: boolean;
+  }>;
+  prefix?: string;
+  suffix?: string;
+};
+
 type ColumnDef = {
   id: string;
   label: string;
@@ -44,16 +66,27 @@ export type Question = {
   commentaire?: boolean;
   echelle?: { min: number; max: number; labels?: { min: string; max: string } };
   tableau?: SurveyTable;
+  titrePresetId?: string;
+  titreFormatOverride?: TitleFormatSpec;
 };
 
 type Answers = Record<string, unknown>;
 type TableAnswers = Record<string, unknown> & { commentaire?: string };
 
 const TABLE_ANCHOR_TYPE = 'CR:TBL';
+const TITLE_PRESET_ANCHOR_TYPE = 'CR:TITLE_PRESET';
+
+function formatAnchor(type: string, id: string): string {
+  const normalized = id.trim();
+  return normalized ? '`[[' + type + '|id=' + normalized + ']]`' : '';
+}
 
 function formatTableAnchor(id: string): string {
-  const normalized = id.trim();
-  return normalized ? '`[[' + TABLE_ANCHOR_TYPE + '|id=' + normalized + ']]`' : '';
+  return formatAnchor(TABLE_ANCHOR_TYPE, id);
+}
+
+function formatTitlePresetAnchor(id: string): string {
+  return formatAnchor(TITLE_PRESET_ANCHOR_TYPE, id);
 }
 
 function markdownifyTable(q: Question, ansTable: TableAnswers): string {
@@ -153,14 +186,10 @@ export function answersToMdBlocks(questions: Question[], ans: Answers): string[]
   for (const q of questions || []) {
     if (q.type === 'tableau') {
       const table = q.tableau;
-      console.log("HERRE", table)
       if (table?.crInsert) {
-        console.log('MDBLOCS -table', table);
         const anchorId = typeof table.crTableId === 'string' ? table.crTableId.trim() : '';
-        console.log('MDBLOCS - anchorId', anchorId);
         if (anchorId) {
           mdBlocks.push(formatTableAnchor(anchorId));
-          console.log('MDBLOCS - anchorId', anchorId);
           continue;
         }
       }
@@ -168,6 +197,13 @@ export function answersToMdBlocks(questions: Question[], ans: Answers): string[]
       const md = markdownifyTable(q, ansTable);
       if (md.trim()) mdBlocks.push(md);
     } else if (q.type === 'titre') {
+      if (typeof q.titrePresetId === 'string' && q.titrePresetId.trim() !== '') {
+        const anchor = formatTitlePresetAnchor(q.id);
+        if (anchor) {
+          mdBlocks.push(anchor);
+          continue;
+        }
+      }
       mdBlocks.push(markdownifyField(q, ''));
     } else {
       const val = (ans as any)?.[q.id];

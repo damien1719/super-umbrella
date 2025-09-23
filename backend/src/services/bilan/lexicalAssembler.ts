@@ -1,6 +1,6 @@
 import { markdownToLexicalState, normalizeLexicalEditorState, lexicalStateToJSON } from '../../utils/lexicalEditorState';
-import type { AnchorSpecification } from '../ai/anchor.service';
-import type { Question } from '../../utils/answersMarkdown';
+import type { AnchorSpecification, TitlePresetAnchorSpec } from '../ai/anchor.service';
+import type { Question, TitleFormatSpec } from '../../utils/answersMarkdown';
 import { TableRenderer } from './tableRenderer';
 
 
@@ -23,29 +23,75 @@ type AnchorContext = {
   anchorsById: Map<string, AnchorSpecification>;
   used: Set<string>;
   questions: Question[];
+  questionsById: Map<string, Question>;
   answers: Record<string, unknown>;
 };
 
-const ANCHOR_LINE_REGEX = /^`\[\[CR:TBL\|id=([^`]+)\]\]`$/;
-const INLINE_ANCHOR_PATTERN = '`?\\[\\[CR:TBL\\|id=([^`\\]]+)\\]\\]`?';
+const KNOWN_ANCHOR_TYPES = ['CR:TBL', 'CR:TITLE_PRESET'] as const;
+type AnchorType = (typeof KNOWN_ANCHOR_TYPES)[number];
+const KNOWN_ANCHOR_TYPE_SET = new Set<string>(KNOWN_ANCHOR_TYPES);
+const KNOWN_ANCHOR_TYPE_PATTERN = KNOWN_ANCHOR_TYPES.map((type) => type.replace(':', '\\:')).join('|');
+const ANCHOR_MARKER_CORE = '\\[\\[(' + KNOWN_ANCHOR_TYPE_PATTERN + ')\\|id=([^`\\]]+)\\]\\]';
+const INLINE_ANCHOR_PATTERN = '`?' + ANCHOR_MARKER_CORE + '`?';
+const BLOCK_ANCHOR_REGEX = new RegExp(`^${INLINE_ANCHOR_PATTERN}$`);
 
 type NodeSegment = { kind: 'node'; node: LexicalNode };
-type AnchorMatchSegment = { kind: 'anchor'; anchorId: string; marker: string; template: LexicalNode };
+type AnchorMatchSegment = {
+  kind: 'anchor';
+  anchorType: AnchorType;
+  anchorId: string;
+  marker: string;
+  template: LexicalNode;
+};
 type AnchorSegment = NodeSegment | AnchorMatchSegment;
 
 function createInlineAnchorRegExp(): RegExp {
   return new RegExp(INLINE_ANCHOR_PATTERN, 'g');
 }
 
-function extractAnchorId(node: LexicalNode): string | null {
+function isKnownAnchorType(value: string | undefined | null): value is AnchorType {
+  if (!value) return false;
+  return KNOWN_ANCHOR_TYPE_SET.has(value);
+}
+
+type ParsedAnchor = {
+  anchorType: AnchorType;
+  anchorId: string;
+};
+
+function normalizeAnchorId(raw: unknown): string {
+  return typeof raw === 'string' ? raw.trim() : '';
+}
+
+function parseInlineAnchorMatch(match: RegExpExecArray): ParsedAnchor | null {
+  const rawType = match[1];
+  const rawId = match[2];
+  if (!isKnownAnchorType(rawType)) return null;
+  const anchorId = normalizeAnchorId(rawId);
+  if (!anchorId) return null;
+  return { anchorType: rawType, anchorId };
+}
+
+function parseAnchorMarker(marker: string): ParsedAnchor | null {
+  const match = marker.match(BLOCK_ANCHOR_REGEX);
+  if (!match) return null;
+  const rawType = match[1];
+  const rawId = match[2];
+  if (!isKnownAnchorType(rawType)) return null;
+  const anchorId = normalizeAnchorId(rawId);
+  if (!anchorId) return null;
+  return { anchorType: rawType, anchorId };
+}
+
+function extractAnchor(node: LexicalNode): ParsedAnchor | null {
   if (node?.type !== 'paragraph') return null;
   const children = Array.isArray(node.children) ? node.children : [];
   if (children.length !== 1) return null;
   const child = children[0];
   if (child?.type !== 'text') return null;
   const text = typeof child.text === 'string' ? child.text.trim() : '';
-  const match = text.match(ANCHOR_LINE_REGEX);
-  return match ? match[1] : null;
+  if (!text) return null;
+  return parseAnchorMarker(text);
 }
 
 function isParagraphNode(node: LexicalNode): boolean {
@@ -70,6 +116,238 @@ function cloneBlockNode(template: LexicalNode, children: LexicalNode[]): Lexical
     ...rest,
     children,
   };
+}
+
+type TitlePresetRegistry = Record<string, TitleFormatSpec>;
+
+const DEFAULT_TITLE_PRESET_FORMAT: TitleFormatSpec = {
+  kind: 'paragraph',
+  fontSize: 12,
+  bold: true,
+};
+
+const TITLE_PRESET_REGISTRY: TitlePresetRegistry = {
+  't12-underline': {
+    kind: 'paragraph',
+    underline: true,
+  },
+  't12-bold': {
+    kind: 'paragraph',
+    fontSize: 12,
+    bold: true,
+  },
+  't12-italic': {
+    kind: 'paragraph',
+    fontSize: 12,
+    italic: true,
+  },
+  't12-bullet-bold': {
+    kind: 'list-item',
+    fontSize: 12,
+    bold: true,
+  },
+  't12-bullet-underline': {
+    kind: 'list-item',
+    fontSize: 12,
+    underline: true,
+  },
+  't14-bold-underline': {
+    kind: 'paragraph',
+    fontSize: 14,
+    bold: true,
+    underline: true,
+  },
+  't14-center-bold': {
+    kind: 'paragraph',
+    fontSize: 14,
+    bold: true,
+    align: 'center',
+  },
+};
+
+function mapAlignment(align?: TitleFormatSpec['align']): string {
+  if (!align || align === 'left') return '';
+  return align;
+}
+
+type TextFormatFlags = { bold?: boolean; italic?: boolean; underline?: boolean };
+
+function computeTextFormat({ bold, italic, underline }: TextFormatFlags): number {
+  let format = 0;
+  if (bold) format |= 1;
+  if (italic) format |= 2;
+  if (underline) format |= 12;
+  return format;
+}
+
+function applyCaseTransform(text: string, desiredCase?: TitleFormatSpec['case']): string {
+  if (!desiredCase || desiredCase === 'none') return text;
+  switch (desiredCase) {
+    case 'uppercase':
+      return text.toUpperCase();
+    case 'lowercase':
+      return text.toLowerCase();
+    case 'capitalize':
+      return text.replace(/\b\p{L}[\p{L}\p{M}]*/gu, (segment) => {
+        const [first, ...rest] = segment;
+        return (first ?? '').toUpperCase() + rest.join('').toLowerCase();
+      });
+    default:
+      return text;
+  }
+}
+
+function computeFontSizeStyle(fontSize?: TitleFormatSpec['fontSize']): string {
+  if (typeof fontSize === 'number' && Number.isFinite(fontSize)) {
+    return `font-size: ${fontSize}pt`;
+  }
+  if (typeof fontSize === 'string') {
+    const trimmed = fontSize.trim();
+    if (trimmed) return `font-size: ${trimmed}`;
+  }
+  return '';
+}
+
+function createStyledTextNode(text: string, flags: TextFormatFlags, style?: string): LexicalNode {
+  return {
+    type: 'text',
+    text,
+    detail: 0,
+    format: computeTextFormat(flags),
+    style: style ? style.trim() : '',
+    version: 1,
+  };
+}
+
+function buildTitleNodes(text: string, format: TitleFormatSpec): LexicalNode[] {
+  const prefix = format.prefix ?? '';
+  const suffix = format.suffix ?? '';
+  const baseText = applyCaseTransform(text.trim(), format.case);
+  const finalText = `${prefix}${baseText}${suffix}`;
+  const textNode = createStyledTextNode(
+    finalText,
+    {
+      bold: format.bold,
+      italic: format.italic,
+      underline: format.underline,
+    },
+    computeFontSizeStyle(format.fontSize),
+  );
+
+  if (format.kind === 'heading') {
+    const level = format.level && format.level >= 1 && format.level <= 6 ? format.level : 2;
+    return [
+      {
+        type: 'heading',
+        tag: `h${level}`,
+        direction: 'ltr',
+        format: mapAlignment(format.align),
+        indent: 0,
+        version: 1,
+        children: finalText ? [textNode] : [],
+      },
+    ];
+  }
+
+  if (format.kind === 'paragraph') {
+    return [
+      {
+        type: 'paragraph',
+        direction: 'ltr',
+        format: mapAlignment(format.align),
+        indent: 0,
+        version: 1,
+        children: finalText ? [textNode] : [],
+      },
+    ];
+  }
+
+  if (format.kind === 'list-item') {
+    const listItem: LexicalNode = {
+      type: 'listitem',
+      format: '',
+      indent: 0,
+      version: 1,
+      value: 1,
+      children: finalText ? [textNode] : [],
+    };
+    return [
+      {
+        type: 'list',
+        tag: 'ul',
+        listType: 'bullet',
+        direction: 'ltr',
+        format: mapAlignment(format.align),
+        indent: 0,
+        version: 1,
+        children: [listItem],
+      },
+    ];
+  }
+
+  return [
+    {
+      type: 'paragraph',
+      direction: 'ltr',
+      format: '',
+      indent: 0,
+      version: 1,
+      children: finalText ? [textNode] : [],
+    },
+  ];
+
+}
+
+function resolveTitleFormat(
+  anchor: TitlePresetAnchorSpec,
+  question: Question | undefined,
+): TitleFormatSpec {
+  const override = question?.titreFormatOverride;
+  if (override) return override;
+
+  const presetId = anchor.presetId || question?.titrePresetId;
+  if (presetId && TITLE_PRESET_REGISTRY[presetId]) {
+    return TITLE_PRESET_REGISTRY[presetId];
+  }
+
+  if (presetId) {
+    console.warn('[ANCHOR] LexicalAssembler - unknown title preset, falling back', {
+      presetId,
+      anchorId: anchor.id,
+    });
+  }
+  return DEFAULT_TITLE_PRESET_FORMAT;
+}
+
+function resolveTitleText(
+  anchor: TitlePresetAnchorSpec,
+  question: Question | undefined,
+  answers: Record<string, unknown>,
+): string {
+  const answerValue = answers?.[anchor.questionId];
+  if (typeof answerValue === 'string' && answerValue.trim()) {
+    return answerValue.trim();
+  }
+
+  const questionTitle = typeof question?.titre === 'string' ? question.titre.trim() : '';
+  if (questionTitle) return questionTitle;
+
+  return anchor.questionId;
+}
+
+function renderTitleAnchor(anchor: TitlePresetAnchorSpec, ctx: AnchorContext): LexicalNode[] {
+  const question = ctx.questionsById.get(anchor.questionId);
+  const format = resolveTitleFormat(anchor, question);
+  const text = resolveTitleText(anchor, question, ctx.answers);
+  if (!text) {
+    console.warn('[ANCHOR] LexicalAssembler - empty title text', {
+      anchorId: anchor.id,
+      questionId: anchor.questionId,
+    });
+    return [];
+  }
+
+  return buildTitleNodes(text, format);
 }
 
 function trimEdgeWhitespace(nodes: LexicalNode[]): LexicalNode[] {
@@ -151,9 +429,17 @@ function splitTextNodeByAnchors(node: LexicalNode): AnchorSegment[] {
         segments.push({ kind: 'node', node: cloneTextNode(node, prefix) });
       }
     }
-    const anchorId = match[1];
-    if (anchorId) {
-      segments.push({ kind: 'anchor', anchorId, marker, template: node });
+    const parsed = parseInlineAnchorMatch(match);
+    if (parsed) {
+      segments.push({
+        kind: 'anchor',
+        anchorType: parsed.anchorType,
+        anchorId: parsed.anchorId,
+        marker,
+        template: node,
+      });
+    } else {
+      segments.push({ kind: 'node', node: cloneTextNode(node, marker) });
     }
     lastIndex = matchIndex + marker.length;
   }
@@ -215,27 +501,49 @@ function buildAnchorReplacement(segment: AnchorMatchSegment, ctx: AnchorContext)
   if (!anchor) {
     return {
       inserted: [],
-      fallback: createEmptyParagraph(),
+      fallback: cloneTextNode(segment.template, segment.marker),
     };
   }
 
   ctx.used.add(segment.anchorId);
-  const rendered = TableRenderer.renderLexical({
-    anchor,
-    questions: ctx.questions,
-    answers: ctx.answers,
-  });
+  if (anchor.type === 'CR:TBL') {
+    const rendered = TableRenderer.renderLexical({
+      anchor,
+      questions: ctx.questions,
+      answers: ctx.answers,
+    });
 
-  if (rendered.length > 0) {
+    if (rendered.length > 0) {
+      return {
+        inserted: rendered,
+        fallback: null,
+      };
+    }
+
     return {
-      inserted: rendered,
-      fallback: null,
+      inserted: [],
+      fallback: createEmptyParagraph(),
+    };
+  }
+
+  if (anchor.type === 'CR:TITLE_PRESET') {
+    const titleNodes = renderTitleAnchor(anchor as TitlePresetAnchorSpec, ctx);
+    if (titleNodes.length > 0) {
+      return {
+        inserted: titleNodes,
+        fallback: null,
+      };
+    }
+
+    return {
+      inserted: [],
+      fallback: cloneTextNode(segment.template, segment.marker),
     };
   }
 
   return {
     inserted: [],
-    fallback: createEmptyParagraph(),
+    fallback: cloneTextNode(segment.template, segment.marker),
   };
 }
 
@@ -319,22 +627,35 @@ function processHeadingNode(node: LexicalNode, ctx: AnchorContext): LexicalNode[
 function processNode(node: LexicalNode, ctx: AnchorContext): LexicalNode[] {
   if (!node) return [];
 
-  const anchorId = extractAnchorId(node);
-  if (anchorId) {
-    const anchor = ctx.anchorsById.get(anchorId);
-    if (!anchor) {
+  const parsedAnchor = extractAnchor(node);
+  if (parsedAnchor) {
+    const anchor = ctx.anchorsById.get(parsedAnchor.anchorId);
+    if (!anchor || anchor.type !== parsedAnchor.anchorType) {
       return [node];
     }
 
-    ctx.used.add(anchorId);
-    const rendered = TableRenderer.renderLexical({
-      anchor,
-      questions: ctx.questions,
-      answers: ctx.answers,
-    });
-    if (rendered.length > 0) {
-      return rendered;
+    ctx.used.add(parsedAnchor.anchorId);
+
+    if (anchor.type === 'CR:TBL') {
+      const rendered = TableRenderer.renderLexical({
+        anchor,
+        questions: ctx.questions,
+        answers: ctx.answers,
+      });
+      if (rendered.length > 0) {
+        return rendered;
+      }
+      return [node];
     }
+
+    if (anchor.type === 'CR:TITLE_PRESET') {
+      const titleNodes = renderTitleAnchor(anchor as TitlePresetAnchorSpec, ctx);
+      if (titleNodes.length > 0) {
+        return titleNodes;
+      }
+      return [node];
+    }
+
     return [node];
   }
 
@@ -395,7 +716,14 @@ export const LexicalAssembler = {
     const root = editorState.root as LexicalNode;
     const children = Array.isArray(root.children) ? root.children : [];
     const anchorsById = new Map(anchors.map((anchor) => [anchor.id, anchor]));
-    const ctx: AnchorContext = { anchorsById, used: new Set<string>(), questions, answers };
+    const questionsById = new Map(questions.map((question) => [question.id, question]));
+    const ctx: AnchorContext = {
+      anchorsById,
+      used: new Set<string>(),
+      questions,
+      questionsById,
+      answers,
+    };
 
     root.children = replaceAnchors(children, ctx);
     console.log('[ANCHOR] LexicalAssembler.assemble - anchors replaced', {
@@ -407,23 +735,44 @@ export const LexicalAssembler = {
       if (ctx.used.has(missingId)) continue;
       const anchor = anchorsById.get(missingId);
       if (!anchor) continue;
-      const rendered = TableRenderer.renderLexical({ anchor, questions, answers });
-      if (rendered.length === 0) {
-        console.log('[ANCHOR] LexicalAssembler.assemble - auto insert fallback paragraph', {
+      if (anchor.type === 'CR:TBL') {
+        const rendered = TableRenderer.renderLexical({ anchor, questions, answers });
+        if (rendered.length === 0) {
+          console.log('[ANCHOR] LexicalAssembler.assemble - auto insert fallback paragraph', {
+            anchorId: missingId,
+          });
+          root.children.push(createParagraph(`Tableau ${missingId} introuvable dans la génération.`));
+          continue;
+        }
+        root.children.push(
+          createParagraph(`Tableau ${missingId} inséré automatiquement (ancre manquante).`),
+          ...rendered,
+        );
+        ctx.used.add(missingId);
+        autoInserted.push(missingId);
+        console.log('[ANCHOR] LexicalAssembler.assemble - auto inserted table', {
           anchorId: missingId,
         });
-        root.children.push(createParagraph(`Tableau ${missingId} introuvable dans la génération.`));
         continue;
       }
-      root.children.push(
-        createParagraph(`Tableau ${missingId} inséré automatiquement (ancre manquante).`),
-        ...rendered,
-      );
-      ctx.used.add(missingId);
-      autoInserted.push(missingId);
-      console.log('[ANCHOR] LexicalAssembler.assemble - auto inserted table', {
-        anchorId: missingId,
-      });
+
+      if (anchor.type === 'CR:TITLE_PRESET') {
+        const titleNodes = renderTitleAnchor(anchor as TitlePresetAnchorSpec, ctx);
+        if (titleNodes.length === 0) {
+          console.log('[ANCHOR] LexicalAssembler.assemble - auto insert missing title fallback', {
+            anchorId: missingId,
+          });
+          root.children.push(createParagraph(`Titre ${missingId} introuvable dans la génération.`));
+          continue;
+        }
+        root.children.push(...titleNodes);
+        ctx.used.add(missingId);
+        autoInserted.push(missingId);
+        console.log('[ANCHOR] LexicalAssembler.assemble - auto inserted title', {
+          anchorId: missingId,
+        });
+        continue;
+      }
     }
 
     const normalized = normalizeLexicalEditorState(editorState);
