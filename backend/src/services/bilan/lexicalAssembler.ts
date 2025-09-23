@@ -3,6 +3,7 @@ import type { AnchorSpecification } from '../ai/anchor.service';
 import type { Question } from '../../utils/answersMarkdown';
 import { TableRenderer } from './tableRenderer';
 
+
 export type LexicalAssemblerInput = {
   text: string;
   anchors: AnchorSpecification[];
@@ -196,6 +197,16 @@ function collectSegments(children: LexicalNode[] | undefined, ctx: AnchorContext
   return segments;
 }
 
+function createEmptyParagraph(): LexicalNode {
+  return {
+    type: 'paragraph',
+    format: '',
+    indent: 0,
+    version: 1,
+    children: [],  // 👈 aucun texte, donc invisible
+  };
+}
+
 function buildAnchorReplacement(segment: AnchorMatchSegment, ctx: AnchorContext): {
   inserted: LexicalNode[];
   fallback: LexicalNode | null;
@@ -204,7 +215,7 @@ function buildAnchorReplacement(segment: AnchorMatchSegment, ctx: AnchorContext)
   if (!anchor) {
     return {
       inserted: [],
-      fallback: cloneTextNode(segment.template, segment.marker),
+      fallback: createEmptyParagraph(),
     };
   }
 
@@ -224,7 +235,7 @@ function buildAnchorReplacement(segment: AnchorMatchSegment, ctx: AnchorContext)
 
   return {
     inserted: [],
-    fallback: cloneTextNode(segment.template, segment.marker),
+    fallback: createEmptyParagraph(),
   };
 }
 
