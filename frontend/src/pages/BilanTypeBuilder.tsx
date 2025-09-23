@@ -2,7 +2,7 @@
 
 import type React from 'react';
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, MemoryRouter, Routes, Route } from 'react-router-dom';
 import { SectionDisponible } from '@/components/bilanType/SectionDisponible';
 import ExplorerSectionsModal from '@/components/bilanType/ExplorerSectionsModal';
 import { BilanTypeConstruction } from '@/components/bilanType/BilanTypeConstruction';
@@ -21,6 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import CreationTrame from '@/pages/CreationTrame';
 
 // ✅ On réutilise les types existants
 import { categories, kindMap, type CategoryId } from '@/types/trame';
@@ -57,9 +59,10 @@ interface BilanTypeBuilderProps {
   initialBilanTypeId?: string;
 }
 
-export default function BilanTypeBuilder({
-  initialBilanTypeId,
-}: BilanTypeBuilderProps) {
+export default function BilanTypeBuilder(
+  props?: BilanTypeBuilderProps,
+) {
+  const { initialBilanTypeId } = (props ?? {}) as BilanTypeBuilderProps;
   const [currentBilanTypeId, setCurrentBilanTypeId] = useState<
     string | undefined
   >(initialBilanTypeId);
@@ -87,6 +90,16 @@ export default function BilanTypeBuilder({
   >(null);
   const [isFetchingSections, setIsFetchingSections] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [isBackButtonDisabled, setIsBackButtonDisabled] = useState(true);
+
+  // Désactive le bouton retour pendant 200ms après le montage
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsBackButtonDisabled(false);
+    }, 200);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   const sections = useSectionStore((s) => s.items);
   const fetchSections = useSectionStore((s) => s.fetchAll);
@@ -629,7 +642,11 @@ export default function BilanTypeBuilder({
         <div className="mb-2">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <Button variant="outline" onClick={() => setShowConfirm(true)}>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowConfirm(true)}
+                disabled={isBackButtonDisabled}
+              >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Retour
               </Button>
@@ -998,7 +1015,6 @@ export default function BilanTypeBuilder({
           onSelectedSectionChange={setSelectedExplorerSectionId}
           onValidate={handleExplorerValidate}
         />
-
         <ExitConfirmation
           open={showConfirm}
           onOpenChange={setShowConfirm}

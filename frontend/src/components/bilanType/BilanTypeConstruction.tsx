@@ -57,7 +57,7 @@ export function BilanTypeConstruction({
         <CardHeader className="flex-shrink-0">
         <div className="flex items-center justify-between gap-2">
           <CardTitle className="flex items-center gap-2">
-            Pour composer votre trame de bilan, cliquer sur les parties disponibles à gauche
+            Les parties qui composent votre bilan
           </CardTitle>
             <Button variant="outline" size="sm" onClick={() => onAddHeading()}>
               <Plus className="mr-2 size-4"/> Titre
