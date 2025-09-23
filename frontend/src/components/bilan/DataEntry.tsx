@@ -162,11 +162,11 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
             ref={(el) => {
               groupEls.current[i] = el;
             }}
-            className="space-y-4"
+            className="space-y-2"
           >
             {group.title?.trim() ? (
               <div
-                className={`relative z-10 ${i === 0 ? '' : 'mt-8'} border-t border-gray-200 pt-4 flex items-center gap-2`}
+                className={`relative z-10 ${i === 0 ? '' : 'mt-2'} border-t border-gray-200 pt-4 flex items-center gap-2`}
               >
                 <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary-100">
                   <span className="block h-1.5 w-1.5 rounded-full bg-primary-500" />
