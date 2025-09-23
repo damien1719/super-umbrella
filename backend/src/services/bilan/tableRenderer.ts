@@ -15,6 +15,53 @@ type ColumnDef = {
   id: string;
   label: string;
   valueType?: string;
+  coloring?: {
+    presetId?: string;
+    rules?: Rule[];
+  };
+};
+
+export type Rule = {
+  if:
+    | { op: 'lt' | 'lte' | 'gt' | 'gte' | 'eq' | 'neq'; value: number | string }
+    | { op: 'between'; min: number; max: number; inclusive?: boolean }
+    | { op: 'in' | 'notIn'; values: (string | number)[] }
+    | { op: 'isEmpty' | 'isNotEmpty' };
+  color: string; // couleur directement utilisée (nom CSS, hex, token…)
+};
+
+export interface ColorPreset {
+  id: string;
+  label: string;
+  rules: Rule[];
+}
+
+// ---- Presets exportés ----
+export const NUM_GRADED_PRESET: ColorPreset = {
+  id: 'num-graded',
+  label: 'Échelle -3 à +1',
+  rules: [
+    { if: { op: 'lt', value: -3 }, color: 'red' },                             // < -3
+    { if: { op: 'between', min: -3, max: -1, inclusive: false }, color: 'orange' }, // [-3, -1)
+    { if: { op: 'between', min: -1, max: 0, inclusive: false }, color: 'yellow' },  // [-1, 0)
+    { if: { op: 'between', min: 0, max: 1, inclusive: true }, color: 'green' },     // [0, 1]
+  ],
+};
+
+// Exemple d’un preset additionnel "random"
+export const RANDOM_PRESET: ColorPreset = {
+  id: 'random',
+  label: 'Valeurs aléatoires',
+  rules: [
+    { if: { op: 'eq', value: 'foo' }, color: 'purple' },
+    { if: { op: 'eq', value: 'bar' }, color: 'blue' },
+  ],
+};
+
+// Registre global si tu veux les exposer tous
+export const COLOR_PRESETS: Record<string, ColorPreset> = {
+  [NUM_GRADED_PRESET.id]: NUM_GRADED_PRESET,
+  [RANDOM_PRESET.id]: RANDOM_PRESET,
 };
 
 type RowDef = {
@@ -34,29 +81,29 @@ function isTableQuestion(question: Question): question is Question & { tableau: 
   return question?.type === 'tableau' && typeof (question as any)?.tableau === 'object';
 }
 
-function createTextNode(text: string): LexicalNode {
+function createTextNode(text: string, style?: string): LexicalNode {
   return {
     type: 'text',
     text,
     detail: 0,
     format: 0,
-    style: '',
+    style: style ?? '',
     version: 1,
   };
 }
 
-function createParagraph(text: string): LexicalNode {
+function createParagraph(text: string, style?: string): LexicalNode {
   return {
     type: 'paragraph',
     direction: 'ltr',
     format: '',
     indent: 0,
     version: 1,
-    children: text ? [createTextNode(text)] : [],
+    children: text ? [createTextNode(text, style)] : [],
   };
 }
 
-function createTableCell(text: string, opts?: { header?: boolean }): LexicalNode {
+function createTableCell(text: string, opts?: { header?: boolean; textColor?: string; fontWeight?: string }): LexicalNode {
   return {
     type: 'tablecell',
     format: '',
@@ -68,7 +115,7 @@ function createTableCell(text: string, opts?: { header?: boolean }): LexicalNode
     colSpan: 1,
     rowSpan: 1,
     headerState: opts?.header ? 1 : 0,
-    children: [createParagraph(text)],
+    children: [createParagraph(text, opts?.textColor ? `color: ${opts.textColor}` : undefined)],
   };
 }
 
@@ -102,6 +149,70 @@ function formatCell(value: unknown, column?: ColumnDef): string {
   if (typeof value === 'number') return String(value);
   if (typeof value === 'boolean') return value ? 'Oui' : '';
   return '';
+}
+
+// --- Coloring helpers ---
+function getColumnRules(column?: ColumnDef): Rule[] | undefined {
+  if (!column?.coloring) return undefined;
+  if (column.coloring.presetId) {
+    const preset = COLOR_PRESETS[column.coloring.presetId];
+    if (preset) return preset.rules;
+  }
+  return column.coloring.rules;
+}
+
+function toNumberOrString(value: unknown): number | string | null {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : value.trim();
+  }
+  return null;
+}
+
+function matchesRule(value: unknown, rule: Rule): boolean {
+  const cond = rule.if as any;
+  // Handle emptiness explicitly first
+  if (cond.op === 'isEmpty') return value == null || (typeof value === 'string' && value.trim().length === 0);
+  if (cond.op === 'isNotEmpty') return !(value == null || (typeof value === 'string' && value.trim().length === 0));
+
+  const v = toNumberOrString(value);
+  if (v == null) return false;
+
+  switch (cond.op) {
+    case 'lt':
+      return typeof v === 'number' && v < Number(cond.value);
+    case 'lte':
+      return typeof v === 'number' && v <= Number(cond.value);
+    case 'gt':
+      return typeof v === 'number' && v > Number(cond.value);
+    case 'gte':
+      return typeof v === 'number' && v >= Number(cond.value);
+    case 'eq':
+      return v === cond.value || (typeof v === 'number' && Number(cond.value) === v);
+    case 'neq':
+      return !(v === cond.value || (typeof v === 'number' && Number(cond.value) === v));
+    case 'between': {
+      if (typeof v !== 'number') return false;
+      const inclusive = cond.inclusive ?? false;
+      return inclusive ? v >= cond.min && v <= cond.max : v >= cond.min && v < cond.max;
+    }
+    case 'in':
+      return cond.values?.some((x: any) => x === v) ?? false;
+    case 'notIn':
+      return !(cond.values?.some((x: any) => x === v) ?? false);
+    default:
+      return false;
+  }
+}
+
+function getColorForValue(value: unknown, column?: ColumnDef): string | undefined {
+  const rules = getColumnRules(column);
+  if (!rules || rules.length === 0) return undefined;
+  for (const r of rules) {
+    if (matchesRule(value, r)) return r.color;
+  }
+  return undefined;
 }
 
 function findQuestion(questions: Question[], anchor: AnchorSpecification): (Question & { tableau: SurveyTable }) | null {
@@ -163,7 +274,12 @@ export const TableRenderer = {
         const cells = [createTableCell(row.label)];
         for (const column of keptColumns) {
           const value = rowData?.[column.id];
-          cells.push(createTableCell(formatCell(value, column)));
+          const display = formatCell(value, column);
+          const textColor = getColorForValue(value, column);
+          cells.push(createTableCell(display, { 
+            textColor, 
+            fontWeight: textColor ? 'bold' : undefined
+          }));
         }
         tableRows.push(createTableRow(cells));
       }
