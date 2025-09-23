@@ -13,7 +13,54 @@ export interface ColumnDef {
   valueType: ValueType;
   options?: string[];
   rowOptions?: Record<string, string[]>;
+  coloring?: {
+    presetId?: string            // optionnel : applique un set de règles connu
+    rules?: Rule[] }
 }
+
+export type Rule = {
+  if:
+    | { op: 'lt' | 'lte' | 'gt' | 'gte' | 'eq' | 'neq'; value: number | string }
+    | { op: 'between'; min: number; max: number; inclusive?: boolean }
+    | { op: 'in' | 'notIn'; values: (string | number)[] }
+    | { op: 'isEmpty' | 'isNotEmpty' };
+  color: string; // couleur directement utilisée (nom CSS, hex, token…)
+};
+
+export interface ColorPreset {
+  id: string;
+  label: string;
+  rules: Rule[];
+}
+
+// ---- Presets exportés ----
+export const SD_NORMATIVE_PRESET: ColorPreset = {
+  id: 'sd-normative',
+  label: 'Échelle normative DS -3↔︎+3 (chiffre uniquement)',
+  rules: [
+    // Très faible  (-∞, -2)
+    { if: { op: 'lt', value: -2 }, color: 'red' },
+
+    // Faible      [-2, -1)
+    { if: { op: 'eq', value: -2 }, color: 'orange' },
+    { if: { op: 'between', min: -2, max: -1, inclusive: false }, color: 'orange' },
+
+    // Moyenne     [-1, +1]
+    { if: { op: 'eq', value: -1 }, color: 'green' },
+    { if: { op: 'between', min: -1, max: 1, inclusive: true }, color: 'green' },
+
+    // Sup         (1, 2]
+    { if: { op: 'between', min: 1, max: 2, inclusive: true }, color: 'lightgreen' },
+
+    // Très sup    (2, +∞)
+    { if: { op: 'gt', value: 2 }, color: 'limegreen' },
+  ],
+};
+
+// Registre global si tu veux les exposer tous
+export const COLOR_PRESETS: Record<string, ColorPreset> = {
+  [SD_NORMATIVE_PRESET.id]: SD_NORMATIVE_PRESET,
+};
 
 export interface Row {
   id: string;

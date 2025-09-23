@@ -612,6 +612,7 @@ export function TableEditor({ q, onPatch }: EditorProps) {
           rows={tableau.rowsGroups.flatMap((g) => g.rows)}
           onClose={() => setEditingColIdx(null)}
           onChange={handleColumnTypeChange}
+          crInsert={tableau.crInsert}
         />
       </div>
       <AlertDialog open={!!groupToDelete} onOpenChange={setGroupToDelete}>
