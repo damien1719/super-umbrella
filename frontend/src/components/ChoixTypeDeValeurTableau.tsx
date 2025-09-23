@@ -91,7 +91,7 @@ export default function ChoixTypeDeValeurTableau({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="text">Texte</SelectItem>
+                <SelectItem value="text">Texte (long)</SelectItem>
                 <SelectItem value="number">Nombre</SelectItem>
                 <SelectItem value="bool">Case à cocher</SelectItem>
                 <SelectItem value="choice">Liste déroulante</SelectItem>
