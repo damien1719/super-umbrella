@@ -806,22 +806,24 @@ function TitlePresetDropdown({
           <ChevronDown className="h-4 w-4 shrink-0 text-gray-500" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-80 p-1">
-        {presets.map((preset) => (
-          <DropdownMenuItem
-            key={preset.id}
-            className="items-start gap-2"
-            onSelect={() => onChange(preset.id)}
-          >
-            <Check
-              className={cn(
-                'h-4 w-4 text-primary-600 transition-opacity',
-                value === preset.id ? 'opacity-100' : 'opacity-0',
-              )}
-            />
-            <TitlePresetPreview preset={preset} className="flex-1" />
-          </DropdownMenuItem>
-        ))}
+      <DropdownMenuContent align="start" side="top" className="w-80">
+        <div className="max-h-80 overflow-y-auto">
+          {presets.map((preset) => (
+            <DropdownMenuItem
+              key={preset.id}
+              className="items-start"
+              onSelect={() => onChange(preset.id)}
+            >
+              <Check
+                className={cn(
+                  'h-4 w-4 text-primary-600 transition-opacity',
+                  value === preset.id ? 'opacity-100' : 'opacity-0',
+                )}
+              />
+              <TitlePresetPreview preset={preset} className="flex-1" />
+            </DropdownMenuItem>
+          ))}
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );

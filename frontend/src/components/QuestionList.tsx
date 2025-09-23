@@ -263,15 +263,18 @@ export default function QuestionList({
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => handleDrop(index)}
             >
-              <button
+              <Button
                 aria-label="Déplacer la question"
+                variant="icon"
+                size="icon"
+                tooltip="Déplacer la question"
                 draggable
                 onDragStart={() => handleDragStart(index)}
                 onDragEnd={handleDragEnd}
                 className={`absolute top left-1/2 cursor-move p-1 rounded transition-opacity opacity-100`}
               >
                 <GripVertical className="h-5 w-5 text-gray-400 rotate-90" />
-              </button>
+              </Button>
               <Card
                 onClick={() => onSelect(question.id)}
                 className={`group w-[90%] mx-auto cursor-pointer transition-shadow ${
@@ -419,6 +422,8 @@ export default function QuestionList({
                 <div className="flex flex-col absolute top-1/2 -translate-y-1/2 space-y-2">
                   <Button
                     variant="primary"
+                    tooltip="Ajouter une question après"
+                    tooltipSide="right"
                     size="icon"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -429,6 +434,8 @@ export default function QuestionList({
                   </Button>
                   <Button
                     variant="primary"
+                    tooltip="Dupliquer la question"
+                    tooltipSide="right"
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -455,6 +462,8 @@ export default function QuestionList({
                 </DropdownMenu> */}
                   <Button
                     variant="primary"
+                    tooltip="Supprimer la question"
+                    tooltipSide="right"
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation();

@@ -127,6 +127,10 @@ const DEFAULT_TITLE_PRESET_FORMAT: TitleFormatSpec = {
 };
 
 const TITLE_PRESET_REGISTRY: TitlePresetRegistry = {
+  't11-italic': {
+    kind: 'paragraph',
+    italic: true,
+  },
   't12-underline': {
     kind: 'paragraph',
     underline: true,
@@ -140,6 +144,12 @@ const TITLE_PRESET_REGISTRY: TitlePresetRegistry = {
     kind: 'paragraph',
     fontSize: 12,
     italic: true,
+  },
+  't12-italic-underline': {
+    kind: 'paragraph',
+    fontSize: 12,
+    italic: true,
+    underline: true,
   },
   't12-bullet-bold': {
     kind: 'list-item',
@@ -162,6 +172,12 @@ const TITLE_PRESET_REGISTRY: TitlePresetRegistry = {
     fontSize: 14,
     bold: true,
     align: 'center',
+  },
+  't14-center-uppercase': {
+    kind: 'paragraph',
+    fontSize: 14,
+    align: 'center',
+    case: 'uppercase',
   },
 };
 

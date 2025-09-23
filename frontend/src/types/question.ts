@@ -121,6 +121,11 @@ export type Answers = Record<
 >;
 
 export const DEFAULT_TITLE_PRESETS: TitlePresetRegistry = {
+  't11-italic': {
+    id: 't11-italic',
+    label: '11 italique',
+    format: { kind: 'paragraph', fontSize: 11, italic: true },
+  },
   't12-underline': {
     id: 't12-underline',
     label: '12 souligné',
@@ -135,6 +140,11 @@ export const DEFAULT_TITLE_PRESETS: TitlePresetRegistry = {
     id: 't12-italic',
     label: '12 italique',
     format: { kind: 'paragraph', fontSize: 12, italic: true },
+  },
+  't12-italic-underline': {
+    id: 't12-italic-underline',
+    label: '12 italique souligné',
+    format: { kind: 'paragraph', fontSize: 12, italic: true, underline: true },
   },
   't12-bullet-bold': {
     id: 't12-bullet-bold',
@@ -155,6 +165,11 @@ export const DEFAULT_TITLE_PRESETS: TitlePresetRegistry = {
     id: 't14-center-bold',
     label: '14 centré gras',
     format: { kind: 'paragraph', fontSize: 14, bold: true, align: 'center' },
+  },
+  't14-center-uppercase': {
+    id: 't14-center-uppercase',
+    label: '14 centré majuscule',
+    format: { kind: 'paragraph', fontSize: 14, align: 'center', case: 'uppercase' },
   },
 };
 
