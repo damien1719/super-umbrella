@@ -23,7 +23,7 @@ import {
 import type { Question as SectionQuestion } from "../utils/answersMarkdown";
 import { LexicalAssembler } from "../services/bilan/lexicalAssembler";
 import { buildInstanceNotesContext } from "../services/ai/preprocessSectionNotes.service";
-
+import { DEFAULT_OUTPUT_FORMAT } from "../services/ai/prompts/promptOutput";
 
 export const BilanController = {
   async create(req: Request, res: Response, next: NextFunction) {
@@ -223,7 +223,9 @@ export const BilanController = {
       }
       const cfg = promptConfigs[promptKey];
 
-      const instructions = AnchorService.injectPrompt(cfg.instructions, anchors);
+      const instructions = cfg.instructions;
+
+      const outputFormat = AnchorService.injectPrompt(DEFAULT_OUTPUT_FORMAT, anchors);
       
       // Récupère le job du profil actif (si disponible)
       const profiles = (await ProfileService.list(req.user.id)) as unknown as Array<{ job?: 'PSYCHOMOTRICIEN' | 'ERGOTHERAPEUTE' | 'NEUROPSYCHOLOGUE' | null }>;
@@ -249,6 +251,7 @@ export const BilanController = {
         rawNotes,
         imageBase64,
         job,
+        outputFormat,
       });
       // Post-traitement: réinjecte le nom du patient si connu, sinon renvoie tel quel
       let postText = text as string;

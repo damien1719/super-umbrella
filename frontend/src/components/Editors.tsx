@@ -1,14 +1,23 @@
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 import type {
   Question,
   SurveyTable,
   ColumnDef,
   Row,
   RowsGroup,
-} from '@/types/Typequestion';
-import { X, Settings, GripVertical } from 'lucide-react';
+  TitlePreset,
+} from '@/types/question';
+import { DEFAULT_TITLE_PRESETS } from '@/types/question';
+import { X, Settings, GripVertical, ChevronDown, Check } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import ChoixTypeDeValeurTableau from './ChoixTypeDeValeurTableau';
 import {
   AlertDialog,
@@ -603,6 +612,7 @@ export function TableEditor({ q, onPatch }: EditorProps) {
           rows={tableau.rowsGroups.flatMap((g) => g.rows)}
           onClose={() => setEditingColIdx(null)}
           onChange={handleColumnTypeChange}
+          crInsert={tableau.crInsert}
         />
       </div>
       <AlertDialog open={!!groupToDelete} onOpenChange={setGroupToDelete}>
@@ -650,8 +660,202 @@ export function TableEditor({ q, onPatch }: EditorProps) {
   );
 }
 
-export function TitleEditor({}: EditorProps) {
-  return null;
+const TITLE_SAMPLE_TEXT = "Titre d'exemple";
+
+type TitlePresetPreviewProps = {
+  preset: TitlePreset;
+  sampleText?: string;
+  showLabel?: boolean;
+  className?: string;
+};
+
+type TitlePresetDropdownProps = {
+  presets: TitlePreset[];
+  value?: string;
+  onChange: (value: string) => void;
+};
+
+function getHeadingSizeClass(level?: number) {
+  switch (level) {
+    case 1:
+      return 'text-3xl';
+    case 2:
+      return 'text-2xl';
+    case 3:
+      return 'text-xl';
+    case 4:
+      return 'text-lg';
+    case 5:
+      return 'text-base';
+    case 6:
+      return 'text-sm';
+    default:
+      return 'text-2xl';
+  }
+}
+
+function getAlignmentClass(align?: TitlePreset['format']['align']) {
+  switch (align) {
+    case 'center':
+      return 'text-center';
+    case 'right':
+      return 'text-right';
+    case 'justify':
+      return 'text-justify';
+    default:
+      return 'text-left';
+  }
+}
+
+function getCaseClass(caseOption?: TitlePreset['format']['case']) {
+  switch (caseOption) {
+    case 'uppercase':
+      return 'uppercase';
+    case 'capitalize':
+      return 'capitalize';
+    case 'lowercase':
+      return 'lowercase';
+    default:
+      return undefined;
+  }
+}
+
+function getTextClasses(format: TitlePreset['format']) {
+  const baseSize =
+    format.kind === 'heading' ? getHeadingSizeClass(format.level) : 'text-base';
+
+  return cn(
+    'block leading-tight text-gray-900',
+    baseSize,
+    getAlignmentClass(format.align),
+    getCaseClass(format.case),
+    format.bold && 'font-semibold',
+    format.italic && 'italic',
+    format.underline && 'underline',
+  );
+}
+
+function buildSampleText(sampleText: string, format: TitlePreset['format']) {
+  const segments: string[] = [];
+  if (format.prefix) segments.push(format.prefix);
+  segments.push(sampleText);
+  if (format.suffix) segments.push(format.suffix);
+  return segments.join('');
+}
+
+function TitlePresetPreview({
+  preset,
+  sampleText = TITLE_SAMPLE_TEXT,
+  showLabel = true,
+  className,
+}: TitlePresetPreviewProps) {
+  const textClasses = getTextClasses(preset.format);
+  const displayText = buildSampleText(sampleText, preset.format);
+
+  const content =
+    preset.format.kind === 'list-item' ? (
+      <div className="flex items-start gap-2 text-left">
+        <span className="mt-2 block h-1.5 w-1.5 shrink-0 rounded-full bg-gray-400" />
+        <span className={textClasses}>{displayText}</span>
+      </div>
+    ) : (
+      <span className={textClasses}>{displayText}</span>
+    );
+
+  return (
+    <div className={cn('flex w-full flex-col gap-1', className)}>
+      {content}
+      {showLabel ? (
+        <span className="text-xs text-gray-500">{preset.label}</span>
+      ) : null}
+    </div>
+  );
+}
+
+function TitlePresetDropdown({
+  presets,
+  value: propValue,
+  onChange,
+}: TitlePresetDropdownProps) {
+  const selectedPreset = React.useMemo(() => {
+    if (!presets.length) return undefined;
+    const currentId = propValue ?? presets[0]?.id;
+    return presets.find((preset) => preset.id === currentId) ?? presets[0];
+  }, [presets, propValue]);
+
+  const value = selectedPreset?.id;
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          className="h-auto w-full items-start justify-between gap-2 px-3 py-2 text-left"
+          disabled={!selectedPreset}
+        >
+          <div className="flex-1 text-left">
+            {selectedPreset ? (
+              <TitlePresetPreview preset={selectedPreset} className="flex-1" />
+            ) : (
+              <span className="text-sm text-gray-500">
+                Aucun preset disponible
+              </span>
+            )}
+          </div>
+          <ChevronDown className="h-4 w-4 shrink-0 text-gray-500" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-80 p-1">
+        {presets.map((preset) => (
+          <DropdownMenuItem
+            key={preset.id}
+            className="items-start gap-2"
+            onSelect={() => onChange(preset.id)}
+          >
+            <Check
+              className={cn(
+                'h-4 w-4 text-primary-600 transition-opacity',
+                value === preset.id ? 'opacity-100' : 'opacity-0',
+              )}
+            />
+            <TitlePresetPreview preset={preset} className="flex-1" />
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+export function TitleEditor({ q, onPatch }: EditorProps) {
+  const presets = React.useMemo(() => Object.values(DEFAULT_TITLE_PRESETS), []);
+  const defaultPresetId = presets[0]?.id;
+
+  React.useEffect(() => {
+    if (!defaultPresetId) return;
+    const currentId = q.titrePresetId?.trim();
+    if (!currentId) {
+      onPatch({ titrePresetId: defaultPresetId } as Partial<Question>);
+    }
+  }, [defaultPresetId, q.titrePresetId, onPatch]);
+
+  const handleChange = React.useCallback(
+    (value: string) => {
+      onPatch({ titrePresetId: value } as Partial<Question>);
+    },
+    [onPatch],
+  );
+
+  return (
+    <div className="space-y-2 text-sm">
+      <label className="block text-gray-700">Format du titre</label>
+      <TitlePresetDropdown
+        presets={presets}
+        value={q.titrePresetId ?? defaultPresetId}
+        onChange={handleChange}
+      />
+    </div>
+  );
 }
 
 export const EDITORS: Record<

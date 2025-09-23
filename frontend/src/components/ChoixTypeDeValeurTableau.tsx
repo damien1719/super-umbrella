@@ -17,12 +17,14 @@ import {
 } from '@/components/ui/select';
 import { X, Copy, ClipboardPaste } from 'lucide-react';
 import type { ColumnDef, ValueType, Row } from '@/types/question';
+import { COLOR_PRESETS } from '@/types/question';
 
 interface Props {
   column: ColumnDef | null;
   rows: Row[];
   onClose: () => void;
   onChange: (col: ColumnDef) => void;
+  crInsert?: boolean; // indique si le tableau est inséré dans le CR
 }
 
 export default function ChoixTypeDeValeurTableau({
@@ -30,6 +32,7 @@ export default function ChoixTypeDeValeurTableau({
   rows,
   onClose,
   onChange,
+  crInsert,
 }: Props) {
   const [local, setLocal] = useState<ColumnDef | null>(column);
 
@@ -55,6 +58,17 @@ export default function ChoixTypeDeValeurTableau({
     if (!trimmed) return;
     setLocal({ ...local, options: [...(local.options || []), trimmed] });
   };
+
+  // Détecte l'éventuel preset sélectionné en comparant les règles
+  const selectedPresetId: string = (() => {
+    if (!local.coloring?.rules) return 'none';
+    for (const [id, preset] of Object.entries(COLOR_PRESETS)) {
+      if (JSON.stringify(preset.rules) === JSON.stringify(local.coloring.rules)) {
+        return id;
+      }
+    }
+    return 'custom';
+  })();
 
   return (
     <Dialog open={!!column} onOpenChange={(o) => !o && onClose()}>
@@ -333,6 +347,43 @@ export default function ChoixTypeDeValeurTableau({
                   />
                 </div>
               ))}
+            </div>
+          )}
+          {crInsert && (
+            <div className="space-y-2">
+              <Label>Règles de coloration (CR)</Label>
+              <Select
+                value={selectedPresetId}
+                onValueChange={(presetId) => {
+                  if (presetId === 'none') {
+                    setLocal({ ...local, coloring: undefined });
+                    return;
+                  }
+                  const preset = COLOR_PRESETS[presetId as keyof typeof COLOR_PRESETS];
+                  console.log('preset', preset);
+                  if (preset) {
+                    setLocal({
+                      ...local,
+                      coloring: {
+                        presetId: preset.id,
+                        rules: preset.rules,
+                      },
+                    });
+                  }
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Aucune règle" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Aucune</SelectItem>
+                  {Object.values(COLOR_PRESETS).map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
           <div className="flex justify-end">

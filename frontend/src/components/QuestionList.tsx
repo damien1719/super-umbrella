@@ -44,7 +44,7 @@ const typesQuestions = [
   { id: 'choix-unique', title: 'Choix unique' },
   { id: 'echelle', title: 'Échelle chiffrée' },
   { id: 'tableau', title: 'Tableaux de résultats' },
-  { id: 'titre', title: 'Titre de section' },
+  { id: 'titre', title: 'Titre' },
 ];
 
 interface Props {
@@ -290,7 +290,7 @@ export default function QuestionList({
                       }
                       placeholder={
                         question.type === 'titre'
-                          ? 'Titre de section'
+                          ? 'Titre'
                           : `Question ${index + 1}`
                       }
                       value={question.titre}

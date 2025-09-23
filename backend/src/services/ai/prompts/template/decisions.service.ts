@@ -181,7 +181,7 @@ Rôles :
 - Placer les slots aux bons endroits logiques
 
 Types d'éléments :
-- "title" : titre de section (ex: "Olfactif", "Auditif (Score)")
+- "title" : titre (ex: "Olfactif", "Auditif (Score)")
 - "boilerplate" : petit texte explicatif (ex: "Évaluez les aspects suivants :")
 - "slot" : emplacement pour un champ à remplir
 
