@@ -71,6 +71,12 @@ interface AiRightPanelProps {
   initialWizardSection?: string;
   initialTrameId?: string;
   onSave?: () => Promise<void>; // Ajout de la prop onSave
+  // Optional initial wizard mode for BilanType
+  openWizardBilanType?: boolean;
+  initialBilanTypeId?: string;
+  initialBilanTypeStep?: number;
+  mode?: 'section' | 'bilanType';
+  initialStep?: number;
 }
 
 export default function AiRightPanel({
@@ -80,6 +86,10 @@ export default function AiRightPanel({
   initialWizardSection,
   initialTrameId,
   onSave,
+  openWizardBilanType,
+  initialBilanTypeId,
+  initialBilanTypeStep,
+  initialStep
 }: AiRightPanelProps) {
   const trames = useTrames();
   const {
@@ -115,10 +125,13 @@ export default function AiRightPanel({
   const [lastGeneratedSection, setLastGeneratedSection] = useState<
     string | null
   >(null);
-  const [wizardStartStep, setWizardStartStep] = useState<number>(1);
+  const [wizardStartStep, setWizardStartStep] = useState<number>(
+    initialWizardSection ? 2 : 1,
+  );
   const [regenSection, setRegenSection] = useState<string | null>(null);
   const [regenPrompt, setRegenPrompt] = useState('');
   const [refinedText, setRefinedText] = useState('');
+  const [currentStep, setCurrentStep] = useState<number>(initialStep);
   useEditorUi((s) => s.selection);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -180,6 +193,16 @@ export default function AiRightPanel({
       textareaRef.current.focus();
     }
   }, [regenSection]);
+
+  // If requested, open the BilanType wizard directly (step defaults to 2)
+  useEffect(() => {
+    if (openWizardBilanType) {
+      setWizardBilanType(true);
+      setWizardStartStep(initialBilanTypeStep ?? 2);
+      setCurrentStep(initialBilanTypeStep ?? 2);
+      setMode('bilanType');
+    }
+  }, [openWizardBilanType, initialBilanTypeStep]);
 
   useEffect(() => {
     const defaults: Record<string, string> = {};
@@ -421,7 +444,29 @@ export default function AiRightPanel({
     }
   };
 
-
+  console.log({
+    sectionInfo: {
+      id: 'reponses',
+      title: 'Mes dernières réponses',
+      icon: FileText,
+      description: 'Consultez et modifiez vos réponses précédentes',
+    },
+    trameOptions: [],
+    selectedTrame: undefined,
+    onTrameChange: () => {},
+    examples: [],
+    onAddExample: () => {},
+    onRemoveExample: () => {},
+    questions: [],
+    answers: {},
+    onAnswersChange: () => {},
+    onGenerate: async () => {},
+    onGenerateFromTemplate: async () => {},
+    isGenerating: false,
+    bilanId,
+    onCancel: () => {},
+  });
+  
   return (
     <div className="w-full max-w-md bg-wood-50 rounded-lg shadow-lg">
       <GeneratingModal open={isGenerating} logoSrc="/logo.png" />
@@ -599,7 +644,11 @@ export default function AiRightPanel({
                           description: '',
                         }}
                         trameOptions={bilanTypeOptions}
-                        selectedTrame={undefined}
+                        selectedTrame={
+                          initialBilanTypeId
+                            ? (bilanTypeOptions.find((b) => b.value === initialBilanTypeId) as any)
+                            : undefined
+                        }
                         onTrameChange={() => {}}
                         examples={[]}
                         onAddExample={() => {}}
@@ -614,6 +663,8 @@ export default function AiRightPanel({
                         isGenerating={false}
                         bilanId={bilanId}
                         onCancel={() => setWizardBilanType(false)}
+                        initialStep={wizardStartStep}
+                        currentStep={wizardStartStep}
                       />
                     </DialogContent>
                   </Dialog>

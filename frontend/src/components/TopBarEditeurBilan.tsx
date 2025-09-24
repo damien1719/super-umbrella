@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { FileDown } from 'lucide-react';
+import { ArrowLeft, FileDown } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -57,12 +57,13 @@ export default function TopBarEditeurBilan({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="ghost"
+                variant="outline"
                 onClick={onBack}
                 className="px-2 py-1"
                 title="Retour"
                 aria-label="Retour"
               >
+                <ArrowLeft className="w-4 h-4 mr-2" />
                 Retour
               </Button>
             </TooltipTrigger>
