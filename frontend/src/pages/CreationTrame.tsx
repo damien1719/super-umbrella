@@ -736,11 +736,6 @@ export default function CreationTrame({
               readOnly={isReadOnly}
             />
             {/* Contenu principal scrollable (bloqué en lecture seule) */}
-            <ReadOnlyOverlay
-              active={isReadOnly}
-              onCta={handleDuplicate}
-              className="lg:mr-80"
-            >
               <div className="h-full overflow-y-auto">
                 <QuestionList
                   questions={questions}
@@ -755,7 +750,6 @@ export default function CreationTrame({
                   isReadOnly={isReadOnly}
                 />
               </div>
-            </ReadOnlyOverlay>
           </div>
         )}
 

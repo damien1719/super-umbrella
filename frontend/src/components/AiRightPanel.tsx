@@ -421,6 +421,7 @@ export default function AiRightPanel({
     }
   };
 
+
   return (
     <div className="w-full max-w-md bg-wood-50 rounded-lg shadow-lg">
       <GeneratingModal open={isGenerating} logoSrc="/logo.png" />
@@ -635,7 +636,7 @@ export default function AiRightPanel({
                             className="ml-auto h-7 px-2 text-sm"
                             onClick={() => setWizardBilanType(true)}
                           >
-                            Démarrer
+                            Rédiger
                             <ArrowRightCircle className="h-4 w-4 ml-1" />
                           </Button>
                         </div>
@@ -783,7 +784,7 @@ export default function AiRightPanel({
                                     setWizardSection(section.id);
                                   }}
                                 >
-                                  Démarrer
+                                  Rédiger
                                   <ArrowRightCircle className="h-4 w-4 ml-1" />
                                 </Button>
                               </div>

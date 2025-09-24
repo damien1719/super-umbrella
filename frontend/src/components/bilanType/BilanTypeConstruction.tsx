@@ -38,6 +38,7 @@ interface BilanTypeConstructionProps {
   onAddHeading: (title?: string) => void;
   onRenameHeading: (index: number, title: string) => void;
   onSave: () => void;
+  onOpenSection?: (id: string) => void | Promise<void>;
 }
 
 export function BilanTypeConstruction({
@@ -50,6 +51,7 @@ export function BilanTypeConstruction({
   onRemoveElement,
   onAddHeading,
   onRenameHeading,
+  onOpenSection,
 }: BilanTypeConstructionProps) {
   return (
     <>
@@ -88,6 +90,7 @@ export function BilanTypeConstruction({
                   onDragEnd={onDragEnd}
                   onRemove={onRemoveElement}
                   onRenameHeading={onRenameHeading}
+                  onOpenSection={onOpenSection}
                 />
               ))}
             </div>
