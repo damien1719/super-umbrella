@@ -78,6 +78,7 @@ type SurveyTable = {
 };
 
 function isTableQuestion(question: Question): question is Question & { tableau: SurveyTable } {
+  console.log('isTableQuestion', question);
   return question?.type === 'tableau' && typeof (question as any)?.tableau === 'object';
 }
 
@@ -131,7 +132,10 @@ function createTableRow(cells: LexicalNode[]): LexicalNode {
 }
 
 function isNonEmpty(value: unknown, column?: ColumnDef): boolean {
-  if (column?.valueType === 'bool') return value === true || value === false;
+  if (column?.valueType === 'bool') {
+    console.log('tableau value', value);
+    return value === true || value === false;
+  }
   if (column?.valueType === 'multi-choice' || column?.valueType === 'multi-choice-row')
     return Array.isArray(value) && value.length > 0;
   if (typeof value === 'number') return true;
@@ -147,7 +151,7 @@ function formatCell(value: unknown, column?: ColumnDef): string {
   if (value == null) return '';
   if (typeof value === 'string') return value.trim();
   if (typeof value === 'number') return String(value);
-  if (typeof value === 'boolean') return value ? 'Oui' : '';
+  if (typeof value === 'boolean') return value ? '•' : '';
   return '';
 }
 

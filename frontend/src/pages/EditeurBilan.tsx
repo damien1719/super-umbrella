@@ -110,6 +110,9 @@ export default function Bilan() {
     }
   };
 
+  console.log("initialWizardSection", state?.wizardSection);
+  console.log("initialTrameId", state?.trameId);
+
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       <TopBarEditeurBilan

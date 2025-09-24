@@ -349,7 +349,7 @@ export default function QuestionList({
                     {/* Coller une réutilisation (visible seulement si un élément est dans le presse-papiers) */}
                     {clipboardItem && onPasteAfter && (
                       <Button
-                        variant="outline"
+                        variant="primary"
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -401,7 +401,7 @@ export default function QuestionList({
                       }}
                     >
                       <ClipboardCopy className="h-4 w-4" />
-                      {isReadOnly && <span>Copier pour réutiliser</span>}
+                      {isReadOnly && <span className="text-base">Copier pour réutiliser</span>}
                     </Button>
                     {/*                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

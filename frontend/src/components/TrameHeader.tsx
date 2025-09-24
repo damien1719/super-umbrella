@@ -1,4 +1,4 @@
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, GlassWaterIcon, ScanLineIcon, SparklesIcon, TextSearchIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,6 +20,7 @@ interface Props {
   isDirty?: boolean;
   saving?: boolean;
   lastSavedAt?: string | null;
+  onTestGeneration?: () => void;
 }
 
 export default function TrameHeader(p?: Partial<Props>) {
@@ -39,6 +40,7 @@ export default function TrameHeader(p?: Partial<Props>) {
     isDirty = false,
     saving = false,
     lastSavedAt = null,
+    onTestGeneration = () => {},
   } = p || {};
 
   return (
@@ -93,22 +95,25 @@ export default function TrameHeader(p?: Partial<Props>) {
             </Button>
           </div>
           <Button variant="outline" onClick={onOpenInspiration}>
+            <TextSearchIcon className="h-4 w-4 mr-2" />
             Explorer
           </Button>
           <Button variant="outline" onClick={onImport}>
+            <SparklesIcon className="h-4 w-4 mr-2" />
             Import Magique
           </Button>
+{/*           <Button variant="outline" onClick={onImport}>
+            <SparklesIcon className="h-4 w-4 mr-2" />
+            Tester la génération
+          </Button> */}
           {showAdminImport && (
-            <Button variant="primary" onClick={onAdminImport}>
+            <Button variant="primary" onClick={onTestGeneration}>
               Admin Import
             </Button>
           )}
         </>
       ) : (
         <div className="ml-auto flex items-center gap-2">
-          <Button variant="outline" onClick={onOpenInspiration}>
-            Explorer
-          </Button>
           <Button onClick={onDuplicate} variant="primary">
             Dupliquer la trame
           </Button>

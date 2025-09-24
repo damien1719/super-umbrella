@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Search, Filter } from 'lucide-react';
+import { Plus, Search, Filter, TextSearchIcon } from 'lucide-react';
 import { SectionCardSmall } from './SectionCardSmall';
 
 // ✅ use your shared domain types & data
@@ -99,6 +99,7 @@ export function SectionDisponible({
               onClick={onOpenExplorer}
               className="whitespace-nowrap"
             >
+              <TextSearchIcon className="h-4 w-4 mr-2" />
               Explorer
             </Button>
           )}
