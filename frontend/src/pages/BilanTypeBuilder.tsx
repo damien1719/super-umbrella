@@ -28,12 +28,17 @@ import CreationTrame from '@/pages/CreationTrame';
 import { categories, kindMap, type CategoryId } from '@/types/trame';
 import { Job, jobOptions } from '@/types/job';
 import { hydrateLayout, type LexicalState } from '@/utils/hydrateLayout';
-import { ArrowLeft, Loader2, Save } from 'lucide-react';
+import { ArrowLeft, FeatherIcon, Loader2, Save } from 'lucide-react';
 import SharePanel from '@/components/SharePanel';
 import ExitConfirmation from '@/components/ExitConfirmation';
 import LeftNavBilanType from '@/components/bilan/LeftNavBilanType';
 import { DataEntry, type DataEntryHandle } from '@/components/bilan/DataEntry';
 import type { Answers, Question } from '@/types/question';
+import { CreationBilan } from '@/components/ui/creation-bilan-modal';
+import { NewPatientModal } from '@/components/ui/new-patient-modal';
+import { usePatientStore } from '@/store/patients';
+import { useAuth } from '@/store/auth';
+import { apiFetch } from '@/utils/api';
 
 // Types d'élément composant la construction
 type SectionElement = {
@@ -91,6 +96,13 @@ export default function BilanTypeBuilder(
   const [isFetchingSections, setIsFetchingSections] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isBackButtonDisabled, setIsBackButtonDisabled] = useState(true);
+  // --- Tester la génération (création bilan) ---
+  const [isCreationModalOpen, setIsCreationModalOpen] = useState(false);
+  const [bilanTitle, setBilanTitle] = useState('');
+  const [isNewPatientModalOpen, setIsNewPatientModalOpen] = useState(false);
+  const patients = usePatientStore((s) => s.items);
+  const fetchPatients = usePatientStore((s) => s.fetchAll);
+  const token = useAuth((s) => s.token);
 
   // Dirty state tracking and baselines
   const [savedLayoutJson, setSavedLayoutJson] = useState<unknown | undefined>(
@@ -141,6 +153,29 @@ export default function BilanTypeBuilder(
       isMounted = false;
     };
   }, [fetchSections]);
+
+  // Pré-charger la liste des patients pour le modal CreationBilan
+  useEffect(() => {
+    if (token) {
+      fetchPatients().catch(() => {});
+    }
+  }, [token, fetchPatients]);
+
+    const hasPatients = patients.length > 0;
+    
+    const createBilan = async (patientId: string, title?: string) => {
+      const res = await apiFetch<{ id: string }>(
+        '/api/v1/bilans',
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ patientId, title }),
+        },
+      );
+      navigate(`/bilan/${res.id}` as const, {
+        state: { wizardBilanType: true, bilanTypeStep: 2, bilanTypeId: currentBilanTypeId, mode: 'bilanType' },
+      });
+    };
 
   // For new (unsaved) items, initialize baselines from initial state once
   useEffect(() => {
@@ -644,7 +679,7 @@ export default function BilanTypeBuilder(
 
   // drag end handled inline where needed
 
-  const doSaveBilanType = async () => {
+  const doSaveBilanType = async (): Promise<string | undefined> => {
     setIsSaving(true);
     try {
       // Derive sections order from layout placeholders (by appearance order)
@@ -661,23 +696,26 @@ export default function BilanTypeBuilder(
         layoutJson: layoutJson ?? { root: { type: 'root', children: [] } },
         job: jobs,
       };
+      let idToUse = currentBilanTypeId;
       if (currentBilanTypeId) {
         await updateBilanType(currentBilanTypeId, payload);
       } else {
         const created = await createBilanType(payload);
+        idToUse = created.id;
         setCurrentBilanTypeId(created.id);
       }
       // Update baselines and lastSavedAt after successful save
       setSavedLayoutJson(layoutJson ?? defaultRoot);
       setSavedJobs(jobs);
       setLastSavedAt(new Date());
+      return idToUse;
     } finally {
       setIsSaving(false);
     }
   };
 
-  const saveBilanType = async () => {
-    await doSaveBilanType();
+  const saveBilanType = async (): Promise<string | undefined> => {
+    return await doSaveBilanType();
   };
 
 
@@ -814,6 +852,21 @@ export default function BilanTypeBuilder(
                     Enregistrer
                   </>
                 )}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  // Ensure we have an id before testing generation
+                  if (!currentBilanTypeId) {
+                    const id = await saveBilanType();
+                    // Try again; state update may lag, so prefer returned id if present
+                    if (id) setCurrentBilanTypeId(id);
+                  }
+                  setIsCreationModalOpen(true);
+                }}
+              >
+              <FeatherIcon className="h-4 w-4 mr-2" />
+                Commencer une rédaction
               </Button>
             </div>
           </div>
@@ -1139,6 +1192,26 @@ export default function BilanTypeBuilder(
             navigate(-1);
           }}
           onCancel={() => navigate(-1)}
+        />
+        {/* Modale de création de bilan */}
+        <CreationBilan
+          isOpen={isCreationModalOpen}
+          onClose={() => setIsCreationModalOpen(false)}
+          onNewPatient={(title) => {
+            setBilanTitle(title);
+            setIsNewPatientModalOpen(true);
+          }}
+          onExistingPatient={(title, patientId) => {
+            setBilanTitle(title);
+            createBilan(patientId, title);
+          }}
+          hasPatients={usePatientStore.getState().items.length > 0}
+          defaultValue={bilanTitle}
+        />
+        <NewPatientModal
+          isOpen={isNewPatientModalOpen}
+          onClose={() => setIsNewPatientModalOpen(false)}
+          onPatientCreated={(id) => createBilan(id, bilanTitle)}
         />
       </div>
     </div>

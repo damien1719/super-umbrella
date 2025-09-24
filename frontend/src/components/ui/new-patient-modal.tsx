@@ -44,17 +44,18 @@ export function NewPatientModal({
         <DialogHeader>
           <DialogTitle>Nouveau patient</DialogTitle>
           <DialogDescription>
-            Remplissez les informations du nouveau patient.
+            Indiquer un prénom
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="firstName" className="text-right">
+            <Label htmlFor="firstName" className="text-right" >
               Prénom
             </Label>
             <Input
               id="firstName"
               value={firstName}
+              placeholder="Thomas"
               onChange={(e) => setFirstName(e.target.value)}
               className="col-span-3"
             />
@@ -73,7 +74,7 @@ export function NewPatientModal({
         </div>
         <DialogFooter>
           <Button type="submit" onClick={handleSave}>
-            Enregistrer
+            Créer un bilan pour ce patient
           </Button>
         </DialogFooter>
       </DialogContent>

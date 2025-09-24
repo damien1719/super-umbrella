@@ -16,12 +16,14 @@ interface WizardAIBilanTypeProps extends WizardAIRightPanelProps {
     header2?: string;
     stepTitles?: string[];
   };
+  currentStep?: number;
 }
 
 export default function WizardAIBilanType({
   mode = 'section',
   api,
   stepTextOverrides,
+  currentStep: externalCurrentStep = 1, // Valeur par défaut à 1
   ...rest
 }: WizardAIBilanTypeProps) {
   // Currently, the additional props are not used but kept for future
@@ -46,6 +48,12 @@ export default function WizardAIBilanType({
     // fallback to external handler if provided
     rest.onTrameChange?.(value);
   };
+
+  useEffect(() => {
+    if (externalCurrentStep !== undefined) {
+      setCurrentStep(externalCurrentStep);
+    }
+  }, [externalCurrentStep]);
 
   // Track active test (section) name from inner panel to label the button
   const [activeTestTitle, setActiveTestTitle] =

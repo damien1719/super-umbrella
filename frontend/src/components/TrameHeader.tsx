@@ -1,4 +1,4 @@
-import { ArrowLeft, GlassWaterIcon, ScanLineIcon, SparklesIcon, TextSearchIcon } from 'lucide-react';
+import { ArrowLeft, FeatherIcon, GlassWaterIcon, ScanLineIcon, SparklesIcon, TextSearchIcon} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -102,12 +102,12 @@ export default function TrameHeader(p?: Partial<Props>) {
             <SparklesIcon className="h-4 w-4 mr-2" />
             Import Magique
           </Button>
-{/*           <Button variant="outline" onClick={onImport}>
-            <SparklesIcon className="h-4 w-4 mr-2" />
-            Tester la génération
-          </Button> */}
+          <Button variant="outline" onClick={onTestGeneration}>
+            <FeatherIcon className="h-4 w-4 mr-2" />
+            Rédiger
+          </Button>
           {showAdminImport && (
-            <Button variant="primary" onClick={onTestGeneration}>
+            <Button variant="primary" onClick={onAdminImport}>
               Admin Import
             </Button>
           )}

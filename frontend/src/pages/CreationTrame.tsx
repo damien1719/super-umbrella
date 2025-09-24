@@ -9,7 +9,7 @@ type Answers = Record<
   string,
   string | number | boolean | string[] | Record<string, unknown>
 >;
-import { categories, type CategoryId } from '../types/trame';
+import { categories, type CategoryId, kindMap } from '../types/trame';
 import TrameHeader from '@/components/TrameHeader';
 import QuestionList from '@/components/QuestionList';
 import RightBarEdition from '@/components/RightBarEdition';
@@ -32,6 +32,9 @@ import { Job } from '../types/job';
 import SharePanel from '@/components/SharePanel';
 import ReadOnlyOverlay from '@/components/ReadOnlyOverlay';
 import SourceParam from '@/components/SourceParam';
+import { CreationBilan } from '@/components/ui/creation-bilan-modal';
+import { NewPatientModal } from '@/components/ui/new-patient-modal';
+import { usePatientStore } from '../store/patients';
 
 interface ImportResponse {
   result: Question[][];
@@ -100,6 +103,42 @@ export default function CreationTrame({
   const profileId = useUserProfileStore((s) => s.profileId);
   const profile = useUserProfileStore((s) => s.profile);
   const fetchProfile = useUserProfileStore((s) => s.fetchProfile);
+
+  // --- Creation Bilan flow (like MesBilans) ---
+  const [isCreationModalOpen, setIsCreationModalOpen] = useState(false);
+  const [bilanTitle, setBilanTitle] = useState('');
+  const [isNewPatientModalOpen, setIsNewPatientModalOpen] = useState(false);
+  const patients = usePatientStore((s) => s.items);
+  const fetchPatients = usePatientStore((s) => s.fetchAll);
+
+  useEffect(() => {
+    if (token) {
+      fetchPatients().catch(() => {});
+    }
+  }, [token, fetchPatients]);
+
+  const hasPatients = patients.length > 0;
+
+  const getWizardSectionId = () => {
+    if (!categorie) return undefined;
+    const found = Object.entries(kindMap).find(([, v]) => v === categorie);
+    return found ? found[0] : (categorie as unknown as string);
+  };
+
+  const createBilan = async (patientId: string, title?: string) => {
+    const res = await apiFetch<{ id: string }>(
+      '/api/v1/bilans',
+      {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ patientId, title }),
+      },
+    );
+    const wizardSection = getWizardSectionId();
+    navigate(`/bilan/${res.id}` as const, {
+      state: { wizardSection, trameId: sectionId },
+    });
+  };
 
   const snapshotTemplate = (tpl: SectionTemplate | null) =>
     JSON.stringify(
@@ -543,6 +582,11 @@ export default function CreationTrame({
     );
   }
 
+  const handleTestGeneration = async () => {
+    await saveOnly();
+    setIsCreationModalOpen(true);
+  }
+
   const handleDuplicate = async () => {
     if (!sectionId) return;
     try {
@@ -662,6 +706,7 @@ export default function CreationTrame({
             isDirty={isDirty}
             saving={saving}
             lastSavedAt={lastSavedAt}
+            onTestGeneration={handleTestGeneration}
           />
 
           <div className="border-b border-wood-400 mb-4">
@@ -757,14 +802,16 @@ export default function CreationTrame({
           // Pré-visualisation: Scroll avec navigation latérale fixe
           <div className="h-full flex gap-6">
             {/* Contenu principal scrollable */}
-            <div className="flex-1 overflow-y-auto">
-              <DataEntry
-                inline
-                questions={questions}
-                answers={previewAnswers}
-                onChange={setPreviewAnswers}
-              />
-            </div>
+            <ReadOnlyOverlay active={true} onCta={handleDuplicate}>
+              <div className="flex-1 overflow-y-auto">
+                <DataEntry
+                  inline
+                  questions={questions}
+                  answers={previewAnswers}
+                  onChange={setPreviewAnswers}
+                />
+              </div>
+            </ReadOnlyOverlay>
           </div>
         )}
 
@@ -918,6 +965,25 @@ export default function CreationTrame({
         open={showInspiration}
         onOpenChange={setShowInspiration}
         titleLeft="Cliquer sur une partie pour en voir le détail"
+      />
+      <CreationBilan
+        isOpen={isCreationModalOpen}
+        onClose={() => setIsCreationModalOpen(false)}
+        onNewPatient={(title) => {
+          setBilanTitle(title);
+          setIsNewPatientModalOpen(true);
+        }}
+        onExistingPatient={(title, patientId) => {
+          setBilanTitle(title);
+          createBilan(patientId, title);
+        }}
+        hasPatients={hasPatients}
+        defaultValue={nomTrame}
+      />
+      <NewPatientModal
+        isOpen={isNewPatientModalOpen}
+        onClose={() => setIsNewPatientModalOpen(false)}
+        onPatientCreated={(id) => createBilan(id, bilanTitle)}
       />
       <Dialog open={showImport} onOpenChange={setShowImport}>
         <DialogContent>

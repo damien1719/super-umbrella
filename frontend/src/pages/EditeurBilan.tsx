@@ -24,7 +24,14 @@ export default function Bilan() {
   const { bilanId } = useParams<{ bilanId: string }>();
   const navigate = useNavigate();
   const { state } = useLocation() as {
-    state?: { wizardSection?: string; trameId?: string };
+    state?: {
+      wizardSection?: string;
+      trameId?: string;
+      wizardBilanType?: boolean;
+      bilanTypeId?: string;
+      bilanTypeStep?: number;
+      mode?: 'section' | 'bilanType';
+    };
   };
   const token = useAuth((s) => s.token);
   const [bilan, setBilan] = useState<BilanData | null>(null);
@@ -45,7 +52,7 @@ export default function Bilan() {
     } else {
       await save();
       reset();
-      navigate('/');
+      navigate(-1);
     }
   };
 
@@ -152,6 +159,11 @@ export default function Bilan() {
                   onSave={save}
                   initialWizardSection={state?.wizardSection}
                   initialTrameId={state?.trameId}
+                  openWizardBilanType={state?.wizardBilanType}
+                  initialBilanTypeId={state?.bilanTypeId}
+                  initialBilanTypeStep={state?.bilanTypeStep}
+                  mode={state?.mode}
+                  currentStep={state?.bilanTypeStep}
                 />
               )}
             </Suspense>

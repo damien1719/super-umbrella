@@ -4,12 +4,11 @@ import { Loader2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { NewPatientModal } from '@/components/ui/new-patient-modal';
-import { ExistingPatientModal } from '@/components/ui/existing-patient-modal';
+import { CreationBilan } from '@/components/ui/creation-bilan-modal';
 import { useAuth } from '../store/auth';
 import { apiFetch } from '../utils/api';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { CreationBilan } from '@/components/ui/creation-bilan-modal';
 import EmptyState from '@/components/bilans/EmptyState';
 import GenericTable, { BilanItem } from '@/components/bilans/GenericTable';
 import PaginationControls from '@/components/bilans/PaginationControls';
@@ -21,8 +20,6 @@ export default function Component() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [isNewPatientModalOpen, setIsNewPatientModalOpen] = useState(false);
-  const [isExistingPatientModalOpen, setIsExistingPatientModalOpen] =
-    useState(false);
   const [toDelete, setToDelete] = useState<BilanItem | null>(null);
   const bilansPerPage = 8;
   const token = useAuth((s) => s.token);
@@ -170,25 +167,19 @@ export default function Component() {
       <CreationBilan
         isOpen={isCreationModalOpen}
         onClose={() => setIsCreationModalOpen(false)}
-        onNewPatient={(title) => {
+        onNewPatient={(title, firstName = 'Nouveau') => {
           setBilanTitle(title);
           setIsNewPatientModalOpen(true);
         }}
-        onExistingPatient={(title) => {
-          setBilanTitle(title);
-          setIsExistingPatientModalOpen(true);
-        }}
         hasPatients={hasPatients}
+        onExistingPatient={(title, patientId) => {
+          createBilan(patientId, title);
+        }}
       />
       <NewPatientModal
         isOpen={isNewPatientModalOpen}
         onClose={() => setIsNewPatientModalOpen(false)}
         onPatientCreated={(id) => createBilan(id, bilanTitle)}
-      />
-      <ExistingPatientModal
-        isOpen={isExistingPatientModalOpen}
-        onClose={() => setIsExistingPatientModalOpen(false)}
-        onPatientSelected={(id) => createBilan(id, bilanTitle)}
       />
       <ConfirmDialog
         open={!!toDelete}
