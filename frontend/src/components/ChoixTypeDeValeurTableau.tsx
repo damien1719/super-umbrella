@@ -351,7 +351,7 @@ export default function ChoixTypeDeValeurTableau({
           )}
           {crInsert && (
             <div className="space-y-2">
-              <Label>Règles de coloration (CR)</Label>
+              <Label>Couleurs automatiques (Automatiquement à l'insertion le chiffre prendra une couleur suivant la valeur)</Label>
               <Select
                 value={selectedPresetId}
                 onValueChange={(presetId) => {

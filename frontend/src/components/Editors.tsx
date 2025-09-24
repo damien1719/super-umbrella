@@ -355,7 +355,9 @@ export function TableEditor({ q, onPatch }: EditorProps) {
                   >
                     <div className="flex flex-col items-center gap-2">
                       <div className="flex items-center gap-1">
-                        <button
+                        <Button
+                          variant="icon"
+                          size="sm"
                           aria-label="Déplacer la colonne"
                           draggable
                           onDragStart={() => handleColDragStart(colIdx)}
@@ -363,17 +365,27 @@ export function TableEditor({ q, onPatch }: EditorProps) {
                           className="cursor-move p-1"
                         >
                           <GripVertical className="h-4 w-4" />
-                        </button>
+                        </Button>
                         <Button
                           variant="icon"
-                          size="default"
+                          size="sm"
                           onClick={() => setEditingColIdx(colIdx)}
                         >
                           <span className="flex items-center gap-1 text-sm font-medium">
                             Type
-                            <Settings className="h-4 w-4" />
                           </span>
                         </Button>
+                        {tableau.crInsert && (
+                          <Button
+                            variant="icon"
+                            size="sm"
+                            onClick={() => setEditingColIdx(colIdx)}
+                          >
+                            <span className="flex items-center gap-1 text-sm font-medium">
+                              Couleur
+                            </span>
+                          </Button>
+                        )}
                         <Button
                           variant="icon"
                           size="micro"
