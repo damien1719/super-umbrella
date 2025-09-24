@@ -35,6 +35,7 @@ import {
 export type EditorProps = {
   q: Question;
   onPatch: (p: Partial<Question>) => void;
+  isReadOnly?: boolean;
 };
 
 export function NotesEditor({}: EditorProps) {
@@ -47,13 +48,14 @@ export function NotesEditor({}: EditorProps) {
   );
 }
 
-export function MultiChoiceEditor({ q, onPatch }: EditorProps) {
+export function MultiChoiceEditor({ q, onPatch, isReadOnly }: EditorProps) {
   const options = ('options' in q && q.options) || [];
   React.useEffect(() => {
+    if (isReadOnly) return;
     if (q.commentaire === undefined) {
       onPatch({ commentaire: true } as Partial<Question>);
     }
-  }, [q.commentaire, onPatch]);
+  }, [q.commentaire, onPatch, isReadOnly]);
   const updateOption = (idx: number, value: string) => {
     const opts = [...options];
     opts[idx] = value;
@@ -81,11 +83,13 @@ export function MultiChoiceEditor({ q, onPatch }: EditorProps) {
                 className="text-sm"
                 value={option}
                 onChange={(e) => updateOption(optionIndex, e.target.value)}
+                disabled={isReadOnly}
               />
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => removeOption(optionIndex)}
+                disabled={isReadOnly}
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -103,6 +107,7 @@ export function MultiChoiceEditor({ q, onPatch }: EditorProps) {
               addOption(e.currentTarget.value);
               e.currentTarget.value = '';
             }}
+            disabled={isReadOnly}
           />
         </div>
       </div>
@@ -115,12 +120,12 @@ export function MultiChoiceEditor({ q, onPatch }: EditorProps) {
                 données
               </p>
             </div>
-            <Button variant="icon" size="sm" onClick={toggleComment}>
+            <Button variant="icon" size="sm" onClick={toggleComment} disabled={isReadOnly}>
               <X className="h-4 w-4" />
             </Button>
           </div>
         ) : (
-          <Button variant="outline" size="sm" onClick={toggleComment}>
+          <Button variant="outline" size="sm" onClick={toggleComment} disabled={isReadOnly}>
             + Ajouter une zone de commentaire
           </Button>
         )}
@@ -135,7 +140,7 @@ export function ScaleEditor({}: EditorProps) {
   );
 }
 
-export function TableEditor({ q, onPatch }: EditorProps) {
+export function TableEditor({ q, onPatch, isReadOnly }: EditorProps) {
   const genId = () => Math.random().toString(36).slice(2);
   const [groupToDelete, setGroupToDelete] = React.useState<string | null>(null);
   const [editingGroupId, setEditingGroupId] = React.useState<string | null>(
@@ -359,10 +364,11 @@ export function TableEditor({ q, onPatch }: EditorProps) {
                           variant="icon"
                           size="sm"
                           aria-label="Déplacer la colonne"
-                          draggable
+                          draggable={!isReadOnly}
                           onDragStart={() => handleColDragStart(colIdx)}
                           onDragEnd={handleColDragEnd}
                           className="cursor-move p-1"
+                          disabled={isReadOnly}
                         >
                           <GripVertical className="h-4 w-4" />
                         </Button>
@@ -370,6 +376,7 @@ export function TableEditor({ q, onPatch }: EditorProps) {
                           variant="icon"
                           size="sm"
                           onClick={() => setEditingColIdx(colIdx)}
+                          disabled={isReadOnly}
                         >
                           <span className="flex items-center gap-1 text-sm font-medium">
                             Type
@@ -380,6 +387,7 @@ export function TableEditor({ q, onPatch }: EditorProps) {
                             variant="icon"
                             size="sm"
                             onClick={() => setEditingColIdx(colIdx)}
+                            disabled={isReadOnly}
                           >
                             <span className="flex items-center gap-1 text-sm font-medium">
                               Couleur
@@ -390,6 +398,7 @@ export function TableEditor({ q, onPatch }: EditorProps) {
                           variant="icon"
                           size="micro"
                           onClick={() => removeColumn(colIdx)}
+                          disabled={isReadOnly}
                         >
                           <X className="h-4 w-4" />
                         </Button>
@@ -398,6 +407,7 @@ export function TableEditor({ q, onPatch }: EditorProps) {
                         className="w-40 whitespace-normal break-words text-sm"
                         value={col.label}
                         onChange={(e) => updateColumn(colIdx, e.target.value)}
+                        disabled={isReadOnly}
                       />
                     </div>
                   </th>
@@ -418,6 +428,7 @@ export function TableEditor({ q, onPatch }: EditorProps) {
                         e.currentTarget.value = '';
                       }
                     }}
+                    disabled={isReadOnly}
                   />
                 </th>
               </tr>
@@ -452,10 +463,13 @@ export function TableEditor({ q, onPatch }: EditorProps) {
                               setEditingGroupId(null);
                             }
                           }}
+                          disabled={isReadOnly}
                         />
                       ) : (
                         <span
-                          onClick={() => setEditingGroupId(group.id)}
+                          onClick={() => {
+                            if (!isReadOnly) setEditingGroupId(group.id);
+                          }}
                           className="cursor-text"
                         >
                           {group.title || 'Groupe sans titre'}
@@ -465,6 +479,7 @@ export function TableEditor({ q, onPatch }: EditorProps) {
                         variant="icon"
                         size="micro"
                         onClick={() => setGroupToDelete(group.id)}
+                        disabled={isReadOnly}
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -480,12 +495,13 @@ export function TableEditor({ q, onPatch }: EditorProps) {
                         <div className="flex items-center gap-2">
                           <button
                             aria-label="Déplacer la ligne"
-                            draggable
+                            draggable={!isReadOnly}
                             onDragStart={() =>
                               handleRowDragStart(group.id, ligneIdx)
                             }
                             onDragEnd={handleRowDragEnd}
                             className="cursor-move p-1"
+                            disabled={isReadOnly}
                           >
                             <GripVertical className="h-4 w-4" />
                           </button>
@@ -513,11 +529,13 @@ export function TableEditor({ q, onPatch }: EditorProps) {
                                 e.currentTarget.value,
                               )
                             }
+                            disabled={isReadOnly}
                           />
                           <Button
                             variant="icon"
                             size="micro"
                             onClick={() => removeLine(group.id, ligneIdx)}
+                            disabled={isReadOnly}
                           >
                             <X className="h-4 w-4" />
                           </Button>
@@ -551,6 +569,7 @@ export function TableEditor({ q, onPatch }: EditorProps) {
                             e.currentTarget.value = '';
                           }
                         }}
+                        disabled={isReadOnly}
                       />
                     </th>
                   </tr>
@@ -575,6 +594,7 @@ export function TableEditor({ q, onPatch }: EditorProps) {
                   e.currentTarget.value = '';
                 }
               }}
+              disabled={isReadOnly}
             />
           </div>
         </div>
@@ -587,12 +607,12 @@ export function TableEditor({ q, onPatch }: EditorProps) {
                   données
                 </p>
               </div>
-              <Button variant="icon" size="sm" onClick={toggleComment}>
+              <Button variant="icon" size="sm" onClick={toggleComment} disabled={isReadOnly}>
                 <X className="h-4 w-4" />
               </Button>
             </div>
           ) : (
-            <Button variant="outline" size="sm" onClick={toggleComment}>
+            <Button variant="outline" size="sm" onClick={toggleComment} disabled={isReadOnly}>
               + Ajouter une zone de commentaire
             </Button>
           )}
@@ -604,6 +624,7 @@ export function TableEditor({ q, onPatch }: EditorProps) {
               type="checkbox"
               checked={Boolean(tableau.crInsert)}
               onChange={toggleAnchorInsert}
+              disabled={isReadOnly}
             />
             <label
               htmlFor={`table-cr-toggle-${q.id}`}
@@ -685,6 +706,7 @@ type TitlePresetDropdownProps = {
   presets: TitlePreset[];
   value?: string;
   onChange: (value: string) => void;
+  disabled?: boolean;
 };
 
 function getHeadingSizeClass(level?: number) {
@@ -788,6 +810,7 @@ function TitlePresetDropdown({
   presets,
   value: propValue,
   onChange,
+  disabled,
 }: TitlePresetDropdownProps) {
   const selectedPreset = React.useMemo(() => {
     if (!presets.length) return undefined;
@@ -804,7 +827,7 @@ function TitlePresetDropdown({
           type="button"
           variant="outline"
           className="h-auto w-full items-start justify-between gap-2 px-3 py-2 text-left"
-          disabled={!selectedPreset}
+          disabled={!selectedPreset || disabled}
         >
           <div className="flex-1 text-left">
             {selectedPreset ? (
@@ -824,7 +847,13 @@ function TitlePresetDropdown({
             <DropdownMenuItem
               key={preset.id}
               className="items-start"
-              onSelect={() => onChange(preset.id)}
+              onSelect={(e) => {
+                if (disabled) {
+                  e.preventDefault();
+                  return;
+                }
+                onChange(preset.id);
+              }}
             >
               <Check
                 className={cn(
@@ -841,17 +870,17 @@ function TitlePresetDropdown({
   );
 }
 
-export function TitleEditor({ q, onPatch }: EditorProps) {
+export function TitleEditor({ q, onPatch, isReadOnly }: EditorProps) {
   const presets = React.useMemo(() => Object.values(DEFAULT_TITLE_PRESETS), []);
   const defaultPresetId = "t12-underline";
 
   React.useEffect(() => {
-    if (!defaultPresetId) return;
+    if (!defaultPresetId || isReadOnly) return;
     const currentId = q.titrePresetId?.trim();
     if (!currentId) {
       onPatch({ titrePresetId: defaultPresetId } as Partial<Question>);
     }
-  }, [defaultPresetId, q.titrePresetId, onPatch]);
+  }, [defaultPresetId, q.titrePresetId, onPatch, isReadOnly]);
 
   const handleChange = React.useCallback(
     (value: string) => {
@@ -867,6 +896,7 @@ export function TitleEditor({ q, onPatch }: EditorProps) {
         presets={presets}
         value={q.titrePresetId ?? defaultPresetId}
         onChange={handleChange}
+        disabled={isReadOnly}
       />
     </div>
   );

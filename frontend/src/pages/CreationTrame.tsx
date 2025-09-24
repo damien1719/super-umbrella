@@ -22,6 +22,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import TemplateEditor from '@/components/TemplateEditor';
 import EmptyTemplateState from '@/components/EmptyTemplateState';
 import Settings from '@/components/Settings';
+import InspirationPanel from '@/components/InspirationPanel';
 import { useSectionTemplateStore } from '../store/sectionTemplates';
 import type { SectionTemplate, SlotSpec } from '../types/template';
 import { apiFetch } from '@/utils/api';
@@ -67,6 +68,7 @@ export default function CreationTrame({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showImport, setShowImport] = useState(false);
   const [showAdminImport, setShowAdminImport] = useState(false);
+  const [showInspiration, setShowInspiration] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [job, setJob] = useState<Job[]>([Job.PSYCHOMOTRICIEN]);
   const createTemplate = useSectionTemplateStore((s) => s.create);
@@ -656,6 +658,7 @@ export default function CreationTrame({
             showAdminImport={isAdmin}
             readOnly={isReadOnly}
             onDuplicate={handleDuplicate}
+            onOpenInspiration={() => setShowInspiration(true)}
             isDirty={isDirty}
             saving={saving}
             lastSavedAt={lastSavedAt}
@@ -749,6 +752,7 @@ export default function CreationTrame({
                   onDelete={onDelete}
                   onAddAfter={onAddAfter}
                   onPasteAfter={onPasteAfter}
+                  isReadOnly={isReadOnly}
                 />
               </div>
             </ReadOnlyOverlay>
@@ -916,6 +920,11 @@ export default function CreationTrame({
       </div>
 
       {/* Dialogs (portail) */}
+      <InspirationPanel
+        open={showInspiration}
+        onOpenChange={setShowInspiration}
+        titleLeft="Cliquer sur une partie pour en voir le détail"
+      />
       <Dialog open={showImport} onOpenChange={setShowImport}>
         <DialogContent>
           <ImportMagique

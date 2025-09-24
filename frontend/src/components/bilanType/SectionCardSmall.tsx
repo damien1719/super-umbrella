@@ -16,9 +16,10 @@ interface SectionCardSmallProps {
   element: BilanElement;
   onAdd: (element: BilanElement) => void;
   onPreview?: () => void;
+  hideOpenAction?: boolean;
 }
 
-export function SectionCardSmall({ element, onAdd, onPreview }: SectionCardSmallProps) {
+export function SectionCardSmall({ element, onAdd, onPreview, hideOpenAction }: SectionCardSmallProps) {
   const navigate = useNavigate();
   const category = categories.find((c) => c.id === element.type);
   const coverSrc = category?.image ?? '/bilan-type.png';
@@ -30,7 +31,13 @@ export function SectionCardSmall({ element, onAdd, onPreview }: SectionCardSmall
   return (
     <div
       className="group flex items-stretch gap-0 border border-wood-200 rounded-xl overflow-hidden bg-white hover:shadow-md transition-shadow cursor-pointer"
-      onClick={() => onAdd(element)}
+      onClick={() => {
+        if (onPreview) {
+          onPreview();
+        } else {
+          onAdd(element);
+        }
+      }}
     >
       {/* Left cover */}
       <div className="hidden sm:flex w-24 md:w-24 bg-wood-100 items-center justify-center">
@@ -48,19 +55,21 @@ export function SectionCardSmall({ element, onAdd, onPreview }: SectionCardSmall
           <h4 className="font-medium text-xs md:text-sm text-gray-900 line-clamp-2">
             {element.title}
           </h4>
-            <Button
-              variant="ghost"
-              tooltip="Ouvrir"
-              size="sm"
-              className="ml-2 gap-2"
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate(`/creation-trame/${element.id}`);
-              }}
-            >
-            <Expand className="w-4 h-4" />
-              Ouvrir
-            </Button>
+            {!hideOpenAction && (
+              <Button
+                variant="ghost"
+                tooltip="Ouvrir"
+                size="sm"
+                className="ml-2 gap-2"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/creation-trame/${element.id}`);
+                }}
+              >
+                <Expand className="w-4 h-4" />
+                Ouvrir
+              </Button>
+            )}
     
         </div>
 

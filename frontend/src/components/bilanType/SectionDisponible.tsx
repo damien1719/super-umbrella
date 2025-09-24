@@ -34,6 +34,12 @@ interface SectionDisponibleProps {
   availableElements: BilanElement[];
   onAddElement: (element: BilanElement) => void;
   onOpenExplorer?: () => void;
+  /** Optionally override the default title */
+  titleOverride?: string;
+  /** If provided, clicking a card will call this preview/selection handler instead of adding */
+  onSelectElement?: (element: BilanElement) => void;
+  /** Hide the "Ouvrir" action button on each card (useful in a modal) */
+  hideOpenAction?: boolean;
 }
 
 // Use shared label helper from types
@@ -45,6 +51,9 @@ export function SectionDisponible({
   availableElements,
   onAddElement,
   onOpenExplorer,
+  titleOverride,
+  onSelectElement,
+  hideOpenAction,
 }: SectionDisponibleProps) {
   const [searchText, setSearchText] = useState('');
   const [filterType, setFilterType] = useState<'all' | CategoryId>('all');
@@ -81,7 +90,7 @@ export function SectionDisponible({
         <div className="flex items-center justify-between gap-2">
           <CardTitle className="flex items-center gap-2">
             <Plus className="h-5 w-5" />
-            Pour composer votre trame de bilan, cliquer sur les parties disponibles
+            {titleOverride ?? "Pour composer votre trame de bilan, cliquer sur les parties disponibles"}
           </CardTitle>
           {onOpenExplorer && (
             <Button
@@ -164,6 +173,8 @@ export function SectionDisponible({
             key={element.id}
             element={element}
             onAdd={onAddElement}
+            onPreview={onSelectElement ? () => onSelectElement(element) : undefined}
+            hideOpenAction={hideOpenAction}
           />
         ))}
 

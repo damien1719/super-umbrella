@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import type { Question } from '@/types/Typequestion';
 import { EDITORS } from './Editors';
+import ReadOnlyOverlay from './ReadOnlyOverlay';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -58,6 +59,8 @@ interface Props {
   onAddAfter: (id: string) => void;
   /** Insère le contenu du presse-papiers interne après la question cible */
   onPasteAfter?: (targetId: string, item: Question) => void;
+  /** Active le mode lecture seule */
+  isReadOnly?: boolean;
 }
 
 export default function QuestionList({
@@ -70,6 +73,7 @@ export default function QuestionList({
   onDelete,
   onAddAfter,
   onPasteAfter,
+  isReadOnly = false,
 }: Props) {
   const dragIndex = useRef<number | null>(null);
   const [jsonDialogOpen, setJsonDialogOpen] = useState(false);
@@ -90,6 +94,7 @@ export default function QuestionList({
     dragIndex.current = null;
   };
   const handleDrop = (index: number) => {
+    if (isReadOnly) return;
     if (dragIndex.current === null || dragIndex.current === index) {
       dragIndex.current = null;
       return;
@@ -268,10 +273,11 @@ export default function QuestionList({
                 variant="icon"
                 size="icon"
                 tooltip="Déplacer la question"
-                draggable
+                draggable={!isReadOnly}
                 onDragStart={() => handleDragStart(index)}
                 onDragEnd={handleDragEnd}
                 className={`absolute top left-1/2 cursor-move p-1 rounded transition-opacity opacity-100`}
+                disabled={isReadOnly}
               >
                 <GripVertical className="h-5 w-5 text-gray-400 rotate-90" />
               </Button>
@@ -300,6 +306,7 @@ export default function QuestionList({
                       onChange={(e) =>
                         onPatch(question.id, { titre: e.target.value })
                       }
+                      disabled={isReadOnly}
                     />
                     {selectedId === question.id && (
                       <Select
@@ -308,7 +315,7 @@ export default function QuestionList({
                           onPatch(question.id, { type: v as Question['type'] })
                         }
                       >
-                        <SelectTrigger className="w-44">
+                        <SelectTrigger className="w-44" disabled={isReadOnly}>
                           <SelectValue placeholder="Type de réponse" />
                         </SelectTrigger>
                         <SelectContent>
@@ -323,10 +330,13 @@ export default function QuestionList({
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  <Editor
-                    q={question}
-                    onPatch={(p) => onPatch(question.id, p)}
-                  />
+                  <ReadOnlyOverlay active={isReadOnly}>
+                    <Editor
+                      q={question}
+                      onPatch={(p) => onPatch(question.id, p)}
+                      isReadOnly={isReadOnly}
+                    />
+                  </ReadOnlyOverlay>
                   <div
                     className={
                       `flex justify-end gap-2 pt-2 transition-opacity duration-200 ` +
@@ -347,11 +357,13 @@ export default function QuestionList({
                           // Vider le presse-papiers interne après collage
                           clearClipboard();
                         }}
+                        disabled={isReadOnly}
                       >
                         <ClipboardPaste className="h-4 w-4 mr-2" />
                         Coller une réutilisation
                       </Button>
                     )}
+                    {!isReadOnly && (
                     <Button
                       variant="outline"
                       size="sm"
@@ -360,23 +372,27 @@ export default function QuestionList({
                         e.stopPropagation();
                         onAddAfter(question.id);
                       }}
+                      disabled={isReadOnly}
                     >
                       <Plus className="h-5 w-5" />
                     </Button>
-                    <Button
-                      variant="outline"
-                      tooltip="Dupliquer la question"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDuplicate(question.id);
-                      }}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
+                    )}
+                    {!isReadOnly && (
+                      <Button
+                        variant="outline"
+                        tooltip="Dupliquer la question"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDuplicate(question.id);
+                        }}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    )}
                     {/* Copier pour réutiliser */}
                     <Button
-                      variant="outline"
+                      variant={isReadOnly ? 'primary' : 'outline'}
                       size="sm"
                       tooltip="Copier pour réutiliser"
                       onClick={(e) => {
@@ -385,6 +401,7 @@ export default function QuestionList({
                       }}
                     >
                       <ClipboardCopy className="h-4 w-4" />
+                      {isReadOnly && <span>Copier pour réutiliser</span>}
                     </Button>
                     {/*                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -404,6 +421,7 @@ export default function QuestionList({
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu> */}
+                    {!isReadOnly && (
                     <Button
                       variant="outline"
                       size="sm"
@@ -412,14 +430,17 @@ export default function QuestionList({
                         e.stopPropagation();
                         onDelete(question.id);
                       }}
+                      disabled={isReadOnly}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
               {selectedId === question.id && (
                 <div className="flex flex-col absolute top-1/2 -translate-y-1/2 space-y-2">
+                  {!isReadOnly && (
                   <Button
                     variant="primary"
                     tooltip="Ajouter une question après"
@@ -429,9 +450,12 @@ export default function QuestionList({
                       e.stopPropagation();
                       onAddAfter(question.id);
                     }}
+                    disabled={isReadOnly}
                   >
                     <Plus className="h-6 w-6 text-white" />
                   </Button>
+                  )}
+                  {!isReadOnly && (
                   <Button
                     variant="primary"
                     tooltip="Dupliquer la question"
@@ -441,9 +465,11 @@ export default function QuestionList({
                       e.stopPropagation();
                       onDuplicate(question.id);
                     }}
+                    disabled={isReadOnly}
                   >
                     <Copy className="h-4 w-4" />
                   </Button>
+                  )}
                   {/* <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -460,6 +486,7 @@ export default function QuestionList({
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu> */}
+                {!isReadOnly && (
                   <Button
                     variant="primary"
                     tooltip="Supprimer la question"
@@ -469,12 +496,15 @@ export default function QuestionList({
                       e.stopPropagation();
                       onDelete(question.id);
                     }}
+                    disabled={isReadOnly}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
+                  )}
                 </div>
               )}
             </div>
+
           );
         })}
 
