@@ -102,10 +102,10 @@ export default function TrameHeader(p?: Partial<Props>) {
             <SparklesIcon className="h-4 w-4 mr-2" />
             Import Magique
           </Button>
-          <Button variant="outline" onClick={onImport}>
+{/*           <Button variant="outline" onClick={onImport}>
             <SparklesIcon className="h-4 w-4 mr-2" />
             Tester la génération
-          </Button>
+          </Button> */}
           {showAdminImport && (
             <Button variant="primary" onClick={onTestGeneration}>
               Admin Import
