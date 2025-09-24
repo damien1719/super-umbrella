@@ -367,7 +367,7 @@ export default function SlotSidebar({
                 MagicTemplating
               </Button>
             )}
-            {onTransformToQuestions && (
+            {/* {onTransformToQuestions && (
               <Button
                 size="sm"
                 variant="outline"
@@ -379,32 +379,23 @@ export default function SlotSidebar({
                   ? 'Transforming...'
                   : 'Transformer en Questions'}
               </Button>
-            )}
+            )} */}
 
             {/* Menu d'actions secondaires */}
             {onDeleteTemplate && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-8 w-8 p-0 border-gray-300 hover:bg-gray-50"
-                    disabled={lockInteractions}
-                  >
-                    <MoreHorizontal className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem
-                    onClick={() => setShowDeleteConfirm(true)}
-                    className="flex items-center gap-2 cursor-pointer hover:bg-red-50 text-red-600"
-                    disabled={lockInteractions}
-                  >
-                    <FileX className="w-4 h-4" />
-                    <span>Supprimer le template</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700"
+                  disabled={lockInteractions}
+                >
+                  <FileX className="w-4 h-4 mr-2" />
+                  Supprimer
+                </Button>
+
+              </>
             )}
           </div>
         </div>
