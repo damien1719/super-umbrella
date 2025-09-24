@@ -25,7 +25,6 @@ export const useBilanTypeStore = create<BilanTypeState>((set, get) => ({
   async fetchAll() {
     const token = useAuth.getState().token;
     if (!token) throw new Error('Non authentifié');
-    if (get().items.length > 0) return;
     if (fetchAllBilanTypesPromise) return fetchAllBilanTypesPromise;
     fetchAllBilanTypesPromise = (async () => {
       const items = await apiFetch<BilanType[]>(endpoint, {

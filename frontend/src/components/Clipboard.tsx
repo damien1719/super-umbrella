@@ -23,11 +23,10 @@ export default function Clipboard() {
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
+    <div className="fixed bottom-4 right-4 z-250">
       <Card className="w-[360px] p-0 shadow-lg">
         <CardHeader className="py-3 pr-2 pl-4 flex-row items-start justify-between">
-          <div>
-            <CardTitle className="text-base">
+            <CardTitle className="text-lg">
               Presse-papiers
               <Button
                 variant="ghost"
@@ -38,14 +37,12 @@ export default function Clipboard() {
                 ✕
               </Button>
             </CardTitle>
-
-            <CardDescription>
+          <CardDescription className="text-base">
               Vous avez copié le contenu d'une question.
-              <br />
+              <br/>
               Pour le coller, allez une de vos parties de la Bibliothèque en
               mode "Edition" puis cliquer sur "Coller une réutilisation"
             </CardDescription>
-          </div>
         </CardHeader>
         <CardContent className="" />
       </Card>

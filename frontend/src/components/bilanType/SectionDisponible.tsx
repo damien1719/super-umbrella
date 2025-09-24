@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Search, Filter } from 'lucide-react';
+import { Plus, Search, Filter, TextSearchIcon } from 'lucide-react';
 import { SectionCardSmall } from './SectionCardSmall';
 
 // ✅ use your shared domain types & data
@@ -34,6 +34,12 @@ interface SectionDisponibleProps {
   availableElements: BilanElement[];
   onAddElement: (element: BilanElement) => void;
   onOpenExplorer?: () => void;
+  /** Optionally override the default title */
+  titleOverride?: string;
+  /** If provided, clicking a card will call this preview/selection handler instead of adding */
+  onSelectElement?: (element: BilanElement) => void;
+  /** Hide the "Ouvrir" action button on each card (useful in a modal) */
+  hideOpenAction?: boolean;
 }
 
 // Use shared label helper from types
@@ -45,6 +51,9 @@ export function SectionDisponible({
   availableElements,
   onAddElement,
   onOpenExplorer,
+  titleOverride,
+  onSelectElement,
+  hideOpenAction,
 }: SectionDisponibleProps) {
   const [searchText, setSearchText] = useState('');
   const [filterType, setFilterType] = useState<'all' | CategoryId>('all');
@@ -81,7 +90,7 @@ export function SectionDisponible({
         <div className="flex items-center justify-between gap-2">
           <CardTitle className="flex items-center gap-2">
             <Plus className="h-5 w-5" />
-            Pour composer votre trame de bilan, cliquer sur les parties disponibles
+            {titleOverride ?? "Pour composer votre trame de bilan, cliquer sur les parties disponibles"}
           </CardTitle>
           {onOpenExplorer && (
             <Button
@@ -90,6 +99,7 @@ export function SectionDisponible({
               onClick={onOpenExplorer}
               className="whitespace-nowrap"
             >
+              <TextSearchIcon className="h-4 w-4 mr-2" />
               Explorer
             </Button>
           )}
@@ -164,6 +174,8 @@ export function SectionDisponible({
             key={element.id}
             element={element}
             onAdd={onAddElement}
+            onPreview={onSelectElement ? () => onSelectElement(element) : undefined}
+            hideOpenAction={hideOpenAction}
           />
         ))}
 

@@ -56,7 +56,7 @@ export default function RightBarEdition({
               key={q.id}
               className={`group flex items-center rounded px-2 py-2 cursor-pointer select-none transition ${
                 selected === q.id
-                  ? 'bg-primary-50 text-primary-700'
+                  ? 'bg-primary-200 text-primary-700'
                   : 'hover:bg-gray-50'
               }`}
               draggable={!readOnly}
@@ -71,9 +71,11 @@ export default function RightBarEdition({
               }}
               title={q.titre}
             >
-              <GripVertical
-                className={`h-4 w-4 text-gray-400 ${readOnly ? 'opacity-60' : ''}`}
-              />
+              <Button variant="ghost" size="sm" tooltip="Déplacer" className="ml-auto" disabled={readOnly} aria-disabled={readOnly}>
+                <GripVertical
+                  className={`h-4 w-4 text-gray-400 ${readOnly ? 'opacity-60' : ''}`}
+                />
+              </Button>
               <span
                 className={`pl-2 truncate flex-1 ${q.type === 'titre' ? 'font-semibold' : ''} ${readOnly ? 'opacity-60' : ''}`}
               >

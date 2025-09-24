@@ -36,7 +36,7 @@ export interface ColorPreset {
 // ---- Presets exportés ----
 export const SD_NORMATIVE_PRESET: ColorPreset = {
   id: 'sd-normative',
-  label: 'Échelle normative DS -3↔︎+3 (chiffre uniquement)',
+  label: 'Échelle normative DS -3↔︎+3 (rouge à vert)',
   rules: [
     // Très faible  (-∞, -2)
     { if: { op: 'lt', value: -2 }, color: 'red' },

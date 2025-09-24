@@ -28,12 +28,17 @@ import CreationTrame from '@/pages/CreationTrame';
 import { categories, kindMap, type CategoryId } from '@/types/trame';
 import { Job, jobOptions } from '@/types/job';
 import { hydrateLayout, type LexicalState } from '@/utils/hydrateLayout';
-import { ArrowLeft, Loader2, Save } from 'lucide-react';
+import { ArrowLeft, FeatherIcon, Loader2, Save } from 'lucide-react';
 import SharePanel from '@/components/SharePanel';
 import ExitConfirmation from '@/components/ExitConfirmation';
 import LeftNavBilanType from '@/components/bilan/LeftNavBilanType';
 import { DataEntry, type DataEntryHandle } from '@/components/bilan/DataEntry';
 import type { Answers, Question } from '@/types/question';
+import { CreationBilan } from '@/components/ui/creation-bilan-modal';
+import { NewPatientModal } from '@/components/ui/new-patient-modal';
+import { usePatientStore } from '@/store/patients';
+import { useAuth } from '@/store/auth';
+import { apiFetch } from '@/utils/api';
 
 // Types d'élément composant la construction
 type SectionElement = {
@@ -91,6 +96,21 @@ export default function BilanTypeBuilder(
   const [isFetchingSections, setIsFetchingSections] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isBackButtonDisabled, setIsBackButtonDisabled] = useState(true);
+  // --- Tester la génération (création bilan) ---
+  const [isCreationModalOpen, setIsCreationModalOpen] = useState(false);
+  const [bilanTitle, setBilanTitle] = useState('');
+  const [isNewPatientModalOpen, setIsNewPatientModalOpen] = useState(false);
+  const patients = usePatientStore((s) => s.items);
+  const fetchPatients = usePatientStore((s) => s.fetchAll);
+  const token = useAuth((s) => s.token);
+
+  // Dirty state tracking and baselines
+  const [savedLayoutJson, setSavedLayoutJson] = useState<unknown | undefined>(
+    undefined,
+  );
+  const [savedJobs, setSavedJobs] = useState<Job[]>([]);
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const baselineSetRef = useRef(false);
 
   // Désactive le bouton retour pendant 200ms après le montage
   useEffect(() => {
@@ -134,6 +154,40 @@ export default function BilanTypeBuilder(
     };
   }, [fetchSections]);
 
+  // Pré-charger la liste des patients pour le modal CreationBilan
+  useEffect(() => {
+    if (token) {
+      fetchPatients().catch(() => {});
+    }
+  }, [token, fetchPatients]);
+
+    const hasPatients = patients.length > 0;
+    
+    const createBilan = async (patientId: string, title?: string) => {
+      const res = await apiFetch<{ id: string }>(
+        '/api/v1/bilans',
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ patientId, title }),
+        },
+      );
+      navigate(`/bilan/${res.id}` as const, {
+        state: { wizardBilanType: true, bilanTypeStep: 2, bilanTypeId: currentBilanTypeId, mode: 'bilanType' },
+      });
+    };
+
+  // For new (unsaved) items, initialize baselines from initial state once
+  useEffect(() => {
+    if (currentBilanTypeId) return; // baselines will be set from fetch
+    if (baselineSetRef.current) return;
+    baselineSetRef.current = true;
+    const defaultRoot = { root: { type: 'root', children: [] } } as unknown;
+    setSavedLayoutJson(layoutJson ?? defaultRoot);
+    setSavedJobs(jobs);
+    setLastSavedAt(null);
+  }, [currentBilanTypeId]);
+
   // Initialize from query params (name, jobs) when coming from creation modal
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -168,7 +222,12 @@ export default function BilanTypeBuilder(
             Object.values(Job).includes(p as Job),
           );
           setJobs(valid);
+          // Initialize baselines from fetched data
+          setSavedJobs(valid);
         }
+        const defaultRoot = { root: { type: 'root', children: [] } } as unknown;
+        setSavedLayoutJson(bt.layoutJson ?? defaultRoot);
+        setLastSavedAt(new Date());
       } catch {}
     })();
   }, [currentBilanTypeId, fetchBilanType]);
@@ -382,6 +441,67 @@ export default function BilanTypeBuilder(
     return out;
   };
 
+  // ------ Dirty flags derivation helpers ------
+  const defaultRoot = useMemo(
+    () => ({ root: { type: 'root', children: [] } } as unknown),
+    [],
+  );
+
+  const normalizedJson = (x: unknown) => (x == null ? defaultRoot : x);
+  const jsonEquals = (a: unknown, b: unknown) => {
+    try {
+      return (
+        JSON.stringify(normalizedJson(a)) === JSON.stringify(normalizedJson(b))
+      );
+    } catch {
+      return false;
+    }
+  };
+
+  const sectionSignature = (x: unknown): string[] => {
+    try {
+      const { segments } = computeSegments(x);
+      return segments
+        .filter(
+          (s): s is Extract<Segment, { kind: 'section' }> => s.kind === 'section',
+        )
+        .map((s) => s.sectionId);
+    } catch {
+      return [];
+    }
+  };
+
+  const arraysEqual = (a: string[], b: string[]) => {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+    return true;
+  };
+
+  const sameJobs = (a: Job[], b: Job[]) => {
+    if (a.length !== b.length) return false;
+    const setB = new Set(b);
+    for (const x of a) if (!setB.has(x)) return false;
+    return true;
+  };
+
+  const isDirtyLayout = useMemo(
+    () => !jsonEquals(layoutJson, savedLayoutJson),
+    [layoutJson, savedLayoutJson],
+  );
+
+  const isDirtySections = useMemo(() => {
+    const cur = sectionSignature(layoutJson);
+    const base = sectionSignature(savedLayoutJson);
+    return !arraysEqual(cur, base);
+  }, [layoutJson, savedLayoutJson]);
+
+  const isDirtyJobs = useMemo(
+    () => !sameJobs(jobs, savedJobs),
+    [jobs, savedJobs],
+  );
+
+  const isDirty = isDirtyLayout || isDirtySections || isDirtyJobs;
+
   // Derived: nav items for the Aperçu tab from layout
   type ApercuNavItem = {
     id: string;
@@ -559,7 +679,7 @@ export default function BilanTypeBuilder(
 
   // drag end handled inline where needed
 
-  const doSaveBilanType = async () => {
+  const doSaveBilanType = async (): Promise<string | undefined> => {
     setIsSaving(true);
     try {
       // Derive sections order from layout placeholders (by appearance order)
@@ -576,20 +696,34 @@ export default function BilanTypeBuilder(
         layoutJson: layoutJson ?? { root: { type: 'root', children: [] } },
         job: jobs,
       };
+      let idToUse = currentBilanTypeId;
       if (currentBilanTypeId) {
         await updateBilanType(currentBilanTypeId, payload);
       } else {
         const created = await createBilanType(payload);
+        idToUse = created.id;
         setCurrentBilanTypeId(created.id);
       }
+      // Update baselines and lastSavedAt after successful save
+      setSavedLayoutJson(layoutJson ?? defaultRoot);
+      setSavedJobs(jobs);
+      setLastSavedAt(new Date());
+      return idToUse;
     } finally {
       setIsSaving(false);
     }
   };
 
-  const saveBilanType = async () => {
-    await doSaveBilanType();
-    navigate('/bilan-types');
+  const saveBilanType = async (): Promise<string | undefined> => {
+    return await doSaveBilanType();
+  };
+
+
+
+  // Ouverture d'une section: sauvegarde puis navigation vers la section
+  const onOpenSection = async (id: string) => {
+    await saveBilanType();
+    navigate(`/creation-trame/${id}`);
   };
 
   // Small local component to render the left sidebar list of sections
@@ -644,7 +778,8 @@ export default function BilanTypeBuilder(
             <div className="flex items-center gap-3">
               <Button 
                 variant="outline" 
-                onClick={() => setShowConfirm(true)}
+                onClick={() => !isDirty ? navigate(-1) : setShowConfirm(true)
+                }
                 disabled={isBackButtonDisabled}
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -686,19 +821,52 @@ export default function BilanTypeBuilder(
                 <p className="text-sm text-muted-foreground"></p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button onClick={saveBilanType} disabled={isSaving || !bilanName}>
+            <div className="flex items-center gap-3">
+              <div className="text-sm text-gray-600">
+                {isSaving ? (
+                  <span className="inline-flex items-center gap-2">
+                    <span className="inline-block h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
+                    Enregistrement…
+                  </span>
+                ) : isDirty ? (
+                  <span className="inline-flex items-center gap-2">
+                    <span className="inline-block h-2 w-2 rounded-full bg-amber-500" />
+                    Modifications non enregistrées
+                  </span>
+                ) : lastSavedAt ? (
+                  <span className="inline-flex items-center gap-2">
+                    <span className="inline-block h-2 w-2 rounded-full bg-green-500" />
+                    Enregistré
+                  </span>
+                ) : null}
+              </div>
+              <Button onClick={saveBilanType} disabled={isSaving || !bilanName || !isDirty}>
                 {isSaving ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Sauvegarde...
+                    Enregistrement...
                   </>
                 ) : (
                   <>
                     <Save className="h-4 w-4 mr-2" />
-                    Sauvegarder
+                    Enregistrer
                   </>
                 )}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  // Ensure we have an id before testing generation
+                  if (!currentBilanTypeId) {
+                    const id = await saveBilanType();
+                    // Try again; state update may lag, so prefer returned id if present
+                    if (id) setCurrentBilanTypeId(id);
+                  }
+                  setIsCreationModalOpen(true);
+                }}
+              >
+              <FeatherIcon className="h-4 w-4 mr-2" />
+                Commencer une rédaction
               </Button>
             </div>
           </div>
@@ -746,6 +914,7 @@ export default function BilanTypeBuilder(
                 onAddHeading={addHeadingElement}
                 onRenameHeading={renameHeadingByIndex}
                 onSave={saveBilanType}
+                onOpenSection={onOpenSection}
               />
             </div>
           </div>
@@ -1023,6 +1192,26 @@ export default function BilanTypeBuilder(
             navigate(-1);
           }}
           onCancel={() => navigate(-1)}
+        />
+        {/* Modale de création de bilan */}
+        <CreationBilan
+          isOpen={isCreationModalOpen}
+          onClose={() => setIsCreationModalOpen(false)}
+          onNewPatient={(title) => {
+            setBilanTitle(title);
+            setIsNewPatientModalOpen(true);
+          }}
+          onExistingPatient={(title, patientId) => {
+            setBilanTitle(title);
+            createBilan(patientId, title);
+          }}
+          hasPatients={usePatientStore.getState().items.length > 0}
+          defaultValue={bilanTitle}
+        />
+        <NewPatientModal
+          isOpen={isNewPatientModalOpen}
+          onClose={() => setIsNewPatientModalOpen(false)}
+          onPatientCreated={(id) => createBilan(id, bilanTitle)}
         />
       </div>
     </div>

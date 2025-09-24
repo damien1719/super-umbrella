@@ -41,9 +41,8 @@ interface BilanTypeConstructionCardProps {
   onDragEnd: () => void;
   onRemove: (index: number) => void;
   onRenameHeading: (index: number, title: string) => void;
+  onOpenSection?: (id: string) => void | Promise<void>;
 }
-
-import { useNavigate } from 'react-router-dom';
 
 export function BilanTypeConstructionCard({
   element,
@@ -55,8 +54,8 @@ export function BilanTypeConstructionCard({
   onDragEnd,
   onRemove,
   onRenameHeading,
+  onOpenSection,
 }: BilanTypeConstructionCardProps) {
-  const navigate = useNavigate();
   const isSection = element.kind === 'section';
   const categoryId = (isSection ? (element as any).type : undefined) as
     | CategoryId
@@ -143,7 +142,7 @@ export function BilanTypeConstructionCard({
                 size="sm"
                 onClick={(e) => {
                   e.stopPropagation();
-                  navigate(`/creation-trame/${element.id}`);
+                  onOpenSection?.(element.id);
                 }}
                 className="ml-2 gap-2"
                 tooltip="Aperçu"
