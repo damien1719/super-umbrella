@@ -114,6 +114,7 @@ export default function TrameHeader(p?: Partial<Props>) {
         </>
       ) : (
         <div className="ml-auto flex items-center gap-2">
+          <span className="text-base text-gray-600 p-4">Mode lecture seule</span>
           <Button onClick={onDuplicate} variant="primary">
             Dupliquer la trame
           </Button>
