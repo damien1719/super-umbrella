@@ -1051,6 +1051,10 @@ export default function BilanTypeBuilder(props?: BilanTypeBuilderProps) {
                             apercuDataEntryRef as unknown as React.RefObject<DataEntryHandle>
                           }
                           questions={activeQuestions}
+                          draftKey={{
+                            bilanId: 'bilan-type-builder',
+                            sectionId: activeId ?? 'apercu',
+                          }}
                           answers={answers}
                           onChange={(a) => {
                             if (!activeId) return;

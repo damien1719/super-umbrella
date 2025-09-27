@@ -939,6 +939,10 @@ export default function CreationTrame({
                 <DataEntry
                   inline
                   questions={questions}
+                  draftKey={{
+                    bilanId: 'creation-trame-preview',
+                    sectionId: 'preview',
+                  }}
                   answers={previewAnswers}
                   onChange={setPreviewAnswers}
                 />
