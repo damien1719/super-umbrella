@@ -14,7 +14,9 @@ interface WizardAIBilanTypeProps
     WizardAIRightPanelProps,
     | 'step'
     | 'onStepChange'
+    | 'activeSectionId'
     | 'onActiveSectionChange'
+    | 'excludedSectionIds'
     | 'onExcludedSectionsChange'
   > {
   mode?: 'section' | 'bilanType';
@@ -35,6 +37,11 @@ function WizardAIBilanTypeInner({
   const [localTrameId, setLocalTrameId] = useState<string | undefined>(
     rest.selectedTrame?.value,
   );
+  const [activeSectionInfo, setActiveSectionInfo] = useState<{
+    id: string | null;
+    title: string;
+  }>({ id: null, title: '' });
+  const [excludedSectionIds, setExcludedSectionIds] = useState<string[]>([]);
 
   const selectedTrame = useMemo(() => {
     const options = rest.trameOptions || [];
@@ -87,10 +94,12 @@ function WizardAIBilanTypeInner({
     id: string | null;
     title: string;
   }) => {
+    setActiveSectionInfo(info);
     onActiveSectionChangeProp?.(info);
   };
 
   const handleExcludedSectionsChange = (ids: string[]) => {
+    setExcludedSectionIds(ids);
     onExcludedSectionsChangeProp?.(ids);
   };
 
@@ -110,7 +119,13 @@ function WizardAIBilanTypeInner({
           {...rest}
           step={currentStep}
           onStepChange={handleStepChange}
+          activeSectionId={
+            mode === 'bilanType' ? activeSectionInfo.id : undefined
+          }
           onActiveSectionChange={handleActiveSectionChange}
+          excludedSectionIds={
+            mode === 'bilanType' ? excludedSectionIds : undefined
+          }
           onExcludedSectionsChange={handleExcludedSectionsChange}
           selectedTrame={
             mode === 'bilanType' ? selectedTrame : rest.selectedTrame
