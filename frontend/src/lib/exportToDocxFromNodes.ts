@@ -336,9 +336,10 @@ function mapVerticalAlign(
 function mapParagraphAlignment(
   node: ElementNode,
 ): (typeof AlignmentType)[keyof typeof AlignmentType] | undefined {
-  const format = typeof (node as ElementNode).getFormatType === 'function'
-    ? node.getFormatType()
-    : null;
+  const format =
+    typeof (node as ElementNode).getFormatType === 'function'
+      ? node.getFormatType()
+      : null;
   switch (format) {
     case 'left':
     case 'start':

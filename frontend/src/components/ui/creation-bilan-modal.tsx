@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -67,6 +68,7 @@ export function CreationBilan({
       <DialogContent className="sm:max-w-md bg-white">
         <DialogHeader>
           <DialogTitle>Créer un nouveau bilan</DialogTitle>
+          <DialogDescription>Choisissez un patient et personnalisez le titre avant de continuer.</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">

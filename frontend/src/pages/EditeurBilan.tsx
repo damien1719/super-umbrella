@@ -144,7 +144,8 @@ export default function Bilan() {
                 exportFileName={bilan.title || 'Bilan'}
               />
             </Suspense>
-            <SelectionOverlay />
+            {/*             <SelectionOverlay />
+             */}{' '}
           </div>
           <div className="block w-[26rem] min-w-[26rem] flex-shrink-0 border-l border-wood-300 overflow-auto shadow-sm ">
             <Suspense fallback="Chargement...">

@@ -1,28 +1,31 @@
 import { render } from '@testing-library/react';
 import { vi, expect, test } from 'vitest';
 import React from 'react';
+import { FileText } from 'lucide-react';
 
-vi.mock('./WizardAIRightPanel', () => ({
-  __esModule: true,
-  default: vi.fn(() => <div>inner</div>),
-}));
+const panelMock = vi.fn(() => <div>inner</div>);
+
+vi.mock('./WizardAIRightPanel', () => {
+  const MockPanel = React.forwardRef((props, ref) => panelMock(props, ref));
+  MockPanel.displayName = 'MockWizardAIRightPanel';
+  return {
+    __esModule: true,
+    default: MockPanel,
+  };
+});
 
 import WizardAIBilanType from './WizardAIBilanType';
-import WizardAIRightPanel from './WizardAIRightPanel';
 
-const Mocked = WizardAIRightPanel as unknown as vi.Mock;
+const Mocked = panelMock;
 
 test('forwards props to WizardAIRightPanel', () => {
   render(
     <WizardAIBilanType
       mode="bilanType"
-      sectionInfo={{ id: 's', title: 't' } as any}
+      sectionInfo={{ id: 's', title: 't', description: 'desc', icon: FileText }}
       trameOptions={[]}
       selectedTrame={undefined}
       onTrameChange={() => {}}
-      examples={[]}
-      onAddExample={() => {}}
-      onRemoveExample={() => {}}
       questions={[]}
       answers={{}}
       onAnswersChange={() => {}}

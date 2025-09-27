@@ -696,33 +696,6 @@ export default function WizardAIRightPanel({
     return () => clearInterval(interval);
   }, [step, selectedTrame, isManualSaving]);
 
-  // Autosave on unmount (including ESC close via Dialog)
-  /*   useEffect(() => {
-    return () => {
-      try {
-        const data = dataEntryRef.current?.save() as Answers | undefined;
-        // fire-and-forget
-        void saveNotes(data);
-      } catch {
-        // ignore
-      }
-    };
-  }, []); */
-
-  // Save immediately when user presses ESC (best-effort before Dialog closes)
-  /*   useEffect(() => {
-    if (step !== 2 || isManualSaving) return;
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        try {
-          const data = dataEntryRef.current?.save() as Answers | undefined;
-          void saveNotes(data);
-        } catch {}
-      }
-    };
-    window.addEventListener('keydown', onKeyDown, true);
-    return () => window.removeEventListener('keydown', onKeyDown, true);
-  }, [step]); */
 
   const handleClose = async () => {
     if (step === 2 && selectedTrame && !isManualSaving) {
