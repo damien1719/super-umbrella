@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+
 import { apiFetch } from '@/utils/api';
 import type { Answers } from '@/types/question';
 
@@ -12,10 +13,12 @@ interface SaveOptions {
   sectionId?: string | null;
 }
 
+type SectionInstanceStatus = 'idle' | 'loading' | 'saving' | 'error';
+
 interface SectionInstanceResult {
   instanceId: string | null;
-  isLoading: boolean;
-  isSaving: boolean;
+  status: SectionInstanceStatus;
+  error: Error | null;
   loadLatest: () => Promise<{ id: string | null; answers: Answers } | null>;
   save: (
     notes: Answers | undefined,
@@ -30,8 +33,8 @@ export function useSectionInstance({
   token,
 }: UseSectionInstanceOptions): SectionInstanceResult {
   const [instanceId, setInstanceId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const [status, setStatus] = useState<SectionInstanceStatus>('idle');
+  const [error, setError] = useState<Error | null>(null);
 
   const loadAbortRef = useRef<AbortController | null>(null);
   const saveAbortRef = useRef<AbortController | null>(null);
@@ -45,6 +48,8 @@ export function useSectionInstance({
 
   useEffect(() => {
     setInstanceId(null);
+    setStatus('idle');
+    setError(null);
   }, [sectionId, bilanId]);
 
   const loadLatest = useCallback(async () => {
@@ -53,7 +58,8 @@ export function useSectionInstance({
     loadAbortRef.current?.abort();
     const controller = new AbortController();
     loadAbortRef.current = controller;
-    setIsLoading(true);
+    setStatus('loading');
+    setError(null);
 
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
@@ -70,24 +76,28 @@ export function useSectionInstance({
       const latest = response[0];
       if (latest) {
         setInstanceId(latest.id);
+        setStatus('idle');
         return {
           id: latest.id,
           answers: (latest.contentNotes ?? {}) as Answers,
         };
       }
       setInstanceId(null);
+      setStatus('idle');
       return { id: null, answers: {} };
     } catch (error) {
       if ((error as Error).name === 'AbortError') {
+        setStatus('idle');
         return null;
       }
       setInstanceId(null);
+      setError(error as Error);
+      setStatus('error');
       throw error;
     } finally {
       if (loadAbortRef.current === controller) {
         loadAbortRef.current = null;
       }
-      setIsLoading(false);
     }
   }, [bilanId, sectionId, token]);
 
@@ -99,7 +109,8 @@ export function useSectionInstance({
       saveAbortRef.current?.abort();
       const controller = new AbortController();
       saveAbortRef.current = controller;
-      setIsSaving(true);
+      setStatus('saving');
+      setError(null);
 
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
@@ -122,17 +133,20 @@ export function useSectionInstance({
           setInstanceId(result.id);
         }
 
+        setStatus('idle');
         return result.id;
       } catch (error) {
         if ((error as Error).name === 'AbortError') {
+          setStatus('idle');
           return null;
         }
+        setError(error as Error);
+        setStatus('error');
         throw error;
       } finally {
         if (saveAbortRef.current === controller) {
           saveAbortRef.current = null;
         }
-        setIsSaving(false);
       }
     },
     [bilanId, sectionId, token],
@@ -140,16 +154,22 @@ export function useSectionInstance({
 
   const resetInstance = useCallback(() => {
     setInstanceId(null);
+    setStatus('idle');
+    setError(null);
   }, []);
 
   return {
     instanceId,
-    isLoading,
-    isSaving,
+    status,
+    error,
     loadLatest,
     save,
     resetInstance,
   };
 }
 
-export type { SectionInstanceResult, UseSectionInstanceOptions };
+export type {
+  SectionInstanceResult,
+  SectionInstanceStatus,
+  UseSectionInstanceOptions,
+};

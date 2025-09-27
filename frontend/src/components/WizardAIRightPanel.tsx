@@ -8,7 +8,6 @@ import {
 } from '@/components/ui/dialog';
 import ExitConfirmation from './ExitConfirmation';
 import { Loader2, Wand2, X } from 'lucide-react';
-import { apiFetch } from '@/utils/api';
 import { useAuth } from '@/store/auth';
 import { useUserProfileStore } from '@/store/userProfile';
 import { kindMap } from '@/types/trame';
@@ -25,6 +24,7 @@ import {
 import { TrameSelectionStep } from './wizard-ai/TrameSelectionStep';
 import { BilanTypeNotesEditor } from './wizard-ai/BilanTypeNotesEditor';
 import { SectionNotesEditor } from './wizard-ai/SectionNotesEditor';
+import { useSectionInstance } from './wizard-ai/useSectionInstance';
 
 export interface WizardAIRightPanelProps {
   sectionInfo: SectionInfo;
@@ -118,7 +118,6 @@ export default function WizardAIRightPanel({
     [isStepControlled, onStepChange],
   );
   const token = useAuth((s) => s.token);
-  const [instanceId, setInstanceId] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
   // Le profil est chargé au niveau de l'application (App.tsx layouts)
   // Ici on se contente de le consommer pour filtrer les trames
@@ -365,6 +364,25 @@ export default function WizardAIRightPanel({
 
   const [isManualSaving, setIsManualSaving] = useState(false);
 
+  const currentSectionId = useMemo(() => {
+    if (mode === 'bilanType') {
+      return activeBilanSectionId ?? null;
+    }
+    return selectedTrame?.value ?? null;
+  }, [mode, activeBilanSectionId, selectedTrame?.value]);
+
+  const {
+    loadLatest,
+    save: saveSectionInstance,
+    status: sectionInstanceStatus,
+  } = useSectionInstance({
+    bilanId,
+    sectionId: currentSectionId,
+    token,
+  });
+
+  const isSavingInstance = sectionInstanceStatus === 'saving';
+
   const saveNotes = useCallback(
     async (
       notes: Answers | undefined,
@@ -384,26 +402,22 @@ export default function WizardAIRightPanel({
 
       setIsManualSaving(true);
       try {
-        const res = await apiFetch<{ id: string }>(
-          `/api/v1/bilan-section-instances/upsert`,
-          {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${token}` },
-            body: JSON.stringify({
-              bilanId,
-              sectionId: targetSectionId,
-              contentNotes: notes,
-            }),
-          },
-        );
-        setInstanceId(res.id);
-        return res.id;
+        const res = await saveSectionInstance(notes, {
+          sectionId: targetSectionId,
+        });
+        return res;
       } finally {
         // Délai pour éviter que l'autosave se déclenche immédiatement après
         setTimeout(() => setIsManualSaving(false), 1500);
       }
     },
-    [mode, activeBilanSectionId, selectedTrame, isManualSaving, bilanId, token],
+    [
+      mode,
+      activeBilanSectionId,
+      selectedTrame,
+      isManualSaving,
+      saveSectionInstance,
+    ],
   );
 
   const handleSelectBilanSection = useCallback(
@@ -434,26 +448,16 @@ export default function WizardAIRightPanel({
       if (!activeBilanSectionId) return;
       (async () => {
         try {
-          const res = await apiFetch<
-            Array<{ id: string; contentNotes: Answers }>
-          >(
-            `/api/v1/bilan-section-instances?bilanId=${bilanId}&sectionId=${activeBilanSectionId}&latest=true`,
-            { headers: { Authorization: `Bearer ${token}` } },
-          );
-          if (res.length) {
-            setInstanceId(res[0].id);
-            const content = (res[0].contentNotes || {}) as Answers;
-            setBilanAnswers((prev) => ({
-              ...prev,
-              [activeBilanSectionId]: content,
-            }));
+          const latest = await loadLatest();
+          if (!latest) return;
+          const content = (latest.answers || {}) as Answers;
+          setBilanAnswers((prev) => ({
+            ...prev,
+            [activeBilanSectionId]: content,
+          }));
+          if (latest.id) {
             dataEntryRef.current?.load?.(content);
           } else {
-            setInstanceId(null);
-            setBilanAnswers((prev) => ({
-              ...prev,
-              [activeBilanSectionId]: {},
-            }));
             dataEntryRef.current?.clear?.();
           }
         } catch (e) {
@@ -461,23 +465,16 @@ export default function WizardAIRightPanel({
         }
       })();
     } else {
-      if (!selectedTrame) return;
+      if (!selectedTrame?.value) return;
       (async () => {
         try {
-          const res = await apiFetch<
-            Array<{ id: string; contentNotes: Answers }>
-          >(
-            `/api/v1/bilan-section-instances?bilanId=${bilanId}&sectionId=${selectedTrame.value}&latest=true`,
-            { headers: { Authorization: `Bearer ${token}` } },
-          );
-          if (res.length) {
-            setInstanceId(res[0].id);
-            // preload answers both in parent state and DataEntry local state
-            onAnswersChange(res[0].contentNotes as Answers);
-            dataEntryRef.current?.load?.(res[0].contentNotes as Answers);
+          const latest = await loadLatest();
+          if (!latest) return;
+          const content = (latest.answers || {}) as Answers;
+          onAnswersChange(content);
+          if (latest.id) {
+            dataEntryRef.current?.load?.(content);
           } else {
-            setInstanceId(null);
-            onAnswersChange({});
             dataEntryRef.current?.clear?.();
           }
         } catch (e) {
@@ -485,7 +482,14 @@ export default function WizardAIRightPanel({
         }
       })();
     }
-  }, [currentStep, selectedTrame, bilanId, token, mode, activeBilanSectionId]);
+  }, [
+    currentStep,
+    mode,
+    activeBilanSectionId,
+    selectedTrame?.value,
+    loadLatest,
+    onAnswersChange,
+  ]);
 
   const next = () => updateStep(Math.min(total, currentStep + 1));
   const prev = () => updateStep(Math.max(1, currentStep - 1));
@@ -628,7 +632,7 @@ export default function WizardAIRightPanel({
   // Autosave on answers change (debounced) while on step 2
   const lastSavedRef = useRef<string>('');
   useEffect(() => {
-    if (currentStep !== 2 || isManualSaving) return;
+    if (currentStep !== 2 || isManualSaving || isSavingInstance) return;
     const currentAns =
       mode === 'bilanType'
         ? activeBilanSectionId
@@ -655,6 +659,7 @@ export default function WizardAIRightPanel({
     mode,
     currentStep,
     isManualSaving,
+    isSavingInstance,
     saveNotes,
   ]);
 
@@ -664,7 +669,7 @@ export default function WizardAIRightPanel({
   }, [activeBilanSectionId]);
 
   useEffect(() => {
-    if (currentStep !== 2 || isManualSaving) return;
+    if (currentStep !== 2 || isManualSaving || isSavingInstance) return;
     const interval = setInterval(() => {
       const data = dataEntryRef.current?.save() as Answers | undefined;
       if (data) {
@@ -675,7 +680,13 @@ export default function WizardAIRightPanel({
     }, 20000); // 20s
 
     return () => clearInterval(interval);
-  }, [currentStep, selectedTrame, isManualSaving, saveNotes]);
+  }, [
+    currentStep,
+    selectedTrame,
+    isManualSaving,
+    isSavingInstance,
+    saveNotes,
+  ]);
 
   const handleClose = async () => {
     if (currentStep === 2 && selectedTrame && !isManualSaving) {
