@@ -1,14 +1,27 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports, react/display-name */
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
-import WizardAIRightPanel, {
-  type WizardAIRightPanelHandle,
-} from './WizardAIRightPanel';
+import WizardAIRightPanel from './WizardAIRightPanel';
 import { vi, beforeEach } from 'vitest';
 import React from 'react';
+import {
+  BilanGenerationProvider,
+  useBilanGenerationContext,
+  type BilanGenerationControls,
+} from './wizard-ai/useBilanGeneration';
 
-const mockLoadLatest = vi.fn();
-const mockSave = vi.fn();
-const mockMarkSaved = vi.fn();
+const mockApiFetch = vi.fn();
+
+function GenerationConsumer({
+  onReady,
+}: {
+  onReady: (controls: BilanGenerationControls) => void;
+}) {
+  const controls = useBilanGenerationContext();
+  React.useEffect(() => {
+    onReady(controls);
+  }, [controls, onReady]);
+  return null;
+}
 
 vi.mock('react-router-dom', () => ({ useNavigate: () => vi.fn() }));
 vi.mock('@/components/ui/button', () => ({
@@ -22,6 +35,7 @@ vi.mock('@/components/ui/dialog', () => ({
 vi.mock('./TrameCard', () => ({ default: () => null }));
 vi.mock('./ui/creer-trame-modale', () => ({ default: () => null }));
 vi.mock('./ExitConfirmation', () => ({ default: () => null }));
+vi.mock('@/utils/api', () => ({ apiFetch: mockApiFetch }));
 vi.mock('lucide-react', async () => {
   const actual = await vi.importActual<typeof import('lucide-react')>(
     'lucide-react',
@@ -83,19 +97,6 @@ vi.mock('@/store/sections', () => ({
     fetchAll: vi.fn(),
   }),
 }));
-vi.mock('./wizard-ai/useSectionInstance', () => ({
-  useSectionInstance: () => ({
-    instanceId: null,
-    isLoading: false,
-    isSaving: false,
-    loadLatest: mockLoadLatest,
-    save: mockSave,
-    resetInstance: vi.fn(),
-  }),
-}));
-vi.mock('./wizard-ai/useAutosave', () => ({
-  useAutosave: () => ({ markSaved: mockMarkSaved }),
-}));
 vi.mock('../bilan/LeftNavBilanType', () => ({
   __esModule: true,
   default: ({ items, onSelect, onToggleDisabled }: any) => (
@@ -155,9 +156,7 @@ vi.mock('./ImportNotes', () => ({
 }));
 
 beforeEach(() => {
-  mockLoadLatest.mockReset();
-  mockSave.mockReset();
-  mockMarkSaved.mockReset();
+  mockApiFetch.mockReset();
 });
 
 const sectionInfo = { id: 's1', title: 'Section 1' } as any;
@@ -170,7 +169,15 @@ const trameWithTemplate = {
 const trameWithoutTemplate = { value: 't2', label: 'Trame 2' } as any;
 
 test('fetches latest notes on entering step 2', async () => {
-  mockLoadLatest.mockResolvedValueOnce({ id: 'i1', answers: { a: 1 } });
+  mockApiFetch.mockImplementation(async (url: string) => {
+    if (url.includes('latest=true')) {
+      return [{ id: 'i1', contentNotes: { a: 1 } }];
+    }
+    if (url.includes('upsert')) {
+      return { id: 'upsert' };
+    }
+    return [];
+  });
 
   render(
     <WizardAIRightPanel
@@ -191,13 +198,25 @@ test('fetches latest notes on entering step 2', async () => {
 
   fireEvent.click(screen.getByText('Étape suivante'));
 
-  await waitFor(() => expect(mockLoadLatest).toHaveBeenCalledTimes(1));
-  expect(mockMarkSaved).toHaveBeenCalledWith({ a: 1 });
+  await waitFor(() =>
+    expect(mockApiFetch).toHaveBeenCalledWith(
+      expect.stringContaining('latest=true'),
+      expect.objectContaining({ headers: expect.any(Object) }),
+    ),
+  );
 });
 
 test('saves notes when generating with template', async () => {
-  mockLoadLatest.mockResolvedValueOnce(null);
-  mockSave.mockResolvedValueOnce('inst1');
+  mockApiFetch.mockImplementation(async (url: string, options: any) => {
+    if (url.includes('latest=true')) {
+      return [];
+    }
+    if (url.includes('upsert')) {
+      expect(options?.body).toContain('"sectionId":"t1"');
+      return { id: 'inst1' };
+    }
+    return [];
+  });
 
   const onGenerateFromTemplate = vi.fn();
 
@@ -219,18 +238,34 @@ test('saves notes when generating with template', async () => {
   );
 
   fireEvent.click(screen.getByText('Étape suivante'));
-  await waitFor(() => expect(mockLoadLatest).toHaveBeenCalled());
+  await waitFor(() =>
+    expect(mockApiFetch).toHaveBeenCalledWith(
+      expect.stringContaining('latest=true'),
+      expect.anything(),
+    ),
+  );
 
   fireEvent.click(screen.getByText('Générer'));
 
-  await waitFor(() => expect(mockSave).toHaveBeenCalled());
-  expect(mockSave).toHaveBeenCalledWith({}, { sectionId: 't1' });
+  await waitFor(() =>
+    expect(mockApiFetch).toHaveBeenCalledWith(
+      expect.stringContaining('upsert'),
+      expect.objectContaining({ method: 'POST' }),
+    ),
+  );
   expect(onGenerateFromTemplate).toHaveBeenCalledWith({}, '', 'inst1', undefined);
 });
 
 test('calls direct generate when no template', async () => {
-  mockLoadLatest.mockResolvedValueOnce(null);
-  mockSave.mockResolvedValueOnce('inst2');
+  mockApiFetch.mockImplementation(async (url: string) => {
+    if (url.includes('latest=true')) {
+      return [];
+    }
+    if (url.includes('upsert')) {
+      return { id: 'inst2' };
+    }
+    return [];
+  });
   const onGenerate = vi.fn();
   render(
     <WizardAIRightPanel
@@ -250,16 +285,26 @@ test('calls direct generate when no template', async () => {
   );
 
   fireEvent.click(screen.getByText('Étape suivante'));
-  await waitFor(() => expect(mockLoadLatest).toHaveBeenCalled());
+  await waitFor(() =>
+    expect(mockApiFetch).toHaveBeenCalledWith(
+      expect.stringContaining('latest=true'),
+      expect.anything(),
+    ),
+  );
 
   fireEvent.click(screen.getByText('Générer'));
 
-  await waitFor(() => expect(mockSave).toHaveBeenCalled());
+  await waitFor(() =>
+    expect(mockApiFetch).toHaveBeenCalledWith(
+      expect.stringContaining('upsert'),
+      expect.objectContaining({ method: 'POST' }),
+    ),
+  );
   expect(onGenerate).toHaveBeenCalledWith({}, '', undefined);
 });
 
 test('supports controlled step transitions', async () => {
-  mockLoadLatest.mockResolvedValueOnce({ id: 'inst-controlled', answers: {} });
+  mockApiFetch.mockResolvedValue([]);
   const onStepChange = vi.fn();
 
   const { rerender } = render(
@@ -303,11 +348,12 @@ test('supports controlled step transitions', async () => {
     />,
   );
 
-  await waitFor(() => expect(mockLoadLatest).toHaveBeenCalledTimes(1));
+  await waitFor(() => expect(mockApiFetch).toHaveBeenCalledTimes(1));
+  expect(mockApiFetch.mock.calls[0][0]).toContain('latest=true');
 });
 
 test('notifies parent when excluded sections change', async () => {
-  mockLoadLatest.mockResolvedValueOnce({ id: 'inst', answers: {} });
+  mockApiFetch.mockResolvedValue([]);
   const onExcludedSectionsChange = vi.fn();
 
   render(
@@ -330,8 +376,6 @@ test('notifies parent when excluded sections change', async () => {
     />,
   );
 
-  await waitFor(() => expect(mockLoadLatest).toHaveBeenCalled());
-
   fireEvent.click(screen.getByText('toggle-sec2'));
 
   await waitFor(() =>
@@ -339,47 +383,63 @@ test('notifies parent when excluded sections change', async () => {
   );
 });
 
-test('generateAllSections uses onGenerateAll with exclusions', async () => {
-  mockLoadLatest.mockResolvedValue({ id: 'inst', answers: {} });
-  mockSave.mockResolvedValue('inst-save');
+test('generateAll uses onGenerateAll with exclusions', async () => {
+  mockApiFetch.mockImplementation(async (url: string, options: any) => {
+    if (url.includes('latest=true')) {
+      return [];
+    }
+    if (url.includes('upsert')) {
+      expect(options?.body).toContain('"sectionId":"sec1"');
+      return { id: 'inst-save' };
+    }
+    return [];
+  });
   const onGenerateAll = vi.fn().mockResolvedValue(undefined);
-  const ref = React.createRef<WizardAIRightPanelHandle>();
+  const handleReady = vi.fn();
 
   render(
-    <WizardAIRightPanel
-      ref={ref}
-      sectionInfo={sectionInfo}
-      trameOptions={[trame]}
-      selectedTrame={{ value: 'bt1', label: 'BT1' } as any}
-      onTrameChange={() => {}}
-      questions={[]}
-      answers={{}}
-      onAnswersChange={() => {}}
-      onGenerate={() => {}}
-      onGenerateFromTemplate={() => {}}
-      onGenerateAll={onGenerateAll}
-      isGenerating={false}
-      bilanId="b1"
-      onCancel={() => {}}
-      mode="bilanType"
-      initialStep={2}
-    />,
+    <BilanGenerationProvider>
+      <WizardAIRightPanel
+        sectionInfo={sectionInfo}
+        trameOptions={[trame]}
+        selectedTrame={{ value: 'bt1', label: 'BT1' } as any}
+        onTrameChange={() => {}}
+        questions={[]}
+        answers={{}}
+        onAnswersChange={() => {}}
+        onGenerate={() => {}}
+        onGenerateFromTemplate={() => {}}
+        onGenerateAll={onGenerateAll}
+        isGenerating={false}
+        bilanId="b1"
+        onCancel={() => {}}
+        mode="bilanType"
+        initialStep={2}
+      />
+      <GenerationConsumer onReady={handleReady} />
+    </BilanGenerationProvider>,
   );
 
-  await waitFor(() => expect(mockLoadLatest).toHaveBeenCalled());
-
+  await waitFor(() => expect(handleReady).toHaveBeenCalled());
   fireEvent.click(screen.getByText('toggle-sec2'));
 
+  const controls = handleReady.mock.calls.at(-1)?.[0];
+  if (!controls) throw new Error('generation controls not registered');
   await act(async () => {
-    await ref.current?.generateAllSections();
+    await controls.generateAll();
   });
 
-  expect(mockSave).toHaveBeenCalledWith({}, { sectionId: 'sec1' });
   expect(onGenerateAll).toHaveBeenCalledWith('bt1', ['sec2']);
+  expect(
+    mockApiFetch.mock.calls.some(
+      ([url, options]) =>
+        url.includes('upsert') && options?.body?.includes('"sectionId":"sec1"'),
+    ),
+  ).toBe(true);
 });
 
 test('can switch notes mode for bilan type', async () => {
-  mockLoadLatest.mockResolvedValue({ id: 'inst', answers: {} });
+  mockApiFetch.mockResolvedValue([]);
 
   render(
     <WizardAIRightPanel
@@ -400,7 +460,12 @@ test('can switch notes mode for bilan type', async () => {
     />,
   );
 
-  await waitFor(() => expect(mockLoadLatest).toHaveBeenCalled());
+  await waitFor(() =>
+    expect(mockApiFetch).toHaveBeenCalledWith(
+      expect.stringContaining('latest=true'),
+      expect.anything(),
+    ),
+  );
 
   fireEvent.click(screen.getByText('Import des notes'));
   expect(screen.getByTestId('import-notes')).toBeInTheDocument();
