@@ -1,10 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports, react/display-name */
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
-import WizardAIRightPanel, {
-  type WizardAIRightPanelHandle,
-} from './WizardAIRightPanel';
+import WizardAIRightPanel from './WizardAIRightPanel';
 import { vi, beforeEach } from 'vitest';
 import React from 'react';
+import {
+  BilanGenerationProvider,
+  DEFAULT_GENERATION_CONTROLS,
+  useBilanGenerationContext,
+} from './wizard-ai/useBilanGeneration';
 
 const mockLoadLatest = vi.fn();
 const mockSave = vi.fn();
@@ -160,6 +163,26 @@ beforeEach(() => {
   mockMarkSaved.mockReset();
 });
 
+function renderWithProvider(props: Record<string, any>) {
+  let controls = DEFAULT_GENERATION_CONTROLS;
+
+  const Collector = () => {
+    controls = useBilanGenerationContext();
+    return null;
+  };
+
+  render(
+    <BilanGenerationProvider>
+      <WizardAIRightPanel {...props} />
+      <Collector />
+    </BilanGenerationProvider>,
+  );
+
+  return {
+    getControls: () => controls,
+  };
+}
+
 const sectionInfo = { id: 's1', title: 'Section 1' } as any;
 const trame = { value: 't1', label: 'Trame 1' } as any;
 const trameWithTemplate = {
@@ -172,22 +195,20 @@ const trameWithoutTemplate = { value: 't2', label: 'Trame 2' } as any;
 test('fetches latest notes on entering step 2', async () => {
   mockLoadLatest.mockResolvedValueOnce({ id: 'i1', answers: { a: 1 } });
 
-  render(
-    <WizardAIRightPanel
-      sectionInfo={sectionInfo}
-      trameOptions={[trame]}
-      selectedTrame={trame}
-      onTrameChange={() => {}}
-      questions={[]}
-      answers={{}}
-      onAnswersChange={() => {}}
-      onGenerate={() => {}}
-      onGenerateFromTemplate={() => {}}
-      isGenerating={false}
-      bilanId="b1"
-      onCancel={() => {}}
-    />,
-  );
+  renderWithProvider({
+    sectionInfo,
+    trameOptions: [trame],
+    selectedTrame: trame,
+    onTrameChange: () => {},
+    questions: [],
+    answers: {},
+    onAnswersChange: () => {},
+    onGenerate: () => {},
+    onGenerateFromTemplate: () => {},
+    isGenerating: false,
+    bilanId: 'b1',
+    onCancel: () => {},
+  });
 
   fireEvent.click(screen.getByText('Étape suivante'));
 
@@ -201,22 +222,20 @@ test('saves notes when generating with template', async () => {
 
   const onGenerateFromTemplate = vi.fn();
 
-  render(
-    <WizardAIRightPanel
-      sectionInfo={sectionInfo}
-      trameOptions={[trameWithTemplate]}
-      selectedTrame={trameWithTemplate}
-      onTrameChange={() => {}}
-      questions={[]}
-      answers={{}}
-      onAnswersChange={() => {}}
-      onGenerate={() => {}}
-      onGenerateFromTemplate={onGenerateFromTemplate}
-      isGenerating={false}
-      bilanId="b1"
-      onCancel={() => {}}
-    />,
-  );
+  renderWithProvider({
+    sectionInfo,
+    trameOptions: [trameWithTemplate],
+    selectedTrame: trameWithTemplate,
+    onTrameChange: () => {},
+    questions: [],
+    answers: {},
+    onAnswersChange: () => {},
+    onGenerate: () => {},
+    onGenerateFromTemplate,
+    isGenerating: false,
+    bilanId: 'b1',
+    onCancel: () => {},
+  });
 
   fireEvent.click(screen.getByText('Étape suivante'));
   await waitFor(() => expect(mockLoadLatest).toHaveBeenCalled());
@@ -232,22 +251,20 @@ test('calls direct generate when no template', async () => {
   mockLoadLatest.mockResolvedValueOnce(null);
   mockSave.mockResolvedValueOnce('inst2');
   const onGenerate = vi.fn();
-  render(
-    <WizardAIRightPanel
-      sectionInfo={sectionInfo}
-      trameOptions={[trameWithoutTemplate]}
-      selectedTrame={trameWithoutTemplate}
-      onTrameChange={() => {}}
-      questions={[]}
-      answers={{}}
-      onAnswersChange={() => {}}
-      onGenerate={onGenerate}
-      onGenerateFromTemplate={() => {}}
-      isGenerating={false}
-      bilanId="b1"
-      onCancel={() => {}}
-    />,
-  );
+  renderWithProvider({
+    sectionInfo,
+    trameOptions: [trameWithoutTemplate],
+    selectedTrame: trameWithoutTemplate,
+    onTrameChange: () => {},
+    questions: [],
+    answers: {},
+    onAnswersChange: () => {},
+    onGenerate,
+    onGenerateFromTemplate: () => {},
+    isGenerating: false,
+    bilanId: 'b1',
+    onCancel: () => {},
+  });
 
   fireEvent.click(screen.getByText('Étape suivante'));
   await waitFor(() => expect(mockLoadLatest).toHaveBeenCalled());
@@ -262,46 +279,42 @@ test('supports controlled step transitions', async () => {
   mockLoadLatest.mockResolvedValueOnce({ id: 'inst-controlled', answers: {} });
   const onStepChange = vi.fn();
 
-  const { rerender } = render(
-    <WizardAIRightPanel
-      sectionInfo={sectionInfo}
-      trameOptions={[trame]}
-      selectedTrame={trame}
-      onTrameChange={() => {}}
-      questions={[]}
-      answers={{}}
-      onAnswersChange={() => {}}
-      onGenerate={() => {}}
-      onGenerateFromTemplate={() => {}}
-      isGenerating={false}
-      bilanId="b1"
-      onCancel={() => {}}
-      step={1}
-      onStepChange={onStepChange}
-    />,
-  );
+  renderWithProvider({
+    sectionInfo,
+    trameOptions: [trame],
+    selectedTrame: trame,
+    onTrameChange: () => {},
+    questions: [],
+    answers: {},
+    onAnswersChange: () => {},
+    onGenerate: () => {},
+    onGenerateFromTemplate: () => {},
+    isGenerating: false,
+    bilanId: 'b1',
+    onCancel: () => {},
+    step: 1,
+    onStepChange,
+  });
 
   fireEvent.click(screen.getByText('Étape suivante'));
   expect(onStepChange).toHaveBeenCalledWith(2);
 
-  rerender(
-    <WizardAIRightPanel
-      sectionInfo={sectionInfo}
-      trameOptions={[trame]}
-      selectedTrame={trame}
-      onTrameChange={() => {}}
-      questions={[]}
-      answers={{}}
-      onAnswersChange={() => {}}
-      onGenerate={() => {}}
-      onGenerateFromTemplate={() => {}}
-      isGenerating={false}
-      bilanId="b1"
-      onCancel={() => {}}
-      step={2}
-      onStepChange={onStepChange}
-    />,
-  );
+  renderWithProvider({
+    sectionInfo,
+    trameOptions: [trame],
+    selectedTrame: trame,
+    onTrameChange: () => {},
+    questions: [],
+    answers: {},
+    onAnswersChange: () => {},
+    onGenerate: () => {},
+    onGenerateFromTemplate: () => {},
+    isGenerating: false,
+    bilanId: 'b1',
+    onCancel: () => {},
+    step: 2,
+    onStepChange,
+  });
 
   await waitFor(() => expect(mockLoadLatest).toHaveBeenCalledTimes(1));
 });
@@ -310,25 +323,23 @@ test('notifies parent when excluded sections change', async () => {
   mockLoadLatest.mockResolvedValueOnce({ id: 'inst', answers: {} });
   const onExcludedSectionsChange = vi.fn();
 
-  render(
-    <WizardAIRightPanel
-      sectionInfo={sectionInfo}
-      trameOptions={[trame]}
-      selectedTrame={{ value: 'bt1', label: 'BT1' } as any}
-      onTrameChange={() => {}}
-      questions={[]}
-      answers={{}}
-      onAnswersChange={() => {}}
-      onGenerate={() => {}}
-      onGenerateFromTemplate={() => {}}
-      isGenerating={false}
-      bilanId="b1"
-      onCancel={() => {}}
-      mode="bilanType"
-      initialStep={2}
-      onExcludedSectionsChange={onExcludedSectionsChange}
-    />,
-  );
+  renderWithProvider({
+    sectionInfo,
+    trameOptions: [trame],
+    selectedTrame: { value: 'bt1', label: 'BT1' } as any,
+    onTrameChange: () => {},
+    questions: [],
+    answers: {},
+    onAnswersChange: () => {},
+    onGenerate: () => {},
+    onGenerateFromTemplate: () => {},
+    isGenerating: false,
+    bilanId: 'b1',
+    onCancel: () => {},
+    mode: 'bilanType',
+    initialStep: 2,
+    onExcludedSectionsChange,
+  });
 
   await waitFor(() => expect(mockLoadLatest).toHaveBeenCalled());
 
@@ -343,35 +354,32 @@ test('generateAllSections uses onGenerateAll with exclusions', async () => {
   mockLoadLatest.mockResolvedValue({ id: 'inst', answers: {} });
   mockSave.mockResolvedValue('inst-save');
   const onGenerateAll = vi.fn().mockResolvedValue(undefined);
-  const ref = React.createRef<WizardAIRightPanelHandle>();
-
-  render(
-    <WizardAIRightPanel
-      ref={ref}
-      sectionInfo={sectionInfo}
-      trameOptions={[trame]}
-      selectedTrame={{ value: 'bt1', label: 'BT1' } as any}
-      onTrameChange={() => {}}
-      questions={[]}
-      answers={{}}
-      onAnswersChange={() => {}}
-      onGenerate={() => {}}
-      onGenerateFromTemplate={() => {}}
-      onGenerateAll={onGenerateAll}
-      isGenerating={false}
-      bilanId="b1"
-      onCancel={() => {}}
-      mode="bilanType"
-      initialStep={2}
-    />,
-  );
+  const { getControls } = renderWithProvider({
+    sectionInfo,
+    trameOptions: [trame],
+    selectedTrame: { value: 'bt1', label: 'BT1' } as any,
+    onTrameChange: () => {},
+    questions: [],
+    answers: {},
+    onAnswersChange: () => {},
+    onGenerate: () => {},
+    onGenerateFromTemplate: () => {},
+    onGenerateAll,
+    isGenerating: false,
+    bilanId: 'b1',
+    onCancel: () => {},
+    mode: 'bilanType',
+    initialStep: 2,
+  });
 
   await waitFor(() => expect(mockLoadLatest).toHaveBeenCalled());
 
   fireEvent.click(screen.getByText('toggle-sec2'));
 
+  await waitFor(() => expect(getControls().canGenerateAll).toBe(true));
+
   await act(async () => {
-    await ref.current?.generateAllSections();
+    await getControls().generateAll();
   });
 
   expect(mockSave).toHaveBeenCalledWith({}, { sectionId: 'sec1' });
@@ -381,24 +389,22 @@ test('generateAllSections uses onGenerateAll with exclusions', async () => {
 test('can switch notes mode for bilan type', async () => {
   mockLoadLatest.mockResolvedValue({ id: 'inst', answers: {} });
 
-  render(
-    <WizardAIRightPanel
-      sectionInfo={sectionInfo}
-      trameOptions={[trame]}
-      selectedTrame={{ value: 'bt1', label: 'BT1' } as any}
-      onTrameChange={() => {}}
-      questions={[]}
-      answers={{}}
-      onAnswersChange={() => {}}
-      onGenerate={() => {}}
-      onGenerateFromTemplate={() => {}}
-      isGenerating={false}
-      bilanId="b1"
-      onCancel={() => {}}
-      mode="bilanType"
-      initialStep={2}
-    />,
-  );
+  renderWithProvider({
+    sectionInfo,
+    trameOptions: [trame],
+    selectedTrame: { value: 'bt1', label: 'BT1' } as any,
+    onTrameChange: () => {},
+    questions: [],
+    answers: {},
+    onAnswersChange: () => {},
+    onGenerate: () => {},
+    onGenerateFromTemplate: () => {},
+    isGenerating: false,
+    bilanId: 'b1',
+    onCancel: () => {},
+    mode: 'bilanType',
+    initialStep: 2,
+  });
 
   await waitFor(() => expect(mockLoadLatest).toHaveBeenCalled());
 

@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import WizardAIRightPanel, {
-  type WizardAIRightPanelHandle,
-  type WizardAIRightPanelProps,
-} from './WizardAIRightPanel';
+import { useEffect, useMemo, useState } from 'react';
+import WizardAIRightPanel, { type WizardAIRightPanelProps } from './WizardAIRightPanel';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
+import {
+  BilanGenerationProvider,
+  useBilanGenerationContext,
+} from './wizard-ai/useBilanGeneration';
 
 interface WizardAIBilanTypeProps
   extends Omit<
@@ -21,7 +22,15 @@ interface WizardAIBilanTypeProps
   onExcludedSectionsChange?: (ids: string[]) => void;
 }
 
-export default function WizardAIBilanType({
+export default function WizardAIBilanType(props: WizardAIBilanTypeProps) {
+  return (
+    <BilanGenerationProvider>
+      <WizardAIBilanTypeInner {...props} />
+    </BilanGenerationProvider>
+  );
+}
+
+function WizardAIBilanTypeInner({
   mode = 'section',
   currentStep: externalCurrentStep,
   onStepChange: onStepChangeProp,
@@ -29,7 +38,7 @@ export default function WizardAIBilanType({
   onExcludedSectionsChange: onExcludedSectionsChangeProp,
   ...rest
 }: WizardAIBilanTypeProps) {
-  const panelRef = useRef<WizardAIRightPanelHandle | null>(null);
+  const generationControls = useBilanGenerationContext();
 
   const [localTrameId, setLocalTrameId] = useState<string | undefined>(
     rest.selectedTrame?.value,
@@ -82,8 +91,6 @@ export default function WizardAIBilanType({
     onStepChangeProp?.(next);
   };
 
-  const [isFooterGenerating, setIsFooterGenerating] = useState(false);
-
   const handleActiveSectionChange = (info: {
     id: string | null;
     title: string;
@@ -101,20 +108,14 @@ export default function WizardAIBilanType({
   };
 
   const handleGenerateAll = async () => {
-    if (!panelRef.current) return;
-    setIsFooterGenerating(true);
-    try {
-      await panelRef.current.generateAllSections();
-    } finally {
-      setIsFooterGenerating(false);
-    }
+    if (!generationControls.canGenerateAll) return;
+    await generationControls.generateAll();
   };
 
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 min-h-0">
         <WizardAIRightPanel
-          ref={panelRef}
           mode={mode}
           {...rest}
           step={currentStep}
@@ -137,7 +138,7 @@ export default function WizardAIBilanType({
               variant="secondary"
               onClick={handlePrev}
               type="button"
-              disabled={isFooterGenerating}
+              disabled={generationControls.isGeneratingAll}
             >
               Précédent
             </Button>
@@ -146,9 +147,12 @@ export default function WizardAIBilanType({
               <Button
                 onClick={handleGenerateAll}
                 type="button"
-                disabled={isFooterGenerating}
+                disabled={
+                  generationControls.isGeneratingAll ||
+                  !generationControls.canGenerateAll
+                }
               >
-                {isFooterGenerating ? (
+                {generationControls.isGeneratingAll ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     Génération...
