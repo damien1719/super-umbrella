@@ -90,7 +90,8 @@ export function SectionDisponible({
         <div className="flex items-center justify-between gap-2">
           <CardTitle className="flex items-center gap-2">
             <Plus className="h-5 w-5" />
-            {titleOverride ?? "Pour composer votre trame de bilan, cliquer sur les parties disponibles"}
+            {titleOverride ??
+              'Pour composer votre trame de bilan, cliquer sur les parties disponibles'}
           </CardTitle>
           {onOpenExplorer && (
             <Button
@@ -174,7 +175,9 @@ export function SectionDisponible({
             key={element.id}
             element={element}
             onAdd={onAddElement}
-            onPreview={onSelectElement ? () => onSelectElement(element) : undefined}
+            onPreview={
+              onSelectElement ? () => onSelectElement(element) : undefined
+            }
             hideOpenAction={hideOpenAction}
           />
         ))}
@@ -190,4 +193,3 @@ export function SectionDisponible({
     </Card>
   );
 }
-

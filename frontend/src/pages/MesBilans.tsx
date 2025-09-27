@@ -30,6 +30,7 @@ export default function Component() {
   // --- Récupération patients ---
   const patients = usePatientStore((s) => s.items);
   const fetchPatients = usePatientStore((s) => s.fetchAll);
+  const patientItems = Array.isArray(patients) ? patients : [];
 
   useEffect(() => {
     if (token) {
@@ -37,7 +38,7 @@ export default function Component() {
     }
   }, [token, fetchPatients]);
 
-  const hasPatients = patients.length > 0;
+  const hasPatients = patientItems.length > 0;
 
   useEffect(() => {
     if (!token) return;
@@ -65,7 +66,9 @@ export default function Component() {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
     });
-    setBilans((prev) => prev.filter((b) => b.id !== id));
+    setBilans((prev) =>
+      Array.isArray(prev) ? prev.filter((b) => b.id !== id) : [],
+    );
   };
 
   const formatDate = (dateString: string) => {
@@ -78,16 +81,17 @@ export default function Component() {
   };
 
   // Calculs pour la pagination
-  const totalPages = Math.ceil(bilans.length / bilansPerPage);
+  const safeBilans = Array.isArray(bilans) ? bilans : [];
+  const totalPages = Math.max(1, Math.ceil(safeBilans.length / bilansPerPage));
   const startIndex = (currentPage - 1) * bilansPerPage;
   const endIndex = startIndex + bilansPerPage;
-  const currentBilansPage = bilans.slice(startIndex, endIndex);
+  const currentBilansPage = safeBilans.slice(startIndex, endIndex);
 
   const goToPage = (page: number) => {
     setCurrentPage(Math.max(1, Math.min(page, totalPages)));
   };
 
-  const hasBilans = bilans.length > 0;
+  const hasBilans = safeBilans.length > 0;
 
   // État avec bilans existants
   return (
@@ -154,7 +158,7 @@ export default function Component() {
             <PaginationControls
               currentPage={currentPage}
               totalPages={totalPages}
-              totalItems={bilans.length}
+              totalItems={safeBilans.length}
               startIndex={startIndex}
               endIndex={endIndex}
               onPageChange={goToPage}

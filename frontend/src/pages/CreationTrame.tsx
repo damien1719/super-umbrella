@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useSectionStore } from '../store/sections';
 import { useSectionExampleStore } from '../store/sectionExamples';
@@ -44,6 +44,30 @@ interface CreationTrameProps {
   readOnly?: boolean;
 }
 
+function normalizeAstSnippets(input: unknown): Record<string, string> {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    return {};
+  }
+  const out: Record<string, string> = {};
+  for (const [key, value] of Object.entries(input as Record<string, unknown>)) {
+    if (!key) continue;
+    if (typeof value === 'string') {
+      out[key] = value;
+    } else if (value != null) {
+      try {
+        out[key] = JSON.stringify(value);
+      } catch {
+        // Ignore values that cannot be stringified
+      }
+    }
+  }
+  return out;
+}
+
+function createAstSnippetId() {
+  return `ast_${Math.random().toString(36).slice(2, 10)}`;
+}
+
 export default function CreationTrame({
   readOnly = false,
 }: CreationTrameProps) {
@@ -68,6 +92,7 @@ export default function CreationTrame({
   const [authorId, setAuthorId] = useState<string | null>(null);
   const [coverUrl, setCoverUrl] = useState<string>('');
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [astSnippets, setAstSnippets] = useState<Record<string, string>>({});
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showImport, setShowImport] = useState(false);
   const [showAdminImport, setShowAdminImport] = useState(false);
@@ -126,14 +151,11 @@ export default function CreationTrame({
   };
 
   const createBilan = async (patientId: string, title?: string) => {
-    const res = await apiFetch<{ id: string }>(
-      '/api/v1/bilans',
-      {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ patientId, title }),
-      },
-    );
+    const res = await apiFetch<{ id: string }>('/api/v1/bilans', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ patientId, title }),
+    });
     const wizardSection = getWizardSectionId();
     navigate(`/bilan/${res.id}` as const, {
       state: { wizardSection, trameId: sectionId },
@@ -329,11 +351,16 @@ export default function CreationTrame({
       }
       syncSavedSnapshotTemplate(initialTemplate, section.templateRefId);
 
+      const normalizedSectionSnippets = normalizeAstSnippets(
+        section.astSnippets,
+      );
+
       const loaded: Question[] =
         Array.isArray(section.schema) && section.schema.length > 0
           ? (section.schema as Question[])
           : [createDefaultNote()];
       setQuestions(loaded);
+      setAstSnippets(normalizedSectionSnippets);
       if (loaded.length > 0) setSelectedId(loaded[0].id);
 
       // Initialize snapshot after everything is set
@@ -344,6 +371,7 @@ export default function CreationTrame({
         coverUrl: (section as any)?.coverUrl ?? '',
         job: section.job || [Job.PSYCHOMOTRICIEN],
         questions: loaded,
+        astSnippets: normalizedSectionSnippets,
         template: section.templateRefId
           ? {
               label: initialTemplate.label,
@@ -435,6 +463,25 @@ export default function CreationTrame({
     if (clone.type === 'tableau' && clone.tableau?.crInsert) {
       clone.tableau.crTableId = `T-${clone.id}`;
     }
+    if (clone.type === 'tableau' && clone.tableau) {
+      const sourceAstId = (original as TableQuestion).tableau?.crAstId;
+      if (sourceAstId) {
+        const snippet = astSnippets?.[sourceAstId];
+        if (snippet) {
+          const existing = astSnippets ?? {};
+          let newAstId = createAstSnippetId();
+          while (newAstId in existing) {
+            newAstId = createAstSnippetId();
+          }
+          clone.tableau = { ...clone.tableau, crAstId: newAstId };
+          setAstSnippets((prev) => ({ ...prev, [newAstId]: snippet }));
+        } else {
+          clone.tableau = { ...clone.tableau, crAstId: undefined };
+        }
+      } else {
+        clone.tableau = { ...clone.tableau, crAstId: undefined };
+      }
+    }
     setQuestions((qs) => {
       const before = qs.slice(0, idx + 1);
       const after = qs.slice(idx + 1);
@@ -444,6 +491,26 @@ export default function CreationTrame({
   };
 
   const onDelete = (id: string) => {
+    const target = questions.find((q) => q.id === id);
+    if (target?.type === 'tableau') {
+      const snippetId = target.tableau?.crAstId;
+      if (snippetId) {
+        const stillUsed = questions.some(
+          (q) =>
+            q.id !== id &&
+            q.type === 'tableau' &&
+            q.tableau?.crAstId === snippetId,
+        );
+        if (!stillUsed) {
+          setAstSnippets((prev) => {
+            if (!prev || !(snippetId in prev)) return prev;
+            const next = { ...prev };
+            delete next[snippetId];
+            return next;
+          });
+        }
+      }
+    }
     setQuestions((qs) => qs.filter((q) => q.id !== id));
   };
 
@@ -469,6 +536,25 @@ export default function CreationTrame({
     if (clone.type === 'tableau' && clone.tableau?.crInsert) {
       clone.tableau.crTableId = `T-${clone.id}`;
     }
+    if (clone.type === 'tableau' && clone.tableau) {
+      const sourceAstId = (item as TableQuestion).tableau?.crAstId;
+      if (sourceAstId) {
+        const snippet = astSnippets?.[sourceAstId];
+        if (snippet) {
+          const existing = astSnippets ?? {};
+          let newAstId = createAstSnippetId();
+          while (newAstId in existing) {
+            newAstId = createAstSnippetId();
+          }
+          clone.tableau = { ...clone.tableau, crAstId: newAstId };
+          setAstSnippets((prev) => ({ ...prev, [newAstId]: snippet }));
+        } else {
+          clone.tableau = { ...clone.tableau, crAstId: undefined };
+        }
+      } else {
+        clone.tableau = { ...clone.tableau, crAstId: undefined };
+      }
+    }
 
     setQuestions((qs) => {
       if (!targetId) return [...qs, clone];
@@ -487,6 +573,7 @@ export default function CreationTrame({
       coverUrl,
       job,
       questions,
+      astSnippets,
       template: templateRefId
         ? {
             label: template.label,
@@ -499,6 +586,48 @@ export default function CreationTrame({
       newExamples,
     });
   };
+
+  const resolveAstSnippet = useCallback(
+    (id?: string | null) => {
+      if (!id) return null;
+      return astSnippets?.[id] ?? null;
+    },
+    [astSnippets],
+  );
+
+  const upsertAstSnippet = useCallback(
+    (content: string, previousId?: string | null) => {
+      let resolvedId = previousId ?? null;
+      setAstSnippets((prev) => {
+        const base = prev ?? {};
+        if (!resolvedId || !(resolvedId in base)) {
+          resolvedId = createAstSnippetId();
+        }
+        return { ...base, [resolvedId]: content };
+      });
+      return resolvedId;
+    },
+    [],
+  );
+
+  const removeAstSnippet = useCallback((id: string) => {
+    if (!id) return;
+    setAstSnippets((prev) => {
+      if (!prev || !(id in prev)) return prev;
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+  }, []);
+
+  const tableAstHandlers = useMemo(
+    () => ({
+      getSnippet: resolveAstSnippet,
+      saveSnippet: upsertAstSnippet,
+      deleteSnippet: removeAstSnippet,
+    }),
+    [resolveAstSnippet, upsertAstSnippet, removeAstSnippet],
+  );
 
   const isDirty = savedSnapshot !== buildSnapshot();
 
@@ -524,12 +653,14 @@ export default function CreationTrame({
         isPublic: boolean;
         templateRefId?: string;
         coverUrl?: string | null;
+        astSnippets: Record<string, string>;
       } = {
         title: nomTrame,
         kind: categorie,
         job,
         schema: questions,
         isPublic,
+        astSnippets,
       };
 
       // N'ajouter templateRefId que s'il n'est pas null
@@ -585,7 +716,7 @@ export default function CreationTrame({
   const handleTestGeneration = async () => {
     await saveOnly();
     setIsCreationModalOpen(true);
-  }
+  };
 
   const handleDuplicate = async () => {
     if (!sectionId) return;
@@ -781,20 +912,21 @@ export default function CreationTrame({
               readOnly={isReadOnly}
             />
             {/* Contenu principal scrollable (bloqué en lecture seule) */}
-              <div className="h-full overflow-y-auto">
-                <QuestionList
-                  questions={questions}
-                  selectedId={selectedId}
-                  onSelect={setSelectedId}
-                  onPatch={onPatch}
-                  onReorder={onReorder}
-                  onDuplicate={onDuplicate}
-                  onDelete={onDelete}
-                  onAddAfter={onAddAfter}
-                  onPasteAfter={onPasteAfter}
-                  isReadOnly={isReadOnly}
-                />
-              </div>
+            <div className="h-full overflow-y-auto">
+              <QuestionList
+                questions={questions}
+                selectedId={selectedId}
+                onSelect={setSelectedId}
+                onPatch={onPatch}
+                onReorder={onReorder}
+                onDuplicate={onDuplicate}
+                onDelete={onDelete}
+                onAddAfter={onAddAfter}
+                onPasteAfter={onPasteAfter}
+                isReadOnly={isReadOnly}
+                tableAstHandlers={tableAstHandlers}
+              />
+            </div>
           </div>
         )}
 

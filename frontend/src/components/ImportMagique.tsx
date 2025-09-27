@@ -34,6 +34,7 @@ export default function ImportMagique({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const token = useAuth((s) => s.token);
 
   const addDefaultValueType = (questions: Question[]): Question[] =>
@@ -54,6 +55,7 @@ export default function ImportMagique({
 
   const handle = async () => {
     setLoading(true);
+    setErrorMessage(null);
     try {
       if (mode === 'liste') {
         console.log('[DEBUG] ImportMagique - Starting liste transformation');
@@ -70,6 +72,8 @@ export default function ImportMagique({
         );
         console.log('res', res);
         onDone(res.result);
+        onCancel();
+        return;
       } else if (tableImportType === 'excel' && file) {
         const data = await new Promise<ArrayBuffer>((resolve, reject) => {
           const reader = new FileReader();
@@ -96,6 +100,8 @@ export default function ImportMagique({
           results.push(...addDefaultValueType(res.result));
         }
         onDone(results);
+        onCancel();
+        return;
       } else if (tableImportType === 'image' && image) {
         const base64 = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
@@ -116,6 +122,8 @@ export default function ImportMagique({
           },
         );
         onDone(addDefaultValueType(res.result));
+        onCancel();
+        return;
       } else if (tableImportType === 'text' && (text.trim() || html.trim())) {
         const res = await apiFetch<{ result: Question[] }>(
           '/api/v1/import/transform-text-table',
@@ -129,12 +137,13 @@ export default function ImportMagique({
           },
         );
         onDone(addDefaultValueType(res.result));
+        onCancel();
+        return;
       }
     } catch {
-      alert('Nous n&apos;avons pas pu transformé votre tableau');
+      setErrorMessage("Nous n'avons pas pu transformer votre tableau.");
     } finally {
       setLoading(false);
-      onCancel();
     }
   };
 
@@ -156,6 +165,7 @@ export default function ImportMagique({
               setMode('liste');
               setFile(null);
               setImage(null);
+              setErrorMessage(null);
             }}
           >
             Liste de questions
@@ -173,6 +183,7 @@ export default function ImportMagique({
               setHtml('');
               setFile(null);
               setImage(null);
+              setErrorMessage(null);
             }}
           >
             Tableau
@@ -190,6 +201,7 @@ export default function ImportMagique({
               setHtml('');
               setFile(null);
               setImage(null);
+              setErrorMessage(null);
             }}
           >
             NEW Template

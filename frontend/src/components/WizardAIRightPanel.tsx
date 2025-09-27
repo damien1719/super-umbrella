@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
@@ -24,6 +24,11 @@ import { useBilanTypeStore } from '@/store/bilanTypes';
 import { useSectionStore } from '@/store/sections';
 import LeftNavBilanType from './bilan/LeftNavBilanType';
 import InlineGroupChips from './bilan/InlineGroupChips';
+import {
+  DEFAULT_GENERATION_CONTROLS,
+  useBilanGeneration,
+  useBilanGenerationRegistrar,
+} from './wizard-ai/useBilanGeneration';
 
 export interface WizardAIRightPanelProps {
   sectionInfo: SectionInfo;
@@ -67,6 +72,7 @@ export default function WizardAIRightPanel({
   mode = 'section',
   onGenerate,
   onGenerateFromTemplate,
+  onGenerateAll,
   isGenerating,
   bilanId,
   onCancel,
@@ -652,6 +658,55 @@ export default function WizardAIRightPanel({
     }
   };
 
+  const getCurrentAnswers = useCallback((): Answers => {
+    if (notesMode === 'manual') {
+      const snapshot = dataEntryRef.current?.save?.();
+      if (snapshot && typeof snapshot === 'object') {
+        return snapshot as Answers;
+      }
+    }
+
+    if (mode === 'bilanType') {
+      if (activeBilanSectionId) {
+        return bilanAnswers[activeBilanSectionId] || {};
+      }
+      return {};
+    }
+
+    return answers || {};
+  }, [notesMode, mode, activeBilanSectionId, bilanAnswers, answers]);
+
+  const getSectionAnswers = useCallback(
+    (sectionId: string): Answers => bilanAnswers[sectionId] || {},
+    [bilanAnswers],
+  );
+
+  const generationControls = useBilanGeneration({
+    mode,
+    notesMode,
+    selectedTrame,
+    navItems,
+    excludedSectionIds,
+    rawNotes,
+    imageBase64,
+    onGenerate,
+    onGenerateFromTemplate,
+    onGenerateAll,
+    getCurrentAnswers,
+    getSectionAnswers,
+    saveNotes,
+    onCancel,
+  });
+
+  const registerGeneration = useBilanGenerationRegistrar();
+
+  useEffect(() => {
+    registerGeneration(generationControls);
+    return () => {
+      registerGeneration(DEFAULT_GENERATION_CONTROLS);
+    };
+  }, [generationControls, registerGeneration]);
+
   // Autosave on answers change (debounced) while on step 2
   const lastSavedRef = useRef<string>('');
   useEffect(() => {
@@ -696,33 +751,6 @@ export default function WizardAIRightPanel({
     return () => clearInterval(interval);
   }, [step, selectedTrame, isManualSaving]);
 
-  // Autosave on unmount (including ESC close via Dialog)
-  /*   useEffect(() => {
-    return () => {
-      try {
-        const data = dataEntryRef.current?.save() as Answers | undefined;
-        // fire-and-forget
-        void saveNotes(data);
-      } catch {
-        // ignore
-      }
-    };
-  }, []); */
-
-  // Save immediately when user presses ESC (best-effort before Dialog closes)
-  /*   useEffect(() => {
-    if (step !== 2 || isManualSaving) return;
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        try {
-          const data = dataEntryRef.current?.save() as Answers | undefined;
-          void saveNotes(data);
-        } catch {}
-      }
-    };
-    window.addEventListener('keydown', onKeyDown, true);
-    return () => window.removeEventListener('keydown', onKeyDown, true);
-  }, [step]); */
 
   const handleClose = async () => {
     if (step === 2 && selectedTrame && !isManualSaving) {
@@ -737,148 +765,6 @@ export default function WizardAIRightPanel({
     onCancel();
   };
 
-  // Centralized current-generation handler so it can be called from UI and external events
-  const triggerGenerateCurrent = async () => {
-    console.log('[DEBUG] WizardAIRightPanel - triggerGenerateCurrent');
-    const isTemplateMode =
-      !!selectedTrame?.templateRefId && !!onGenerateFromTemplate;
-    const data: Answers =
-      notesMode === 'manual'
-        ? (dataEntryRef.current?.save() as Answers) || {}
-        : {};
-
-    if (isTemplateMode) {
-      const id = await saveNotes(data);
-      onGenerateFromTemplate?.(
-        notesMode === 'manual' ? data : undefined,
-        rawNotes,
-        id || undefined,
-        imageBase64,
-      );
-      onCancel();
-    } else {
-      await saveNotes(data);
-      onGenerate(
-        notesMode === 'manual' ? data : undefined,
-        rawNotes,
-        imageBase64,
-      );
-      // Close the wizard after direct generation to keep UX consistent
-      onCancel();
-    }
-  };
-
-  // Batch generation across all tests (sections) for bilanType mode
-  const triggerGenerateAll = async () => {
-    if (mode !== 'bilanType') return;
-    console.log('[DEBUG] WizardAIRightPanel - triggerGenerateAll');
-    // Save current active section answers first if in manual mode
-    try {
-      const currentData: Answers | undefined =
-        notesMode === 'manual'
-          ? (dataEntryRef.current?.save() as Answers)
-          : undefined;
-      if (currentData) await saveNotes(currentData).catch(() => {});
-    } catch {}
-
-    // Iterate all sections of the selected BilanType
-    const sectionItems = navItems.filter((x) => x.kind !== 'separator');
-    for (const sec of sectionItems as Array<{
-      id: string;
-      title: string;
-      index?: number;
-    }>) {
-      if (excludedSectionIds.includes(sec.id)) {
-        console.log(
-          '[DEBUG] triggerGenerateAll - skipping excluded section',
-          sec.id,
-        );
-        continue;
-      }
-      try {
-        // Load latest instanceId for this section to pass to template generation if supported
-        let latestInstanceId: string | undefined = undefined;
-        try {
-          const res = await apiFetch<
-            Array<{ id: string; contentNotes: Answers }>
-          >(
-            `/api/v1/bilan-section-instances?bilanId=${bilanId}&sectionId=${sec.id}&latest=true`,
-            { headers: { Authorization: `Bearer ${token}` } },
-          );
-          latestInstanceId = res[0]?.id;
-        } catch (e) {
-          console.warn(
-            '[DEBUG] triggerGenerateAll - load latest failed for',
-            sec.id,
-            e,
-          );
-        }
-
-        const answersForSec = bilanAnswers[sec.id] || {};
-        const isTemplateMode =
-          !!selectedTrame?.templateRefId && !!onGenerateFromTemplate;
-
-        if (isTemplateMode) {
-          // Use per-section instance if available
-          await onGenerateFromTemplate?.(
-            notesMode === 'manual' ? answersForSec : undefined,
-            rawNotes,
-            latestInstanceId,
-            imageBase64,
-          );
-        } else {
-          console.log('here');
-          await onGenerate(
-            notesMode === 'manual' ? answersForSec : undefined,
-            rawNotes,
-            imageBase64,
-          );
-        }
-      } catch (e) {
-        console.error(
-          '[DEBUG] triggerGenerateAll - error on section',
-          sec.id,
-          e,
-        );
-      }
-    }
-  };
-
-  // External event listeners from wrapper (WizardAIBilanType)
-  useEffect(() => {
-    const onGenSelected = () => void triggerGenerateCurrent();
-    const onGenAll = () => void triggerGenerateAll();
-    const onSaveCurrent = () => {
-      try {
-        const data =
-          notesMode === 'manual'
-            ? (dataEntryRef.current?.save() as Answers)
-            : undefined;
-        if (data) void saveNotes(data);
-      } catch {}
-    };
-    window.addEventListener('bilan-type:generate-selected', onGenSelected);
-    window.addEventListener('bilan-type:generate-all', onGenAll);
-    window.addEventListener('bilan-type:save-current', onSaveCurrent);
-    return () => {
-      window.removeEventListener('bilan-type:generate-selected', onGenSelected);
-      window.removeEventListener('bilan-type:generate-all', onGenAll);
-      window.removeEventListener('bilan-type:save-current', onSaveCurrent);
-    };
-  }, [
-    notesMode,
-    rawNotes,
-    imageBase64,
-    bilanAnswers,
-    navItems,
-    selectedTrame,
-    onGenerateFromTemplate,
-    onGenerate,
-    mode,
-    token,
-    bilanId,
-    excludedSectionIds,
-  ]);
 
   return (
     <div className="h-full flex flex-col overflow-hidden relative">
@@ -941,11 +827,11 @@ export default function WizardAIRightPanel({
               ) : (
                 <div className="flex gap-2">
                   <Button
-                    onClick={triggerGenerateCurrent}
-                    disabled={isGenerating}
+                    onClick={generationControls.generateCurrent}
+                    disabled={isGenerating || generationControls.isBusy}
                     type="button"
                   >
-                    {isGenerating ? (
+                    {isGenerating || generationControls.isBusy ? (
                       <>
                         <Loader2 className="h-5 w-5 mr-2 animate-spin" />
                         Génération...

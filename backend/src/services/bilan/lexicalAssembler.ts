@@ -10,6 +10,7 @@ export type LexicalAssemblerInput = {
   questions: Question[];
   answers: Record<string, unknown>;
   missingAnchorIds?: string[];
+  astSnippets?: Record<string, unknown> | null;
 };
 
 export type LexicalAssemblerResult = {
@@ -25,6 +26,7 @@ type AnchorContext = {
   questions: Question[];
   questionsById: Map<string, Question>;
   answers: Record<string, unknown>;
+  astSnippets?: Record<string, unknown> | null;
 };
 
 const KNOWN_ANCHOR_TYPES = ['CR:TBL', 'CR:TITLE_PRESET'] as const;
@@ -179,6 +181,26 @@ const TITLE_PRESET_REGISTRY: TitlePresetRegistry = {
     align: 'center',
     case: 'uppercase',
   },
+  't14-center-bordered': {
+    kind: 'paragraph',
+    fontSize: 14,
+    align: 'center',
+    case: 'uppercase',
+    decor: {
+      weight: 'thin',
+      color: 'black',
+    },
+  },
+  't14-bold-filled-green': {
+    kind: 'paragraph',
+    fontSize: 14,
+    bold: true,
+    align: 'center',
+    decor: {
+      weight: 'none',
+      fill: { kind: 'token', token: 'green' }, // mappe à tes classes .bp-decor[data-bp-fill-token="green"]
+    },
+  },
 };
 
 function mapAlignment(align?: TitleFormatSpec['align']): string {
@@ -192,7 +214,7 @@ function computeTextFormat({ bold, italic, underline }: TextFormatFlags): number
   let format = 0;
   if (bold) format |= 1;
   if (italic) format |= 2;
-  if (underline) format |= 12;
+  if (underline) format |= 8;
   return format;
 }
 
@@ -224,6 +246,40 @@ function computeFontSizeStyle(fontSize?: TitleFormatSpec['fontSize']): string {
   return '';
 }
 
+function wrapWithDecor(nodes: LexicalNode[], decor?: TitleFormatSpec['decor']): LexicalNode[] {
+  if (!decor) return nodes;
+
+  const weight = decor.weight ?? 'thin';
+  const color = decor.color ?? 'black';
+  const fillKind = decor.fill?.kind ?? 'none';
+  const fillToken = fillKind === 'token' ? decor.fill?.token ?? null : null;
+  const fillColor = fillKind === 'custom' ? decor.fill?.color ?? null : null;
+
+  const blockNode: LexicalNode = {
+    type: 'border-block',
+    direction: 'ltr',
+    format: '',
+    indent: 0,
+    version: 3,
+    weight,
+    color,
+    fill: fillKind,
+    fillToken,
+    fillColor,
+    children: nodes,
+  };
+
+  const spacerParagraph: LexicalNode = {
+    type: 'paragraph',
+    format: '',
+    indent: 0,
+    version: 1,
+    children: [],
+  };
+
+  return [blockNode, spacerParagraph];
+}
+
 function createStyledTextNode(text: string, flags: TextFormatFlags, style?: string): LexicalNode {
   return {
     type: 'text',
@@ -252,7 +308,7 @@ function buildTitleNodes(text: string, format: TitleFormatSpec): LexicalNode[] {
 
   if (format.kind === 'heading') {
     const level = format.level && format.level >= 1 && format.level <= 6 ? format.level : 2;
-    return [
+    return wrapWithDecor([
       {
         type: 'heading',
         tag: `h${level}`,
@@ -262,11 +318,11 @@ function buildTitleNodes(text: string, format: TitleFormatSpec): LexicalNode[] {
         version: 1,
         children: finalText ? [textNode] : [],
       },
-    ];
+    ], format.decor);
   }
 
   if (format.kind === 'paragraph') {
-    return [
+    return wrapWithDecor([
       {
         type: 'paragraph',
         direction: 'ltr',
@@ -275,7 +331,7 @@ function buildTitleNodes(text: string, format: TitleFormatSpec): LexicalNode[] {
         version: 1,
         children: finalText ? [textNode] : [],
       },
-    ];
+    ], format.decor);
   }
 
   if (format.kind === 'list-item') {
@@ -287,7 +343,7 @@ function buildTitleNodes(text: string, format: TitleFormatSpec): LexicalNode[] {
       value: 1,
       children: finalText ? [textNode] : [],
     };
-    return [
+    return wrapWithDecor([
       {
         type: 'list',
         tag: 'ul',
@@ -298,10 +354,10 @@ function buildTitleNodes(text: string, format: TitleFormatSpec): LexicalNode[] {
         version: 1,
         children: [listItem],
       },
-    ];
+    ], format.decor);
   }
 
-  return [
+  return wrapWithDecor([
     {
       type: 'paragraph',
       direction: 'ltr',
@@ -310,7 +366,7 @@ function buildTitleNodes(text: string, format: TitleFormatSpec): LexicalNode[] {
       version: 1,
       children: finalText ? [textNode] : [],
     },
-  ];
+  ], format.decor);
 
 }
 
@@ -527,6 +583,7 @@ function buildAnchorReplacement(segment: AnchorMatchSegment, ctx: AnchorContext)
       anchor,
       questions: ctx.questions,
       answers: ctx.answers,
+      astSnippets: ctx.astSnippets,
     });
 
     if (rendered.length > 0) {
@@ -657,6 +714,7 @@ function processNode(node: LexicalNode, ctx: AnchorContext): LexicalNode[] {
         anchor,
         questions: ctx.questions,
         answers: ctx.answers,
+        astSnippets: ctx.astSnippets,
       });
       if (rendered.length > 0) {
         return rendered;
@@ -722,7 +780,14 @@ function createParagraph(text: string): LexicalNode {
 }
 
 export const LexicalAssembler = {
-  assemble({ text, anchors, questions, answers, missingAnchorIds = [] }: LexicalAssemblerInput): LexicalAssemblerResult {
+  assemble({
+    text,
+    anchors,
+    questions,
+    answers,
+    missingAnchorIds = [],
+    astSnippets,
+  }: LexicalAssemblerInput): LexicalAssemblerResult {
     console.log('[ANCHOR] LexicalAssembler.assemble - start', {
       anchors: anchors.map((a) => a.id),
       missingAnchorIds,
@@ -739,6 +804,7 @@ export const LexicalAssembler = {
       questions,
       questionsById,
       answers,
+      astSnippets,
     };
 
     root.children = replaceAnchors(children, ctx);
@@ -752,7 +818,12 @@ export const LexicalAssembler = {
       const anchor = anchorsById.get(missingId);
       if (!anchor) continue;
       if (anchor.type === 'CR:TBL') {
-        const rendered = TableRenderer.renderLexical({ anchor, questions, answers });
+        const rendered = TableRenderer.renderLexical({
+          anchor,
+          questions,
+          answers,
+          astSnippets,
+        });
         if (rendered.length === 0) {
           console.log('[ANCHOR] LexicalAssembler.assemble - auto insert fallback paragraph', {
             anchorId: missingId,

@@ -77,6 +77,7 @@ export type SurveyTable = {
   commentaire?: boolean;
   crInsert?: boolean;
   crTableId?: string;
+  crAstId?: string;
 };
 
 export type TableQuestion = {

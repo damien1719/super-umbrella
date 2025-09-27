@@ -61,6 +61,11 @@ interface Props {
   onPasteAfter?: (targetId: string, item: Question) => void;
   /** Active le mode lecture seule */
   isReadOnly?: boolean;
+  tableAstHandlers?: {
+    getSnippet: (id?: string | null) => string | null | undefined;
+    saveSnippet: (content: string, previousId?: string | null) => string | null;
+    deleteSnippet: (id: string) => void;
+  };
 }
 
 export default function QuestionList({
@@ -74,6 +79,7 @@ export default function QuestionList({
   onAddAfter,
   onPasteAfter,
   isReadOnly = false,
+  tableAstHandlers,
 }: Props) {
   const dragIndex = useRef<number | null>(null);
   const [jsonDialogOpen, setJsonDialogOpen] = useState(false);
@@ -335,6 +341,21 @@ export default function QuestionList({
                       q={question}
                       onPatch={(p) => onPatch(question.id, p)}
                       isReadOnly={isReadOnly}
+                      getAstSnippet={
+                        question.type === 'tableau'
+                          ? tableAstHandlers?.getSnippet
+                          : undefined
+                      }
+                      saveAstSnippet={
+                        question.type === 'tableau'
+                          ? tableAstHandlers?.saveSnippet
+                          : undefined
+                      }
+                      deleteAstSnippet={
+                        question.type === 'tableau'
+                          ? tableAstHandlers?.deleteSnippet
+                          : undefined
+                      }
                     />
                   </ReadOnlyOverlay>
                   <div
@@ -364,18 +385,18 @@ export default function QuestionList({
                       </Button>
                     )}
                     {!isReadOnly && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      tooltip="Ajouter une question"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onAddAfter(question.id);
-                      }}
-                      disabled={isReadOnly}
-                    >
-                      <Plus className="h-5 w-5" />
-                    </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        tooltip="Ajouter une question"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onAddAfter(question.id);
+                        }}
+                        disabled={isReadOnly}
+                      >
+                        <Plus className="h-5 w-5" />
+                      </Button>
                     )}
                     {!isReadOnly && (
                       <Button
@@ -401,7 +422,11 @@ export default function QuestionList({
                       }}
                     >
                       <ClipboardCopy className="h-4 w-4" />
-                      {isReadOnly && <span className="text-base">Copier pour réutiliser</span>}
+                      {isReadOnly && (
+                        <span className="text-base">
+                          Copier pour réutiliser
+                        </span>
+                      )}
                     </Button>
                     {/*                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -422,18 +447,18 @@ export default function QuestionList({
                     </DropdownMenuContent>
                   </DropdownMenu> */}
                     {!isReadOnly && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      tooltip="Supprimer la question"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete(question.id);
-                      }}
-                      disabled={isReadOnly}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        tooltip="Supprimer la question"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDelete(question.id);
+                        }}
+                        disabled={isReadOnly}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     )}
                   </div>
                 </CardContent>
@@ -441,34 +466,34 @@ export default function QuestionList({
               {selectedId === question.id && (
                 <div className="flex flex-col absolute top-1/2 -translate-y-1/2 space-y-2">
                   {!isReadOnly && (
-                  <Button
-                    variant="primary"
-                    tooltip="Ajouter une question après"
-                    tooltipSide="right"
-                    size="icon"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onAddAfter(question.id);
-                    }}
-                    disabled={isReadOnly}
-                  >
-                    <Plus className="h-6 w-6 text-white" />
-                  </Button>
+                    <Button
+                      variant="primary"
+                      tooltip="Ajouter une question après"
+                      tooltipSide="right"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAddAfter(question.id);
+                      }}
+                      disabled={isReadOnly}
+                    >
+                      <Plus className="h-6 w-6 text-white" />
+                    </Button>
                   )}
                   {!isReadOnly && (
-                  <Button
-                    variant="primary"
-                    tooltip="Dupliquer la question"
-                    tooltipSide="right"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDuplicate(question.id);
-                    }}
-                    disabled={isReadOnly}
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
+                    <Button
+                      variant="primary"
+                      tooltip="Dupliquer la question"
+                      tooltipSide="right"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDuplicate(question.id);
+                      }}
+                      disabled={isReadOnly}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
                   )}
                   {/* <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -486,25 +511,24 @@ export default function QuestionList({
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu> */}
-                {!isReadOnly && (
-                  <Button
-                    variant="primary"
-                    tooltip="Supprimer la question"
-                    tooltipSide="right"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDelete(question.id);
-                    }}
-                    disabled={isReadOnly}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  {!isReadOnly && (
+                    <Button
+                      variant="primary"
+                      tooltip="Supprimer la question"
+                      tooltipSide="right"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(question.id);
+                      }}
+                      disabled={isReadOnly}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   )}
                 </div>
               )}
             </div>
-
           );
         })}
 

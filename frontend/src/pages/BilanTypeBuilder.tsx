@@ -2,7 +2,13 @@
 
 import type React from 'react';
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { useNavigate, useLocation, MemoryRouter, Routes, Route } from 'react-router-dom';
+import {
+  useNavigate,
+  useLocation,
+  MemoryRouter,
+  Routes,
+  Route,
+} from 'react-router-dom';
 import { SectionDisponible } from '@/components/bilanType/SectionDisponible';
 import ExplorerSectionsModal from '@/components/bilanType/ExplorerSectionsModal';
 import { BilanTypeConstruction } from '@/components/bilanType/BilanTypeConstruction';
@@ -64,9 +70,7 @@ interface BilanTypeBuilderProps {
   initialBilanTypeId?: string;
 }
 
-export default function BilanTypeBuilder(
-  props?: BilanTypeBuilderProps,
-) {
+export default function BilanTypeBuilder(props?: BilanTypeBuilderProps) {
   const { initialBilanTypeId } = (props ?? {}) as BilanTypeBuilderProps;
   const [currentBilanTypeId, setCurrentBilanTypeId] = useState<
     string | undefined
@@ -117,7 +121,7 @@ export default function BilanTypeBuilder(
     const timer = setTimeout(() => {
       setIsBackButtonDisabled(false);
     }, 200);
-    
+
     return () => clearTimeout(timer);
   }, []);
 
@@ -161,21 +165,23 @@ export default function BilanTypeBuilder(
     }
   }, [token, fetchPatients]);
 
-    const hasPatients = patients.length > 0;
-    
-    const createBilan = async (patientId: string, title?: string) => {
-      const res = await apiFetch<{ id: string }>(
-        '/api/v1/bilans',
-        {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ patientId, title }),
-        },
-      );
-      navigate(`/bilan/${res.id}` as const, {
-        state: { wizardBilanType: true, bilanTypeStep: 2, bilanTypeId: currentBilanTypeId, mode: 'bilanType' },
-      });
-    };
+  const hasPatients = patients.length > 0;
+
+  const createBilan = async (patientId: string, title?: string) => {
+    const res = await apiFetch<{ id: string }>('/api/v1/bilans', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ patientId, title }),
+    });
+    navigate(`/bilan/${res.id}` as const, {
+      state: {
+        wizardBilanType: true,
+        bilanTypeStep: 2,
+        bilanTypeId: currentBilanTypeId,
+        mode: 'bilanType',
+      },
+    });
+  };
 
   // For new (unsaved) items, initialize baselines from initial state once
   useEffect(() => {
@@ -443,7 +449,7 @@ export default function BilanTypeBuilder(
 
   // ------ Dirty flags derivation helpers ------
   const defaultRoot = useMemo(
-    () => ({ root: { type: 'root', children: [] } } as unknown),
+    () => ({ root: { type: 'root', children: [] } }) as unknown,
     [],
   );
 
@@ -463,7 +469,8 @@ export default function BilanTypeBuilder(
       const { segments } = computeSegments(x);
       return segments
         .filter(
-          (s): s is Extract<Segment, { kind: 'section' }> => s.kind === 'section',
+          (s): s is Extract<Segment, { kind: 'section' }> =>
+            s.kind === 'section',
         )
         .map((s) => s.sectionId);
     } catch {
@@ -718,8 +725,6 @@ export default function BilanTypeBuilder(
     return await doSaveBilanType();
   };
 
-
-
   // Ouverture d'une section: sauvegarde puis navigation vers la section
   const onOpenSection = async (id: string) => {
     await saveBilanType();
@@ -776,10 +781,9 @@ export default function BilanTypeBuilder(
         <div className="mb-2">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <Button 
-                variant="outline" 
-                onClick={() => !isDirty ? navigate(-1) : setShowConfirm(true)
-                }
+              <Button
+                variant="outline"
+                onClick={() => (!isDirty ? navigate(-1) : setShowConfirm(true))}
                 disabled={isBackButtonDisabled}
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -840,7 +844,10 @@ export default function BilanTypeBuilder(
                   </span>
                 ) : null}
               </div>
-              <Button onClick={saveBilanType} disabled={isSaving || !bilanName || !isDirty}>
+              <Button
+                onClick={saveBilanType}
+                disabled={isSaving || !bilanName || !isDirty}
+              >
                 {isSaving ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -865,7 +872,7 @@ export default function BilanTypeBuilder(
                   setIsCreationModalOpen(true);
                 }}
               >
-              <FeatherIcon className="h-4 w-4 mr-2" />
+                <FeatherIcon className="h-4 w-4 mr-2" />
                 Commencer une rédaction
               </Button>
             </div>

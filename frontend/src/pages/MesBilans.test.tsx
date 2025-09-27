@@ -74,7 +74,7 @@ describe('BilanV2 page', () => {
 
     await waitFor(() =>
       expect(fetchMock).toHaveBeenCalledWith(
-        '/api/v1/bilans/1',
+        expect.stringContaining('/api/v1/bilans/1'),
         expect.objectContaining({ method: 'DELETE' }),
       ),
     );

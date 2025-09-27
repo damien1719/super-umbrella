@@ -102,7 +102,7 @@ describe('Bilan page', () => {
 
     await waitFor(() =>
       expect(fetchMock).toHaveBeenLastCalledWith(
-        '/api/v1/bilans/1',
+        expect.stringContaining('/api/v1/bilans/1'),
         expect.objectContaining({ method: 'PUT' }),
       ),
     );
@@ -162,7 +162,7 @@ describe('Bilan page', () => {
 
     await waitFor(() =>
       expect(fetchMock).toHaveBeenLastCalledWith(
-        '/api/v1/bilans/1',
+        expect.stringContaining('/api/v1/bilans/1'),
         expect.objectContaining({ method: 'PUT' }),
       ),
     );

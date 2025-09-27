@@ -7,7 +7,7 @@ import { useAuth } from '../store/auth';
 import { useBilanDraft } from '../store/bilanDraft';
 import SelectionOverlay from '../components/SelectionOverlay';
 import { useEditorUi } from '../store/editorUi';
-import { downloadDocx } from '@/lib/docxExport';
+import { exportToDocxFromNodes } from '@/lib/exportToDocxFromNodes';
 
 const RichTextEditor = lazy(() => import('../components/RichTextEditor'));
 const AiRightPanel = lazy(() => import('../components/AiRightPanel'));
@@ -108,17 +108,20 @@ export default function Bilan() {
 
   const handleExport = async () => {
     try {
-      const fullHtml = editorRef.current?.getHtmlForExport?.();
-      if (!fullHtml) return;
-      await downloadDocx(fullHtml, `${bilan.title || 'Bilan'}.docx`);
+      const editorState = editorRef.current?.getEditorState?.();
+      if (!editorState) return;
+      await exportToDocxFromNodes(
+        editorState,
+        `${bilan.title || 'Bilan'}.docx`,
+      );
     } catch (e) {
       // Silently ignore for now; could add toast
       console.error('Export DOCX failed', e);
     }
   };
 
-  console.log("initialWizardSection", state?.wizardSection);
-  console.log("initialTrameId", state?.trameId);
+  console.log('initialWizardSection', state?.wizardSection);
+  console.log('initialTrameId', state?.trameId);
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
@@ -141,7 +144,8 @@ export default function Bilan() {
                 exportFileName={bilan.title || 'Bilan'}
               />
             </Suspense>
-            <SelectionOverlay />
+            {/*             <SelectionOverlay />
+             */}{' '}
           </div>
           <div className="block w-[26rem] min-w-[26rem] flex-shrink-0 border-l border-wood-300 overflow-auto shadow-sm ">
             <Suspense fallback="Chargement...">

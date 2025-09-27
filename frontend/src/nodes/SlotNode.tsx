@@ -15,6 +15,7 @@ export type SerializedSlotNode = {
   slotType: SlotType;
   optional: boolean;
   placeholder: string;
+  pathOption?: string;
   version: 1;
 };
 
@@ -24,6 +25,7 @@ export class SlotNode extends DecoratorNode<React.ReactNode> {
   __slotType: SlotType;
   __optional: boolean;
   __placeholder: string;
+  __pathOption?: string;
 
   constructor(
     slotId: string,
@@ -31,6 +33,7 @@ export class SlotNode extends DecoratorNode<React.ReactNode> {
     slotType: SlotType,
     optional: boolean,
     placeholder: string,
+    pathOption?: string,
     key?: NodeKey,
   ) {
     super(key);
@@ -39,6 +42,7 @@ export class SlotNode extends DecoratorNode<React.ReactNode> {
     this.__slotType = slotType;
     this.__optional = optional;
     this.__placeholder = placeholder;
+    this.__pathOption = pathOption;
   }
 
   static getType(): string {
@@ -52,6 +56,7 @@ export class SlotNode extends DecoratorNode<React.ReactNode> {
       node.__slotType,
       node.__optional,
       node.__placeholder,
+      node.__pathOption,
       node.__key,
     );
   }
@@ -76,6 +81,9 @@ export class SlotNode extends DecoratorNode<React.ReactNode> {
     span.setAttribute('data-slot-id', this.__slotId);
     span.setAttribute('data-slot-type', String(this.__slotType || ''));
     span.setAttribute('data-optional', String(!!this.__optional));
+    if (this.__pathOption) {
+      span.setAttribute('data-path-option', this.__pathOption);
+    }
     span.style.backgroundColor = '#FEF08A'; // tailwind yellow-200
     span.style.color = '#854D0E'; // tailwind yellow-800
     span.style.padding = '0 2px';
@@ -91,6 +99,7 @@ export class SlotNode extends DecoratorNode<React.ReactNode> {
       json.slotType,
       json.optional,
       json.placeholder,
+      json.pathOption,
     );
   }
 
@@ -102,6 +111,7 @@ export class SlotNode extends DecoratorNode<React.ReactNode> {
       slotType: this.__slotType,
       optional: this.__optional,
       placeholder: this.__placeholder,
+      pathOption: this.__pathOption,
       version: 1,
     };
   }
@@ -119,6 +129,10 @@ export class SlotNode extends DecoratorNode<React.ReactNode> {
     // Use Lexical's immutable pattern: get writable clone before mutation
     const writable = this.getWritable() as SlotNode;
     writable.__slotLabel = newLabel;
+  }
+
+  getPathOption(): string | undefined {
+    return this.__pathOption;
   }
 
   // Export slot as readable text format for LLM processing
@@ -144,8 +158,16 @@ export function $createSlotNode(
   slotType: SlotType,
   optional = false,
   placeholder = '…',
+  pathOption?: string,
 ): SlotNode {
-  return new SlotNode(slotId, slotLabel, slotType, optional, placeholder);
+  return new SlotNode(
+    slotId,
+    slotLabel,
+    slotType,
+    optional,
+    placeholder,
+    pathOption,
+  );
 }
 
 export function $isSlotNode(

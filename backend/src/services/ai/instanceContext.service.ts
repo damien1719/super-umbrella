@@ -10,6 +10,7 @@ export type InstanceContext = {
   sectionTitle?: string | null;
   sectionKind?: string | null;
   sectionQuestions: Question[];
+  astSnippets?: Record<string, unknown> | null;
   userId?: string;
   patientNames?: { firstName?: string; lastName?: string };
   contentNotes: Record<string, unknown>;
@@ -47,7 +48,13 @@ export async function getInstanceContext(instanceId: string): Promise<InstanceCo
           },
         },
         section: {
-          select: { id: true, title: true, kind: true, schema: true },
+          select: {
+            id: true,
+            title: true,
+            kind: true,
+            schema: true,
+            astSnippets: true,
+          },
         },
       },
     });
@@ -60,12 +67,19 @@ export async function getInstanceContext(instanceId: string): Promise<InstanceCo
       ? { firstName: patient.firstName ?? undefined, lastName: patient.lastName ?? undefined }
       : undefined;
 
+    const astSnippetsRaw = instance.section?.astSnippets;
+    const astSnippets =
+      astSnippetsRaw && typeof astSnippetsRaw === 'object' && !Array.isArray(astSnippetsRaw)
+        ? (astSnippetsRaw as Record<string, unknown>)
+        : null;
+
     return {
       bilanId: instance.bilanId,
       sectionId: instance.sectionId,
       sectionTitle: instance.section?.title ?? null,
       sectionKind: instance.section?.kind ?? null,
       sectionQuestions,
+      astSnippets,
       userId: patient?.profile?.userId ?? undefined,
       patientNames,
       contentNotes: ((instance.contentNotes || {}) as Record<string, unknown>),

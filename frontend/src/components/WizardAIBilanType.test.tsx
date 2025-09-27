@@ -1,28 +1,27 @@
 import { render } from '@testing-library/react';
 import { vi, expect, test } from 'vitest';
-import React from 'react';
+import { FileText } from 'lucide-react';
+
+const panelMock = vi.fn(() => <div>inner</div>);
 
 vi.mock('./WizardAIRightPanel', () => ({
   __esModule: true,
-  default: vi.fn(() => <div>inner</div>),
+  default: (props: any) => {
+    panelMock(props);
+    return <div>inner</div>;
+  },
 }));
 
 import WizardAIBilanType from './WizardAIBilanType';
-import WizardAIRightPanel from './WizardAIRightPanel';
-
-const Mocked = WizardAIRightPanel as unknown as vi.Mock;
 
 test('forwards props to WizardAIRightPanel', () => {
   render(
     <WizardAIBilanType
       mode="bilanType"
-      sectionInfo={{ id: 's', title: 't' } as any}
+      sectionInfo={{ id: 's', title: 't', description: 'desc', icon: FileText }}
       trameOptions={[]}
       selectedTrame={undefined}
       onTrameChange={() => {}}
-      examples={[]}
-      onAddExample={() => {}}
-      onRemoveExample={() => {}}
       questions={[]}
       answers={{}}
       onAnswersChange={() => {}}
@@ -33,6 +32,6 @@ test('forwards props to WizardAIRightPanel', () => {
     />,
   );
 
-  expect(Mocked).toHaveBeenCalled();
-  expect(Mocked.mock.calls[0][0].bilanId).toBe('b');
+  expect(panelMock).toHaveBeenCalled();
+  expect(panelMock.mock.calls[0][0].bilanId).toBe('b');
 });

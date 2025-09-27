@@ -89,7 +89,7 @@ export default function AiRightPanel({
   openWizardBilanType,
   initialBilanTypeId,
   initialBilanTypeStep,
-  initialStep
+  initialStep,
 }: AiRightPanelProps) {
   const trames = useTrames();
   const {
@@ -358,33 +358,9 @@ export default function AiRightPanel({
         }>,
       };
 
-      console.log(
-        '[AiRightPanel] handleGenerateFromTemplate - Generation params prepared:',
-        {
-          mode: generationParams.mode,
-          sectionId: generationParams.section.id,
-          instanceId: generationParams.instanceId,
-          hasToken: !!generationParams.token,
-          hasBilanId: !!generationParams.bilanId,
-          hasNewAnswers: !!generationParams.newAnswers,
-          hasRawNotes: !!generationParams.rawNotes,
-          hasOnSetEditorStateJson: !!generationParams.onSetEditorStateJson,
-        },
-      );
-
-      console.log(
-        '[AiRightPanel] handleGenerateFromTemplate - About to call generateSection...',
-      );
-
       setLastGeneratedSection(section.id);
       await generateSection(generationParams);
 
-      console.log(
-        '[AiRightPanel] handleGenerateFromTemplate - generateSection completed successfully',
-      );
-      console.log(
-        '[AiRightPanel] handleGenerateFromTemplate - DONE - Template generation completed',
-      );
     } catch (e) {
       console.error(
         '[AiRightPanel] handleGenerateFromTemplate - ERROR occurred:',
@@ -402,7 +378,7 @@ export default function AiRightPanel({
     }
   };
 
-  const handleRefine = async () => {
+/*   const handleRefine = async () => {
     if (!selection) return;
     setIsGenerating(true);
     try {
@@ -442,55 +418,19 @@ export default function AiRightPanel({
     } finally {
       setIsGenerating(false);
     }
-  };
+  }; */
 
-  console.log({
-    sectionInfo: {
-      id: 'reponses',
-      title: 'Mes dernières réponses',
-      icon: FileText,
-      description: 'Consultez et modifiez vos réponses précédentes',
-    },
-    trameOptions: [],
-    selectedTrame: undefined,
-    onTrameChange: () => {},
-    examples: [],
-    onAddExample: () => {},
-    onRemoveExample: () => {},
-    questions: [],
-    answers: {},
-    onAnswersChange: () => {},
-    onGenerate: async () => {},
-    onGenerateFromTemplate: async () => {},
-    isGenerating: false,
-    bilanId,
-    onCancel: () => {},
-  });
-  
+
   return (
     <div className="w-full max-w-md bg-wood-50 rounded-lg shadow-lg">
       <GeneratingModal open={isGenerating} logoSrc="/logo.png" />
       <div className="flex flex-col h-full">
-        {/*         {selection?.text && (
-          <div className="bg-blue-50 text-blue-800 text-sm p-2 border-b border-blue-100">
-            <div className="font-medium mb-1">Texte sélectionné :</div>
-            <div className="italic truncate">&quot;{selection.text}&quot;</div>
-          </div>
-        )} */}
         <div className="sticky top-0 z-10 flex items-center justify-between bg-wood-50 border-b border-wood-200 px-4 py-2 h-14">
           <span className="font-medium text-sm">
-            {mode === 'refine'
-              ? 'Raffiner le texte'
-              : wizardSection
-                ? 'Génération de section'
-                : regenSection
-                  ? 'Modifier la section'
-                  : 'Assistant IA'}
+            Assistant de rédaction
           </span>
           <div className="flex items-center gap-2">
             {!wizardSection &&
-              !regenSection &&
-              mode !== 'refine' &&
               lastGeneratedSection && (
                 <Button
                   variant="outline"
@@ -504,129 +444,9 @@ export default function AiRightPanel({
                   Voir mes dernières réponses
                 </Button>
               )}
-            {(regenSection || mode === 'refine') && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 px-2 text-xs"
-                onClick={() => {
-                  if (regenSection) setRegenSection(null);
-                  if (mode === 'refine') {
-                    setMode('idle');
-                    setRefinedText('');
-                    setRegenPrompt('');
-                    selection?.clear();
-                  }
-                }}
-              >
-                Retour
-              </Button>
-            )}
           </div>
         </div>
         <div className="p-4 overflow-y-auto flex-1">
-          {mode === 'refine' ? (
-            <div className="space-y-4">
-              {refinedText && (
-                <div className="space-y-2">
-                  <div className="p-2 border rounded bg-white whitespace-pre-wrap text-sm">
-                    {refinedText}
-                  </div>
-                  <div className="flex justify-end">
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        if (selection?.restore()) {
-                          onInsertText?.(refinedText);
-                          selection.clear();
-                        }
-                        setRefinedText('');
-                        setRegenPrompt('');
-                        setMode('idle');
-                      }}
-                    >
-                      Insérer
-                    </Button>
-                  </div>
-                </div>
-              )}
-              <h3 className="text-sm font-medium text-left">
-                Si vous voulez ajuster le contenu sélectionné, précisez les
-                modifications souhaitées
-              </h3>
-              <div className="w-full">
-                <Textarea
-                  ref={textareaRef}
-                  value={regenPrompt}
-                  onChange={(e) => setRegenPrompt(e.target.value)}
-                  onContextMenu={(e) => e.stopPropagation()}
-                  className="min-h-[40vh] w-full text-left"
-                  placeholder="Décrivez les modifications souhaitées..."
-                />
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setMode('idle');
-                    setRefinedText('');
-                    setRegenPrompt('');
-                    selection?.clear();
-                  }}
-                  disabled={isGenerating}
-                >
-                  Annuler
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={handleRefine}
-                  disabled={isGenerating}
-                >
-                  {isGenerating ? 'Génération...' : 'Re-générer'}
-                </Button>
-              </div>
-            </div>
-          ) : regenSection ? (
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-left">
-                Si vous voulez ajuster le contenu généré, vous pouvez préciser
-                ici les éléments que vous souhaitez re-générer
-              </h3>
-              <div className="w-full">
-                <Textarea
-                  ref={textareaRef}
-                  value={regenPrompt}
-                  onChange={(e) => setRegenPrompt(e.target.value)}
-                  onContextMenu={(e) => e.stopPropagation()}
-                  className="min-h-[60vh] w-full text-left"
-                  placeholder="Décrivez les modifications souhaitées..."
-                />
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    const section = sections.find(
-                      (s) => s.id === regenSection,
-                    )!;
-                    handleGenerate(section);
-                  }}
-                  disabled={isGenerating}
-                >
-                  {isGenerating ? 'Génération...' : 'Reformuler ce texte'}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setRegenSection(null)}
-                  disabled={isGenerating}
-                >
-                  Passer à la suite
-                </Button>
-              </div>
-            </div>
-          ) : (
             <ScrollArea className="h-[calc(100vh-120px)]">
               <div className="space-y-4">
                 {wizardBilanType && (
@@ -646,7 +466,9 @@ export default function AiRightPanel({
                         trameOptions={bilanTypeOptions}
                         selectedTrame={
                           initialBilanTypeId
-                            ? (bilanTypeOptions.find((b) => b.value === initialBilanTypeId) as any)
+                            ? (bilanTypeOptions.find(
+                                (b) => b.value === initialBilanTypeId,
+                              ) as any)
                             : undefined
                         }
                         onTrameChange={() => {}}
@@ -854,39 +676,9 @@ export default function AiRightPanel({
                     );
                   })
                 )}
-                {/* <Button className="w-full"
-                    size="default"
-                    variant="default"
-                    onClick={handleConclude}
-                    disabled={isGenerating}
-                  >
-                    {isGenerating ? '...' : 'Rédiger une synthèse du bilan'}
-                </Button>
-                <Button className="w-full"
-                    size="default"
-                    variant="default"
-                    onClick={handleConclude}
-                    disabled={isGenerating}
-                  >
-                    {isGenerating ? '...' : 'Commenter des résultats de'}
-                </Button>
- */}
-                {/*                 <div className="flex flex-col gap-4">
-                  <Button
-                    size="default"
-                    variant="default"
-                    className="h-8 px-2 text-base"
-                    onClick={handleConclude}
-                    disabled={isGenerating}
-                  >
-                    {isGenerating ? '...' : 'Exporter mon bilan'}
-                    <Wand2 className="h-4 w-4 ml-1" />
-                  </Button>
-                </div> */}
               </div>
             </ScrollArea>
-          )}
-        </div>
+          </div>
       </div>
     </div>
   );
