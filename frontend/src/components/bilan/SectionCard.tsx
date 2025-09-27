@@ -70,6 +70,7 @@ export function SectionCard({
             />
             <DataEntry
               questions={questions}
+              draftKey={{ bilanId: 'section-card', sectionId: section.id }}
               answers={answers}
               onChange={onAnswersChange}
             />

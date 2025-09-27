@@ -97,6 +97,10 @@ export default function SectionGlimpse({
                 <DataEntry
                   inline
                   questions={renderQuestions}
+                  draftKey={{
+                    bilanId: 'section-glimpse',
+                    sectionId: selectedId ?? 'preview',
+                  }}
                   answers={answers}
                   onChange={setAnswers}
                 />

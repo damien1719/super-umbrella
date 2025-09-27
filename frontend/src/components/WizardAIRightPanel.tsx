@@ -464,6 +464,10 @@ export default function WizardAIRightPanel({
               <DataEntry
                 ref={dataEntryRef}
                 questions={activeQuestions}
+                draftKey={{
+                  bilanId,
+                  sectionId: activeBilanSectionId ?? '__bilan-type__',
+                }}
                 answers={activeAnswers}
                 onChange={(a) => {
                   if (!activeBilanSectionId) return;
@@ -507,6 +511,7 @@ export default function WizardAIRightPanel({
             <DataEntry
               ref={dataEntryRef}
               questions={questions}
+              draftKey={{ bilanId, sectionId: sectionInfo.id }}
               answers={answers}
               onChange={onAnswersChange}
               inline
