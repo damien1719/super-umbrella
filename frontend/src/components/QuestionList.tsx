@@ -61,6 +61,11 @@ interface Props {
   onPasteAfter?: (targetId: string, item: Question) => void;
   /** Active le mode lecture seule */
   isReadOnly?: boolean;
+  tableAstHandlers?: {
+    getSnippet: (id?: string | null) => string | null | undefined;
+    saveSnippet: (content: string, previousId?: string | null) => string | null;
+    deleteSnippet: (id: string) => void;
+  };
 }
 
 export default function QuestionList({
@@ -74,6 +79,7 @@ export default function QuestionList({
   onAddAfter,
   onPasteAfter,
   isReadOnly = false,
+  tableAstHandlers,
 }: Props) {
   const dragIndex = useRef<number | null>(null);
   const [jsonDialogOpen, setJsonDialogOpen] = useState(false);
@@ -335,6 +341,21 @@ export default function QuestionList({
                       q={question}
                       onPatch={(p) => onPatch(question.id, p)}
                       isReadOnly={isReadOnly}
+                      getAstSnippet={
+                        question.type === 'tableau'
+                          ? tableAstHandlers?.getSnippet
+                          : undefined
+                      }
+                      saveAstSnippet={
+                        question.type === 'tableau'
+                          ? tableAstHandlers?.saveSnippet
+                          : undefined
+                      }
+                      deleteAstSnippet={
+                        question.type === 'tableau'
+                          ? tableAstHandlers?.deleteSnippet
+                          : undefined
+                      }
                     />
                   </ReadOnlyOverlay>
                   <div

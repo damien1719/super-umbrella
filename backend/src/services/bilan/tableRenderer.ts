@@ -1,10 +1,15 @@
 import type { AnchorSpecification } from '../ai/anchor.service';
 import type { Question } from '../../utils/answersMarkdown';
+import type { FieldSpec, SlotType } from '../../types/template';
+import type { Notes } from '../ai/genPartPlaceholder';
+import { hydrate } from '../ai/templates/hydrate';
+import { resolveUserSlots } from '../ai/slotResolution';
 
 export type RenderContext = {
   anchor: AnchorSpecification;
   questions: Question[];
   answers: Record<string, unknown>;
+  astSnippets?: Record<string, unknown> | null;
 };
 
 type TableAnswers = Record<string, unknown> & { commentaire?: string };
@@ -75,6 +80,7 @@ type SurveyTable = {
   commentaire?: boolean;
   crInsert?: boolean;
   crTableId?: string;
+  crAstId?: string | null;
 };
 
 function isTableQuestion(question: Question): question is Question & { tableau: SurveyTable } {
@@ -120,6 +126,161 @@ function createTableCell(text: string, opts?: { header?: boolean; textColor?: st
   };
 }
 
+type ExtractedSlot = {
+  id: string;
+  label: string;
+  type: SlotType;
+  optional: boolean;
+  pathOption?: string;
+};
+
+function normalizeSlotType(value: unknown): SlotType {
+  if (value === 'number' || value === 'list' || value === 'table') {
+    return value;
+  }
+  return 'text';
+}
+
+function collectSlotsFromAst(node: unknown, acc: Map<string, ExtractedSlot>): Map<string, ExtractedSlot> {
+  if (!node) return acc;
+
+  if (Array.isArray(node)) {
+    for (const item of node) {
+      collectSlotsFromAst(item, acc);
+    }
+    return acc;
+  }
+
+  if (typeof node === 'object') {
+    const record = node as Record<string, unknown>;
+    if (record.type === 'slot' && typeof record.slotId === 'string') {
+      const slotId = record.slotId;
+      const slotLabel = typeof record.slotLabel === 'string' ? record.slotLabel : slotId;
+      const pathOption =
+        typeof record.pathOption === 'string' && record.pathOption.trim().length > 0
+          ? record.pathOption.trim()
+          : undefined;
+
+      acc.set(slotId, {
+        id: slotId,
+        label: slotLabel,
+        type: normalizeSlotType(record.slotType),
+        optional: typeof record.optional === 'boolean' ? record.optional : false,
+        pathOption,
+      });
+      return acc;
+    }
+
+    for (const value of Object.values(record)) {
+      if (value && typeof value === 'object') {
+        collectSlotsFromAst(value, acc);
+      }
+    }
+  }
+
+  return acc;
+}
+
+function parseAstSnippet(raw: unknown): unknown | null {
+  if (!raw) return null;
+  if (typeof raw === 'string') {
+    try {
+      return JSON.parse(raw);
+    } catch (error) {
+      console.warn('[ANCHOR] TableRenderer.tableRendererFromAst - invalid JSON snippet', {
+        error,
+      });
+      return null;
+    }
+  }
+  if (typeof raw === 'object') {
+    return raw;
+  }
+  return null;
+}
+
+function tableRendererFromAst(params: {
+  table: SurveyTable;
+  questionId: string;
+  answers: Record<string, unknown>;
+  astSnippets?: Record<string, unknown> | null;
+}): LexicalNode[] | null {
+  const { table, questionId, answers, astSnippets } = params;
+  const snippetId = table.crAstId;
+  if (!snippetId || !astSnippets) return null;
+
+  const rawSnippet = astSnippets[snippetId];
+  if (!rawSnippet) {
+    console.warn('[ANCHOR] TableRenderer.tableRendererFromAst - snippet not found', {
+      snippetId,
+      questionId,
+    });
+    return null;
+  }
+
+  const parsed = parseAstSnippet(rawSnippet);
+  if (!parsed) {
+    return null;
+  }
+
+  let workingAst: unknown;
+  try {
+    workingAst = JSON.parse(JSON.stringify(parsed));
+  } catch (error) {
+    console.warn('[ANCHOR] TableRenderer.tableRendererFromAst - failed to clone snippet', {
+      snippetId,
+      error,
+    });
+    workingAst = parsed;
+  }
+
+  const slotMap = collectSlotsFromAst(workingAst, new Map<string, ExtractedSlot>());
+  const spec: Record<string, FieldSpec> = {};
+  const slotIds: string[] = [];
+
+  for (const [slotId, info] of slotMap) {
+    if (!info.pathOption) continue;
+    spec[slotId] = {
+      kind: 'field',
+      id: slotId,
+      label: info.label || slotId,
+      type: info.type,
+      mode: 'user',
+      answerPath: info.pathOption,
+      optional: info.optional,
+    };
+    slotIds.push(slotId);
+  }
+
+  const notes = answers as Notes;
+  const slotValues = slotIds.length > 0 ? resolveUserSlots(slotIds, spec, notes) : {};
+
+  let hydrated: unknown;
+  try {
+    hydrated = hydrate(workingAst, slotValues, spec);
+  } catch (error) {
+    console.warn('[ANCHOR] TableRenderer.tableRendererFromAst - hydrate failed', {
+      snippetId,
+      error,
+    });
+    return null;
+  }
+
+  if (Array.isArray(hydrated)) {
+    return hydrated as LexicalNode[];
+  }
+
+  const root = (hydrated as { root?: { children?: unknown } })?.root;
+  if (Array.isArray(root?.children)) {
+    return root.children as LexicalNode[];
+  }
+
+  console.warn('[ANCHOR] TableRenderer.tableRendererFromAst - no children after hydrate', {
+    snippetId,
+  });
+  return null;
+}
+
 function createTableRow(cells: LexicalNode[]): LexicalNode {
   return {
     type: 'tablerow',
@@ -145,13 +306,13 @@ function isNonEmpty(value: unknown, column?: ColumnDef): boolean {
 }
 
 function formatCell(value: unknown, column?: ColumnDef): string {
-  if (column?.valueType === 'bool') return value === true ? (column.label ?? 'Oui') : value === false ? 'Non' : '';
+  if (column?.valueType === 'bool') return value === true ? ('⬥') : value === false ? '' : '';
   if (column?.valueType === 'multi-choice' || column?.valueType === 'multi-choice-row')
     return Array.isArray(value) ? (value as string[]).join(', ') : '';
   if (value == null) return '';
   if (typeof value === 'string') return value.trim();
   if (typeof value === 'number') return String(value);
-  if (typeof value === 'boolean') return value ? '•' : '';
+  if (typeof value === 'boolean') return value ? '⬥' : '';
   return '';
 }
 
@@ -230,7 +391,7 @@ function extractRows(table: SurveyTable): RowDef[] {
 }
 
 export const TableRenderer = {
-  renderLexical({ anchor, questions, answers }: RenderContext): LexicalNode[] {
+  renderLexical({ anchor, questions, answers, astSnippets }: RenderContext): LexicalNode[] {
     console.log('[ANCHOR] TableRenderer.renderLexical - start', {
       anchorId: anchor.id,
       questionId: anchor.questionId,
@@ -239,6 +400,26 @@ export const TableRenderer = {
     const question = findQuestion(questions, anchor);
     if (!question) return [];
     const table = question.tableau ?? {};
+
+    if (table.crAstId) {
+      console.log("crAstId", table.crAstId);
+      const astNodes = tableRendererFromAst({
+        table,
+        questionId: question.id,
+        answers,
+        astSnippets,
+      });
+      if (astNodes) {
+        console.log('[ANCHOR] TableRenderer.renderLexical - using ast snippet', {
+          anchorId: anchor.id,
+          questionId: anchor.questionId,
+          snippetId: table.crAstId,
+          nodesCount: astNodes.length,
+        });
+        return astNodes;
+      }
+    }
+
     const columns = table.columns ?? [];
     const allRows = extractRows(table);
     const answer = (answers?.[question.id] as TableAnswers) || {};

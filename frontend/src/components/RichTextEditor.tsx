@@ -28,6 +28,7 @@ import {
   KEY_DELETE_COMMAND,
   COMMAND_PRIORITY_LOW,
   PASTE_COMMAND,
+  type EditorState,
   type LexicalNode,
 } from 'lexical';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
@@ -138,9 +139,17 @@ export interface RichTextEditorHandle {
   insertHtml: (html: string) => void;
   setEditorStateJson: (state: unknown) => void;
   getEditorStateJson?: () => unknown;
+  getEditorState?: () => EditorState;
   getPlainText?: () => string;
   getHtmlForExport?: () => string;
-  insertSlot?: (slotId: string, slotLabel: string, slotType: SlotType) => void;
+  insertSlot?: (
+    slotId: string,
+    slotLabel: string,
+    slotType: SlotType,
+    optional?: boolean,
+    placeholder?: string,
+    pathOption?: string,
+  ) => void;
   updateSlot?: (slotId: string, slotLabel: string) => void;
   removeSlot?: (slotId: string) => void;
   scanAndInsertSlots?: (onSlotCreated?: (slot: FieldSpec) => void) => void;
@@ -237,14 +246,22 @@ const ImperativeHandlePlugin = forwardRef<RichTextEditorHandle, object>(
             console.error('[Lexical] Failed to set editor state JSON:', e);
           }
         },
-        insertSlot(slotId: string, slotLabel: string, slotType: SlotType) {
+        insertSlot(
+          slotId: string,
+          slotLabel: string,
+          slotType: SlotType,
+          optional = false,
+          placeholder = '…',
+          pathOption?: string,
+        ) {
           editor.update(() => {
             const node = $createSlotNode(
               slotId,
               slotLabel,
               slotType,
-              false,
-              '…',
+              optional,
+              placeholder,
+              pathOption,
             );
             const selection = $getSelection();
             if (selection) {
@@ -327,6 +344,14 @@ const ImperativeHandlePlugin = forwardRef<RichTextEditorHandle, object>(
           } catch (e) {
             console.error('[Lexical] Failed to get editor state JSON:', e);
             return null;
+          }
+        },
+        getEditorState() {
+          try {
+            return editor.getEditorState();
+          } catch (e) {
+            console.error('[Lexical] Failed to get editor state instance:', e);
+            return editor.getEditorState();
           }
         },
         getPlainText() {

@@ -101,6 +101,8 @@ export interface SurveyTable {
   crInsert?: boolean;
   /** Identifiant unique de l'ancre, ex: "T1" */
   crTableId?: string;
+  /** AST généré côté client */
+  crAstId?: string;
 }
 
 export interface Question {
@@ -221,17 +223,26 @@ export type TitleKind = 'heading' | 'paragraph' | 'list-item';
 export type DecorWeight = 'none' | 'thin' | 'medium' | 'thick' | 'dashed';
 export type DecorFillKind = 'none' | 'token' | 'custom';
 export type DecorFillToken =
-  | 'red' | 'orange' | 'yellow' | 'green' | 'emerald' | 'blue' | 'indigo' | 'violet' | 'pink' | 'gray';
+  | 'red'
+  | 'orange'
+  | 'yellow'
+  | 'green'
+  | 'emerald'
+  | 'blue'
+  | 'indigo'
+  | 'violet'
+  | 'pink'
+  | 'gray';
 
 // Assez générique pour couvrir 90% des cas
 export interface TitleDecorSpec {
-  weight?: DecorWeight;                  // défaut: 'thin'
-  color?: string;                        // 'black' | 'gray' | '#RRGGBB'…
+  weight?: DecorWeight; // défaut: 'thin'
+  color?: string; // 'black' | 'gray' | '#RRGGBB'…
   // Optionnel: remplissage de fond, aligne-toi à ton DecorBlockNode
   fill?: {
-    kind: DecorFillKind;                 // 'none' | 'token' | 'custom'
-    token?: DecorFillToken;              // si kind='token'
-    color?: string;                      // si kind='custom' (#RRGGBB)
+    kind: DecorFillKind; // 'none' | 'token' | 'custom'
+    token?: DecorFillToken; // si kind='token'
+    color?: string; // si kind='custom' (#RRGGBB)
   };
 }
 

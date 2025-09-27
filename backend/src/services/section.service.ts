@@ -61,6 +61,7 @@ export type SectionData = {
   templateRefId?: string | null;
   templateOptions?: unknown;
   version?: number;
+  astSnippets?: Record<string, unknown> | null;
   // new: allow setting the Section source (admin UI only)
   source?: 'USER' | 'BILANPLUME';
 };
@@ -206,6 +207,7 @@ export const SectionService = {
             templateRefId: newTemplateId,
             templateOptions: section.templateOptions,
             version: section.version,
+            astSnippets: section.astSnippets,
           },
           include: { templateRef: true },
         }),
@@ -227,6 +229,7 @@ export const SectionService = {
         templateRefId: null,
         templateOptions: section.templateOptions,
         version: section.version,
+        astSnippets: section.astSnippets,
       },
       include: { templateRef: true },
     });

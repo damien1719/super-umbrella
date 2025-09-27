@@ -28,6 +28,7 @@ export interface Section {
   templateRef?: SectionTemplateRef | null;
   // Source of this Section (admin-adjustable)
   source?: 'USER' | 'BILANPLUME';
+  astSnippets?: Record<string, string> | null;
 }
 
 export type SectionInput = Omit<Section, 'id' | 'author'>;

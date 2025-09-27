@@ -87,13 +87,25 @@ export const BilanController = {
       const imageBase64 = typeof req.body.imageBase64 === 'string' ? req.body.imageBase64 : undefined;
       // Resolve Section details if sectionId is provided
       let sectionRecord:
-        | { schema?: unknown; templateRefId?: string | null; kind?: string; title?: string | null }
+        | {
+            schema?: unknown;
+            templateRefId?: string | null;
+            kind?: string;
+            title?: string | null;
+            astSnippets?: unknown;
+          }
         | null = null;
       if (sectionId) {
         try {
           sectionRecord = await (prisma as any).section.findUnique({
             where: { id: sectionId },
-            select: { schema: true, templateRefId: true, kind: true, title: true },
+            select: {
+              schema: true,
+              templateRefId: true,
+              kind: true,
+              title: true,
+              astSnippets: true,
+            },
           });
         } catch (err) {
           console.warn('[generate] unable to load section record', err);
@@ -265,6 +277,10 @@ export const BilanController = {
         missingAnchorIds: anchorsStatus.missing,
         questions: schemaQuestions,
         answers: contentNotes,
+        astSnippets:
+          sectionRecord?.astSnippets && typeof sectionRecord.astSnippets === 'object'
+            ? (sectionRecord.astSnippets as Record<string, unknown>)
+            : undefined,
       });
       console.log('[ANCHOR] generate - response summary', {
         anchors: anchors.map((a) => a.id),
@@ -507,6 +523,10 @@ export const BilanController = {
             missingAnchorIds: anchorsStatus.missing,
             questions: schemaQuestions,
             answers: contentNotes as Record<string, unknown>,
+            astSnippets:
+              section?.astSnippets && typeof section.astSnippets === 'object'
+                ? (section.astSnippets as Record<string, unknown>)
+                : undefined,
           });
 
           anchorsStatusBySection[btSec.sectionId] = {
