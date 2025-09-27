@@ -6,28 +6,25 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import TrameCard from './TrameCard';
-import CreerTrameModal from './ui/creer-trame-modale';
 import ExitConfirmation from './ExitConfirmation';
-import { Loader2, Plus, Wand2, X } from 'lucide-react';
+import { Loader2, Wand2, X } from 'lucide-react';
 import { apiFetch } from '@/utils/api';
 import { useAuth } from '@/store/auth';
-import { Tabs } from '@/components/ui/tabs';
 import { useUserProfileStore } from '@/store/userProfile';
 import { kindMap } from '@/types/trame';
 import type { TrameOption, TrameExample } from './bilan/TrameSelector';
-import { DataEntry, type DataEntryHandle } from './bilan/DataEntry';
-import ImportNotes from './ImportNotes';
+import type { DataEntryHandle } from './bilan/DataEntry';
 import type { Answers, Question } from '@/types/question';
 import type { SectionInfo } from './bilan/SectionCard';
 import { useBilanTypeStore } from '@/store/bilanTypes';
 import { useSectionStore } from '@/store/sections';
-import LeftNavBilanType from './bilan/LeftNavBilanType';
-import InlineGroupChips from './bilan/InlineGroupChips';
 import {
   useBilanGeneration,
   useBilanGenerationRegistrar,
 } from './wizard-ai/useBilanGeneration';
+import { TrameSelectionStep } from './wizard-ai/TrameSelectionStep';
+import { BilanTypeNotesEditor } from './wizard-ai/BilanTypeNotesEditor';
+import { SectionNotesEditor } from './wizard-ai/SectionNotesEditor';
 
 export interface WizardAIRightPanelProps {
   sectionInfo: SectionInfo;
@@ -171,13 +168,6 @@ export default function WizardAIRightPanel({
         ? 'official'
         : 'community',
   );
-
-  const matchesActiveFilter = (s: TrameOption) => {
-    if (activeTab === 'mine')
-      return (!!profileId && s.authorId === profileId) || isSharedWithMe(s);
-    if (activeTab === 'official') return s.source === 'BILANPLUME';
-    return s.isPublic && s.source !== 'BILANPLUME';
-  };
 
   // BilanType-specific state and helpers
   const { items: bilanTypes } = useBilanTypeStore();
@@ -373,6 +363,70 @@ export default function WizardAIRightPanel({
     ],
   );
 
+  const [isManualSaving, setIsManualSaving] = useState(false);
+
+  const saveNotes = useCallback(
+    async (
+      notes: Answers | undefined,
+      targetOverrideId?: string | null,
+    ): Promise<string | null> => {
+      const targetSectionId =
+        targetOverrideId ??
+        (mode === 'bilanType' ? activeBilanSectionId : selectedTrame?.value);
+      if (!targetSectionId) return null;
+
+      // Debug: trace d'où vient l'appel upsert
+      console.trace('[DEBUG] saveNotes called - Stack trace:');
+      console.log('[DEBUG] saveNotes - notes:', notes);
+      console.log('[DEBUG] saveNotes - selectedTrame:', selectedTrame?.value);
+      console.log('[DEBUG] saveNotes - targetSectionId:', targetSectionId);
+      console.log('[DEBUG] saveNotes - isManualSaving:', isManualSaving);
+
+      setIsManualSaving(true);
+      try {
+        const res = await apiFetch<{ id: string }>(
+          `/api/v1/bilan-section-instances/upsert`,
+          {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` },
+            body: JSON.stringify({
+              bilanId,
+              sectionId: targetSectionId,
+              contentNotes: notes,
+            }),
+          },
+        );
+        setInstanceId(res.id);
+        return res.id;
+      } finally {
+        // Délai pour éviter que l'autosave se déclenche immédiatement après
+        setTimeout(() => setIsManualSaving(false), 1500);
+      }
+    },
+    [mode, activeBilanSectionId, selectedTrame, isManualSaving, bilanId, token],
+  );
+
+  const handleSelectBilanSection = useCallback(
+    (id: string) => {
+      if (notesMode === 'manual' && activeBilanSectionId) {
+        try {
+          const data = dataEntryRef.current?.save() as Answers | undefined;
+          if (data) void saveNotes(data, activeBilanSectionId);
+        } catch {}
+      }
+      setActiveSection(id);
+      const next = bilanAnswers[id];
+      if (next) dataEntryRef.current?.load?.(next);
+    },
+    [
+      notesMode,
+      activeBilanSectionId,
+      saveNotes,
+      setActiveSection,
+      bilanAnswers,
+    ],
+  );
+
   // Preload latest notes when entering step 2
   useEffect(() => {
     if (currentStep !== 2) return;
@@ -461,294 +515,73 @@ export default function WizardAIRightPanel({
   let content: React.JSX.Element | null = null;
 
   if (currentStep === 1) {
-    const displayedTrames = trameOptions.filter(matchesActiveFilter);
     content = (
-      <div className="space-y-4">
-        {/* Toolbar sticky */}
-        <div
-          className="sticky top-0 z-10 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-wood-50/60
-                      border-b border-wood-200 pt-2 pb-3"
-        >
-          <div className="flex items-center justify-between gap-3">
-            <Tabs
-              active={activeTab}
-              onChange={(k) =>
-                setActiveTab(k as 'mine' | 'official' | 'community')
-              }
-              tabs={[
-                {
-                  key: 'mine',
-                  label: mode === 'bilanType' ? 'Mes trames' : 'Mes parties',
-                  count: myTrames.length,
-                  hidden: myTrames.length === 0,
-                },
-                {
-                  key: 'official',
-                  label: 'Partagées par Bilan Plume',
-                  count: officialTrames.length,
-                },
-                {
-                  key: 'community',
-                  label: 'Partagées par la communauté',
-                  count: communityTrames.length,
-                },
-              ]}
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {displayedTrames.map((trame) => (
-            <TrameCard
-              key={trame.value}
-              trame={{
-                id: trame.value,
-                title: trame.label,
-                description: trame.description,
-                coverUrl: trame.coverUrl,
-                sharedBy:
-                  trame.isPublic && trame.author?.prenom
-                    ? trame.author.prenom
-                    : undefined,
-              }}
-              kind={kindMap[sectionInfo.id]}
-              selected={selectedTrame?.value === trame.value}
-              onSelect={() => onTrameChange(trame.value)}
-              showLink={true}
-            />
-          ))}
-          <CreerTrameModal
-            trigger={
-              <button
-                type="button"
-                aria-label="Créer un nouveau test"
-                className="
-                  group relative w-full max-w-120
-                  rounded-xl border-2 border-dashed
-                  border-primary-300 bg-primary-50/60
-                  hover:bg-primary-100/70 hover:border-primary-400
-                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400
-                  transition-all duration-150
-                  p-5 flex flex-col items-center justify-center text-center
-                "
-              >
-                <span
-                  className="
-                    inline-flex h-10 w-10 items-center justify-center rounded-full
-                    bg-primary-600 text-white mb-3 transition-transform
-                    group-hover:scale-105
-                  "
-                >
-                  <Plus className="h-5 w-5" />
-                </span>
-                <span className="font-semibold text-primary-700">
-                  {mode === 'bilanType'
-                    ? 'Créez votre trame'
-                    : 'Créez une partie personnalisée'}
-                </span>
-                <span className="mt-1 text-sm text-primary-700/80">
-                  {mode === 'bilanType'
-                    ? 'Trame personnalisée à votre pratique'
-                    : 'Partie de bilan personnalisée à votre pratique'}
-                </span>
-              </button>
-            }
-            initialCategory={kindMap[sectionInfo.id]}
-            onCreated={(id) =>
-              navigate(`/creation-trame/${id}`, {
-                state: {
-                  returnTo: `/bilan/${bilanId}`,
-                  wizardSection: sectionInfo.id,
-                },
-              })
-            }
-          />
-        </div>
-      </div>
+      <TrameSelectionStep
+        mode={mode}
+        selectedTrame={selectedTrame}
+        onTrameChange={onTrameChange}
+        collections={{
+          mine: myTrames,
+          official: officialTrames,
+          community: communityTrames,
+        }}
+        activeTab={activeTab}
+        onTabChange={(tab) => setActiveTab(tab)}
+        trameKind={kindMap[sectionInfo.id]}
+        onCreateTrame={(id) =>
+          navigate(`/creation-trame/${id}`, {
+            state: {
+              returnTo: `/bilan/${bilanId}`,
+              wizardSection: sectionInfo.id,
+            },
+          })
+        }
+      />
+    );
+  } else if (mode === 'bilanType') {
+    const activeAnswers =
+      (activeBilanSectionId && bilanAnswers[activeBilanSectionId]) || {};
+    content = (
+      <BilanTypeNotesEditor
+        navItems={navItems}
+        activeSectionId={activeBilanSectionId}
+        onSelectSection={handleSelectBilanSection}
+        excludedSectionIds={excludedSectionIds}
+        onToggleExcluded={(id) =>
+          updateExcludedSections((prev) =>
+            prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+          )
+        }
+        dataEntryRef={dataEntryRef}
+        answers={activeAnswers}
+        onAnswersChange={(a) => {
+          if (!activeBilanSectionId) return;
+          setBilanAnswers((prev) => ({
+            ...prev,
+            [activeBilanSectionId]: a,
+          }));
+        }}
+        notesMode={notesMode}
+        onNotesModeChange={setNotesMode}
+        onRawNotesChange={setRawNotes}
+        onImageChange={setImageBase64}
+      />
     );
   } else {
-    if (mode === 'bilanType') {
-      const sectionItems = navItems.filter((x) => x.kind !== 'separator');
-      const active = sectionItems.find((s) => s.id === activeBilanSectionId);
-      const activeQuestions = active?.schema ?? [];
-      // Build in-page group outline titles from questions
-      const groupTitles = (() => {
-        const titles: string[] = [];
-        let hasGeneral = false;
-        for (const q of activeQuestions) {
-          if ((q as any).type === 'titre') {
-            titles.push(((q as any).titre as string) || 'Groupe de question');
-          } else if (titles.length === 0 && !hasGeneral) {
-            // There is content before the first explicit titre => a General group exists
-            hasGeneral = true;
-          }
-        }
-        const sectionTitle = active?.title || 'Général';
-        if (hasGeneral) titles.unshift(sectionTitle);
-        if (!hasGeneral && titles.length === 0) titles.push(sectionTitle);
-        return titles;
-      })();
-      const activeAnswers =
-        (activeBilanSectionId && bilanAnswers[activeBilanSectionId]) || {};
-      content = (
-        <div className="flex flex-1 h-full overflow-y-hidden">
-          <LeftNavBilanType
-            items={navItems.map((s) =>
-              s.kind === 'separator'
-                ? { id: s.id, title: s.title, kind: 'separator' as const }
-                : {
-                    id: s.id,
-                    title: s.title,
-                    kind: 'section' as const,
-                    index: s.index,
-                    disabled: excludedSectionIds.includes(s.id),
-                  },
-            )}
-            activeId={activeBilanSectionId}
-            onSelect={(id) => {
-              // Save current section before switching
-              if (notesMode === 'manual' && activeBilanSectionId) {
-                try {
-                  const data = dataEntryRef.current?.save() as
-                    | Answers
-                    | undefined;
-                  if (data) void saveNotes(data, activeBilanSectionId);
-                } catch {}
-              }
-              setActiveSection(id);
-              const next = bilanAnswers[id];
-              if (next) dataEntryRef.current?.load?.(next);
-            }}
-            onToggleDisabled={(id) => {
-              updateExcludedSections((prev) =>
-                prev.includes(id)
-                  ? prev.filter((x) => x !== id)
-                  : [...prev, id],
-              );
-            }}
-          />
-          <div className="flex-1 flex flex-col min-h-0">
-            {/* In-section outline chips (replaces the inner left nav) */}
-            {/*             <Tabs
-              className="mb-4"
-              active={notesMode}
-              onChange={(k) => {
-                setNotesMode(k as 'manual' | 'import');
-                if (k === 'manual') {
-                  setRawNotes('');
-                  setImageBase64(undefined);
-                }
-              }}
-              tabs={[
-                { key: 'manual', label: 'Saisie manuelle' },
-                { key: 'import', label: 'Import des notes' },
-              ]}
-            /> */}
-            {notesMode === 'manual' && (
-              <InlineGroupChips titles={groupTitles} />
-            )}
-
-            {notesMode === 'manual' ? (
-              <DataEntry
-                ref={dataEntryRef}
-                questions={activeQuestions}
-                answers={activeAnswers}
-                onChange={(a) => {
-                  if (!activeBilanSectionId) return;
-                  setBilanAnswers((prev) => ({
-                    ...prev,
-                    [activeBilanSectionId]: a,
-                  }));
-                }}
-                inline
-                showGroupNav={false}
-                defaultGroupTitle={active?.title}
-              />
-            ) : (
-              <ImportNotes
-                onChange={setRawNotes}
-                onImageChange={setImageBase64}
-              />
-            )}
-          </div>
-        </div>
-      );
-    } else {
-      content = (
-        <div className="flex flex-1 h-full overflow-y-hidden flex-col">
-          <Tabs
-            className="mb-4"
-            active={notesMode}
-            onChange={(k) => {
-              setNotesMode(k as 'manual' | 'import');
-              if (k === 'manual') {
-                setRawNotes('');
-                setImageBase64(undefined);
-              }
-            }}
-            tabs={[
-              { key: 'manual', label: 'Saisie manuelle' },
-              /* { key: 'import', label: 'Import des notes' }, */
-            ]}
-          />
-          {notesMode === 'manual' ? (
-            <DataEntry
-              ref={dataEntryRef}
-              questions={questions}
-              answers={answers}
-              onChange={onAnswersChange}
-              inline
-              defaultGroupTitle={sectionInfo.title}
-            />
-          ) : (
-            <ImportNotes
-              onChange={setRawNotes}
-              onImageChange={setImageBase64}
-            />
-          )}
-        </div>
-      );
-    }
+    content = (
+      <SectionNotesEditor
+        sectionTitle={sectionInfo.title}
+        questions={questions}
+        answers={answers}
+        onAnswersChange={onAnswersChange}
+        dataEntryRef={dataEntryRef}
+        notesMode={notesMode}
+        onNotesModeChange={setNotesMode}
+        onRawNotesChange={setRawNotes}
+        onImageChange={setImageBase64}
+      />
+    );
   }
-
-  const [isManualSaving, setIsManualSaving] = useState(false);
-
-  const saveNotes = async (
-    notes: Answers | undefined,
-    targetOverrideId?: string | null,
-  ): Promise<string | null> => {
-    const targetSectionId =
-      targetOverrideId ??
-      (mode === 'bilanType' ? activeBilanSectionId : selectedTrame?.value);
-    if (!targetSectionId) return null;
-
-    // Debug: trace d'où vient l'appel upsert
-    console.trace('[DEBUG] saveNotes called - Stack trace:');
-    console.log('[DEBUG] saveNotes - notes:', notes);
-    console.log('[DEBUG] saveNotes - selectedTrame:', selectedTrame?.value);
-    console.log('[DEBUG] saveNotes - targetSectionId:', targetSectionId);
-    console.log('[DEBUG] saveNotes - isManualSaving:', isManualSaving);
-
-    setIsManualSaving(true);
-    try {
-      const res = await apiFetch<{ id: string }>(
-        `/api/v1/bilan-section-instances/upsert`,
-        {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
-          body: JSON.stringify({
-            bilanId,
-            sectionId: targetSectionId,
-            contentNotes: notes,
-          }),
-        },
-      );
-      setInstanceId(res.id);
-      return res.id;
-    } finally {
-      // Délai pour éviter que l'autosave se déclenche immédiatement après
-      setTimeout(() => setIsManualSaving(false), 1500);
-    }
-  };
 
   const getCurrentAnswers = useCallback((): Answers => {
     if (notesMode === 'manual') {
@@ -822,6 +655,7 @@ export default function WizardAIRightPanel({
     mode,
     currentStep,
     isManualSaving,
+    saveNotes,
   ]);
 
   // Reset autosave sentinel when switching active section
@@ -841,7 +675,7 @@ export default function WizardAIRightPanel({
     }, 20000); // 20s
 
     return () => clearInterval(interval);
-  }, [currentStep, selectedTrame, isManualSaving]);
+  }, [currentStep, selectedTrame, isManualSaving, saveNotes]);
 
   const handleClose = async () => {
     if (currentStep === 2 && selectedTrame && !isManualSaving) {
