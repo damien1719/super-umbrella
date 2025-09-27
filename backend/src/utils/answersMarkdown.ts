@@ -13,6 +13,22 @@ export type TitleAlign = 'left' | 'center' | 'right' | 'justify';
 export type TitleCase = 'none' | 'uppercase' | 'capitalize' | 'lowercase';
 export type TitleKind = 'heading' | 'paragraph' | 'list-item';
 
+export type DecorWeight = 'none' | 'thin' | 'medium' | 'thick' | 'dashed';
+export type DecorFillKind = 'none' | 'token' | 'custom';
+export type DecorFillToken =
+  | 'red' | 'orange' | 'yellow' | 'green' | 'emerald' | 'blue' | 'indigo' | 'violet' | 'pink' | 'gray';
+
+export interface TitleDecorSpec {
+  weight?: DecorWeight;                  // défaut: 'thin'
+  color?: string;                        // 'black' | 'gray' | '#RRGGBB'…
+  // Optionnel: remplissage de fond, aligne-toi à ton DecorBlockNode
+  fill?: {
+    kind: DecorFillKind;                 // 'none' | 'token' | 'custom'
+    token?: DecorFillToken;              // si kind='token'
+    color?: string;                      // si kind='custom' (#RRGGBB)
+  };
+}
+
 export type TitleFormatSpec = {
   kind: TitleKind;
   level?: 1 | 2 | 3 | 4 | 5 | 6;
@@ -29,6 +45,7 @@ export type TitleFormatSpec = {
   }>;
   prefix?: string;
   suffix?: string;
+  decor?: TitleDecorSpec;
 };
 
 type ColumnDef = {

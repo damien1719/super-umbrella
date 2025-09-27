@@ -394,7 +394,6 @@ export default function SlotSidebar({
                   <FileX className="w-4 h-4 mr-2" />
                   Supprimer
                 </Button>
-
               </>
             )}
           </div>

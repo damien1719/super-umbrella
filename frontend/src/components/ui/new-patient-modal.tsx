@@ -43,13 +43,11 @@ export function NewPatientModal({
       <DialogContent className="sm:max-w-[425px] bg-white">
         <DialogHeader>
           <DialogTitle>Nouveau patient</DialogTitle>
-          <DialogDescription>
-            Indiquer un prénom
-          </DialogDescription>
+          <DialogDescription>Indiquer un prénom</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="firstName" className="text-right" >
+            <Label htmlFor="firstName" className="text-right">
               Prénom
             </Label>
             <Input

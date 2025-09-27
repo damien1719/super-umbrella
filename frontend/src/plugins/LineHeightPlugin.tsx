@@ -11,7 +11,7 @@ import {
   type LexicalEditor,
 } from 'lexical';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { $isBorderBlockNode } from '../nodes/BorderBlockNode';
+import { $isDecorBlockNode } from '../nodes/DecorBlockNode';
 
 export type LineHeightValue = string | null;
 
@@ -57,7 +57,7 @@ function getTargetElement(
   const topLevel = (node as TextNode).getTopLevelElement?.() ?? node;
   if (!topLevel || !$isElementNode(topLevel)) return null;
   if ($isRootOrShadowRoot(topLevel)) return null;
-  if ($isBorderBlockNode(topLevel)) {
+  if ($isDecorBlockNode(topLevel)) {
     const inner = topLevel.getFirstChild();
     return $isElementNode(inner) ? inner : null;
   }

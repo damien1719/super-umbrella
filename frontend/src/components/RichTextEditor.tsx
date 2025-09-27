@@ -5,6 +5,7 @@ import React, {
   useRef,
   forwardRef,
   useEffect,
+  useState,
 } from 'react';
 
 // Debug React import
@@ -53,13 +54,14 @@ import {
   SectionPlaceholderNode,
   $createSectionPlaceholderNode,
 } from '../nodes/SectionPlaceholderNode';
-import { BorderBlockNode } from '../nodes/BorderBlockNode';
+import { DecorBlockNode } from '../nodes/DecorBlockNode';
 import { GenPartPlaceholderNode } from '../nodes/GenPartPlaceholderNode';
 import { AnchorNode } from '../nodes/AnchorNode';
 import type { SlotType, FieldSpec } from '../types/template';
 import { scanAndInsertSlots as runScanAndInsertSlots } from '../utils/scanAndInsertSlots';
 import TableContextMenuPlugin from './TableContextMenuPlugin';
 import { LineHeightPlugin } from '../plugins/LineHeightPlugin';
+import DecorBlockPlugin from '@/plugins/DecorBlockPlugin';
 
 // Sanitize options that preserve safe inline styles (colors, backgrounds, borders)
 const SANITIZE_OPTIONS: DOMPurify.Config = {
@@ -532,6 +534,22 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
 
     const props = { ...defaultProps, ...(rawProps || {}) } as Props;
 
+    // HMR remount key to keep node registry in sync with creators during hot reloads
+    const [hmrKey, setHmrKey] = useState(0);
+    useEffect(() => {
+      const hot = (import.meta as any)?.hot;
+      if (!hot) return;
+      // When these modules hot-reload, remount the editor to avoid mismatched node classes
+      hot.accept(
+        [
+          '../nodes/DecorBlockNode.ts',
+          '../plugins/LineHeightPlugin.tsx',
+          './RichTextToolbar',
+        ],
+        () => setHmrKey((k: number) => k + 1),
+      );
+    }, []);
+
     const {
       initialStateJson,
       templateKey,
@@ -580,7 +598,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
         SectionPlaceholderNode,
         GenPartPlaceholderNode,
         AnchorNode,
-        BorderBlockNode,
+        DecorBlockNode,
       ],
     };
 
@@ -605,7 +623,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
 
     return (
       <LexicalComposer
-        key={templateKey}
+        key={`${templateKey || 'rte'}:${hmrKey}`}
         initialConfig={{
           ...initialConfig,
           editorState: initialEditorState, // ← état initial sans plugin ni update()
@@ -668,6 +686,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
                 <ImperativeHandlePlugin
                   ref={ref as React.Ref<RichTextEditorHandle>}
                 />
+                <DecorBlockPlugin />
               </div>
             </div>
           </div>

@@ -126,14 +126,11 @@ export default function CreationTrame({
   };
 
   const createBilan = async (patientId: string, title?: string) => {
-    const res = await apiFetch<{ id: string }>(
-      '/api/v1/bilans',
-      {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ patientId, title }),
-      },
-    );
+    const res = await apiFetch<{ id: string }>('/api/v1/bilans', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ patientId, title }),
+    });
     const wizardSection = getWizardSectionId();
     navigate(`/bilan/${res.id}` as const, {
       state: { wizardSection, trameId: sectionId },
@@ -585,7 +582,7 @@ export default function CreationTrame({
   const handleTestGeneration = async () => {
     await saveOnly();
     setIsCreationModalOpen(true);
-  }
+  };
 
   const handleDuplicate = async () => {
     if (!sectionId) return;
@@ -781,20 +778,20 @@ export default function CreationTrame({
               readOnly={isReadOnly}
             />
             {/* Contenu principal scrollable (bloqué en lecture seule) */}
-              <div className="h-full overflow-y-auto">
-                <QuestionList
-                  questions={questions}
-                  selectedId={selectedId}
-                  onSelect={setSelectedId}
-                  onPatch={onPatch}
-                  onReorder={onReorder}
-                  onDuplicate={onDuplicate}
-                  onDelete={onDelete}
-                  onAddAfter={onAddAfter}
-                  onPasteAfter={onPasteAfter}
-                  isReadOnly={isReadOnly}
-                />
-              </div>
+            <div className="h-full overflow-y-auto">
+              <QuestionList
+                questions={questions}
+                selectedId={selectedId}
+                onSelect={setSelectedId}
+                onPatch={onPatch}
+                onReorder={onReorder}
+                onDuplicate={onDuplicate}
+                onDelete={onDelete}
+                onAddAfter={onAddAfter}
+                onPasteAfter={onPasteAfter}
+                isReadOnly={isReadOnly}
+              />
+            </div>
           </div>
         )}
 

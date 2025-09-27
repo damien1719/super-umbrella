@@ -5,7 +5,13 @@ import type React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { GripVertical, X, Eye as EyeIcon, CornerDownRight, Expand } from 'lucide-react';
+import {
+  GripVertical,
+  X,
+  Eye as EyeIcon,
+  CornerDownRight,
+  Expand,
+} from 'lucide-react';
 import JobBadge from '@/components/ui/job-badge';
 import {
   categories,
@@ -148,7 +154,7 @@ export function BilanTypeConstructionCard({
                 tooltip="Aperçu"
               >
                 <Expand className="h-4 w-4" />
-                  Ouvrir
+                Ouvrir
               </Button>
             )}
             <Button

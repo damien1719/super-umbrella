@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { SectionDisponible, type BilanElement } from '@/components/bilanType/SectionDisponible';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  SectionDisponible,
+  type BilanElement,
+} from '@/components/bilanType/SectionDisponible';
 import SectionGlimpse from '@/components/SectionGlimpse';
 import { useSectionStore } from '@/store/sections';
 import type { Question as EditQuestion } from '@/types/Typequestion';
@@ -11,19 +19,29 @@ interface InspirationPanelProps {
   titleLeft?: string;
 }
 
-export default function InspirationPanel({ open, onOpenChange, titleLeft }: InspirationPanelProps) {
+export default function InspirationPanel({
+  open,
+  onOpenChange,
+  titleLeft,
+}: InspirationPanelProps) {
   const items = useSectionStore((s) => s.items);
   const fetchAll = useSectionStore((s) => s.fetchAll);
   const fetchOne = useSectionStore((s) => s.fetchOne);
 
-  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
+  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(
+    null,
+  );
   const [selectedTitle, setSelectedTitle] = useState<string>('');
-  const [selectedQuestions, setSelectedQuestions] = useState<EditQuestion[]>([]);
+  const [selectedQuestions, setSelectedQuestions] = useState<EditQuestion[]>(
+    [],
+  );
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!open) return;
-    fetchAll().catch(() => {/* silent */});
+    fetchAll().catch(() => {
+      /* silent */
+    });
   }, [open, fetchAll]);
 
   useEffect(() => {
@@ -41,7 +59,9 @@ export default function InspirationPanel({ open, onOpenChange, titleLeft }: Insp
     fetchOne(selectedSectionId)
       .then((section) => {
         setSelectedTitle(section.title);
-        const schema = (Array.isArray(section.schema) ? section.schema : []) as EditQuestion[];
+        const schema = (
+          Array.isArray(section.schema) ? section.schema : []
+        ) as EditQuestion[];
         setSelectedQuestions(schema);
       })
       .finally(() => setLoading(false));
@@ -59,9 +79,15 @@ export default function InspirationPanel({ open, onOpenChange, titleLeft }: Insp
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="screen-90" className="max-w-[90vw] w-[90vw] h-[90vh] overflow-hidden p-0">
+      <DialogContent
+        size="screen-90"
+        className="max-w-[90vw] w-[90vw] h-[90vh] overflow-hidden p-0"
+      >
         <DialogHeader className="px-6 pt-4 pb-2 border-b border-wood-200">
-          <DialogTitle>Explorer parmi la bibliothèque pour réutiliser les questions qui vous correspondent</DialogTitle>
+          <DialogTitle>
+            Explorer parmi la bibliothèque pour réutiliser les questions qui
+            vous correspondent
+          </DialogTitle>
         </DialogHeader>
         <div className="h-[calc(90vh-3.25rem)] flex">
           {/* Left - available sections */}
@@ -69,7 +95,9 @@ export default function InspirationPanel({ open, onOpenChange, titleLeft }: Insp
             <div className="h-full overflow-y-auto p-4">
               <SectionDisponible
                 availableElements={availableElements}
-                onAddElement={() => { /* no-op in inspiration mode */ }}
+                onAddElement={() => {
+                  /* no-op in inspiration mode */
+                }}
                 onSelectElement={(el) => setSelectedSectionId(el.id)}
                 hideOpenAction
                 titleOverride={titleLeft}
@@ -78,7 +106,11 @@ export default function InspirationPanel({ open, onOpenChange, titleLeft }: Insp
           </div>
           {/* Right - glimpse */}
           <div className="flex-1 h-full overflow-hidden">
-            <SectionGlimpse title={selectedTitle} questions={selectedQuestions} loading={loading} />
+            <SectionGlimpse
+              title={selectedTitle}
+              questions={selectedQuestions}
+              loading={loading}
+            />
           </div>
         </div>
       </DialogContent>
