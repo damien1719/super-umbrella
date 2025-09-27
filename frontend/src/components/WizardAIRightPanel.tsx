@@ -58,6 +58,12 @@ export interface WizardAIRightPanelProps {
   bilanId: string;
   onCancel: () => void;
   initialStep?: number;
+  step?: number;
+  onStepChange?: (step: number) => void;
+  activeSectionId?: string | null;
+  onActiveSectionChange?: (info: { id: string | null; title: string }) => void;
+  excludedSectionIds?: string[];
+  onExcludedSectionsChange?: (ids: string[]) => void;
 }
 
 export default function WizardAIRightPanel({
@@ -76,11 +82,44 @@ export default function WizardAIRightPanel({
   bilanId,
   onCancel,
   initialStep = 1,
+  step: externalStep,
+  onStepChange,
+  activeSectionId,
+  onActiveSectionChange,
+  excludedSectionIds: externalExcludedSectionIds,
+  onExcludedSectionsChange,
 }: WizardAIRightPanelProps) {
-  const [step, setStep] = useState(initialStep);
+  const [internalStep, setInternalStep] = useState(initialStep);
   const dataEntryRef = useRef<DataEntryHandle>(null);
   const navigate = useNavigate();
   const total = 2;
+
+  const isStepControlled = externalStep !== undefined;
+  const currentStep = isStepControlled
+    ? (externalStep as number)
+    : internalStep;
+
+  useEffect(() => {
+    if (!isStepControlled) {
+      setInternalStep(initialStep);
+    }
+  }, [initialStep, isStepControlled]);
+
+  useEffect(() => {
+    if (isStepControlled && externalStep !== undefined) {
+      setInternalStep(externalStep);
+    }
+  }, [externalStep, isStepControlled]);
+
+  const updateStep = useCallback(
+    (next: number) => {
+      if (!isStepControlled) {
+        setInternalStep(next);
+      }
+      onStepChange?.(next);
+    },
+    [isStepControlled, onStepChange],
+  );
   const token = useAuth((s) => s.token);
   const [instanceId, setInstanceId] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -109,10 +148,6 @@ export default function WizardAIRightPanel({
 
   // Ne pas refetch ici pour éviter les doublons (StrictMode double les effets en dev)
   // Le chargement initial du profil est géré dans App.tsx
-
-  useEffect(() => {
-    setStep(initialStep);
-  }, [initialStep]);
 
   const isSharedWithMe = (s: {
     isPublic?: boolean;
@@ -231,36 +266,116 @@ export default function WizardAIRightPanel({
       });
   }, [mode, currentBilanType, allSections]);
 
-  const [activeBilanSectionId, setActiveBilanSectionId] = useState<
+  const [internalActiveSectionId, setInternalActiveSectionId] = useState<
     string | null
   >(null);
   const [bilanAnswers, setBilanAnswers] = useState<Record<string, Answers>>({});
-  const [excludedSectionIds, setExcludedSectionIds] = useState<string[]>([]);
+  const [internalExcludedSectionIds, setInternalExcludedSectionIds] = useState<
+    string[]
+  >([]);
+
+  const isActiveSectionControlled = activeSectionId !== undefined;
+  const activeBilanSectionId = isActiveSectionControlled
+    ? (activeSectionId ?? null)
+    : internalActiveSectionId;
+
+  const isExcludedControlled = externalExcludedSectionIds !== undefined;
+  const excludedSectionIds = isExcludedControlled
+    ? (externalExcludedSectionIds ?? [])
+    : internalExcludedSectionIds;
+
+  useEffect(() => {
+    if (isExcludedControlled) {
+      setInternalExcludedSectionIds(externalExcludedSectionIds ?? []);
+    }
+  }, [externalExcludedSectionIds, isExcludedControlled]);
 
   useEffect(() => {
     if (mode !== 'bilanType') return;
     const firstSec = navItems.find((x) => x.kind !== 'separator');
     if (!activeBilanSectionId && firstSec) {
-      setActiveBilanSectionId(firstSec.id);
+      if (isActiveSectionControlled) {
+        onActiveSectionChange?.({ id: firstSec.id, title: firstSec.title });
+      } else {
+        setInternalActiveSectionId(firstSec.id);
+      }
     }
-  }, [mode, navItems, activeBilanSectionId]);
+  }, [
+    mode,
+    navItems,
+    activeBilanSectionId,
+    isActiveSectionControlled,
+    onActiveSectionChange,
+  ]);
 
-  // Notify outer wrapper of active section changes (for footer label)
+  const lastActiveInfoRef = useRef<{ id: string | null; title: string }>({
+    id: null,
+    title: '',
+  });
+
+  const emitActiveSectionChange = useCallback(
+    (nextId: string | null) => {
+      if (mode !== 'bilanType') return;
+      const active = navItems.find(
+        (s) => s.id === nextId && s.kind !== 'separator',
+      );
+      const detail: { id: string | null; title: string } = active
+        ? { id: active.id, title: active.title }
+        : { id: null, title: '' };
+      if (
+        detail.id !== lastActiveInfoRef.current.id ||
+        detail.title !== lastActiveInfoRef.current.title
+      ) {
+        onActiveSectionChange?.(detail);
+        lastActiveInfoRef.current = detail;
+      }
+    },
+    [mode, navItems, onActiveSectionChange],
+  );
+
+  const setActiveSection = useCallback(
+    (nextId: string | null) => {
+      if (!isActiveSectionControlled) {
+        setInternalActiveSectionId(nextId);
+      }
+      emitActiveSectionChange(nextId);
+    },
+    [emitActiveSectionChange, isActiveSectionControlled],
+  );
+
   useEffect(() => {
-    if (mode !== 'bilanType') return;
-    const active = navItems.find(
-      (s) => s.id === activeBilanSectionId && s.kind !== 'separator',
-    );
-    const detail = active
-      ? { id: active.id, title: active.title }
-      : { id: null as unknown as string, title: '' };
-    const evt = new CustomEvent('bilan-type:active-changed', { detail });
-    window.dispatchEvent(evt);
-  }, [mode, activeBilanSectionId, navItems]);
+    emitActiveSectionChange(activeBilanSectionId ?? null);
+  }, [emitActiveSectionChange, activeBilanSectionId]);
+
+  const updateExcludedSections = useCallback(
+    (updater: (prev: string[]) => string[]) => {
+      setInternalExcludedSectionIds((prev) => {
+        const base = isExcludedControlled
+          ? (externalExcludedSectionIds ?? [])
+          : prev;
+        const next = updater(base);
+        if (!isExcludedControlled) {
+          return next;
+        }
+        return base;
+      });
+      const base = isExcludedControlled
+        ? (externalExcludedSectionIds ?? [])
+        : internalExcludedSectionIds;
+      const next = updater(base);
+      onExcludedSectionsChange?.(next);
+    },
+    [
+      externalExcludedSectionIds,
+      internalExcludedSectionIds,
+      isExcludedControlled,
+      onExcludedSectionsChange,
+    ],
+  );
 
   // Preload latest notes when entering step 2
   useEffect(() => {
-    if (step !== 2) return;
+    if (currentStep !== 2) return;
     if (mode === 'bilanType') {
       if (!activeBilanSectionId) return;
       (async () => {
@@ -316,23 +431,10 @@ export default function WizardAIRightPanel({
         }
       })();
     }
-  }, [step, selectedTrame, bilanId, token, mode, activeBilanSectionId]);
+  }, [currentStep, selectedTrame, bilanId, token, mode, activeBilanSectionId]);
 
-  const next = () => setStep((s) => Math.min(total, s + 1));
-  const prev = () => setStep((s) => Math.max(1, s - 1));
-
-  // Notify wrapper about step changes (used to control outer footer)
-  useEffect(() => {
-    const evt = new CustomEvent('bilan-type:step-changed', { detail: step });
-    window.dispatchEvent(evt);
-  }, [step]);
-
-  // Allow wrapper to drive navigation (for aligning footer actions)
-  useEffect(() => {
-    const onPrev = () => prev();
-    window.addEventListener('bilan-type:prev', onPrev);
-    return () => window.removeEventListener('bilan-type:prev', onPrev);
-  }, []);
+  const next = () => updateStep(Math.min(total, currentStep + 1));
+  const prev = () => updateStep(Math.max(1, currentStep - 1));
 
   const stepTitles =
     mode === 'bilanType'
@@ -346,7 +448,7 @@ export default function WizardAIRightPanel({
         ];
 
   const headerTitle =
-    step === 1
+    currentStep === 1
       ? mode === 'bilanType'
         ? 'Choisissez ou créez une trame pour votre rédaction'
         : 'Choisissez ou créez une partie'
@@ -354,11 +456,11 @@ export default function WizardAIRightPanel({
         ? 'Ajoutez les données anonymisées du patient'
         : 'Ajoutez les données anonymisées du patient';
 
-  const headerDescription = `Étape ${step}/${total} – ${stepTitles[step - 1]}`;
+  const headerDescription = `Étape ${currentStep}/${total} – ${stepTitles[currentStep - 1]}`;
 
   let content: React.JSX.Element | null = null;
 
-  if (step === 1) {
+  if (currentStep === 1) {
     const displayedTrames = trameOptions.filter(matchesActiveFilter);
     content = (
       <div className="space-y-4">
@@ -512,25 +614,16 @@ export default function WizardAIRightPanel({
                   if (data) void saveNotes(data, activeBilanSectionId);
                 } catch {}
               }
-              setActiveBilanSectionId(id);
+              setActiveSection(id);
               const next = bilanAnswers[id];
               if (next) dataEntryRef.current?.load?.(next);
             }}
             onToggleDisabled={(id) => {
-              // Use functional update to compute "next" and emit it,
-              // avoiding stale closure issues when toggling in batch.
-              setExcludedSectionIds((prev) => {
-                const next = prev.includes(id)
+              updateExcludedSections((prev) =>
+                prev.includes(id)
                   ? prev.filter((x) => x !== id)
-                  : [...prev, id];
-                try {
-                  const evt = new CustomEvent('bilan-type:excluded-changed', {
-                    detail: next,
-                  });
-                  window.dispatchEvent(evt);
-                } catch {}
-                return next;
-              });
+                  : [...prev, id],
+              );
             }}
           />
           <div className="flex-1 flex flex-col min-h-0">
@@ -662,18 +755,10 @@ export default function WizardAIRightPanel({
       return (dataEntryRef.current?.save() as Answers) || {};
     }
     if (mode === 'bilanType') {
-      return (
-        (activeBilanSectionId && bilanAnswers[activeBilanSectionId]) || {}
-      );
+      return (activeBilanSectionId && bilanAnswers[activeBilanSectionId]) || {};
     }
     return answers;
-  }, [
-    notesMode,
-    mode,
-    activeBilanSectionId,
-    bilanAnswers,
-    answers,
-  ]);
+  }, [notesMode, mode, activeBilanSectionId, bilanAnswers, answers]);
 
   const getSectionAnswers = useCallback(
     (sectionId: string): Answers => {
@@ -710,7 +795,7 @@ export default function WizardAIRightPanel({
   // Autosave on answers change (debounced) while on step 2
   const lastSavedRef = useRef<string>('');
   useEffect(() => {
-    if (step !== 2 || isManualSaving) return;
+    if (currentStep !== 2 || isManualSaving) return;
     const currentAns =
       mode === 'bilanType'
         ? activeBilanSectionId
@@ -730,7 +815,14 @@ export default function WizardAIRightPanel({
       })();
     }, 1000);
     return () => clearTimeout(t);
-  }, [answers, bilanAnswers, activeBilanSectionId, mode, step, isManualSaving]);
+  }, [
+    answers,
+    bilanAnswers,
+    activeBilanSectionId,
+    mode,
+    currentStep,
+    isManualSaving,
+  ]);
 
   // Reset autosave sentinel when switching active section
   useEffect(() => {
@@ -738,7 +830,7 @@ export default function WizardAIRightPanel({
   }, [activeBilanSectionId]);
 
   useEffect(() => {
-    if (step !== 2 || isManualSaving) return;
+    if (currentStep !== 2 || isManualSaving) return;
     const interval = setInterval(() => {
       const data = dataEntryRef.current?.save() as Answers | undefined;
       if (data) {
@@ -749,11 +841,10 @@ export default function WizardAIRightPanel({
     }, 20000); // 20s
 
     return () => clearInterval(interval);
-  }, [step, selectedTrame, isManualSaving]);
-
+  }, [currentStep, selectedTrame, isManualSaving]);
 
   const handleClose = async () => {
-    if (step === 2 && selectedTrame && !isManualSaving) {
+    if (currentStep === 2 && selectedTrame && !isManualSaving) {
       //const data = dataEntryRef.current?.save() as Answers | undefined;
       try {
         /*         await saveNotes(data);
@@ -822,7 +913,7 @@ export default function WizardAIRightPanel({
       <div className={'flex-1 overflow-y-auto px-4 min-h-0'}>{content}</div>
 
       {/* Row 3 — Footer glued to bottom (hidden at step 2 in bilanType mode to avoid duplicate footers) */}
-      {!(mode === 'bilanType' && step === total) && (
+      {!(mode === 'bilanType' && currentStep === total) && (
         <div className="px-4">
           <div
             className="bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/70
@@ -830,7 +921,7 @@ export default function WizardAIRightPanel({
                         py-3"
           >
             <div className="flex items-center justify-between">
-              {step > 1 ? (
+              {currentStep > 1 ? (
                 <Button variant="secondary" onClick={prev} type="button">
                   Précédent
                 </Button>
@@ -838,7 +929,7 @@ export default function WizardAIRightPanel({
                 <span />
               )}
 
-              {step < total ? (
+              {currentStep < total ? (
                 <Button onClick={next} type="button" size="lg">
                   Étape suivante
                 </Button>

@@ -1,5 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports, react/display-name */
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+} from '@testing-library/react';
 import WizardAIRightPanel from './WizardAIRightPanel';
 import { vi, beforeEach } from 'vitest';
 import React from 'react';
@@ -9,7 +15,7 @@ import {
   type BilanGenerationControls,
 } from './wizard-ai/useBilanGeneration';
 
-const mockApiFetch = vi.fn();
+const mockApiFetch = vi.hoisted(() => vi.fn());
 
 function GenerationConsumer({
   onReady,
@@ -37,9 +43,8 @@ vi.mock('./ui/creer-trame-modale', () => ({ default: () => null }));
 vi.mock('./ExitConfirmation', () => ({ default: () => null }));
 vi.mock('@/utils/api', () => ({ apiFetch: mockApiFetch }));
 vi.mock('lucide-react', async () => {
-  const actual = await vi.importActual<typeof import('lucide-react')>(
-    'lucide-react',
-  );
+  const actual =
+    await vi.importActual<typeof import('lucide-react')>('lucide-react');
   return {
     ...actual,
     Loader2: () => null,
@@ -253,7 +258,12 @@ test('saves notes when generating with template', async () => {
       expect.objectContaining({ method: 'POST' }),
     ),
   );
-  expect(onGenerateFromTemplate).toHaveBeenCalledWith({}, '', 'inst1', undefined);
+  expect(onGenerateFromTemplate).toHaveBeenCalledWith(
+    {},
+    '',
+    'inst1',
+    undefined,
+  );
 });
 
 test('calls direct generate when no template', async () => {
@@ -380,6 +390,48 @@ test('notifies parent when excluded sections change', async () => {
 
   await waitFor(() =>
     expect(onExcludedSectionsChange).toHaveBeenCalledWith(['sec2']),
+  );
+});
+
+test('invokes onActiveSectionChange when switching sections', async () => {
+  mockApiFetch.mockResolvedValue([]);
+  const onActiveSectionChange = vi.fn();
+
+  render(
+    <WizardAIRightPanel
+      sectionInfo={sectionInfo}
+      trameOptions={[trame]}
+      selectedTrame={{ value: 'bt1', label: 'BT1' } as any}
+      onTrameChange={() => {}}
+      questions={[]}
+      answers={{}}
+      onAnswersChange={() => {}}
+      onGenerate={() => {}}
+      onGenerateFromTemplate={() => {}}
+      isGenerating={false}
+      bilanId="b1"
+      onCancel={() => {}}
+      mode="bilanType"
+      initialStep={2}
+      onActiveSectionChange={onActiveSectionChange}
+    />,
+  );
+
+  await waitFor(() =>
+    expect(onActiveSectionChange).toHaveBeenCalledWith({
+      id: 'sec1',
+      title: 'Section 1',
+    }),
+  );
+
+  onActiveSectionChange.mockClear();
+  fireEvent.click(screen.getByText('select-sec2'));
+
+  await waitFor(() =>
+    expect(onActiveSectionChange).toHaveBeenCalledWith({
+      id: 'sec2',
+      title: 'Section 2',
+    }),
   );
 });
 
