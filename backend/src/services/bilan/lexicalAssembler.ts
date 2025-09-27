@@ -10,6 +10,7 @@ export type LexicalAssemblerInput = {
   questions: Question[];
   answers: Record<string, unknown>;
   missingAnchorIds?: string[];
+  astSnippets?: Record<string, unknown> | null;
 };
 
 export type LexicalAssemblerResult = {
@@ -25,6 +26,7 @@ type AnchorContext = {
   questions: Question[];
   questionsById: Map<string, Question>;
   answers: Record<string, unknown>;
+  astSnippets?: Record<string, unknown> | null;
 };
 
 const KNOWN_ANCHOR_TYPES = ['CR:TBL', 'CR:TITLE_PRESET'] as const;
@@ -189,7 +191,7 @@ const TITLE_PRESET_REGISTRY: TitlePresetRegistry = {
       color: 'black',
     },
   },
-  't14-center-bold-filled-green': {
+  't14-bold-filled-green': {
     kind: 'paragraph',
     fontSize: 14,
     bold: true,
@@ -212,7 +214,7 @@ function computeTextFormat({ bold, italic, underline }: TextFormatFlags): number
   let format = 0;
   if (bold) format |= 1;
   if (italic) format |= 2;
-  if (underline) format |= 12;
+  if (underline) format |= 8;
   return format;
 }
 
@@ -581,6 +583,7 @@ function buildAnchorReplacement(segment: AnchorMatchSegment, ctx: AnchorContext)
       anchor,
       questions: ctx.questions,
       answers: ctx.answers,
+      astSnippets: ctx.astSnippets,
     });
 
     if (rendered.length > 0) {
@@ -711,6 +714,7 @@ function processNode(node: LexicalNode, ctx: AnchorContext): LexicalNode[] {
         anchor,
         questions: ctx.questions,
         answers: ctx.answers,
+        astSnippets: ctx.astSnippets,
       });
       if (rendered.length > 0) {
         return rendered;
@@ -776,7 +780,14 @@ function createParagraph(text: string): LexicalNode {
 }
 
 export const LexicalAssembler = {
-  assemble({ text, anchors, questions, answers, missingAnchorIds = [] }: LexicalAssemblerInput): LexicalAssemblerResult {
+  assemble({
+    text,
+    anchors,
+    questions,
+    answers,
+    missingAnchorIds = [],
+    astSnippets,
+  }: LexicalAssemblerInput): LexicalAssemblerResult {
     console.log('[ANCHOR] LexicalAssembler.assemble - start', {
       anchors: anchors.map((a) => a.id),
       missingAnchorIds,
@@ -793,6 +804,7 @@ export const LexicalAssembler = {
       questions,
       questionsById,
       answers,
+      astSnippets,
     };
 
     root.children = replaceAnchors(children, ctx);
@@ -806,7 +818,12 @@ export const LexicalAssembler = {
       const anchor = anchorsById.get(missingId);
       if (!anchor) continue;
       if (anchor.type === 'CR:TBL') {
-        const rendered = TableRenderer.renderLexical({ anchor, questions, answers });
+        const rendered = TableRenderer.renderLexical({
+          anchor,
+          questions,
+          answers,
+          astSnippets,
+        });
         if (rendered.length === 0) {
           console.log('[ANCHOR] LexicalAssembler.assemble - auto insert fallback paragraph', {
             anchorId: missingId,

@@ -13,16 +13,38 @@ import { $isHeadingNode } from '@lexical/rich-text';
 import {
   BorderStyle,
   Document,
-  HeadingLevel,
   Packer,
   Paragraph,
+  Table,
+  TableCell,
+  TableRow,
   TextRun,
   UnderlineType,
+  WidthType,
+  ShadingType,
+  VerticalAlignTable,
+  AlignmentType,
   type IBordersOptions,
+  type IShadingAttributesProperties,
   type IParagraphOptions,
   type IRunOptions,
+  type ITableCellOptions,
+  type ITableRowOptions,
+  type TableVerticalAlign,
 } from 'docx';
-import { $isBorderBlockNode, type BorderWeight } from '@/nodes/BorderBlockNode';
+import {
+  $isTableCellNode,
+  $isTableNode,
+  $isTableRowNode,
+  TableCellNode,
+  type TableNode,
+} from '@lexical/table';
+import {
+  $isBorderBlockNode,
+  type BorderWeight,
+  type DecorBlockNode,
+  type DecorFillToken,
+} from '@/nodes/BorderBlockNode';
 
 function parseInlineStyle(style: string): Record<string, string> {
   if (!style) return {};
@@ -121,9 +143,75 @@ function weightToBorders(
   };
 }
 
+function mergeFormatting(
+  base: BlockFormatting | undefined,
+  patch: BlockFormatting | undefined,
+): BlockFormatting | undefined {
+  if (!base && !patch) return undefined;
+  if (!base) return patch;
+  if (!patch) return base;
+  return {
+    border: patch.border ?? base.border,
+    shading: patch.shading ?? base.shading,
+  };
+}
+
+function decorNodeToShading(
+  node: DecorBlockNode,
+): IShadingAttributesProperties | undefined {
+  const fillMode = node.getFill();
+  if (fillMode === 'none') return undefined;
+
+  if (fillMode === 'token') {
+    const token = node.getFillToken();
+    if (!token) return undefined;
+    const hex = DECOR_FILL_TOKEN_HEX[token];
+    if (!hex) return undefined;
+    return {
+      type: ShadingType.CLEAR,
+      fill: hex,
+      color: 'auto',
+    };
+  }
+
+  if (fillMode === 'custom') {
+    const color = node.getFillColor();
+    const hex = parseColor(color ?? undefined);
+    if (!hex) return undefined;
+    return {
+      type: ShadingType.CLEAR,
+      fill: hex,
+      color: 'auto',
+    };
+  }
+
+  return undefined;
+}
+
 type RunContext = {
   fallbackSize?: number;
   fallbackBold?: boolean;
+  fallbackUnderline?: boolean;
+};
+
+type DocxBlock = Paragraph | Table;
+
+type BlockFormatting = {
+  border?: IBordersOptions;
+  shading?: IShadingAttributesProperties;
+};
+
+const DECOR_FILL_TOKEN_HEX: Record<DecorFillToken, string> = {
+  red: 'FECACA',
+  orange: 'FED7AA',
+  yellow: 'FEF08A',
+  green: 'BBF7D0',
+  teal: '99F6E4',
+  blue: 'BFDBFE',
+  indigo: 'C7D2FE',
+  purple: 'E9D5FF',
+  pink: 'FBCFE8',
+  gray: 'E5E7EB',
 };
 
 function textNodeToRun(node: TextNode, context: RunContext): TextRun | null {
@@ -147,7 +235,7 @@ function textNodeToRun(node: TextNode, context: RunContext): TextRun | null {
   if (node.hasFormat('subscript')) {
     options.subScript = true;
   }
-  if (node.hasFormat('underline')) {
+  if (node.hasFormat('underline') || context.fallbackUnderline) {
     options.underline = { type: UnderlineType.SINGLE };
   }
 
@@ -159,6 +247,15 @@ function textNodeToRun(node: TextNode, context: RunContext): TextRun | null {
 
   const fontFamily = style['font-family'];
   if (fontFamily) options.font = fontFamily;
+
+  const background = parseColor(style['background-color']);
+  if (background) {
+    options.shading = {
+      type: ShadingType.CLEAR,
+      fill: background,
+      color: 'auto',
+    };
+  }
 
   return new TextRun(options);
 }
@@ -186,32 +283,183 @@ function collectRunsFromElement(
 }
 
 function headingConfig(tag: string): {
-  heading: HeadingLevel;
   size: number;
   bold: boolean;
+  underline: boolean;
 } {
   switch (tag) {
     case 'h1':
-      return { heading: HeadingLevel.HEADING_1, size: 32 * 2, bold: true };
+      return {
+        size: 14 * 2,
+        bold: false,
+        underline: false,
+      };
     case 'h2':
-      return { heading: HeadingLevel.HEADING_2, size: 26 * 2, bold: true };
+      return {
+        size: 12 * 2,
+        bold: true,
+        underline: true,
+      };
     case 'h3':
-      return { heading: HeadingLevel.HEADING_3, size: 22 * 2, bold: true };
+      return {
+        size: 11 * 2,
+        bold: false,
+        underline: true,
+      };
     default:
-      return { heading: HeadingLevel.HEADING_1, size: 32 * 2, bold: true };
+      return {
+        size: 14 * 2,
+        bold: false,
+        underline: false,
+      };
   }
+}
+
+function mapVerticalAlign(
+  value?: string | null,
+): TableVerticalAlign | undefined {
+  if (!value) return undefined;
+  const normalized = value.toLowerCase();
+  switch (normalized) {
+    case 'top':
+      return VerticalAlignTable.TOP;
+    case 'bottom':
+      return VerticalAlignTable.BOTTOM;
+    case 'middle':
+    case 'center':
+      return VerticalAlignTable.CENTER;
+    default:
+      return undefined;
+  }
+}
+
+function mapParagraphAlignment(
+  node: ElementNode,
+): (typeof AlignmentType)[keyof typeof AlignmentType] | undefined {
+  const format = typeof (node as ElementNode).getFormatType === 'function'
+    ? node.getFormatType()
+    : null;
+  switch (format) {
+    case 'left':
+    case 'start':
+      return AlignmentType.LEFT;
+    case 'right':
+    case 'end':
+      return AlignmentType.RIGHT;
+    case 'center':
+      return AlignmentType.CENTER;
+    case 'justify':
+      return AlignmentType.JUSTIFIED;
+    default:
+      return undefined;
+  }
+}
+
+function createCellChildren(
+  cellNode: TableCellNode,
+  context?: RunContext,
+  formatting?: BlockFormatting,
+): DocxBlock[] {
+  const effectiveContext = cellNode.hasHeader()
+    ? { ...context, fallbackBold: true }
+    : context;
+  const blocks: DocxBlock[] = [];
+  for (const child of cellNode.getChildren()) {
+    blocks.push(...nodeToDocxBlocks(child, effectiveContext, formatting));
+  }
+  return blocks.length ? blocks : [new Paragraph('')];
+}
+
+function createDocxTableCell(
+  cellNode: TableCellNode,
+  context?: RunContext,
+  formatting?: BlockFormatting,
+): TableCell {
+  const cellChildren = createCellChildren(cellNode, context, formatting);
+  const options: ITableCellOptions = { children: cellChildren };
+
+  const colSpan = cellNode.getColSpan();
+  if (typeof colSpan === 'number' && colSpan > 1) {
+    options.columnSpan = colSpan;
+  }
+
+  const rowSpan = cellNode.getRowSpan();
+  if (typeof rowSpan === 'number' && rowSpan > 1) {
+    options.rowSpan = rowSpan;
+  }
+
+  const verticalAlign = mapVerticalAlign(cellNode.getVerticalAlign());
+  if (verticalAlign) {
+    options.verticalAlign = verticalAlign;
+  }
+
+  const backgroundColor = cellNode.getBackgroundColor();
+  const fill = parseColor(
+    typeof backgroundColor === 'string' ? backgroundColor : undefined,
+  );
+  if (fill) {
+    options.shading = {
+      type: ShadingType.CLEAR,
+      fill,
+    };
+  }
+
+  return new TableCell(options);
+}
+
+function createDocxTable(
+  tableNode: TableNode,
+  context?: RunContext,
+  formatting?: BlockFormatting,
+): Table | null {
+  const rows: TableRow[] = [];
+  for (const rowNode of tableNode.getChildren()) {
+    if (!$isTableRowNode(rowNode)) continue;
+    const cells: TableCell[] = [];
+    const lexicalCells: TableCellNode[] = [];
+    for (const cellNode of rowNode.getChildren()) {
+      if (!$isTableCellNode(cellNode)) continue;
+      lexicalCells.push(cellNode);
+      cells.push(createDocxTableCell(cellNode, context, formatting));
+    }
+    if (!cells.length) continue;
+    const rowOptions: ITableRowOptions = { children: cells };
+    if (lexicalCells.some((cell) => cell.hasHeader())) {
+      rowOptions.tableHeader = true;
+    }
+    rows.push(new TableRow(rowOptions));
+  }
+
+  if (!rows.length) return null;
+
+  const tableOptions = {
+    rows,
+    width: {
+      size: 100,
+      type: WidthType.PERCENTAGE,
+    },
+  };
+
+  return new Table(tableOptions);
 }
 
 function nodeToParagraphs(
   node: LexicalNode,
   context?: RunContext,
-  borders?: IBordersOptions,
+  formatting?: BlockFormatting,
 ): Paragraph[] {
+  if ($isTableNode(node)) {
+    return [];
+  }
+
   if ($isBorderBlockNode(node)) {
     const border = weightToBorders(node.getWeight(), node.getColor());
+    const shading = decorNodeToShading(node);
+    const patch = border || shading ? { border, shading } : undefined;
+    const nextFormatting = mergeFormatting(formatting, patch);
     const paragraphs: Paragraph[] = [];
     for (const child of node.getChildren()) {
-      paragraphs.push(...nodeToParagraphs(child, context, border ?? borders));
+      paragraphs.push(...nodeToParagraphs(child, context, nextFormatting));
     }
     return paragraphs;
   }
@@ -222,12 +470,19 @@ function nodeToParagraphs(
     const runs = collectRunsFromElement(node, {
       fallbackSize: cfg.size,
       fallbackBold: cfg.bold,
+      fallbackUnderline: cfg.underline,
     });
     const options: IParagraphOptions = {
       children: runs.length ? runs : [new TextRun('')],
-      heading: cfg.heading,
-      border: borders,
+      border: formatting?.border,
     };
+    const alignment = mapParagraphAlignment(node);
+    if (alignment) {
+      options.alignment = alignment;
+    }
+    if (formatting?.shading) {
+      options.shading = formatting.shading;
+    }
     return [new Paragraph(options)];
   }
 
@@ -235,17 +490,61 @@ function nodeToParagraphs(
     const runs = collectRunsFromElement(node, context ?? {});
     const options: IParagraphOptions = {
       children: runs.length ? runs : [new TextRun('')],
-      border: borders,
+      border: formatting?.border,
     };
+    const alignment = mapParagraphAlignment(node);
+    if (alignment) {
+      options.alignment = alignment;
+    }
+    if (formatting?.shading) {
+      options.shading = formatting.shading;
+    }
     return [new Paragraph(options)];
   }
 
   if ($isElementNode(node)) {
     const paragraphs: Paragraph[] = [];
     for (const child of node.getChildren()) {
-      paragraphs.push(...nodeToParagraphs(child, context, borders));
+      paragraphs.push(...nodeToParagraphs(child, context, formatting));
     }
     return paragraphs;
+  }
+
+  return [];
+}
+
+function nodeToDocxBlocks(
+  node: LexicalNode,
+  context?: RunContext,
+  formatting?: BlockFormatting,
+): DocxBlock[] {
+  if ($isBorderBlockNode(node)) {
+    const border = weightToBorders(node.getWeight(), node.getColor());
+    const shading = decorNodeToShading(node);
+    const patch = border || shading ? { border, shading } : undefined;
+    const nextFormatting = mergeFormatting(formatting, patch);
+    const blocks: DocxBlock[] = [];
+    for (const child of node.getChildren()) {
+      blocks.push(...nodeToDocxBlocks(child, context, nextFormatting));
+    }
+    return blocks;
+  }
+
+  if ($isTableNode(node)) {
+    const table = createDocxTable(node, context, formatting);
+    return table ? [table] : [];
+  }
+
+  if ($isHeadingNode(node) || $isParagraphNode(node)) {
+    return nodeToParagraphs(node, context, formatting);
+  }
+
+  if ($isElementNode(node)) {
+    const blocks: DocxBlock[] = [];
+    for (const child of node.getChildren()) {
+      blocks.push(...nodeToDocxBlocks(child, context, formatting));
+    }
+    return blocks;
   }
 
   return [];
@@ -266,19 +565,17 @@ export async function exportToDocxFromNodes(
   editorState: EditorState,
   fileName: string = 'document.docx',
 ): Promise<Document> {
-  const paragraphs = editorState.read(() => {
+  const blocks = editorState.read(() => {
     const root = $getRoot();
-    const blocks: Paragraph[] = [];
+    const children: DocxBlock[] = [];
     for (const child of root.getChildren()) {
-      blocks.push(...nodeToParagraphs(child));
+      children.push(...nodeToDocxBlocks(child));
     }
-    return blocks;
+    return children;
   });
 
   const document = new Document({
-    sections: [
-      { children: paragraphs.length ? paragraphs : [new Paragraph('')] },
-    ],
+    sections: [{ children: blocks.length ? blocks : [new Paragraph('')] }],
   });
 
   const blob = await Packer.toBlob(document);

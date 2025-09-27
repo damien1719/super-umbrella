@@ -45,7 +45,7 @@ function unwrapNode(node: DecorBlockNode) {
     node.insertBefore(child);
     child = node.getFirstChild();
   }
-  unwrapNode(node);  
+  unwrapNode(node);
 }
 
 function ensureTrailingParagraphAfter(node: DecorBlockNode) {
@@ -59,7 +59,7 @@ function ensureTrailingParagraphAfter(node: DecorBlockNode) {
 export default function DecorBlockPlugin() {
   const [editor] = useLexicalComposerContext();
 
-/*   useEffect(() => {
+  /*   useEffect(() => {
     // 1) Transform sur DecorBlockNode (création / remplacements)
     const unDecor = editor.registerNodeTransform(DecorBlockNode, (node) => {
       const hasBorder = node.getWeight?.() !== 'none';
@@ -76,8 +76,8 @@ export default function DecorBlockPlugin() {
       }
     }); */
 
-    // 2) Transform sur TextNode : édition interne -> remonter et nettoyer
-/*     const unText = editor.registerNodeTransform(TextNode, (t) => {
+  // 2) Transform sur TextNode : édition interne -> remonter et nettoyer
+  /*     const unText = editor.registerNodeTransform(TextNode, (t) => {
       const top = t.getTopLevelElement();
       if (top && top instanceof DecorBlockNode) {
         const hasBorder = top.getWeight?.() !== 'none';
@@ -93,8 +93,8 @@ export default function DecorBlockPlugin() {
       }
     }); */
 
-    // 3) Transform sur ParagraphNode (structure)
-/*     const unPara = editor.registerNodeTransform(ParagraphNode, (p) => {
+  // 3) Transform sur ParagraphNode (structure)
+  /*     const unPara = editor.registerNodeTransform(ParagraphNode, (p) => {
       const top = p.getTopLevelElement();
       if (top && top instanceof DecorBlockNode) {
         const hasBorder = top.getWeight?.() !== 'none';
@@ -110,8 +110,8 @@ export default function DecorBlockPlugin() {
       }
     }); */
 
-    // 4) 🔑 Mutation listener : capte la suppression du DERNIER paragraphe
-/*     const unParaMut = editor.registerMutationListener(
+  // 4) 🔑 Mutation listener : capte la suppression du DERNIER paragraphe
+  /*     const unParaMut = editor.registerMutationListener(
       ParagraphNode,
       (mutations) => {
         // Si au moins un paragraphe est destroyed, on normalise
@@ -146,8 +146,8 @@ export default function DecorBlockPlugin() {
       },
     ); */
 
-    // 5) Normalisation one-shot à l’ouverture (pour le JSON initial)
-/*     editor.update(() => {
+  // 5) Normalisation one-shot à l’ouverture (pour le JSON initial)
+  /*     editor.update(() => {
       const root = $getRoot();
       const stack: Array<any> = [...root.getChildren()];
       while (stack.length) {
@@ -166,7 +166,7 @@ export default function DecorBlockPlugin() {
       }
     }); */
 
-/*     return () => {
+  /*     return () => {
       unDecor();
       unText();
       unPara();

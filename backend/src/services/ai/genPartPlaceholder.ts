@@ -295,6 +295,7 @@ async function resolvePlaceholderEntry(
     missingAnchorIds: anchorsStatus.missing,
     questions,
     answers: answersSubset,
+    astSnippets: context.astSnippets,
   });
 
   try {

@@ -107,6 +107,8 @@ html, body, #root {
 .editor-content table {
   border-collapse: collapse;
   border: 1px solid black;
+  width: 100%;
+  table-layout: fixed;
   /* table-layout: auto (par défaut) => colonnes s’adaptent au contenu */
 }
 
