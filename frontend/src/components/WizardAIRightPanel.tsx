@@ -6,10 +6,8 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import TrameCard from './TrameCard';
-import CreerTrameModal from './ui/creer-trame-modale';
 import ExitConfirmation from './ExitConfirmation';
-import { Loader2, Plus, Wand2, X } from 'lucide-react';
+import { Loader2, Wand2, X } from 'lucide-react';
 import { apiFetch } from '@/utils/api';
 import { useAuth } from '@/store/auth';
 import { Tabs } from '@/components/ui/tabs';
@@ -24,6 +22,7 @@ import { useBilanTypeStore } from '@/store/bilanTypes';
 import { useSectionStore } from '@/store/sections';
 import LeftNavBilanType from './bilan/LeftNavBilanType';
 import InlineGroupChips from './bilan/InlineGroupChips';
+import { TrameSelectionStep } from './wizard-ia/TrameSectionStep';
 
 export interface WizardAIRightPanelProps {
   sectionInfo: SectionInfo;
@@ -131,13 +130,6 @@ export default function WizardAIRightPanel({
         ? 'official'
         : 'community',
   );
-
-  const matchesActiveFilter = (s: TrameOption) => {
-    if (activeTab === 'mine')
-      return (!!profileId && s.authorId === profileId) || isSharedWithMe(s);
-    if (activeTab === 'official') return s.source === 'BILANPLUME';
-    return s.isPublic && s.source !== 'BILANPLUME';
-  };
 
   // BilanType-specific state and helpers
   const { items: bilanTypes } = useBilanTypeStore();
@@ -354,109 +346,28 @@ export default function WizardAIRightPanel({
   let content: React.JSX.Element | null = null;
 
   if (step === 1) {
-    const displayedTrames = trameOptions.filter(matchesActiveFilter);
     content = (
-      <div className="space-y-4">
-        {/* Toolbar sticky */}
-        <div
-          className="sticky top-0 z-10 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-wood-50/60
-                      border-b border-wood-200 pt-2 pb-3"
-        >
-          <div className="flex items-center justify-between gap-3">
-            <Tabs
-              active={activeTab}
-              onChange={(k) =>
-                setActiveTab(k as 'mine' | 'official' | 'community')
-              }
-              tabs={[
-                {
-                  key: 'mine',
-                  label: mode === 'bilanType' ? 'Mes trames' : 'Mes parties',
-                  count: myTrames.length,
-                  hidden: myTrames.length === 0,
-                },
-                {
-                  key: 'official',
-                  label: 'Partagées par Bilan Plume',
-                  count: officialTrames.length,
-                },
-                {
-                  key: 'community',
-                  label: 'Partagées par la communauté',
-                  count: communityTrames.length,
-                },
-              ]}
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {displayedTrames.map((trame) => (
-            <TrameCard
-              key={trame.value}
-              trame={{
-                id: trame.value,
-                title: trame.label,
-                description: trame.description,
-                coverUrl: trame.coverUrl,
-                sharedBy:
-                  trame.isPublic && trame.author?.prenom
-                    ? trame.author.prenom
-                    : undefined,
-              }}
-              kind={kindMap[sectionInfo.id]}
-              selected={selectedTrame?.value === trame.value}
-              onSelect={() => onTrameChange(trame.value)}
-              showLink={true}
-            />
-          ))}
-          <CreerTrameModal
-            trigger={
-              <button
-                type="button"
-                aria-label="Créer un nouveau test"
-                className="
-                  group relative w-full max-w-120
-                  rounded-xl border-2 border-dashed
-                  border-primary-300 bg-primary-50/60
-                  hover:bg-primary-100/70 hover:border-primary-400
-                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400
-                  transition-all duration-150
-                  p-5 flex flex-col items-center justify-center text-center
-                "
-              >
-                <span
-                  className="
-                    inline-flex h-10 w-10 items-center justify-center rounded-full
-                    bg-primary-600 text-white mb-3 transition-transform
-                    group-hover:scale-105
-                  "
-                >
-                  <Plus className="h-5 w-5" />
-                </span>
-                <span className="font-semibold text-primary-700">
-                  {mode === 'bilanType'
-                    ? 'Créez votre trame'
-                    : 'Créez une partie personnalisée'}
-                </span>
-                <span className="mt-1 text-sm text-primary-700/80">
-                  {mode === 'bilanType'
-                    ? 'Trame personnalisée à votre pratique'
-                    : 'Partie de bilan personnalisée à votre pratique'}
-                </span>
-              </button>
-            }
-            initialCategory={kindMap[sectionInfo.id]}
-            onCreated={(id) =>
-              navigate(`/creation-trame/${id}`, {
-                state: {
-                  returnTo: `/bilan/${bilanId}`,
-                  wizardSection: sectionInfo.id,
-                },
-              })
-            }
-          />
-        </div>
-      </div>
+      <TrameSelectionStep
+        mode={mode}
+        selectedTrame={selectedTrame}
+        onTrameChange={onTrameChange}
+        collections={{
+          mine: myTrames,
+          official: officialTrames,
+          community: communityTrames,
+        }}
+        activeTab={activeTab}
+        onTabChange={(tab) => setActiveTab(tab)}
+        trameKind={kindMap[sectionInfo.id]}
+        onCreateTrame={(id) =>
+          navigate(`/creation-trame/${id}`, {
+            state: {
+              returnTo: `/bilan/${bilanId}`,
+              wizardSection: sectionInfo.id,
+            },
+          })
+        }
+      />
     );
   } else {
     if (mode === 'bilanType') {
