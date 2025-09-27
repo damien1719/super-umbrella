@@ -89,7 +89,7 @@ export default function AiRightPanel({
   openWizardBilanType,
   initialBilanTypeId,
   initialBilanTypeStep,
-  initialStep
+  initialStep,
 }: AiRightPanelProps) {
   const trames = useTrames();
   const {
@@ -466,7 +466,7 @@ export default function AiRightPanel({
     bilanId,
     onCancel: () => {},
   });
-  
+
   return (
     <div className="w-full max-w-md bg-wood-50 rounded-lg shadow-lg">
       <GeneratingModal open={isGenerating} logoSrc="/logo.png" />
@@ -646,7 +646,9 @@ export default function AiRightPanel({
                         trameOptions={bilanTypeOptions}
                         selectedTrame={
                           initialBilanTypeId
-                            ? (bilanTypeOptions.find((b) => b.value === initialBilanTypeId) as any)
+                            ? (bilanTypeOptions.find(
+                                (b) => b.value === initialBilanTypeId,
+                              ) as any)
                             : undefined
                         }
                         onTrameChange={() => {}}

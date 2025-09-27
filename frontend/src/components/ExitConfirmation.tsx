@@ -41,7 +41,6 @@ export default function ExitConfirmation({
             Quitter sans enregistrer
           </AlertDialogAction>
           {/* Enregistrer et quitter */}
-
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

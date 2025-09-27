@@ -120,12 +120,22 @@ export function MultiChoiceEditor({ q, onPatch, isReadOnly }: EditorProps) {
                 données
               </p>
             </div>
-            <Button variant="icon" size="sm" onClick={toggleComment} disabled={isReadOnly}>
+            <Button
+              variant="icon"
+              size="sm"
+              onClick={toggleComment}
+              disabled={isReadOnly}
+            >
               <X className="h-4 w-4" />
             </Button>
           </div>
         ) : (
-          <Button variant="outline" size="sm" onClick={toggleComment} disabled={isReadOnly}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={toggleComment}
+            disabled={isReadOnly}
+          >
             + Ajouter une zone de commentaire
           </Button>
         )}
@@ -342,6 +352,8 @@ export function TableEditor({ q, onPatch, isReadOnly }: EditorProps) {
       ),
     });
   };
+
+
 
   return (
     <>
@@ -607,12 +619,22 @@ export function TableEditor({ q, onPatch, isReadOnly }: EditorProps) {
                   données
                 </p>
               </div>
-              <Button variant="icon" size="sm" onClick={toggleComment} disabled={isReadOnly}>
+              <Button
+                variant="icon"
+                size="sm"
+                onClick={toggleComment}
+                disabled={isReadOnly}
+              >
                 <X className="h-4 w-4" />
               </Button>
             </div>
           ) : (
-            <Button variant="outline" size="sm" onClick={toggleComment} disabled={isReadOnly}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleComment}
+              disabled={isReadOnly}
+            >
               + Ajouter une zone de commentaire
             </Button>
           )}
@@ -777,16 +799,39 @@ function buildSampleText(sampleText: string, format: TitlePreset['format']) {
   return segments.join('');
 }
 
+function sidesToAttr(
+  sides?: 'all' | Array<'top' | 'right' | 'bottom' | 'left'>,
+): string {
+  if (!sides || sides === 'all') return 'top right bottom left';
+  return sides.join(' ');
+}
+
+function paddingToStyle(
+  padding?: number | { top?: number; right?: number; bottom?: number; left?: number },
+): React.CSSProperties | undefined {
+  if (padding == null) return undefined;
+  if (typeof padding === 'number') {
+    return { padding: `${padding}px` };
+  }
+  return {
+    paddingTop: padding.top != null ? `${padding.top}px` : undefined,
+    paddingRight: padding.right != null ? `${padding.right}px` : undefined,
+    paddingBottom: padding.bottom != null ? `${padding.bottom}px` : undefined,
+    paddingLeft: padding.left != null ? `${padding.left}px` : undefined,
+  };
+}
+
 function TitlePresetPreview({
   preset,
   sampleText = TITLE_SAMPLE_TEXT,
   showLabel = true,
   className,
 }: TitlePresetPreviewProps) {
+  const { format } = preset;
   const textClasses = getTextClasses(preset.format);
   const displayText = buildSampleText(sampleText, preset.format);
 
-  const content =
+  const inner =
     preset.format.kind === 'list-item' ? (
       <div className="flex items-start gap-2 text-left">
         <span className="mt-2 block h-1.5 w-1.5 shrink-0 rounded-full bg-gray-400" />
@@ -795,6 +840,31 @@ function TitlePresetPreview({
     ) : (
       <span className={textClasses}>{displayText}</span>
     );
+  
+  const decor = format.decor;
+  const content = decor ? (
+    <div
+      className={cn('bp-decor bp-border w-full', {
+        // fallback: si pas de sides spécifiques, on laisse le style de base
+      })}
+      data-bp-weight={decor.weight ?? 'thin'}
+      data-bp-color={decor.color ?? 'black'}
+      data-bp-fill={decor.fill?.kind ?? 'none'}
+      data-bp-fill-token={decor.fill?.token}
+      // NB: si fill.kind === 'custom', on passe la couleur en inline style
+      style={{
+        borderRadius: decor.radius ? `${decor.radius}px` : undefined,
+        // couleur de fond custom si demandé
+        ...(decor.fill?.kind === 'custom' && decor.fill.color
+          ? { backgroundColor: decor.fill.color, color: undefined }
+          : {}),
+      }}
+    >
+      {inner}
+    </div>
+  ) : (
+    inner
+  );
 
   return (
     <div className={cn('flex w-full flex-col gap-1', className)}>
@@ -872,7 +942,7 @@ function TitlePresetDropdown({
 
 export function TitleEditor({ q, onPatch, isReadOnly }: EditorProps) {
   const presets = React.useMemo(() => Object.values(DEFAULT_TITLE_PRESETS), []);
-  const defaultPresetId = "t12-underline";
+  const defaultPresetId = 't12-underline';
 
   React.useEffect(() => {
     if (!defaultPresetId || isReadOnly) return;

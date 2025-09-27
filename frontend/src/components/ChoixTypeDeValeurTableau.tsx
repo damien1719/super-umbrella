@@ -63,7 +63,9 @@ export default function ChoixTypeDeValeurTableau({
   const selectedPresetId: string = (() => {
     if (!local.coloring?.rules) return 'none';
     for (const [id, preset] of Object.entries(COLOR_PRESETS)) {
-      if (JSON.stringify(preset.rules) === JSON.stringify(local.coloring.rules)) {
+      if (
+        JSON.stringify(preset.rules) === JSON.stringify(local.coloring.rules)
+      ) {
         return id;
       }
     }
@@ -351,7 +353,10 @@ export default function ChoixTypeDeValeurTableau({
           )}
           {crInsert && (
             <div className="space-y-2">
-              <Label>Couleurs automatiques (Automatiquement à l'insertion le chiffre prendra une couleur suivant la valeur)</Label>
+              <Label>
+                Couleurs automatiques (Automatiquement à l'insertion le chiffre
+                prendra une couleur suivant la valeur)
+              </Label>
               <Select
                 value={selectedPresetId}
                 onValueChange={(presetId) => {
@@ -359,7 +364,8 @@ export default function ChoixTypeDeValeurTableau({
                     setLocal({ ...local, coloring: undefined });
                     return;
                   }
-                  const preset = COLOR_PRESETS[presetId as keyof typeof COLOR_PRESETS];
+                  const preset =
+                    COLOR_PRESETS[presetId as keyof typeof COLOR_PRESETS];
                   console.log('preset', preset);
                   if (preset) {
                     setLocal({

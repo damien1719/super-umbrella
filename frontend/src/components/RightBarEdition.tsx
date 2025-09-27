@@ -71,7 +71,14 @@ export default function RightBarEdition({
               }}
               title={q.titre}
             >
-              <Button variant="ghost" size="sm" tooltip="Déplacer" className="ml-auto" disabled={readOnly} aria-disabled={readOnly}>
+              <Button
+                variant="ghost"
+                size="sm"
+                tooltip="Déplacer"
+                className="ml-auto"
+                disabled={readOnly}
+                aria-disabled={readOnly}
+              >
                 <GripVertical
                   className={`h-4 w-4 text-gray-400 ${readOnly ? 'opacity-60' : ''}`}
                 />

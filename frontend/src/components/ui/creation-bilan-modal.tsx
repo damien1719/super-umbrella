@@ -11,7 +11,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { usePatientStore } from '@/store/patients';
 
 interface CreationBilanProps {
@@ -29,7 +35,7 @@ export function CreationBilan({
   onNewPatient,
   onExistingPatient,
   hasPatients,
-  defaultValue = "Mon bilan",
+  defaultValue = 'Mon bilan',
 }: CreationBilanProps) {
   const [title, setTitle] = useState(defaultValue);
   const [selectedPatientId, setSelectedPatientId] = useState<string>('');
@@ -76,7 +82,10 @@ export function CreationBilan({
           {hasPatients && (
             <div className="space-y-2">
               <Label htmlFor="patient-select">Mes patients</Label>
-              <Select value={selectedPatientId} onValueChange={setSelectedPatientId}>
+              <Select
+                value={selectedPatientId}
+                onValueChange={setSelectedPatientId}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Sélectionnez un patient" />
                 </SelectTrigger>
@@ -108,7 +117,7 @@ export function CreationBilan({
             disabled={!selectedPatientId}
           >
             Créer un bilan
-            </Button>
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

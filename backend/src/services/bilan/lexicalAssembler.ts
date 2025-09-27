@@ -179,6 +179,26 @@ const TITLE_PRESET_REGISTRY: TitlePresetRegistry = {
     align: 'center',
     case: 'uppercase',
   },
+  't14-center-bordered': {
+    kind: 'paragraph',
+    fontSize: 14,
+    align: 'center',
+    case: 'uppercase',
+    decor: {
+      weight: 'thin',
+      color: 'black',
+    },
+  },
+  't14-center-bold-filled-green': {
+    kind: 'paragraph',
+    fontSize: 14,
+    bold: true,
+    align: 'center',
+    decor: {
+      weight: 'none',
+      fill: { kind: 'token', token: 'green' }, // mappe à tes classes .bp-decor[data-bp-fill-token="green"]
+    },
+  },
 };
 
 function mapAlignment(align?: TitleFormatSpec['align']): string {
@@ -224,6 +244,40 @@ function computeFontSizeStyle(fontSize?: TitleFormatSpec['fontSize']): string {
   return '';
 }
 
+function wrapWithDecor(nodes: LexicalNode[], decor?: TitleFormatSpec['decor']): LexicalNode[] {
+  if (!decor) return nodes;
+
+  const weight = decor.weight ?? 'thin';
+  const color = decor.color ?? 'black';
+  const fillKind = decor.fill?.kind ?? 'none';
+  const fillToken = fillKind === 'token' ? decor.fill?.token ?? null : null;
+  const fillColor = fillKind === 'custom' ? decor.fill?.color ?? null : null;
+
+  const blockNode: LexicalNode = {
+    type: 'border-block',
+    direction: 'ltr',
+    format: '',
+    indent: 0,
+    version: 3,
+    weight,
+    color,
+    fill: fillKind,
+    fillToken,
+    fillColor,
+    children: nodes,
+  };
+
+  const spacerParagraph: LexicalNode = {
+    type: 'paragraph',
+    format: '',
+    indent: 0,
+    version: 1,
+    children: [],
+  };
+
+  return [blockNode, spacerParagraph];
+}
+
 function createStyledTextNode(text: string, flags: TextFormatFlags, style?: string): LexicalNode {
   return {
     type: 'text',
@@ -252,7 +306,7 @@ function buildTitleNodes(text: string, format: TitleFormatSpec): LexicalNode[] {
 
   if (format.kind === 'heading') {
     const level = format.level && format.level >= 1 && format.level <= 6 ? format.level : 2;
-    return [
+    return wrapWithDecor([
       {
         type: 'heading',
         tag: `h${level}`,
@@ -262,11 +316,11 @@ function buildTitleNodes(text: string, format: TitleFormatSpec): LexicalNode[] {
         version: 1,
         children: finalText ? [textNode] : [],
       },
-    ];
+    ], format.decor);
   }
 
   if (format.kind === 'paragraph') {
-    return [
+    return wrapWithDecor([
       {
         type: 'paragraph',
         direction: 'ltr',
@@ -275,7 +329,7 @@ function buildTitleNodes(text: string, format: TitleFormatSpec): LexicalNode[] {
         version: 1,
         children: finalText ? [textNode] : [],
       },
-    ];
+    ], format.decor);
   }
 
   if (format.kind === 'list-item') {
@@ -287,7 +341,7 @@ function buildTitleNodes(text: string, format: TitleFormatSpec): LexicalNode[] {
       value: 1,
       children: finalText ? [textNode] : [],
     };
-    return [
+    return wrapWithDecor([
       {
         type: 'list',
         tag: 'ul',
@@ -298,10 +352,10 @@ function buildTitleNodes(text: string, format: TitleFormatSpec): LexicalNode[] {
         version: 1,
         children: [listItem],
       },
-    ];
+    ], format.decor);
   }
 
-  return [
+  return wrapWithDecor([
     {
       type: 'paragraph',
       direction: 'ltr',
@@ -310,7 +364,7 @@ function buildTitleNodes(text: string, format: TitleFormatSpec): LexicalNode[] {
       version: 1,
       children: finalText ? [textNode] : [],
     },
-  ];
+  ], format.decor);
 
 }
 

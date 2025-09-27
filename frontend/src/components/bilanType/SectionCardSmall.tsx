@@ -10,7 +10,12 @@ import {
 } from '@/types/trame';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRightCircle, CornerDownRight, Expand, EyeIcon } from 'lucide-react';
+import {
+  ArrowRightCircle,
+  CornerDownRight,
+  Expand,
+  EyeIcon,
+} from 'lucide-react';
 
 interface SectionCardSmallProps {
   element: BilanElement;
@@ -19,7 +24,12 @@ interface SectionCardSmallProps {
   hideOpenAction?: boolean;
 }
 
-export function SectionCardSmall({ element, onAdd, onPreview, hideOpenAction }: SectionCardSmallProps) {
+export function SectionCardSmall({
+  element,
+  onAdd,
+  onPreview,
+  hideOpenAction,
+}: SectionCardSmallProps) {
   const navigate = useNavigate();
   const category = categories.find((c) => c.id === element.type);
   const coverSrc = category?.image ?? '/bilan-type.png';
@@ -55,22 +65,21 @@ export function SectionCardSmall({ element, onAdd, onPreview, hideOpenAction }: 
           <h4 className="font-medium text-xs md:text-sm text-gray-900 line-clamp-2">
             {element.title}
           </h4>
-            {!hideOpenAction && (
-              <Button
-                variant="ghost"
-                tooltip="Ouvrir"
-                size="sm"
-                className="ml-2 gap-2"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(`/creation-trame/${element.id}`);
-                }}
-              >
-                <Expand className="w-4 h-4" />
-                Ouvrir
-              </Button>
-            )}
-    
+          {!hideOpenAction && (
+            <Button
+              variant="ghost"
+              tooltip="Ouvrir"
+              size="sm"
+              className="ml-2 gap-2"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/creation-trame/${element.id}`);
+              }}
+            >
+              <Expand className="w-4 h-4" />
+              Ouvrir
+            </Button>
+          )}
         </div>
 
         <div className="mt-3 flex items-center gap-2">
@@ -95,4 +104,3 @@ export function SectionCardSmall({ element, onAdd, onPreview, hideOpenAction }: 
     </div>
   );
 }
-
