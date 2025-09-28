@@ -5,6 +5,7 @@ import InlineGroupChips from '../bilan/InlineGroupChips';
 import { DataEntry, type DataEntryHandle } from '../bilan/DataEntry';
 import ImportNotes from '../ImportNotes';
 import type { Question, Answers } from '@/types/question';
+import type { DraftIdentifier } from '@/store/draft';
 
 interface NavItem {
   id: string;
@@ -27,6 +28,7 @@ interface BilanTypeNotesEditorProps {
   onNotesModeChange: (mode: 'manual' | 'import') => void;
   onRawNotesChange: (value: string) => void;
   onImageChange: (value: string | undefined) => void;
+  draftKey: DraftIdentifier;
 }
 
 export function BilanTypeNotesEditor({
@@ -42,6 +44,7 @@ export function BilanTypeNotesEditor({
   onNotesModeChange,
   onRawNotesChange,
   onImageChange,
+  draftKey,
 }: BilanTypeNotesEditorProps) {
   const activeSection = useMemo(
     () =>
@@ -118,6 +121,7 @@ export function BilanTypeNotesEditor({
           <DataEntry
             ref={dataEntryRef}
             questions={activeQuestions}
+            draftKey={draftKey}
             answers={answers}
             onChange={onAnswersChange}
             inline
