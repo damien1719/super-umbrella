@@ -24,6 +24,7 @@ import {
   ShadingType,
   VerticalAlignTable,
   AlignmentType,
+  LevelFormat,
   type IBordersOptions,
   type IShadingAttributesProperties,
   type IParagraphOptions,
@@ -39,6 +40,7 @@ import {
   TableCellNode,
   type TableNode,
 } from '@lexical/table';
+import { $isListItemNode, $isListNode, type ListNode } from '@lexical/list';
 import {
   $isBorderBlockNode,
   type BorderWeight,
@@ -514,6 +516,90 @@ function nodeToParagraphs(
   return [];
 }
 
+function listItemToParagraphs(
+  item: LexicalNode,
+  listType: 'bullet' | 'number',
+  level: number,
+  context?: RunContext,
+  formatting?: BlockFormatting,
+): Paragraph[] {
+  // Collect inline runs from the list item, excluding nested lists
+  const inlineRuns: TextRun[] = [];
+  if ($isElementNode(item)) {
+    for (const child of item.getChildren()) {
+      if ($isListNode(child)) {
+        continue;
+      }
+      if ($isElementNode(child)) {
+        inlineRuns.push(...collectRunsFromElement(child, context ?? {}));
+      } else if ($isTextNode(child)) {
+        const run = textNodeToRun(child, context ?? {});
+        if (run) inlineRuns.push(run);
+      }
+    }
+  }
+
+  const options: IParagraphOptions = {
+    children: inlineRuns.length ? inlineRuns : [new TextRun('')],
+    border: formatting?.border,
+    shading: formatting?.shading,
+  };
+
+  if (listType === 'bullet') {
+    (options as IParagraphOptions & { bullet?: { level: number } }).bullet = {
+      level,
+    };
+  } else {
+    (options as IParagraphOptions & {
+      numbering?: { reference: string; level: number };
+    }).numbering = { reference: 'number-list', level };
+  }
+
+  const paragraphs: Paragraph[] = [new Paragraph(options)];
+
+  // Handle nested lists within the item
+  if ($isElementNode(item)) {
+    for (const child of item.getChildren()) {
+      if ($isListNode(child)) {
+        paragraphs.push(
+          ...listNodeToDocxParagraphs(
+            child as ListNode,
+            level + 1,
+            context,
+            formatting,
+          ),
+        );
+      }
+    }
+  }
+
+  return paragraphs;
+}
+
+function listNodeToDocxParagraphs(
+  node: ListNode,
+  level: number,
+  context?: RunContext,
+  formatting?: BlockFormatting,
+): Paragraph[] {
+  const listType = node.getListType() as 'bullet' | 'number' | string;
+  const paragraphs: Paragraph[] = [];
+  for (const child of node.getChildren()) {
+    if ($isListItemNode(child)) {
+      paragraphs.push(
+        ...listItemToParagraphs(
+          child,
+          listType === 'number' ? 'number' : 'bullet',
+          level,
+          context,
+          formatting,
+        ),
+      );
+    }
+  }
+  return paragraphs;
+}
+
 function nodeToDocxBlocks(
   node: LexicalNode,
   context?: RunContext,
@@ -534,6 +620,10 @@ function nodeToDocxBlocks(
   if ($isTableNode(node)) {
     const table = createDocxTable(node, context, formatting);
     return table ? [table] : [];
+  }
+
+  if ($isListNode(node)) {
+    return listNodeToDocxParagraphs(node as ListNode, 0, context, formatting);
   }
 
   if ($isHeadingNode(node) || $isParagraphNode(node)) {
@@ -575,7 +665,42 @@ export async function exportToDocxFromNodes(
     return children;
   });
 
+  // Define numbering configurations for bullets and ordered lists
+  const numberingConfig = {
+    config: [
+      {
+        reference: 'bullet-list',
+        levels: Array.from({ length: 9 }).map((_, idx) => ({
+          level: idx,
+          format: LevelFormat.BULLET,
+          text: '\u2022',
+          alignment: AlignmentType.LEFT,
+          style: {
+            paragraph: {
+              indent: { left: 720 * (idx + 1), hanging: 360 },
+            },
+          },
+        })),
+      },
+      {
+        reference: 'number-list',
+        levels: Array.from({ length: 9 }).map((_, idx) => ({
+          level: idx,
+          format: LevelFormat.DECIMAL,
+          text: `%${idx + 1}.`,
+          alignment: AlignmentType.LEFT,
+          style: {
+            paragraph: {
+              indent: { left: 720 * (idx + 1), hanging: 360 },
+            },
+          },
+        })),
+      },
+    ],
+  };
+
   const document = new Document({
+    numbering: numberingConfig,
     sections: [{ children: blocks.length ? blocks : [new Paragraph('')] }],
   });
 
