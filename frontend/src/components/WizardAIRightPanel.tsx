@@ -10,19 +10,17 @@ import ExitConfirmation from './ExitConfirmation';
 import { Loader2, Wand2, X } from 'lucide-react';
 import { apiFetch } from '@/utils/api';
 import { useAuth } from '@/store/auth';
-import { Tabs } from '@/components/ui/tabs';
 import { useUserProfileStore } from '@/store/userProfile';
 import { kindMap } from '@/types/trame';
 import type { TrameOption, TrameExample } from './bilan/TrameSelector';
-import { DataEntry, type DataEntryHandle } from './bilan/DataEntry';
-import ImportNotes from './ImportNotes';
+import type { DataEntryHandle } from './bilan/DataEntry';
 import type { Answers, Question } from '@/types/question';
 import type { SectionInfo } from './bilan/SectionCard';
 import { useBilanTypeStore } from '@/store/bilanTypes';
 import { useSectionStore } from '@/store/sections';
-import LeftNavBilanType from './bilan/LeftNavBilanType';
-import InlineGroupChips from './bilan/InlineGroupChips';
 import { TrameSelectionStep } from './wizard-ia/TrameSectionStep';
+import { BilanTypeNotesEditor } from './wizard-ia/BilanTypeNotesEditor';
+import { SectionNotesEditor } from './wizard-ia/SectionNotesEditor';
 
 export interface WizardAIRightPanelProps {
   sectionInfo: SectionInfo;
@@ -224,6 +222,50 @@ export default function WizardAIRightPanel({
   const [bilanAnswers, setBilanAnswers] = useState<Record<string, Answers>>({});
   const [excludedSectionIds, setExcludedSectionIds] = useState<string[]>([]);
 
+  const activeBilanDraftKey = useMemo(
+    () => ({
+      bilanId,
+      sectionId: activeBilanSectionId ?? '__bilan-type__',
+    }),
+    [bilanId, activeBilanSectionId],
+  );
+
+  const activeBilanAnswers =
+    (activeBilanSectionId && bilanAnswers[activeBilanSectionId]) || {};
+
+  const handleSelectBilanSection = (id: string) => {
+    if (notesMode === 'manual' && activeBilanSectionId) {
+      try {
+        const data = dataEntryRef.current?.save() as Answers | undefined;
+        if (data) void saveNotes(data, activeBilanSectionId);
+      } catch {}
+    }
+    setActiveBilanSectionId(id);
+  };
+
+  const handleToggleExcluded = (id: string) => {
+    setExcludedSectionIds((prev) => {
+      const next = prev.includes(id)
+        ? prev.filter((x) => x !== id)
+        : [...prev, id];
+      try {
+        const evt = new CustomEvent('bilan-type:excluded-changed', {
+          detail: next,
+        });
+        window.dispatchEvent(evt);
+      } catch {}
+      return next;
+    });
+  };
+
+  const handleBilanAnswersChange = (a: Answers) => {
+    if (!activeBilanSectionId) return;
+    setBilanAnswers((prev) => ({
+      ...prev,
+      [activeBilanSectionId]: a,
+    }));
+  };
+
   useEffect(() => {
     if (mode !== 'bilanType') return;
     const firstSec = navItems.find((x) => x.kind !== 'separator');
@@ -371,159 +413,37 @@ export default function WizardAIRightPanel({
     );
   } else {
     if (mode === 'bilanType') {
-      const sectionItems = navItems.filter((x) => x.kind !== 'separator');
-      const active = sectionItems.find((s) => s.id === activeBilanSectionId);
-      const activeQuestions = active?.schema ?? [];
-      // Build in-page group outline titles from questions
-      const groupTitles = (() => {
-        const titles: string[] = [];
-        let hasGeneral = false;
-        for (const q of activeQuestions) {
-          if ((q as any).type === 'titre') {
-            titles.push(((q as any).titre as string) || 'Groupe de question');
-          } else if (titles.length === 0 && !hasGeneral) {
-            // There is content before the first explicit titre => a General group exists
-            hasGeneral = true;
-          }
-        }
-        const sectionTitle = active?.title || 'Général';
-        if (hasGeneral) titles.unshift(sectionTitle);
-        if (!hasGeneral && titles.length === 0) titles.push(sectionTitle);
-        return titles;
-      })();
-      const activeAnswers =
-        (activeBilanSectionId && bilanAnswers[activeBilanSectionId]) || {};
       content = (
-        <div className="flex flex-1 h-full overflow-y-hidden">
-          <LeftNavBilanType
-            items={navItems.map((s) =>
-              s.kind === 'separator'
-                ? { id: s.id, title: s.title, kind: 'separator' as const }
-                : {
-                    id: s.id,
-                    title: s.title,
-                    kind: 'section' as const,
-                    index: s.index,
-                    disabled: excludedSectionIds.includes(s.id),
-                  },
-            )}
-            activeId={activeBilanSectionId}
-            onSelect={(id) => {
-              // Save current section before switching
-              if (notesMode === 'manual' && activeBilanSectionId) {
-                try {
-                  const data = dataEntryRef.current?.save() as
-                    | Answers
-                    | undefined;
-                  if (data) void saveNotes(data, activeBilanSectionId);
-                } catch {}
-              }
-              setActiveBilanSectionId(id);
-              const next = bilanAnswers[id];
-              if (next) dataEntryRef.current?.load?.(next);
-            }}
-            onToggleDisabled={(id) => {
-              // Use functional update to compute "next" and emit it,
-              // avoiding stale closure issues when toggling in batch.
-              setExcludedSectionIds((prev) => {
-                const next = prev.includes(id)
-                  ? prev.filter((x) => x !== id)
-                  : [...prev, id];
-                try {
-                  const evt = new CustomEvent('bilan-type:excluded-changed', {
-                    detail: next,
-                  });
-                  window.dispatchEvent(evt);
-                } catch {}
-                return next;
-              });
-            }}
-          />
-          <div className="flex-1 flex flex-col min-h-0">
-            {/* In-section outline chips (replaces the inner left nav) */}
-            {/*             <Tabs
-              className="mb-4"
-              active={notesMode}
-              onChange={(k) => {
-                setNotesMode(k as 'manual' | 'import');
-                if (k === 'manual') {
-                  setRawNotes('');
-                  setImageBase64(undefined);
-                }
-              }}
-              tabs={[
-                { key: 'manual', label: 'Saisie manuelle' },
-                { key: 'import', label: 'Import des notes' },
-              ]}
-            /> */}
-            {notesMode === 'manual' && (
-              <InlineGroupChips titles={groupTitles} />
-            )}
-
-            {notesMode === 'manual' ? (
-              <DataEntry
-                ref={dataEntryRef}
-                questions={activeQuestions}
-                draftKey={{
-                  bilanId,
-                  sectionId: activeBilanSectionId ?? '__bilan-type__',
-                }}
-                answers={activeAnswers}
-                onChange={(a) => {
-                  if (!activeBilanSectionId) return;
-                  setBilanAnswers((prev) => ({
-                    ...prev,
-                    [activeBilanSectionId]: a,
-                  }));
-                }}
-                inline
-                showGroupNav={false}
-                defaultGroupTitle={active?.title}
-              />
-            ) : (
-              <ImportNotes
-                onChange={setRawNotes}
-                onImageChange={setImageBase64}
-              />
-            )}
-          </div>
-        </div>
+        <BilanTypeNotesEditor
+          navItems={navItems}
+          activeSectionId={activeBilanSectionId}
+          onSelectSection={handleSelectBilanSection}
+          excludedSectionIds={excludedSectionIds}
+          onToggleExcluded={handleToggleExcluded}
+          dataEntryRef={dataEntryRef}
+          answers={activeBilanAnswers}
+          onAnswersChange={handleBilanAnswersChange}
+          notesMode={notesMode}
+          onNotesModeChange={(mode) => setNotesMode(mode)}
+          onRawNotesChange={setRawNotes}
+          onImageChange={setImageBase64}
+          draftKey={activeBilanDraftKey}
+        />
       );
     } else {
       content = (
-        <div className="flex flex-1 h-full overflow-y-hidden flex-col">
-          <Tabs
-            className="mb-4"
-            active={notesMode}
-            onChange={(k) => {
-              setNotesMode(k as 'manual' | 'import');
-              if (k === 'manual') {
-                setRawNotes('');
-                setImageBase64(undefined);
-              }
-            }}
-            tabs={[
-              { key: 'manual', label: 'Saisie manuelle' },
-              /* { key: 'import', label: 'Import des notes' }, */
-            ]}
-          />
-          {notesMode === 'manual' ? (
-            <DataEntry
-              ref={dataEntryRef}
-              questions={questions}
-              draftKey={{ bilanId, sectionId: sectionInfo.id }}
-              answers={answers}
-              onChange={onAnswersChange}
-              inline
-              defaultGroupTitle={sectionInfo.title}
-            />
-          ) : (
-            <ImportNotes
-              onChange={setRawNotes}
-              onImageChange={setImageBase64}
-            />
-          )}
-        </div>
+        <SectionNotesEditor
+          sectionTitle={sectionInfo.title}
+          questions={questions}
+          answers={answers}
+          onAnswersChange={onAnswersChange}
+          dataEntryRef={dataEntryRef}
+          notesMode={notesMode}
+          onNotesModeChange={(mode) => setNotesMode(mode)}
+          onRawNotesChange={setRawNotes}
+          onImageChange={setImageBase64}
+          draftKey={{ bilanId, sectionId: sectionInfo.id }}
+        />
       );
     }
   }

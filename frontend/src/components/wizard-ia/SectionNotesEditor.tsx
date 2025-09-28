@@ -3,6 +3,7 @@ import { Tabs } from '@/components/ui/tabs';
 import { DataEntry, type DataEntryHandle } from '../bilan/DataEntry';
 import ImportNotes from '../ImportNotes';
 import type { Question, Answers } from '@/types/question';
+import type { DraftIdentifier } from '@/store/draft';
 
 interface SectionNotesEditorProps {
   sectionTitle: string;
@@ -14,6 +15,7 @@ interface SectionNotesEditorProps {
   onNotesModeChange: (mode: 'manual' | 'import') => void;
   onRawNotesChange: (value: string) => void;
   onImageChange: (value: string | undefined) => void;
+  draftKey: DraftIdentifier;
 }
 
 export function SectionNotesEditor({
@@ -26,6 +28,7 @@ export function SectionNotesEditor({
   onNotesModeChange,
   onRawNotesChange,
   onImageChange,
+  draftKey,
 }: SectionNotesEditorProps) {
   return (
     <div className="flex flex-1 h-full overflow-y-hidden flex-col">
@@ -50,6 +53,7 @@ export function SectionNotesEditor({
         <DataEntry
           ref={dataEntryRef}
           questions={questions}
+          draftKey={draftKey}
           answers={answers}
           onChange={onAnswersChange}
           inline
