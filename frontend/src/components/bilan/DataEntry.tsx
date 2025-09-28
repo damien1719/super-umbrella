@@ -4,6 +4,7 @@ import {
   forwardRef,
   useImperativeHandle,
   useRef,
+  useMemo,
 } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,11 +19,14 @@ import { Plus } from 'lucide-react';
 import type { Question, Answers } from '@/types/question';
 import { QuestionRenderer } from './QuestionRenderer';
 import { GroupedQuestionsNav } from './GroupedQuestionsNav';
+import { getDraftStore, type DraftIdentifier } from '@/store/draft';
+import { useStore } from 'zustand';
 
 interface DataEntryProps {
   questions: Question[];
-  answers: Answers;
-  onChange: (answers: Answers) => void;
+  draftKey: DraftIdentifier;
+  answers?: Answers;
+  onChange?: (answers: Answers) => void;
   inline?: boolean;
   showGroupNav?: boolean;
   // When questions start without an explicit titre, use this as the group title instead of "Général"
@@ -43,11 +47,28 @@ type QuestionGroup = {
   items: Question[];
 };
 
+const stableStringify = (input: unknown): string =>
+  JSON.stringify(input, (_, value) => {
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      return Object.keys(value as Record<string, unknown>)
+        .sort()
+        .reduce<Record<string, unknown>>((acc, key) => {
+          acc[key] = (value as Record<string, unknown>)[key];
+          return acc;
+        }, {});
+    }
+    return value;
+  }) ?? '';
+
+const serializeAnswers = (value?: Answers): string =>
+  stableStringify(value ?? {});
+
 export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
   function DataEntry(
     {
       questions,
-      answers,
+      draftKey,
+      answers: initialAnswers,
       onChange,
       inline = false,
       showGroupNav = true,
@@ -56,8 +77,44 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
     ref,
   ) {
     const [open, setOpen] = useState(false);
-    const [local, setLocal] = useState<Answers>({});
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const draftStore = useMemo(
+      () => getDraftStore(draftKey),
+      [draftKey.bilanId, draftKey.sectionId],
+    );
+    const answers = useStore(draftStore, (state) => state.answers);
+    const applyChange = useStore(draftStore, (state) => state.applyChange);
+    const hydrate = useStore(draftStore, (state) => state.hydrate);
+    const dirty = useStore(draftStore, (state) => state.dirty);
+    const lastHydratedRef = useRef<string | null>(null);
+
+    useEffect(() => {
+      if (initialAnswers === undefined) return;
+      const serialized = serializeAnswers(initialAnswers);
+      if (dirty && lastHydratedRef.current !== serialized) {
+        return;
+      }
+      if (lastHydratedRef.current === serialized) {
+        return;
+      }
+      hydrate({ answers: initialAnswers, dirty: false });
+      lastHydratedRef.current = serialized;
+    }, [initialAnswers, hydrate, dirty]);
+
+    const updateAnswer = (questionId: string, value: unknown) => {
+      const next: Answers = { ...answers };
+      if (value === undefined) {
+        delete next[questionId];
+      } else {
+        next[questionId] = value as
+          | string
+          | string[]
+          | number
+          | boolean
+          | Record<string, unknown>;
+      }
+      applyChange(next);
+    };
 
     const groups: QuestionGroup[] = (() => {
       const res: QuestionGroup[] = [];
@@ -129,24 +186,28 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
     const goNext = () => goTo(Math.min(activeSec + 1, groups.length - 1));
     const goPrev = () => goTo(Math.max(activeSec - 1, 0));
 
-    useEffect(() => {
-      setLocal(answers);
-    }, [answers]);
-
     const save = () => {
       if (Object.values(errors).some((e) => e)) {
         return;
       }
-      onChange(local);
+      onChange?.(answers);
       setOpen(false);
-      return local;
+      return answers;
     };
 
     useImperativeHandle(ref, () => ({
       save,
-      getAnswers: () => local,
-      load: (values: Answers) => setLocal(values ?? {}),
-      clear: () => setLocal({}),
+      getAnswers: () => draftStore.getState().answers,
+      load: (values: Answers) => {
+        const payload = values ?? {};
+        draftStore.getState().hydrate({ answers: payload, dirty: false });
+        lastHydratedRef.current = serializeAnswers(payload);
+      },
+      clear: () => {
+        const emptyAnswers = {} as Answers;
+        draftStore.getState().hydrate({ answers: emptyAnswers, dirty: false });
+        lastHydratedRef.current = serializeAnswers(emptyAnswers);
+      },
     }));
 
     const inlineForm = (
@@ -185,18 +246,8 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
                 </Label>
                 <QuestionRenderer
                   question={q}
-                  value={local[q.id]}
-                  onChange={(v) =>
-                    setLocal({
-                      ...local,
-                      [q.id]: v as
-                        | string
-                        | number
-                        | boolean
-                        | string[]
-                        | Record<string, unknown>,
-                    })
-                  }
+                  value={answers[q.id]}
+                  onChange={(v) => updateAnswer(q.id, v)}
                   error={errors[q.id]}
                   setError={(msg) => setErrors((p) => ({ ...p, [q.id]: msg }))}
                 />
@@ -278,18 +329,8 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
                         </Label>
                         <QuestionRenderer
                           question={q}
-                          value={local[q.id]}
-                          onChange={(v) =>
-                            setLocal({
-                              ...local,
-                              [q.id]: v as
-                                | string
-                                | number
-                                | boolean
-                                | string[]
-                                | Record<string, unknown>,
-                            })
-                          }
+                          value={answers[q.id]}
+                          onChange={(v) => updateAnswer(q.id, v)}
                           error={errors[q.id]}
                           setError={(msg) =>
                             setErrors((p) => ({ ...p, [q.id]: msg }))
@@ -352,8 +393,8 @@ export const DataEntry = forwardRef<DataEntryHandle, DataEntryProps>(
                           </Label>
                           <QuestionRenderer
                             question={q}
-                            value={local[q.id]}
-                            onChange={(v) => setLocal({ ...local, [q.id]: v })}
+                            value={answers[q.id]}
+                            onChange={(v) => updateAnswer(q.id, v)}
                             error={errors[q.id]}
                             setError={(msg) =>
                               setErrors((p) => ({ ...p, [q.id]: msg }))

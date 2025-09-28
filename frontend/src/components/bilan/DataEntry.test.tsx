@@ -1,10 +1,36 @@
 import { render, screen, fireEvent, within } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
 import * as React from 'react';
 import { DataEntry, type DataEntryHandle } from './DataEntry';
 import type { Question } from '@/types/question';
+import { resetDraftStores } from '@/store/draft';
 
 const noop = () => {};
+
+let draftCounter = 0;
+const makeDraftKey = () => {
+  draftCounter += 1;
+  return { bilanId: 'test-bilan', sectionId: `section-${draftCounter}` };
+};
+
+beforeEach(() => {
+  draftCounter = 0;
+  resetDraftStores();
+});
+
+beforeAll(() => {
+  vi.stubGlobal(
+    'IntersectionObserver',
+    class {
+      observe() {}
+      disconnect() {}
+    },
+  );
+});
+
+afterAll(() => {
+  vi.unstubAllGlobals();
+});
 
 const mcQuestion: Question = {
   id: '1',
@@ -138,7 +164,14 @@ const titleQuestion: Question = {
 
 describe('DataEntry', () => {
   it('renders multiple choice options as buttons', () => {
-    render(<DataEntry questions={[mcQuestion]} answers={{}} onChange={noop} />);
+    render(
+      <DataEntry
+        questions={[mcQuestion]}
+        draftKey={makeDraftKey()}
+        answers={{}}
+        onChange={noop}
+      />,
+    );
     fireEvent.click(screen.getByText(/ajouter/i));
     expect(screen.getByRole('button', { name: 'Opt1' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Opt2' })).toBeInTheDocument();
@@ -148,6 +181,7 @@ describe('DataEntry', () => {
     render(
       <DataEntry
         questions={[tableMultiRowQuestion]}
+        draftKey={makeDraftKey()}
         answers={{}}
         onChange={noop}
       />,
@@ -162,7 +196,12 @@ describe('DataEntry', () => {
 
   it('validates scale input', () => {
     render(
-      <DataEntry questions={[scaleQuestion]} answers={{}} onChange={noop} />,
+      <DataEntry
+        questions={[scaleQuestion]}
+        draftKey={makeDraftKey()}
+        answers={{}}
+        onChange={noop}
+      />,
     );
     fireEvent.click(screen.getByText(/ajouter/i));
     const input = screen.getByRole('spinbutton');
@@ -174,6 +213,7 @@ describe('DataEntry', () => {
     render(
       <DataEntry
         questions={[mcQuestion]}
+        draftKey={makeDraftKey()}
         answers={{}}
         onChange={noop}
         inline
@@ -191,6 +231,7 @@ describe('DataEntry', () => {
       <DataEntry
         ref={ref}
         questions={[mcQuestion]}
+        draftKey={makeDraftKey()}
         answers={{}}
         onChange={handle}
         inline
@@ -208,6 +249,7 @@ describe('DataEntry', () => {
     render(
       <DataEntry
         questions={[tableQuestion]}
+        draftKey={makeDraftKey()}
         answers={{}}
         onChange={noop}
         inline
@@ -220,6 +262,7 @@ describe('DataEntry', () => {
     render(
       <DataEntry
         questions={[tableCommentQuestion]}
+        draftKey={makeDraftKey()}
         answers={{}}
         onChange={noop}
         inline
@@ -232,6 +275,7 @@ describe('DataEntry', () => {
     render(
       <DataEntry
         questions={[mcQuestion]}
+        draftKey={makeDraftKey()}
         answers={{}}
         onChange={noop}
         inline
@@ -244,6 +288,7 @@ describe('DataEntry', () => {
     render(
       <DataEntry
         questions={[tableScoreQuestion]}
+        draftKey={makeDraftKey()}
         answers={{}}
         onChange={noop}
         inline
@@ -256,6 +301,7 @@ describe('DataEntry', () => {
     render(
       <DataEntry
         questions={[tableSelectQuestion]}
+        draftKey={makeDraftKey()}
         answers={{}}
         onChange={noop}
         inline
@@ -268,6 +314,7 @@ describe('DataEntry', () => {
     render(
       <DataEntry
         questions={[tableMultiQuestion]}
+        draftKey={makeDraftKey()}
         answers={{}}
         onChange={noop}
         inline
@@ -280,6 +327,7 @@ describe('DataEntry', () => {
     render(
       <DataEntry
         questions={[tableCheckQuestion]}
+        draftKey={makeDraftKey()}
         answers={{}}
         onChange={noop}
         inline
@@ -292,6 +340,7 @@ describe('DataEntry', () => {
     render(
       <DataEntry
         questions={[titleQuestion]}
+        draftKey={makeDraftKey()}
         answers={{}}
         onChange={noop}
         inline
