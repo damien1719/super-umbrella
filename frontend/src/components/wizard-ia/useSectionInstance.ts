@@ -144,8 +144,8 @@ export function useSectionInstance({
         setStatus('error');
         throw error;
       } finally {
-        console.log("saved");
-        console.log("notes", notes);
+        console.log('saved');
+        console.log('notes', notes);
         if (saveAbortRef.current === controller) {
           saveAbortRef.current = null;
         }

@@ -3,6 +3,8 @@ import TrameCard from '../TrameCard';
 import CreerTrameModal from '../ui/creer-trame-modale';
 import { Plus } from 'lucide-react';
 import type { TrameOption } from '../bilan/TrameSelector';
+import { useMemo, useState } from 'react';
+import { SearchField } from '@/components/ui/search-field';
 
 type TrameTabKey = 'mine' | 'official' | 'community';
 
@@ -33,7 +35,9 @@ export function TrameSelectionStep({
   trameKind,
   onCreateTrame,
 }: TrameSelectionStepProps) {
-  const displayedTrames = (() => {
+  const [search, setSearch] = useState('');
+
+  const displayedTrames = useMemo(() => {
     switch (activeTab) {
       case 'mine':
         return collections.mine;
@@ -44,7 +48,13 @@ export function TrameSelectionStep({
       default:
         return [] as TrameOption[];
     }
-  })();
+  }, [activeTab, collections]);
+
+  const filteredTrames = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return displayedTrames;
+    return displayedTrames.filter((t) => t.label?.toLowerCase().includes(q));
+  }, [displayedTrames, search]);
 
   return (
     <div className="space-y-4">
@@ -75,11 +85,17 @@ export function TrameSelectionStep({
               },
             ]}
           />
+          <SearchField
+            value={search}
+            onChange={setSearch}
+            placeholder="Rechercher par nom…"
+            className="w-full max-w-xs"
+          />
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {displayedTrames.map((trame) => (
+        {filteredTrames.map((trame) => (
           <TrameCard
             key={trame.value}
             trame={{

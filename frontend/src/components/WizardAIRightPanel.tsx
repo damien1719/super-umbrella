@@ -91,8 +91,6 @@ export default function WizardAIRightPanel({
   const [rawNotes, setRawNotes] = useState('');
   const [imageBase64, setImageBase64] = useState<string | undefined>(undefined);
 
-
-
   // Ne pas refetch ici pour éviter les doublons (StrictMode double les effets en dev)
   // Le chargement initial du profil est géré dans App.tsx
 
@@ -355,11 +353,11 @@ export default function WizardAIRightPanel({
           if (!selectedTrame?.value) return;
           const latest = await loadLatestInstance();
           const content = latest?.answers ?? {};
-          console.log("content", content)
+          console.log('content', content);
           onAnswersChange(content);
           dataEntryRef.current?.load?.(content);
           sectionMarkSaved(content);
-          console.log("sectionMarkSaved", sectionMarkSaved)
+          console.log('sectionMarkSaved', sectionMarkSaved);
         }
       } catch (e) {
         if ((e as Error)?.name === 'AbortError') return;
@@ -372,15 +370,10 @@ export default function WizardAIRightPanel({
     return () => {
       cancelled = true;
     };
-  }, [
-    step,
-    mode,
-    activeBilanSectionId,
-    selectedTrame?.value,
-  ]);
+  }, [step, mode, activeBilanSectionId, selectedTrame?.value]);
 
   const flushCurrent = async () => {
-    console.log("flush", notesMode, step)
+    console.log('flush', notesMode, step);
     try {
       if (mode === 'bilanType' && activeBilanSectionId) {
         const currentDraftKey = { bilanId, sectionId: activeBilanSectionId };
