@@ -19,7 +19,11 @@ type DraftMetadata = {
 type DraftActions = {
   applyChange: (answers: Answers) => void;
   hydrate: (initial: Partial<DraftMetadata>) => void;
-  markSaved: (params: { hash: string; version: number; savedAt?: string }) => void;
+  markSaved: (params: {
+    hash: string;
+    version: number;
+    savedAt?: string;
+  }) => void;
 };
 
 export type DraftStore = DraftMetadata & DraftActions;
@@ -82,7 +86,9 @@ function keyOf(identifier: DraftIdentifier): string {
   return `${identifier.bilanId}::${identifier.sectionId}`;
 }
 
-export function getDraftStore(identifier: DraftIdentifier): StoreApi<DraftStore> {
+export function getDraftStore(
+  identifier: DraftIdentifier,
+): StoreApi<DraftStore> {
   const key = keyOf(identifier);
   let store = stores.get(key);
   if (!store) {
@@ -96,7 +102,10 @@ export function useDraftStore<T>(
   identifier: DraftIdentifier,
   selector: (state: DraftStore) => T,
 ): T {
-  const store = useMemo(() => getDraftStore(identifier), [identifier.bilanId, identifier.sectionId]);
+  const store = useMemo(
+    () => getDraftStore(identifier),
+    [identifier.bilanId, identifier.sectionId],
+  );
   return useStore(store, selector);
 }
 

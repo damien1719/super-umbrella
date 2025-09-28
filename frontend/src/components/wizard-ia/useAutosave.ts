@@ -39,6 +39,8 @@ export function useAutosave<T>({
       return;
     }
 
+    console.log("useAutosave", data);
+
     const timeout = window.setTimeout(() => {
       inFlightRef.current = true;
       Promise.resolve(save(data))

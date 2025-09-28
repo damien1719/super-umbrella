@@ -8,7 +8,6 @@ import {
 } from '@/components/ui/dialog';
 import ExitConfirmation from './ExitConfirmation';
 import { Loader2, Wand2, X } from 'lucide-react';
-import { apiFetch } from '@/utils/api';
 import { useAuth } from '@/store/auth';
 import { useUserProfileStore } from '@/store/userProfile';
 import { kindMap } from '@/types/trame';
@@ -21,6 +20,9 @@ import { useSectionStore } from '@/store/sections';
 import { TrameSelectionStep } from './wizard-ia/TrameSectionStep';
 import { BilanTypeNotesEditor } from './wizard-ia/BilanTypeNotesEditor';
 import { SectionNotesEditor } from './wizard-ia/SectionNotesEditor';
+import { useSectionInstance } from './wizard-ia/useSectionInstance';
+import { useAutosave } from './wizard-ia/useAutosave';
+import { getDraftStore, useDraftStore } from '@/store/draft';
 
 export interface WizardAIRightPanelProps {
   sectionInfo: SectionInfo;
@@ -74,7 +76,6 @@ export default function WizardAIRightPanel({
   const navigate = useNavigate();
   const total = 2;
   const token = useAuth((s) => s.token);
-  const [instanceId, setInstanceId] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
   // Le profil est chargé au niveau de l'application (App.tsx layouts)
   // Ici on se contente de le consommer pour filtrer les trames
@@ -90,14 +91,7 @@ export default function WizardAIRightPanel({
   const [rawNotes, setRawNotes] = useState('');
   const [imageBase64, setImageBase64] = useState<string | undefined>(undefined);
 
-  // Debug: log when imageBase64 changes
-  useEffect(() => {
-    console.log('[DEBUG] WizardAIRightPanel - imageBase64 state changed:', {
-      hasImage: !!imageBase64,
-      imageLength: imageBase64?.length || 0,
-      preview: imageBase64?.substring(0, 100) + '...' || 'none',
-    });
-  }, [imageBase64]);
+
 
   // Ne pas refetch ici pour éviter les doublons (StrictMode double les effets en dev)
   // Le chargement initial du profil est géré dans App.tsx
@@ -222,24 +216,22 @@ export default function WizardAIRightPanel({
   const [bilanAnswers, setBilanAnswers] = useState<Record<string, Answers>>({});
   const [excludedSectionIds, setExcludedSectionIds] = useState<string[]>([]);
 
-  const activeBilanDraftKey = useMemo(
-    () => ({
-      bilanId,
-      sectionId: activeBilanSectionId ?? '__bilan-type__',
-    }),
-    [bilanId, activeBilanSectionId],
-  );
-
   const activeBilanAnswers =
     (activeBilanSectionId && bilanAnswers[activeBilanSectionId]) || {};
 
-  const handleSelectBilanSection = (id: string) => {
-    if (notesMode === 'manual' && activeBilanSectionId) {
-      try {
-        const data = dataEntryRef.current?.save() as Answers | undefined;
-        if (data) void saveNotes(data, activeBilanSectionId);
-      } catch {}
-    }
+  const handleSelectBilanSection = async (id: string) => {
+    // Flush current draft before switching section
+    try {
+      if (notesMode === 'manual' && activeBilanSectionId) {
+        const currentDraftKey = { bilanId, sectionId: activeBilanSectionId };
+        const currentAnswers =
+          getDraftStore(currentDraftKey).getState().answers;
+        await bilanTypeInstance.save(currentAnswers, {
+          sectionId: activeBilanSectionId,
+        });
+        bilanTypeMarkSaved(currentAnswers);
+      }
+    } catch {}
     setActiveBilanSectionId(id);
   };
 
@@ -287,68 +279,138 @@ export default function WizardAIRightPanel({
     window.dispatchEvent(evt);
   }, [mode, activeBilanSectionId, navItems]);
 
-  // Preload latest notes when entering step 2
-  useEffect(() => {
-    if (step !== 2) return;
-    if (mode === 'bilanType') {
-      if (!activeBilanSectionId) return;
-      (async () => {
-        try {
-          const res = await apiFetch<
-            Array<{ id: string; contentNotes: Answers }>
-          >(
-            `/api/v1/bilan-section-instances?bilanId=${bilanId}&sectionId=${activeBilanSectionId}&latest=true`,
-            { headers: { Authorization: `Bearer ${token}` } },
-          );
-          if (res.length) {
-            setInstanceId(res[0].id);
-            const content = (res[0].contentNotes || {}) as Answers;
-            setBilanAnswers((prev) => ({
-              ...prev,
-              [activeBilanSectionId]: content,
-            }));
-            dataEntryRef.current?.load?.(content);
-          } else {
-            setInstanceId(null);
-            setBilanAnswers((prev) => ({
-              ...prev,
-              [activeBilanSectionId]: {},
-            }));
-            dataEntryRef.current?.clear?.();
-          }
-        } catch (e) {
-          console.error('Failed to load latest section instance', e);
-        }
-      })();
-    } else {
-      if (!selectedTrame) return;
-      (async () => {
-        try {
-          const res = await apiFetch<
-            Array<{ id: string; contentNotes: Answers }>
-          >(
-            `/api/v1/bilan-section-instances?bilanId=${bilanId}&sectionId=${selectedTrame.value}&latest=true`,
-            { headers: { Authorization: `Bearer ${token}` } },
-          );
-          if (res.length) {
-            setInstanceId(res[0].id);
-            // preload answers both in parent state and DataEntry local state
-            onAnswersChange(res[0].contentNotes as Answers);
-            dataEntryRef.current?.load?.(res[0].contentNotes as Answers);
-          } else {
-            setInstanceId(null);
-            onAnswersChange({});
-            dataEntryRef.current?.clear?.();
-          }
-        } catch (e) {
-          console.error('Failed to load latest section instance', e);
-        }
-      })();
-    }
-  }, [step, selectedTrame, bilanId, token, mode, activeBilanSectionId]);
+  // Section instance hooks
+  const sectionInstance = useSectionInstance({
+    bilanId,
+    sectionId: mode === 'section' ? selectedTrame?.value : activeBilanSectionId,
+    token,
+  });
+  // Separate instance accessor for bilanType to flush current on switch cleanly
+  const bilanTypeInstance = useSectionInstance({
+    bilanId,
+    sectionId: activeBilanSectionId,
+    token,
+  });
 
-  const next = () => setStep((s) => Math.min(total, s + 1));
-  const prev = () => setStep((s) => Math.max(1, s - 1));
+  // Draft keys and draft answers for autosave
+  const sectionDraftKey = useMemo(
+    () => ({ bilanId, sectionId: sectionInfo.id }),
+    [bilanId, sectionInfo.id],
+  );
+  const activeBilanDraftKey = useMemo(
+    () => ({
+      bilanId,
+      sectionId: activeBilanSectionId ?? '__bilan-type__',
+    }),
+    [bilanId, activeBilanSectionId],
+  );
+  const sectionDraftAnswers = useDraftStore(sectionDraftKey, (s) => s.answers);
+  const bilanDraftAnswers = useDraftStore(
+    activeBilanDraftKey,
+    (s) => s.answers,
+  );
+
+  // Autosave for section mode
+  const { markSaved: sectionMarkSaved } = useAutosave<Answers>({
+    data: sectionDraftAnswers,
+    enabled:
+      step === 2 &&
+      mode === 'section' &&
+      notesMode === 'manual' &&
+      !!selectedTrame?.value,
+    save: (data) => sectionInstance.save(data),
+  });
+  // Autosave for bilanType mode (active section)
+  const { markSaved: bilanTypeMarkSaved } = useAutosave<Answers>({
+    data: bilanDraftAnswers,
+    enabled:
+      step === 2 &&
+      mode === 'bilanType' &&
+      notesMode === 'manual' &&
+      !!activeBilanSectionId,
+    save: (data) => bilanTypeInstance.save(data),
+  });
+
+  // Load latest on entering editor or switching active section, then hydrate draft and mount editor
+  const [editorReady, setEditorReady] = useState(false);
+  const loadLatestInstance = sectionInstance.loadLatest;
+
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      if (step !== 2) return;
+      setEditorReady(false);
+      try {
+        if (mode === 'bilanType') {
+          if (!activeBilanSectionId) return;
+          const latest = await loadLatestInstance();
+          const content = latest?.answers ?? {};
+          setBilanAnswers((prev) => ({
+            ...prev,
+            [activeBilanSectionId]: content,
+          }));
+          dataEntryRef.current?.load?.(content);
+          bilanTypeMarkSaved(content);
+        } else {
+          if (!selectedTrame?.value) return;
+          const latest = await loadLatestInstance();
+          const content = latest?.answers ?? {};
+          console.log("content", content)
+          onAnswersChange(content);
+          dataEntryRef.current?.load?.(content);
+          sectionMarkSaved(content);
+          console.log("sectionMarkSaved", sectionMarkSaved)
+        }
+      } catch (e) {
+        if ((e as Error)?.name === 'AbortError') return;
+        console.error('Failed to load latest section instance', e);
+      } finally {
+        if (!cancelled) setEditorReady(true);
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    step,
+    mode,
+    activeBilanSectionId,
+    selectedTrame?.value,
+  ]);
+
+  const flushCurrent = async () => {
+    console.log("flush", notesMode, step)
+    try {
+      if (mode === 'bilanType' && activeBilanSectionId) {
+        const currentDraftKey = { bilanId, sectionId: activeBilanSectionId };
+        const currentAnswers =
+          getDraftStore(currentDraftKey).getState().answers;
+        await sectionInstance.save(currentAnswers, {
+          sectionId: activeBilanSectionId,
+        });
+        bilanTypeMarkSaved(currentAnswers);
+      } else if (mode === 'section' && selectedTrame?.value) {
+        const currentAnswers =
+          getDraftStore(sectionDraftKey).getState().answers;
+        await sectionInstance.save(currentAnswers, {
+          sectionId: selectedTrame.value,
+        });
+        sectionMarkSaved(currentAnswers);
+      }
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const next = async () => {
+    await flushCurrent();
+    setStep((s) => Math.min(total, s + 1));
+  };
+  const prev = async () => {
+    await flushCurrent();
+    setStep((s) => Math.max(1, s - 1));
+  };
 
   // Notify wrapper about step changes (used to control outer footer)
   useEffect(() => {
@@ -448,128 +510,8 @@ export default function WizardAIRightPanel({
     }
   }
 
-  const [isManualSaving, setIsManualSaving] = useState(false);
-
-  const saveNotes = async (
-    notes: Answers | undefined,
-    targetOverrideId?: string | null,
-  ): Promise<string | null> => {
-    const targetSectionId =
-      targetOverrideId ??
-      (mode === 'bilanType' ? activeBilanSectionId : selectedTrame?.value);
-    if (!targetSectionId) return null;
-
-    // Debug: trace d'où vient l'appel upsert
-    console.trace('[DEBUG] saveNotes called - Stack trace:');
-    console.log('[DEBUG] saveNotes - notes:', notes);
-    console.log('[DEBUG] saveNotes - selectedTrame:', selectedTrame?.value);
-    console.log('[DEBUG] saveNotes - targetSectionId:', targetSectionId);
-    console.log('[DEBUG] saveNotes - isManualSaving:', isManualSaving);
-
-    setIsManualSaving(true);
-    try {
-      const res = await apiFetch<{ id: string }>(
-        `/api/v1/bilan-section-instances/upsert`,
-        {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
-          body: JSON.stringify({
-            bilanId,
-            sectionId: targetSectionId,
-            contentNotes: notes,
-          }),
-        },
-      );
-      setInstanceId(res.id);
-      return res.id;
-    } finally {
-      // Délai pour éviter que l'autosave se déclenche immédiatement après
-      setTimeout(() => setIsManualSaving(false), 1500);
-    }
-  };
-
-  // Autosave on answers change (debounced) while on step 2
-  const lastSavedRef = useRef<string>('');
-  useEffect(() => {
-    if (step !== 2 || isManualSaving) return;
-    const currentAns =
-      mode === 'bilanType'
-        ? activeBilanSectionId
-          ? bilanAnswers[activeBilanSectionId]
-          : {}
-        : answers;
-    const payload = JSON.stringify(currentAns ?? {});
-    if (payload === lastSavedRef.current) return;
-    const t = setTimeout(() => {
-      (async () => {
-        try {
-          await saveNotes(currentAns);
-          lastSavedRef.current = payload;
-        } catch {
-          // ignore autosave errors silently
-        }
-      })();
-    }, 1000);
-    return () => clearTimeout(t);
-  }, [answers, bilanAnswers, activeBilanSectionId, mode, step, isManualSaving]);
-
-  // Reset autosave sentinel when switching active section
-  useEffect(() => {
-    lastSavedRef.current = '';
-  }, [activeBilanSectionId]);
-
-  useEffect(() => {
-    if (step !== 2 || isManualSaving) return;
-    const interval = setInterval(() => {
-      const data = dataEntryRef.current?.save() as Answers | undefined;
-      if (data) {
-        saveNotes(data).catch(() => {
-          /* ignore error */
-        });
-      }
-    }, 20000); // 20s
-
-    return () => clearInterval(interval);
-  }, [step, selectedTrame, isManualSaving]);
-
-  // Autosave on unmount (including ESC close via Dialog)
-  /*   useEffect(() => {
-    return () => {
-      try {
-        const data = dataEntryRef.current?.save() as Answers | undefined;
-        // fire-and-forget
-        void saveNotes(data);
-      } catch {
-        // ignore
-      }
-    };
-  }, []); */
-
-  // Save immediately when user presses ESC (best-effort before Dialog closes)
-  /*   useEffect(() => {
-    if (step !== 2 || isManualSaving) return;
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        try {
-          const data = dataEntryRef.current?.save() as Answers | undefined;
-          void saveNotes(data);
-        } catch {}
-      }
-    };
-    window.addEventListener('keydown', onKeyDown, true);
-    return () => window.removeEventListener('keydown', onKeyDown, true);
-  }, [step]); */
-
   const handleClose = async () => {
-    if (step === 2 && selectedTrame && !isManualSaving) {
-      //const data = dataEntryRef.current?.save() as Answers | undefined;
-      try {
-        /*         await saveNotes(data);
-         */
-      } catch {
-        /* ignore/option: toast */
-      }
-    }
+    await flushCurrent();
     onCancel();
   };
 
@@ -578,24 +520,44 @@ export default function WizardAIRightPanel({
     console.log('[DEBUG] WizardAIRightPanel - triggerGenerateCurrent');
     const isTemplateMode =
       !!selectedTrame?.templateRefId && !!onGenerateFromTemplate;
-    const data: Answers =
+    const currentAnswers: Answers =
       notesMode === 'manual'
-        ? (dataEntryRef.current?.save() as Answers) || {}
+        ? mode === 'bilanType'
+          ? getDraftStore({
+              bilanId,
+              sectionId: activeBilanSectionId!,
+            }).getState().answers
+          : getDraftStore(sectionDraftKey).getState().answers
         : {};
 
     if (isTemplateMode) {
-      const id = await saveNotes(data);
+      // Flush to get latest instance id
+      const id = await sectionInstance.save(currentAnswers);
+      if (notesMode === 'manual') {
+        if (mode === 'bilanType') {
+          bilanTypeMarkSaved(currentAnswers);
+        } else {
+          sectionMarkSaved(currentAnswers);
+        }
+      }
       onGenerateFromTemplate?.(
-        notesMode === 'manual' ? data : undefined,
+        notesMode === 'manual' ? currentAnswers : undefined,
         rawNotes,
         id || undefined,
         imageBase64,
       );
       onCancel();
     } else {
-      await saveNotes(data);
+      await sectionInstance.save(currentAnswers);
+      if (notesMode === 'manual') {
+        if (mode === 'bilanType') {
+          bilanTypeMarkSaved(currentAnswers);
+        } else {
+          sectionMarkSaved(currentAnswers);
+        }
+      }
       onGenerate(
-        notesMode === 'manual' ? data : undefined,
+        notesMode === 'manual' ? currentAnswers : undefined,
         rawNotes,
         imageBase64,
       );
@@ -608,62 +570,29 @@ export default function WizardAIRightPanel({
   const triggerGenerateAll = async () => {
     if (mode !== 'bilanType') return;
     console.log('[DEBUG] WizardAIRightPanel - triggerGenerateAll');
-    // Save current active section answers first if in manual mode
-    try {
-      const currentData: Answers | undefined =
-        notesMode === 'manual'
-          ? (dataEntryRef.current?.save() as Answers)
-          : undefined;
-      if (currentData) await saveNotes(currentData).catch(() => {});
-    } catch {}
-
-    // Iterate all sections of the selected BilanType
+    // Flush current active section answers first if in manual mode
+    await flushCurrent();
+    // Prefer delegating to wrapper via onGenerateAll
+    if (onGenerateAll && selectedTrame?.value) {
+      onGenerateAll(selectedTrame.value, excludedSectionIds);
+      return;
+    }
+    // Fallback legacy behavior: call onGenerate sequentially without additional fetches
     const sectionItems = navItems.filter((x) => x.kind !== 'separator');
-    for (const sec of sectionItems as Array<{
-      id: string;
-      title: string;
-      index?: number;
-    }>) {
-      if (excludedSectionIds.includes(sec.id)) {
-        console.log(
-          '[DEBUG] triggerGenerateAll - skipping excluded section',
-          sec.id,
-        );
-        continue;
-      }
+    for (const sec of sectionItems as Array<{ id: string; title: string }>) {
+      if (excludedSectionIds.includes(sec.id)) continue;
+      const answersForSec = bilanAnswers[sec.id] || {};
+      const isTemplateMode =
+        !!selectedTrame?.templateRefId && !!onGenerateFromTemplate;
       try {
-        // Load latest instanceId for this section to pass to template generation if supported
-        let latestInstanceId: string | undefined = undefined;
-        try {
-          const res = await apiFetch<
-            Array<{ id: string; contentNotes: Answers }>
-          >(
-            `/api/v1/bilan-section-instances?bilanId=${bilanId}&sectionId=${sec.id}&latest=true`,
-            { headers: { Authorization: `Bearer ${token}` } },
-          );
-          latestInstanceId = res[0]?.id;
-        } catch (e) {
-          console.warn(
-            '[DEBUG] triggerGenerateAll - load latest failed for',
-            sec.id,
-            e,
-          );
-        }
-
-        const answersForSec = bilanAnswers[sec.id] || {};
-        const isTemplateMode =
-          !!selectedTrame?.templateRefId && !!onGenerateFromTemplate;
-
         if (isTemplateMode) {
-          // Use per-section instance if available
           await onGenerateFromTemplate?.(
             notesMode === 'manual' ? answersForSec : undefined,
             rawNotes,
-            latestInstanceId,
+            undefined,
             imageBase64,
           );
         } else {
-          console.log('here');
           await onGenerate(
             notesMode === 'manual' ? answersForSec : undefined,
             rawNotes,
@@ -685,13 +614,7 @@ export default function WizardAIRightPanel({
     const onGenSelected = () => void triggerGenerateCurrent();
     const onGenAll = () => void triggerGenerateAll();
     const onSaveCurrent = () => {
-      try {
-        const data =
-          notesMode === 'manual'
-            ? (dataEntryRef.current?.save() as Answers)
-            : undefined;
-        if (data) void saveNotes(data);
-      } catch {}
+      void flushCurrent();
     };
     window.addEventListener('bilan-type:generate-selected', onGenSelected);
     window.addEventListener('bilan-type:generate-all', onGenAll);
@@ -747,7 +670,13 @@ export default function WizardAIRightPanel({
       </div>
 
       {/* Row 2 — Scrollable content */}
-      <div className={'flex-1 overflow-y-auto px-4 min-h-0'}>{content}</div>
+      <div className={'flex-1 overflow-y-auto px-4 min-h-0'}>
+        {step === 2 && !editorReady ? (
+          <div className="text-sm text-gray-500 py-8">Chargement…</div>
+        ) : (
+          content
+        )}
+      </div>
 
       {/* Row 3 — Footer glued to bottom (hidden at step 2 in bilanType mode to avoid duplicate footers) */}
       {!(mode === 'bilanType' && step === total) && (

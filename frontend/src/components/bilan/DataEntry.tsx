@@ -48,20 +48,17 @@ type QuestionGroup = {
 };
 
 const stableStringify = (input: unknown): string =>
-  JSON.stringify(
-    input,
-    (_, value) => {
-      if (value && typeof value === 'object' && !Array.isArray(value)) {
-        return Object.keys(value as Record<string, unknown>)
-          .sort()
-          .reduce<Record<string, unknown>>((acc, key) => {
-            acc[key] = (value as Record<string, unknown>)[key];
-            return acc;
-          }, {});
-      }
-      return value;
-    },
-  ) ?? '';
+  JSON.stringify(input, (_, value) => {
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      return Object.keys(value as Record<string, unknown>)
+        .sort()
+        .reduce<Record<string, unknown>>((acc, key) => {
+          acc[key] = (value as Record<string, unknown>)[key];
+          return acc;
+        }, {});
+    }
+    return value;
+  }) ?? '';
 
 const serializeAnswers = (value?: Answers): string =>
   stableStringify(value ?? {});

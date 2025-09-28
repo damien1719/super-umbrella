@@ -21,7 +21,7 @@ interface BilanTypeNotesEditorProps {
   onSelectSection: (id: string) => void;
   excludedSectionIds: string[];
   onToggleExcluded: (id: string) => void;
-  dataEntryRef: RefObject<DataEntryHandle>;
+  dataEntryRef: RefObject<DataEntryHandle | null>;
   answers: Answers;
   onAnswersChange: (answers: Answers) => void;
   notesMode: 'manual' | 'import';
@@ -98,7 +98,7 @@ export function BilanTypeNotesEditor({
       />
 
       <div className="flex-1 flex flex-col min-h-0">
-        <Tabs
+        {/*         <Tabs
           className="mb-4"
           active={notesMode}
           onChange={(key) => {
@@ -113,27 +113,20 @@ export function BilanTypeNotesEditor({
             { key: 'manual', label: 'Saisie manuelle' },
             { key: 'import', label: 'Import des notes' },
           ]}
+        /> */}
+
+        <InlineGroupChips titles={groupTitles} />
+
+        <DataEntry
+          ref={dataEntryRef}
+          questions={activeQuestions}
+          draftKey={draftKey}
+          answers={answers}
+          onChange={onAnswersChange}
+          inline
+          showGroupNav={false}
+          defaultGroupTitle={activeSection?.title}
         />
-
-        {notesMode === 'manual' && <InlineGroupChips titles={groupTitles} />}
-
-        {notesMode === 'manual' ? (
-          <DataEntry
-            ref={dataEntryRef}
-            questions={activeQuestions}
-            draftKey={draftKey}
-            answers={answers}
-            onChange={onAnswersChange}
-            inline
-            showGroupNav={false}
-            defaultGroupTitle={activeSection?.title}
-          />
-        ) : (
-          <ImportNotes
-            onChange={onRawNotesChange}
-            onImageChange={onImageChange}
-          />
-        )}
       </div>
     </div>
   );

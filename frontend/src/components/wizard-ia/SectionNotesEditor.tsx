@@ -10,7 +10,7 @@ interface SectionNotesEditorProps {
   questions: Question[];
   answers: Answers;
   onAnswersChange: (answers: Answers) => void;
-  dataEntryRef: RefObject<DataEntryHandle>;
+  dataEntryRef: RefObject<DataEntryHandle | null>;
   notesMode: 'manual' | 'import';
   onNotesModeChange: (mode: 'manual' | 'import') => void;
   onRawNotesChange: (value: string) => void;
