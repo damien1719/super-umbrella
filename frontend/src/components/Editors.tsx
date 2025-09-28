@@ -31,11 +31,18 @@ import {
   AlertDialogPortal,
   AlertDialogOverlay,
 } from './ui/alert-dialog';
+import AstInsertModal from './AstInsertModal';
 
 export type EditorProps = {
   q: Question;
   onPatch: (p: Partial<Question>) => void;
   isReadOnly?: boolean;
+  getAstSnippet?: (id?: string | null) => string | null | undefined;
+  saveAstSnippet?: (
+    content: string,
+    previousId?: string | null,
+  ) => string | null;
+  deleteAstSnippet?: (id: string) => void;
 };
 
 export function NotesEditor({}: EditorProps) {
@@ -120,12 +127,22 @@ export function MultiChoiceEditor({ q, onPatch, isReadOnly }: EditorProps) {
                 données
               </p>
             </div>
-            <Button variant="icon" size="sm" onClick={toggleComment} disabled={isReadOnly}>
+            <Button
+              variant="icon"
+              size="sm"
+              onClick={toggleComment}
+              disabled={isReadOnly}
+            >
               <X className="h-4 w-4" />
             </Button>
           </div>
         ) : (
-          <Button variant="outline" size="sm" onClick={toggleComment} disabled={isReadOnly}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={toggleComment}
+            disabled={isReadOnly}
+          >
             + Ajouter une zone de commentaire
           </Button>
         )}
@@ -140,12 +157,20 @@ export function ScaleEditor({}: EditorProps) {
   );
 }
 
-export function TableEditor({ q, onPatch, isReadOnly }: EditorProps) {
+export function TableEditor({
+  q,
+  onPatch,
+  isReadOnly,
+  getAstSnippet,
+  saveAstSnippet,
+  deleteAstSnippet,
+}: EditorProps) {
   const genId = () => Math.random().toString(36).slice(2);
   const [groupToDelete, setGroupToDelete] = React.useState<string | null>(null);
   const [editingGroupId, setEditingGroupId] = React.useState<string | null>(
     null,
   );
+  const [isAstModalOpen, setIsAstModalOpen] = React.useState(false);
   const tableau: SurveyTable & { commentaire?: boolean } = q.tableau
     ? 'rowsGroups' in q.tableau
       ? q.tableau
@@ -245,7 +270,15 @@ export function TableEditor({ q, onPatch, isReadOnly }: EditorProps) {
 
   const toggleAnchorInsert = () => {
     if (tableau.crInsert) {
-      setTable({ ...tableau, crInsert: false, crTableId: undefined });
+      if (tableau.crAstId && deleteAstSnippet) {
+        deleteAstSnippet(tableau.crAstId);
+      }
+      setTable({
+        ...tableau,
+        crInsert: false,
+        crTableId: undefined,
+        crAstId: undefined,
+      });
       return;
     }
     // Use the question id to ensure a unique default anchor id per table
@@ -342,6 +375,35 @@ export function TableEditor({ q, onPatch, isReadOnly }: EditorProps) {
       ),
     });
   };
+
+  const tablePathOptions = React.useMemo(() => {
+    const options: { path: string; label: string }[] = [];
+    const columns = tableau.columns ?? [];
+
+    if (columns.length > 0) {
+      for (const group of tableau.rowsGroups ?? []) {
+        for (const row of group.rows ?? []) {
+          const rowLabel = row.label?.trim() || row.id;
+          for (const column of columns) {
+            const colLabel = column.label?.trim() || column.id;
+            options.push({
+              path: `${q.id}.${row.id}.${column.id}`,
+              label: `${rowLabel}.${colLabel}`,
+            });
+          }
+        }
+      }
+    }
+
+    if (tableau.commentaire) {
+      options.push({
+        path: `${q.id}.commentaire`,
+        label: 'Commentaire',
+      });
+    }
+
+    return options;
+  }, [q.id, tableau.columns, tableau.rowsGroups, tableau.commentaire]);
 
   return (
     <>
@@ -607,12 +669,22 @@ export function TableEditor({ q, onPatch, isReadOnly }: EditorProps) {
                   données
                 </p>
               </div>
-              <Button variant="icon" size="sm" onClick={toggleComment} disabled={isReadOnly}>
+              <Button
+                variant="icon"
+                size="sm"
+                onClick={toggleComment}
+                disabled={isReadOnly}
+              >
                 <X className="h-4 w-4" />
               </Button>
             </div>
           ) : (
-            <Button variant="outline" size="sm" onClick={toggleComment} disabled={isReadOnly}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleComment}
+              disabled={isReadOnly}
+            >
               + Ajouter une zone de commentaire
             </Button>
           )}
@@ -637,6 +709,25 @@ export function TableEditor({ q, onPatch, isReadOnly }: EditorProps) {
             Le tableau sera inséré directement dans le bilan avec les valeurs
             que vous avez remplie lors de la rédaction.
           </p>
+          {tableau.crInsert && (
+            <div className="mt-2 flex flex-col gap-1">
+              {saveAstSnippet && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsAstModalOpen(true)}
+                  disabled={isReadOnly}
+                >
+                  Customiser le format d&apos;insertion
+                </Button>
+              )}
+              {tableau.crAstId && getAstSnippet?.(tableau.crAstId ?? null) && (
+                <p className="text-xs text-gray-500">
+                  Un format personnalisé est enregistré pour cette insertion.
+                </p>
+              )}
+            </div>
+          )}
         </div>
         <ChoixTypeDeValeurTableau
           column={
@@ -648,6 +739,23 @@ export function TableEditor({ q, onPatch, isReadOnly }: EditorProps) {
           crInsert={tableau.crInsert}
         />
       </div>
+      <AstInsertModal
+        open={isAstModalOpen}
+        onOpenChange={setIsAstModalOpen}
+        initialAst={
+          tableau.crAstId
+            ? (getAstSnippet?.(tableau.crAstId ?? null) ?? undefined)
+            : undefined
+        }
+        templateKey={`table-cr-insert-${q.id}`}
+        onSave={(serializedAst) => {
+          if (!saveAstSnippet) return;
+          const nextId = saveAstSnippet(serializedAst, tableau.crAstId);
+          if (!nextId) return;
+          setTable({ ...tableau, crAstId: nextId });
+        }}
+        pathOptions={tablePathOptions}
+      />
       <AlertDialog open={!!groupToDelete} onOpenChange={setGroupToDelete}>
         {/* on peut utiliser un trigger si on veut un bouton générique */}
         <AlertDialogPortal>
@@ -777,16 +885,41 @@ function buildSampleText(sampleText: string, format: TitlePreset['format']) {
   return segments.join('');
 }
 
+function sidesToAttr(
+  sides?: 'all' | Array<'top' | 'right' | 'bottom' | 'left'>,
+): string {
+  if (!sides || sides === 'all') return 'top right bottom left';
+  return sides.join(' ');
+}
+
+function paddingToStyle(
+  padding?:
+    | number
+    | { top?: number; right?: number; bottom?: number; left?: number },
+): React.CSSProperties | undefined {
+  if (padding == null) return undefined;
+  if (typeof padding === 'number') {
+    return { padding: `${padding}px` };
+  }
+  return {
+    paddingTop: padding.top != null ? `${padding.top}px` : undefined,
+    paddingRight: padding.right != null ? `${padding.right}px` : undefined,
+    paddingBottom: padding.bottom != null ? `${padding.bottom}px` : undefined,
+    paddingLeft: padding.left != null ? `${padding.left}px` : undefined,
+  };
+}
+
 function TitlePresetPreview({
   preset,
   sampleText = TITLE_SAMPLE_TEXT,
   showLabel = true,
   className,
 }: TitlePresetPreviewProps) {
+  const { format } = preset;
   const textClasses = getTextClasses(preset.format);
   const displayText = buildSampleText(sampleText, preset.format);
 
-  const content =
+  const inner =
     preset.format.kind === 'list-item' ? (
       <div className="flex items-start gap-2 text-left">
         <span className="mt-2 block h-1.5 w-1.5 shrink-0 rounded-full bg-gray-400" />
@@ -795,6 +928,31 @@ function TitlePresetPreview({
     ) : (
       <span className={textClasses}>{displayText}</span>
     );
+
+  const decor = format.decor;
+  const content = decor ? (
+    <div
+      className={cn('bp-decor bp-border w-full', {
+        // fallback: si pas de sides spécifiques, on laisse le style de base
+      })}
+      data-bp-weight={decor.weight ?? 'thin'}
+      data-bp-color={decor.color ?? 'black'}
+      data-bp-fill={decor.fill?.kind ?? 'none'}
+      data-bp-fill-token={decor.fill?.token}
+      // NB: si fill.kind === 'custom', on passe la couleur en inline style
+      style={{
+        borderRadius: decor.radius ? `${decor.radius}px` : undefined,
+        // couleur de fond custom si demandé
+        ...(decor.fill?.kind === 'custom' && decor.fill.color
+          ? { backgroundColor: decor.fill.color, color: undefined }
+          : {}),
+      }}
+    >
+      {inner}
+    </div>
+  ) : (
+    inner
+  );
 
   return (
     <div className={cn('flex w-full flex-col gap-1', className)}>
@@ -872,7 +1030,7 @@ function TitlePresetDropdown({
 
 export function TitleEditor({ q, onPatch, isReadOnly }: EditorProps) {
   const presets = React.useMemo(() => Object.values(DEFAULT_TITLE_PRESETS), []);
-  const defaultPresetId = "t12-underline";
+  const defaultPresetId = 't12-underline';
 
   React.useEffect(() => {
     if (!defaultPresetId || isReadOnly) return;

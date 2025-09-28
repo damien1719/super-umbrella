@@ -7,6 +7,8 @@ import {
   type LexicalEditor,
   $createParagraphNode,
   $isRootOrShadowRoot,
+  type LexicalNode,
+  ElementNode,
 } from 'lexical';
 import {
   INSERT_UNORDERED_LIST_COMMAND,
@@ -45,13 +47,7 @@ import {
   $isHeadingNode,
 } from '@lexical/rich-text';
 import { INSERT_TABLE_COMMAND } from '@lexical/table';
-import { $generateHtmlFromNodes } from '@lexical/html';
-import DOMPurify from 'dompurify';
-import {
-  normalizeBordersForDocx,
-  wrapHtmlForDocx,
-  downloadDocx,
-} from '@/lib/docxExport';
+import { exportToDocxFromNodes } from '@/lib/exportToDocxFromNodes';
 import OverflowToolbar, { type OverflowItem } from './OverflowToolbar';
 import {
   Tooltip,
@@ -60,10 +56,13 @@ import {
   TooltipTrigger,
 } from './ui/tooltip';
 import {
-  $createBorderBlockNode,
-  $isBorderBlockNode,
-  type BorderPreset,
-} from '../nodes/BorderBlockNode';
+  $createDecorBlockNode,
+  $isDecorBlockNode,
+  DecorBlockNode,
+  type BorderWeight,
+  type DecorFillMode,
+  type DecorFillToken,
+} from '../nodes/DecorBlockNode';
 import { SET_LINE_HEIGHT_COMMAND } from '../plugins/LineHeightPlugin';
 
 function parseInlineStyle(style: string): Record<string, string> {
@@ -131,13 +130,62 @@ export function setBackgroundColor(
   });
 }
 
+const DECOR_FILL_COLORS: Array<{
+  token: DecorFillToken;
+  label: string;
+  swatch: string;
+  textColor: string;
+}> = [
+  { token: 'red', label: 'Rouge', swatch: '#DC2626', textColor: '#FFFFFF' },
+  { token: 'orange', label: 'Orange', swatch: '#EA580C', textColor: '#FFFFFF' },
+  { token: 'yellow', label: 'Jaune', swatch: '#EAB308', textColor: '#111827' },
+  { token: 'green', label: 'Vert', swatch: '#16A34A', textColor: '#FFFFFF' },
+  {
+    token: 'teal',
+    label: 'Turquoise',
+    swatch: '#0D9488',
+    textColor: '#FFFFFF',
+  },
+  { token: 'blue', label: 'Bleu', swatch: '#2563EB', textColor: '#FFFFFF' },
+  { token: 'indigo', label: 'Indigo', swatch: '#4F46E5', textColor: '#FFFFFF' },
+  { token: 'purple', label: 'Violet', swatch: '#9333EA', textColor: '#FFFFFF' },
+  { token: 'pink', label: 'Rose', swatch: '#DB2777', textColor: '#FFFFFF' },
+  { token: 'gray', label: 'Gris', swatch: '#6B7280', textColor: '#FFFFFF' },
+];
+
+function unwrapDecorNodeIfEmpty(node: DecorBlockNode) {
+  const hasBorder = node.getWeight() !== 'none';
+  const hasFill = node.getFill() !== 'none';
+
+  if (hasBorder || hasFill) return;
+
+  let child = node.getFirstChild();
+  while (child) {
+    node.insertBefore(child);
+    child = node.getFirstChild();
+  }
+  node.remove();
+}
+
+function ensureTrailingParagraphAfter(node: LexicalNode) {
+  const next = node.getNextSibling();
+  // S’il n’y a pas de suivant, ou que le suivant n’est pas un paragraphe vide, on en crée un
+  if (
+    !next ||
+    next.getType() !== 'paragraph' ||
+    (next instanceof ElementNode && next.getChildrenSize() > 0)
+  ) {
+    const p = $createParagraphNode();
+    node.insertAfter(p);
+  }
+}
+
 // Bordure de paragraphe: applique/retire une bordure sur l'élément bloc (p/h1/h2/h3/quote)
-function setBlockBorderPreset(editor: LexicalEditor, preset: BorderPreset) {
+function setBlockBorderWeight(editor: LexicalEditor, weight: BorderWeight) {
   editor.update(() => {
     const selection = $getSelection();
     if (!selection || !$isRangeSelection(selection)) return;
 
-    // Collect unique top-level elements affected by selection
     const tops = new Set<any>();
     for (const n of selection.getNodes()) {
       const t = (n as any).getTopLevelElement?.();
@@ -149,30 +197,80 @@ function setBlockBorderPreset(editor: LexicalEditor, preset: BorderPreset) {
     }
 
     for (const top of tops) {
-      // If already a BorderBlock, update or unwrap
-      if ($isBorderBlockNode(top)) {
-        if (preset === 'none') {
-          // Unwrap: move children out, then remove wrapper
-          let child = (top as any).getFirstChild?.();
-          while (child) {
-            (top as any).insertBefore?.(child);
-            child = (top as any).getFirstChild?.();
-          }
-          (top as any).remove?.();
-        } else {
-          (top as any).setPreset?.(preset);
+      if ($isDecorBlockNode(top)) {
+        const decor = top as DecorBlockNode;
+        decor.setWeight(weight);
+        if (weight !== 'none') {
+          decor.setColor('black');
+        }
+        unwrapDecorNodeIfEmpty(decor);
+        continue;
+      }
+
+      if (weight === 'none') continue;
+
+      const wrapper = $createDecorBlockNode(weight, 'black');
+      (top as any).replace?.(wrapper);
+      (wrapper as any).append?.(top);
+
+      ensureTrailingParagraphAfter(wrapper);
+    }
+  });
+}
+
+function setBlockFill(
+  editor: LexicalEditor,
+  mode: DecorFillMode,
+  token: DecorFillToken | null = null,
+  color: string | null = null,
+) {
+  editor.update(() => {
+    const selection = $getSelection();
+    if (!selection || !$isRangeSelection(selection)) return;
+
+    const tops = new Set<any>();
+    for (const n of selection.getNodes()) {
+      const t = (n as any).getTopLevelElement?.();
+      if (t && !(t as any).isRoot?.()) tops.add(t);
+    }
+    if (tops.size === 0) {
+      const t = selection.anchor.getNode().getTopLevelElement();
+      if (t && !(t as any).isRoot?.()) tops.add(t);
+    }
+
+    for (const top of tops) {
+      if ($isDecorBlockNode(top)) {
+        const decor = top as DecorBlockNode;
+        if (mode === 'none') {
+          decor.setFill('none');
+          decor.setFillToken(null);
+          decor.setFillColor(null);
+          unwrapDecorNodeIfEmpty(decor);
+        } else if (mode === 'token') {
+          decor.setFill('token');
+          decor.setFillToken(token);
+          decor.setFillColor(null);
+        } else if (mode === 'custom') {
+          decor.setFill('custom');
+          decor.setFillToken(null);
+          decor.setFillColor(color);
         }
         continue;
       }
 
-      // Not a BorderBlock wrapper
-      if (preset === 'none') continue;
+      if (mode === 'none') continue;
 
-      // Wrap the current top-level block with a BorderBlockNode
-      const wrapper = $createBorderBlockNode(preset);
-      // Replace the top with wrapper, then append the original top inside wrapper
+      const wrapper = $createDecorBlockNode(
+        'none',
+        'black',
+        mode,
+        token,
+        color,
+      );
       (top as any).replace?.(wrapper);
       (wrapper as any).append?.(top);
+
+      ensureTrailingParagraphAfter(wrapper);
     }
   });
 }
@@ -268,8 +366,8 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
             setLineHeightState('1');
             return;
           }
-          // If selection is inside a BorderBlock wrapper, introspect its first child for block-type display
-          const underlying = $isBorderBlockNode(topLevel)
+          // If selection is inside a DecorBlock wrapper, introspect its first child for block-type display
+          const underlying = $isDecorBlockNode(topLevel)
             ? (topLevel as any).getFirstChild?.() || topLevel
             : topLevel;
           const type = underlying.getType();
@@ -299,7 +397,7 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
           try {
             const anchorNode = selection.anchor.getNode();
             const topLevel = anchorNode.getTopLevelElement();
-            const target = $isBorderBlockNode(topLevel)
+            const target = $isDecorBlockNode(topLevel)
               ? (topLevel as any).getFirstChild?.() || topLevel
               : topLevel;
             setLineHeightState(readLineHeightFromNode(target));
@@ -640,90 +738,11 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
       <Button
         type="button"
         onClick={async () => {
-          let html = '';
           try {
-            editor.getEditorState().read(() => {
-              const SANITIZE_OPTIONS: DOMPurify.Config = {
-                ALLOWED_TAGS: [
-                  'a',
-                  'b',
-                  'i',
-                  'u',
-                  'em',
-                  'strong',
-                  'span',
-                  'p',
-                  'br',
-                  'blockquote',
-                  'h1',
-                  'h2',
-                  'h3',
-                  'ul',
-                  'ol',
-                  'li',
-                  'table',
-                  'thead',
-                  'tbody',
-                  'tr',
-                  'th',
-                  'td',
-                  'div',
-                ],
-                ALLOWED_ATTR: [
-                  'href',
-                  'target',
-                  'rel',
-                  'colspan',
-                  'rowspan',
-                  'style',
-                  'class',
-                ],
-                ALLOWED_CSS_PROPERTIES: [
-                  'color',
-                  'background',
-                  'background-color',
-                  'text-decoration',
-                  'font-size',
-                  'font-family',
-                  'line-height',
-                  'font-weight',
-                  'font-style',
-                  'border',
-                  'border-color',
-                  'border-width',
-                  'border-style',
-                  'border-radius',
-                  'padding',
-                  'padding-left',
-                  'padding-right',
-                  'padding-top',
-                  'padding-bottom',
-                  'margin',
-                  'margin-left',
-                  'margin-right',
-                  'margin-top',
-                  'margin-bottom',
-                  'vertical-align',
-                  'text-align',
-                  'width',
-                  'height',
-                ],
-              } as unknown as DOMPurify.Config;
-              html = DOMPurify.sanitize(
-                $generateHtmlFromNodes(editor),
-                SANITIZE_OPTIONS,
-              );
-            });
-          } catch {}
-          // Normalisation spécifique à Word/DOCX
-          html = normalizeBordersForDocx(html);
-          const fullHtml = wrapHtmlForDocx(html, {
-            fontFamily,
-            fontSizePt: fontSize,
-            lineHeight,
-          });
-          try {
-            await downloadDocx(fullHtml, `${exportFileName || 'Bilan'}.docx`);
+            await exportToDocxFromNodes(
+              editor.getEditorState(),
+              `${exportFileName || 'Bilan'}.docx`,
+            );
           } catch {
             // ignore for now
           }
@@ -845,8 +864,70 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
     ),
   });
 
+  toolbarItems.push({
+    key: 'decor-fill',
+    element: (
+      <DropdownMenu onOpenChange={(open) => !open && handleSelectClosed()}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            variant="editor"
+            aria-label="Fonds de remplissage"
+            title="Fonds de remplissage"
+          >
+            Fonds de remplissage
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem
+            key="none"
+            onClick={() => {
+              restoreSelectionAndFocus();
+              setTimeout(() => setBlockFill(editor, 'none'), 0);
+            }}
+          >
+            <span
+              style={{
+                display: 'inline-block',
+                width: 12,
+                height: 12,
+                backgroundColor: 'transparent',
+                border: '1px solid #e5e7eb',
+                marginRight: 8,
+              }}
+            />
+            Aucun
+          </DropdownMenuItem>
+          {DECOR_FILL_COLORS.map(({ token, label, swatch, textColor }) => (
+            <DropdownMenuItem
+              key={token}
+              onClick={() => {
+                restoreSelectionAndFocus();
+                setTimeout(() => setBlockFill(editor, 'token', token), 0);
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-block',
+                  width: 12,
+                  height: 12,
+                  backgroundColor: swatch,
+                  color: textColor,
+                  border: '1px solid #e5e7eb',
+                  marginRight: 8,
+                }}
+              />
+              {label}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    ),
+  });
+
   // Bordure de paragraphe (pleine largeur)
-/*   toolbarItems.push({
+  toolbarItems.push({
     key: 'border',
     element: (
       <DropdownMenu onOpenChange={(open) => !open && handleSelectClosed()}>
@@ -874,11 +955,7 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
               onClick={() => {
                 restoreSelectionAndFocus();
                 setTimeout(
-                  () =>
-                    setBlockBorderPreset(
-                      editor,
-                      value as 'none' | 'thin' | 'medium' | 'thick' | 'dashed',
-                    ),
+                  () => setBlockBorderWeight(editor, value as BorderWeight),
                   0,
                 );
               }}
@@ -909,14 +986,14 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
         </DropdownMenuContent>
       </DropdownMenu>
     ),
-  }); */
+  });
 
   toolbarItems.push({
     key: 'sep-2',
     element: <div className="w-px self-stretch bg-wood-200 mx-1" />,
   });
 
-/*   toolbarItems.push({
+  /*   toolbarItems.push({
     key: 'table',
     element: (
       <DropdownMenu>

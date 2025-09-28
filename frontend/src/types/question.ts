@@ -14,8 +14,9 @@ export interface ColumnDef {
   options?: string[];
   rowOptions?: Record<string, string[]>;
   coloring?: {
-    presetId?: string            // optionnel : applique un set de règles connu
-    rules?: Rule[] }
+    presetId?: string; // optionnel : applique un set de règles connu
+    rules?: Rule[];
+  };
 }
 
 export type Rule = {
@@ -43,14 +44,20 @@ export const SD_NORMATIVE_PRESET: ColorPreset = {
 
     // Faible      [-2, -1)
     { if: { op: 'eq', value: -2 }, color: 'orange' },
-    { if: { op: 'between', min: -2, max: -1, inclusive: false }, color: 'orange' },
+    {
+      if: { op: 'between', min: -2, max: -1, inclusive: false },
+      color: 'orange',
+    },
 
     // Moyenne     [-1, +1]
     { if: { op: 'eq', value: -1 }, color: 'green' },
     { if: { op: 'between', min: -1, max: 1, inclusive: true }, color: 'green' },
 
     // Sup         (1, 2]
-    { if: { op: 'between', min: 1, max: 2, inclusive: true }, color: 'lightgreen' },
+    {
+      if: { op: 'between', min: 1, max: 2, inclusive: true },
+      color: 'lightgreen',
+    },
 
     // Très sup    (2, +∞)
     { if: { op: 'gt', value: 2 }, color: 'limegreen' },
@@ -94,6 +101,8 @@ export interface SurveyTable {
   crInsert?: boolean;
   /** Identifiant unique de l'ancre, ex: "T1" */
   crTableId?: string;
+  /** AST généré côté client */
+  crAstId?: string;
 }
 
 export interface Question {
@@ -169,7 +178,40 @@ export const DEFAULT_TITLE_PRESETS: TitlePresetRegistry = {
   't14-center-uppercase': {
     id: 't14-center-uppercase',
     label: '14 centré majuscule',
-    format: { kind: 'paragraph', fontSize: 14, align: 'center', case: 'uppercase' },
+    format: {
+      kind: 'paragraph',
+      fontSize: 14,
+      align: 'center',
+      case: 'uppercase',
+    },
+  },
+  't14-center-bordered': {
+    id: 't14-center-bordered',
+    label: '14 centré bordure',
+    format: {
+      kind: 'paragraph',
+      fontSize: 14,
+      align: 'center',
+      case: 'uppercase',
+      decor: {
+        weight: 'thin',
+        color: 'black',
+      },
+    },
+  },
+  't14-bold-filled-green': {
+    id: 't14-bold-filled-green',
+    label: '14 gras + fond vert',
+    format: {
+      kind: 'paragraph',
+      fontSize: 14,
+      align: 'center',
+      bold: true,
+      decor: {
+        weight: 'none',
+        fill: { kind: 'token', token: 'green' }, // mappe à tes classes .bp-decor[data-bp-fill-token="green"]
+      },
+    },
   },
 };
 
@@ -177,6 +219,32 @@ export const DEFAULT_TITLE_PRESETS: TitlePresetRegistry = {
 export type TitleAlign = 'left' | 'center' | 'right' | 'justify';
 export type TitleCase = 'none' | 'uppercase' | 'capitalize' | 'lowercase';
 export type TitleKind = 'heading' | 'paragraph' | 'list-item';
+
+export type DecorWeight = 'none' | 'thin' | 'medium' | 'thick' | 'dashed';
+export type DecorFillKind = 'none' | 'token' | 'custom';
+export type DecorFillToken =
+  | 'red'
+  | 'orange'
+  | 'yellow'
+  | 'green'
+  | 'emerald'
+  | 'blue'
+  | 'indigo'
+  | 'violet'
+  | 'pink'
+  | 'gray';
+
+// Assez générique pour couvrir 90% des cas
+export interface TitleDecorSpec {
+  weight?: DecorWeight; // défaut: 'thin'
+  color?: string; // 'black' | 'gray' | '#RRGGBB'…
+  // Optionnel: remplissage de fond, aligne-toi à ton DecorBlockNode
+  fill?: {
+    kind: DecorFillKind; // 'none' | 'token' | 'custom'
+    token?: DecorFillToken; // si kind='token'
+    color?: string; // si kind='custom' (#RRGGBB)
+  };
+}
 
 export interface TitleFormatSpec {
   kind: TitleKind; // ex: 'heading'
@@ -202,6 +270,7 @@ export interface TitleFormatSpec {
   /** Décorations simples sans toucher au contenu (facile pour les presets) */
   prefix?: string;
   suffix?: string;
+  decor?: TitleDecorSpec;
 }
 
 export interface TitlePreset {

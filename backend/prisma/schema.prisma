@@ -119,6 +119,7 @@ model Section {
   examples          SectionExample[]
   job               Job[] @default([])
   coverUrl          String?
+  astSnippets       Json? // tableau de snippets Lexical par section
 
   /// Lien (optionnel) vers un template réutilisable
   templateRefId     String?                @db.VarChar(160)

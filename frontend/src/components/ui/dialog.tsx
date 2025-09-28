@@ -6,9 +6,7 @@ import { XIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
-function Dialog(
-  props?: React.ComponentProps<typeof DialogPrimitive.Root>,
-) {
+function Dialog(props?: React.ComponentProps<typeof DialogPrimitive.Root>) {
   return <DialogPrimitive.Root data-slot="dialog" {...(props ?? {})} />;
 }
 
@@ -24,10 +22,7 @@ function DialogPortal(
   props: React.ComponentProps<typeof DialogPrimitive.Portal> | undefined,
 ) {
   return (
-    <DialogPrimitive.Portal
-      data-slot="dialog-portal"
-      {...(props ?? {})}
-    />
+    <DialogPrimitive.Portal data-slot="dialog-portal" {...(props ?? {})} />
   );
 }
 
