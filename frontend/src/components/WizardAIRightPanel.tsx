@@ -90,6 +90,7 @@ export default function WizardAIRightPanel({
   const [notesMode, setNotesMode] = useState<'manual' | 'import'>('manual');
   const [rawNotes, setRawNotes] = useState('');
   const [imageBase64, setImageBase64] = useState<string | undefined>(undefined);
+  const [editorReady, setEditorReady] = useState(initialStep !== 2);
 
   // Ne pas refetch ici pour éviter les doublons (StrictMode double les effets en dev)
   // Le chargement initial du profil est géré dans App.tsx
@@ -315,7 +316,8 @@ export default function WizardAIRightPanel({
       step === 2 &&
       mode === 'section' &&
       notesMode === 'manual' &&
-      !!selectedTrame?.value,
+      !!selectedTrame?.value &&
+      editorReady,
     save: (data) => sectionInstance.save(data),
   });
   // Autosave for bilanType mode (active section)
@@ -325,22 +327,28 @@ export default function WizardAIRightPanel({
       step === 2 &&
       mode === 'bilanType' &&
       notesMode === 'manual' &&
-      !!activeBilanSectionId,
+      !!activeBilanSectionId &&
+      editorReady,
     save: (data) => bilanTypeInstance.save(data),
   });
 
   // Load latest on entering editor or switching active section, then hydrate draft and mount editor
-  const [editorReady, setEditorReady] = useState(false);
   const loadLatestInstance = sectionInstance.loadLatest;
 
   useEffect(() => {
     let cancelled = false;
     const run = async () => {
-      if (step !== 2) return;
+      if (step !== 2) {
+        setEditorReady(true);
+        return;
+      }
       setEditorReady(false);
       try {
         if (mode === 'bilanType') {
-          if (!activeBilanSectionId) return;
+          if (!activeBilanSectionId) {
+            setEditorReady(true);
+            return;
+          }
           const latest = await loadLatestInstance();
           const content = latest?.answers ?? {};
           setBilanAnswers((prev) => ({
@@ -350,7 +358,10 @@ export default function WizardAIRightPanel({
           dataEntryRef.current?.load?.(content);
           bilanTypeMarkSaved(content);
         } else {
-          if (!selectedTrame?.value) return;
+          if (!selectedTrame?.value) {
+            setEditorReady(true);
+            return;
+          }
           const latest = await loadLatestInstance();
           const content = latest?.answers ?? {};
           console.log('content', content);
@@ -373,6 +384,7 @@ export default function WizardAIRightPanel({
   }, [step, mode, activeBilanSectionId, selectedTrame?.value]);
 
   const flushCurrent = async () => {
+    if (step < 2 || !editorReady) return;
     console.log('flush', notesMode, step);
     try {
       if (mode === 'bilanType' && activeBilanSectionId) {
