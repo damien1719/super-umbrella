@@ -485,7 +485,7 @@ export default function AiRightPanel({
                 ? 'Génération de section'
                 : regenSection
                   ? 'Modifier la section'
-                  : 'Assistant IA'}
+                  : 'Assistant de rédaction'}
           </span>
           <div className="flex items-center gap-2">
             {!wizardSection &&
