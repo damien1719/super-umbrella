@@ -1,6 +1,6 @@
 import type { SlotSpec } from '../../../types/template';
 
-type SlotsDict = Record<string, string | number | null | undefined>;
+type SlotsDict = Record<string, unknown>;
 type SpecDict  = Record<string, SlotSpec>;
 
 function makeTextNode(text: string) {
