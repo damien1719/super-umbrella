@@ -69,7 +69,7 @@ export default function TrameCard({
           {previewLabel}
         </Button>
       )}
-      {showLink && (
+{/*       {showLink && (
         <a
           href={`/creation-trame/${trame.id}`}
           target="_blank"
@@ -81,7 +81,7 @@ export default function TrameCard({
         >
           <ExternalLink className="h-4 w-4" />
         </a>
-      )}
+      )} */}
       {(showDuplicate || showDelete) && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
