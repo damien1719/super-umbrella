@@ -122,12 +122,19 @@ export default function AiRightPanel({
     initialWizardSection || null,
   );
   const [wizardBilanType, setWizardBilanType] = useState(false);
+  // Track last generated entities to surface "Voir mes réponses"
   const [lastGeneratedSection, setLastGeneratedSection] = useState<
+    string | null
+  >(null);
+  const [lastGeneratedBilanTypeId, setLastGeneratedBilanTypeId] = useState<
     string | null
   >(null);
   const [wizardStartStep, setWizardStartStep] = useState<number>(
     initialWizardSection ? 2 : 1,
   );
+  const [selectedBilanTypeId, setSelectedBilanTypeId] = useState<
+    string | undefined
+  >(initialBilanTypeId);
   const [regenSection, setRegenSection] = useState<string | null>(null);
   const [regenPrompt, setRegenPrompt] = useState('');
   const [refinedText, setRefinedText] = useState('');
@@ -159,7 +166,10 @@ export default function AiRightPanel({
         });
         window.dispatchEvent(evt);
       }
+      // Close wizard and surface quick access to review answers
       setWizardBilanType(false);
+      setLastGeneratedBilanTypeId(bilanTypeId);
+      setSelectedBilanTypeId(bilanTypeId);
     } catch (e) {
       console.error('[AiRightPanel] generateFullBilanType failed', e);
     } finally {
@@ -491,6 +501,27 @@ export default function AiRightPanel({
             {!wizardSection &&
               !regenSection &&
               mode !== 'refine' &&
+              lastGeneratedBilanTypeId && (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="h-8 px-2 text-xs bg-accent-500 hover:bg-accent-600"
+                  onClick={() => {
+                    setWizardStartStep(2);
+                    setSelectedBilanTypeId(
+                      lastGeneratedBilanTypeId || undefined,
+                    );
+                    setWizardBilanType(true);
+                    setMode('bilanType');
+                  }}
+                >
+                  Voir mes réponses
+                </Button>
+              )}
+            {!wizardSection &&
+              !regenSection &&
+              mode !== 'refine' &&
+              !lastGeneratedBilanTypeId &&
               lastGeneratedSection && (
                 <Button
                   variant="outline"
@@ -501,7 +532,7 @@ export default function AiRightPanel({
                     setWizardSection(lastGeneratedSection);
                   }}
                 >
-                  Voir mes dernières réponses
+                  Voir mes réponses
                 </Button>
               )}
             {(regenSection || mode === 'refine') && (
@@ -645,11 +676,16 @@ export default function AiRightPanel({
                         }}
                         trameOptions={bilanTypeOptions}
                         selectedTrame={
-                          initialBilanTypeId
+                          (selectedBilanTypeId
+                            ? (bilanTypeOptions.find(
+                                (b) => b.value === selectedBilanTypeId,
+                              ) as any)
+                            : undefined) ||
+                          (initialBilanTypeId
                             ? (bilanTypeOptions.find(
                                 (b) => b.value === initialBilanTypeId,
                               ) as any)
-                            : undefined
+                            : undefined)
                         }
                         onTrameChange={() => {}}
                         examples={[]}

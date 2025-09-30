@@ -8,6 +8,7 @@ import {
 } from './ui/dialog';
 import { Button } from './ui/button';
 import RichTextEditor, { RichTextEditorHandle } from './RichTextEditor';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 type TablePathOption = {
   path: string;
@@ -48,7 +49,6 @@ function LeftBarAstInsert({ options, onInsertPath }: LeftBarAstInsertProps) {
                   <span className="text-sm font-medium text-gray-800">
                     {option.label}
                   </span>
-                  <span className="text-xs text-gray-500">{option.path}</span>
                 </Button>
               ))}
             </div>
@@ -91,6 +91,7 @@ interface AstInsertModalProps {
   templateKey: string;
   onSave: (serializedAst: string) => void;
   pathOptions?: TablePathOption[];
+  onDelete?: () => void;
 }
 
 export default function AstInsertModal({
@@ -100,11 +101,13 @@ export default function AstInsertModal({
   templateKey,
   onSave,
   pathOptions = [],
+  onDelete,
 }: AstInsertModalProps) {
   const editorRef = React.useRef<RichTextEditorHandle>(null);
   const [draftAst, setDraftAst] = React.useState<string | null>(
     initialAst ?? null,
   );
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (open) {
@@ -135,6 +138,12 @@ export default function AstInsertModal({
     onOpenChange(false);
   }, [draftAst, initialAst, onSave, onOpenChange]);
 
+  const handleDelete = React.useCallback(() => {
+    if (!onDelete) return;
+    onDelete();
+    onOpenChange(false);
+  }, [onDelete, onOpenChange]);
+
   const handleInsertPath = React.useCallback((option: TablePathOption) => {
     const trimmed = option.path.trim();
     if (!trimmed) return;
@@ -157,7 +166,7 @@ export default function AstInsertModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent size="screen-90" className="flex h-[90vh] flex-col gap-4">
-        <DialogHeader>
+        <DialogHeader className="flex items-center justify-between">
           <DialogTitle>Customiser le format d&apos;insertion</DialogTitle>
         </DialogHeader>
         <div className="flex-1 overflow-hidden rounded border border-wood-200 bg-white">
@@ -186,12 +195,28 @@ export default function AstInsertModal({
           </div>
         </div>
         <DialogFooter>
+          {initialAst && onDelete ? (
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => setConfirmDeleteOpen(true)}
+            >
+              Supprimer
+            </Button>
+          ) : null}
           <Button variant="outline" onClick={handleCancel}>
             Annuler
           </Button>
           <Button onClick={handleSave}>Sauvegarder</Button>
         </DialogFooter>
       </DialogContent>
+      <ConfirmDialog
+        open={confirmDeleteOpen}
+        onOpenChange={setConfirmDeleteOpen}
+        title="Supprimer ce format personnalisé ?"
+        confirmText="Supprimer"
+        onConfirm={handleDelete}
+      />
     </Dialog>
   );
 }

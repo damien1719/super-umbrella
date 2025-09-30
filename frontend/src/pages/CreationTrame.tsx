@@ -862,7 +862,7 @@ export default function CreationTrame({
               >
                 Edition
               </button>
-{/*               <button
+              {/*               <button
                 className={`pb-2 px-1 border-b-2 ${
                   tab === 'template'
                     ? 'border-primary-600'

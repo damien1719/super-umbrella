@@ -5,7 +5,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { SectionDisponible, type BilanElement } from '@/components/bilanType/SectionDisponible';
+import {
+  SectionDisponible,
+  type BilanElement,
+} from '@/components/bilanType/SectionDisponible';
 import SectionGlimpse from '@/components/SectionGlimpse';
 import { useSectionStore } from '@/store/sections';
 import type { Question as EditQuestion } from '@/types/Typequestion';
@@ -70,7 +73,8 @@ export default function InspirationPanel({
   const availableElements: BilanElement[] = useMemo(() => {
     const computeOrigin = (s: (typeof items)[number]): Origin | undefined => {
       if (s.source === 'BILANPLUME') return 'BILANPLUME';
-      if (s.authorId && myProfileId && s.authorId === myProfileId) return 'MINE';
+      if (s.authorId && myProfileId && s.authorId === myProfileId)
+        return 'MINE';
       if (s.isPublic) return 'COMMUNITY';
       return undefined;
     };

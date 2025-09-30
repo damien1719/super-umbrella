@@ -424,50 +424,37 @@ export const TableRenderer = {
     const allRows = extractRows(table);
     const answer = (answers?.[question.id] as TableAnswers) || {};
 
-    const keptColumns = columns.filter((column) =>
-      allRows.some((row) => {
-        const rowData = (answer?.[row.id] as Record<string, unknown> | undefined) ?? undefined;
-        const value = rowData?.[column.id];
-        return isNonEmpty(value, column);
-      }),
-    );
+    // Render all declared columns and rows, even if empty
+    const keptColumns = columns;
+    const rowsToRender = allRows;
 
-    const rowsToRender = allRows.filter((row) => {
-      const rowData = (answer?.[row.id] as Record<string, unknown> | undefined) ?? undefined;
-      return keptColumns.some((column) => isNonEmpty(rowData?.[column.id], column));
-    });
-
-    const hasContent = rowsToRender.length > 0;
+    const hasContent = rowsToRender.length > 0; // kept for logging, no longer gates rendering
     const comment = typeof answer.commentaire === 'string' ? answer.commentaire.trim() : '';
 
-    if (!hasContent && !comment) {
-      console.log('[ANCHOR] TableRenderer.renderLexical - no user content for anchor', {
-        anchorId: anchor.id,
-        questionId: anchor.questionId,
-      });
-      // Pas de données exploitables : ne rien insérer (on gardera l'info via anchorsStatus).
-      return [];
-    }
+    // Always render the table structure, even if empty
 
     const tableRows: LexicalNode[] = [];
-    if (keptColumns.length > 0) {
-      const headerCells = [createTableCell(question.titre, { header: true }), ...keptColumns.map((column) => createTableCell(column.label ?? column.id, { header: true }))];
-      tableRows.push(createTableRow(headerCells));
+    const headerCells = [
+      createTableCell(question.titre, { header: true }),
+      ...keptColumns.map((column) => createTableCell(column.label ?? column.id, { header: true })),
+    ];
+    tableRows.push(createTableRow(headerCells));
 
-      for (const row of rowsToRender) {
-        const rowData = (answer?.[row.id] as Record<string, unknown> | undefined) ?? undefined;
-        const cells = [createTableCell(row.label)];
-        for (const column of keptColumns) {
-          const value = rowData?.[column.id];
-          const display = formatCell(value, column);
-          const textColor = getColorForValue(value, column);
-          cells.push(createTableCell(display, { 
-            textColor, 
-            fontWeight: textColor ? 'bold' : undefined
-          }));
-        }
-        tableRows.push(createTableRow(cells));
+    for (const row of rowsToRender) {
+      const rowData = (answer?.[row.id] as Record<string, unknown> | undefined) ?? undefined;
+      const cells = [createTableCell(row.label)];
+      for (const column of keptColumns) {
+        const value = rowData?.[column.id];
+        const display = formatCell(value, column);
+        const textColor = getColorForValue(value, column);
+        cells.push(
+          createTableCell(display, {
+            textColor,
+            fontWeight: textColor ? 'bold' : undefined,
+          }),
+        );
       }
+      tableRows.push(createTableRow(cells));
     }
 
     const tableNode: LexicalNode = {
@@ -480,12 +467,10 @@ export const TableRenderer = {
     };
 
     const nodes: LexicalNode[] = [];
-    if (tableRows.length > 0) {
-      // Add an empty paragraph before and after the table to create spacing
-      nodes.push(createParagraph(''));
-      nodes.push(tableNode);
-      nodes.push(createParagraph(''));
-    }
+    // Add an empty paragraph before and after the table to create spacing
+    nodes.push(createParagraph(''));
+    nodes.push(tableNode);
+    nodes.push(createParagraph(''));
 
     if (comment) {
       nodes.push(createParagraph(`Commentaire : ${comment}`));

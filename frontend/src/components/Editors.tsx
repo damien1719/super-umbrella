@@ -704,30 +704,32 @@ export function TableEditor({
             >
               Cocher pour insérer le tableau dans le bilan lors de la rédaction
             </label>
+            {tableau.crInsert && saveAstSnippet && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="ml-auto"
+                onClick={() => setIsAstModalOpen(true)}
+                disabled={isReadOnly}
+              >
+                <Settings className="h-4 w-4 mr-1" />
+                Customiser le format du tableau
+              </Button>
+            )}
           </div>
           <p className="text-xs text-gray-500">
             Le tableau sera inséré directement dans le bilan avec les valeurs
             que vous avez remplie lors de la rédaction.
           </p>
-          {tableau.crInsert && (
-            <div className="mt-2 flex flex-col gap-1">
-              {saveAstSnippet && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsAstModalOpen(true)}
-                  disabled={isReadOnly}
-                >
-                  Customiser le format d&apos;insertion
-                </Button>
-              )}
-              {tableau.crAstId && getAstSnippet?.(tableau.crAstId ?? null) && (
+          {tableau.crInsert &&
+            tableau.crAstId &&
+            getAstSnippet?.(tableau.crAstId ?? null) && (
+              <div className="mt-2">
                 <p className="text-xs text-gray-500">
                   Un format personnalisé est enregistré pour cette insertion.
                 </p>
-              )}
-            </div>
-          )}
+              </div>
+            )}
         </div>
         <ChoixTypeDeValeurTableau
           column={
@@ -754,6 +756,17 @@ export function TableEditor({
           if (!nextId) return;
           setTable({ ...tableau, crAstId: nextId });
         }}
+        onDelete={
+          deleteAstSnippet && tableau.crAstId
+            ? () => {
+                try {
+                  deleteAstSnippet(tableau.crAstId!);
+                } finally {
+                  setTable({ ...tableau, crAstId: undefined });
+                }
+              }
+            : undefined
+        }
         pathOptions={tablePathOptions}
       />
       <AlertDialog open={!!groupToDelete} onOpenChange={setGroupToDelete}>
