@@ -82,7 +82,7 @@ export default function CreateWithJobsModal({
             <Label htmlFor="cwjm-name">{nameLabel}</Label>
             <Input
               id="cwjm-name"
-              placeholder="Ex: Mon Bilan"
+              placeholder="Ex: Latéralité"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />

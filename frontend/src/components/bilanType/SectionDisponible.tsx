@@ -73,7 +73,8 @@ export function SectionDisponible({
       element.description.toLowerCase().includes(searchText.toLowerCase());
 
     const matchesType = filterType === 'all' || element.type === filterType;
-    const matchesMetier = filterMetier === 'all' || element.metier === filterMetier;
+    const matchesMetier =
+      filterMetier === 'all' || element.metier === filterMetier;
 
     const matchesOrigin =
       filterOrigin === 'all' ||

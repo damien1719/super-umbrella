@@ -1,4 +1,5 @@
-import { type RefObject, useMemo } from 'react';
+import { type RefObject, useMemo, useState } from 'react';
+import { Button } from '@/components/ui/button';
 import { Tabs } from '@/components/ui/tabs';
 import LeftNavBilanType from '../bilan/LeftNavBilanType';
 import InlineGroupChips from '../bilan/InlineGroupChips';
@@ -6,6 +7,10 @@ import { DataEntry, type DataEntryHandle } from '../bilan/DataEntry';
 import ImportNotes from '../ImportNotes';
 import type { Question, Answers } from '@/types/question';
 import type { DraftIdentifier } from '@/store/draft';
+import { PenIcon } from 'lucide-react';
+import SectionEditionModal from '@/components/SectionEditionModal';
+import { useUserProfileStore } from '@/store/userProfile';
+import { useSectionStore } from '@/store/sections';
 
 interface NavItem {
   id: string;
@@ -46,6 +51,15 @@ export function BilanTypeNotesEditor({
   onImageChange,
   draftKey,
 }: BilanTypeNotesEditorProps) {
+  const [editOpen, setEditOpen] = useState(false);
+  const profileId = useUserProfileStore((s) => s.profileId);
+  const sectionMeta = useSectionStore((s) =>
+    activeSectionId ? s.items.find((x) => x.id === activeSectionId) : undefined,
+  );
+  const isAuthor = !!profileId && sectionMeta?.authorId === profileId;
+  const isOfficial = sectionMeta?.source === 'BILANPLUME';
+  const isPublic = !!sectionMeta?.isPublic;
+  const editDisabledByRights = !isAuthor && (isOfficial || isPublic);
   const activeSection = useMemo(
     () =>
       navItems.find(
@@ -115,7 +129,36 @@ export function BilanTypeNotesEditor({
           ]}
         /> */}
 
-        <InlineGroupChips titles={groupTitles} />
+        <InlineGroupChips
+          titles={groupTitles}
+          right={
+            <Button
+              className="gap-2"
+              variant="secondary"
+              size="default"
+              disabled={!activeSectionId || editDisabledByRights}
+              tooltip={!activeSectionId
+                ? 'Sélectionnez une section'
+                : editDisabledByRights
+                  ? isOfficial
+                    ? 'Édition indisponible: section officielle BilanPlume'
+                    : "Vous n'êtes pas l'auteur de cette section publique"
+                  : undefined}
+              onClick={() => setEditOpen(true)}
+            >
+            <PenIcon className="h-4 w-4" />
+              Editer
+            </Button>
+          }
+        />
+
+        {activeSectionId && (
+          <SectionEditionModal
+            open={editOpen}
+            onOpenChange={setEditOpen}
+            sectionId={activeSectionId}
+          />
+        )}
 
         <DataEntry
           ref={dataEntryRef}

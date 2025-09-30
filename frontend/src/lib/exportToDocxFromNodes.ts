@@ -550,9 +550,11 @@ function listItemToParagraphs(
       level,
     };
   } else {
-    (options as IParagraphOptions & {
-      numbering?: { reference: string; level: number };
-    }).numbering = { reference: 'number-list', level };
+    (
+      options as IParagraphOptions & {
+        numbering?: { reference: string; level: number };
+      }
+    ).numbering = { reference: 'number-list', level };
   }
 
   const paragraphs: Paragraph[] = [new Paragraph(options)];

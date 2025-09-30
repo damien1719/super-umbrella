@@ -444,11 +444,11 @@ export default function WizardAIRightPanel({
   const headerTitle =
     step === 1
       ? mode === 'bilanType'
-        ? 'Choisissez ou créez une trame pour votre rédaction'
-        : 'Choisissez ou créez une partie'
+        ? 'Etape 1 : Choisissez ou créez une trame pour votre rédaction'
+        : 'Etape 1 : Choisissez ou créez une partie'
       : mode === 'bilanType'
-        ? 'Ajoutez les données anonymisées du patient'
-        : 'Ajoutez les données anonymisées du patient';
+        ? 'Etape 2 : Ajoutez les données anonymisées du patient'
+        : 'Etape 2 : Ajoutez les données anonymisées du patient';
 
   const headerDescription = `Étape ${step}/${total} – ${stepTitles[step - 1]}`;
 
@@ -510,6 +510,7 @@ export default function WizardAIRightPanel({
           onRawNotesChange={setRawNotes}
           onImageChange={setImageBase64}
           draftKey={{ bilanId, sectionId: sectionInfo.id }}
+          sectionIdToEdit={selectedTrame?.value}
         />
       );
     }
@@ -663,14 +664,14 @@ export default function WizardAIRightPanel({
       />
 
       {/* Row 1 — Header */}
-      <div className="px-4 pt-4 pb-6">
+      <div className="px-4 pt-4 pb-4">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl font-bold">
             {headerTitle}
           </DialogTitle>
-          <DialogDescription className="text-lg text-gray-600">
+{/*           <DialogDescription className="text-lg text-gray-600">
             {headerDescription}
-          </DialogDescription>
+          </DialogDescription> */}
         </DialogHeader>
       </div>
 

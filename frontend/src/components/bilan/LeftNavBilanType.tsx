@@ -79,7 +79,7 @@ export function LeftNavBilanType({
     >
       <div className="flex flex-col w-full">
         <div className="px-2 py-2 text-sm text-muted-foreground">
-          Sections ({items.filter((i) => i.kind !== 'separator').length})
+          Parties ({items.filter((i) => i.kind !== 'separator').length})
         </div>
         {/* Add bottom padding so last items aren't hidden behind sticky footers */}
         <nav className="flex-1 overflow-y-auto pb-24">

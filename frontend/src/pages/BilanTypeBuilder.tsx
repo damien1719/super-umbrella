@@ -276,46 +276,43 @@ export default function BilanTypeBuilder(props?: BilanTypeBuilderProps) {
       metier?: Job;
       origin?: Origin;
     }[]
-  >(
-    () => {
-      const computeOrigin = (s: Section): Origin | undefined => {
-        if (s.source === 'BILANPLUME') return 'BILANPLUME';
-        if (s.authorId && myProfileId && s.authorId === myProfileId)
-          return 'MINE';
-        if (s.isPublic) return 'COMMUNITY';
-        return undefined;
-      };
+  >(() => {
+    const computeOrigin = (s: Section): Origin | undefined => {
+      if (s.source === 'BILANPLUME') return 'BILANPLUME';
+      if (s.authorId && myProfileId && s.authorId === myProfileId)
+        return 'MINE';
+      if (s.isPublic) return 'COMMUNITY';
+      return undefined;
+    };
 
-      return sections
-        .map((s) => {
-          const normalized = normalizeKind(s.kind);
-          if (!normalized) return null;
+    return sections
+      .map((s) => {
+        const normalized = normalizeKind(s.kind);
+        if (!normalized) return null;
 
-          return {
-            id: s.id,
-            type: normalized,
-            title: s.title,
-            description: s.description ?? '',
-            // pas de "general" string — on garde uniquement Job si un ciblage est utile
-            metier: undefined as Job | undefined,
-            origin: computeOrigin(s),
-          };
-        })
-        .filter(
-          (
-            x,
-          ): x is {
-            id: string;
-            type: CategoryId;
-            title: string;
-            description: string;
-            metier?: Job;
-            origin?: Origin;
-          } => x !== null,
-        );
-    },
-    [sections, validCategoryIds, myProfileId],
-  );
+        return {
+          id: s.id,
+          type: normalized,
+          title: s.title,
+          description: s.description ?? '',
+          // pas de "general" string — on garde uniquement Job si un ciblage est utile
+          metier: undefined as Job | undefined,
+          origin: computeOrigin(s),
+        };
+      })
+      .filter(
+        (
+          x,
+        ): x is {
+          id: string;
+          type: CategoryId;
+          title: string;
+          description: string;
+          metier?: Job;
+          origin?: Origin;
+        } => x !== null,
+      );
+  }, [sections, validCategoryIds, myProfileId]);
 
   const handleExplorerOpenChange = (open: boolean) => {
     setIsExplorerOpen(open);
@@ -459,13 +456,13 @@ export default function BilanTypeBuilder(props?: BilanTypeBuilderProps) {
         description: sec?.description ?? '',
         order: i,
         origin: sec
-          ? (sec.source === 'BILANPLUME'
-              ? 'BILANPLUME'
-              : sec.authorId && myProfileId && sec.authorId === myProfileId
-                ? 'MINE'
-                : sec.isPublic
-                  ? 'COMMUNITY'
-                  : undefined)
+          ? sec.source === 'BILANPLUME'
+            ? 'BILANPLUME'
+            : sec.authorId && myProfileId && sec.authorId === myProfileId
+              ? 'MINE'
+              : sec.isPublic
+                ? 'COMMUNITY'
+                : undefined
           : undefined,
       } as SectionElement;
     });

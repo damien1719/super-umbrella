@@ -20,7 +20,7 @@ const buttonVariants = cva(
         outline:
           'border border-primary-300 bg-white shadow-sm hover:bg-primary-50 hover:text-primary-700',
         editor: 'hover:bg-primary-50 hover:text-primary-700',
-        secondary: 'bg-wood-200 text-gray-800 shadow-sm hover:bg-wood-300',
+        secondary: 'bg-wood-200 text-gray-800 shadow-sm hover:bg-wood-300 border border-wood-400',
         ghost: 'hover:bg-primary-50 hover:text-primary-700',
         link: 'text-blue-600 underline-offset-4 hover:underline',
         icon: 'bg-transparent hover:bg-wood-200 hover:text-primary-700',
