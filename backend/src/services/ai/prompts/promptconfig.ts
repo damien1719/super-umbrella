@@ -7,6 +7,8 @@ export const promptConfigs = {
   2. Adopte des phrases factuelles et descriptives.
   3. Très important : ne formuler aucun commentaire ni interprétation ; l’objectif est de rester strictement factuel et descriptif des informations rapportées par les parents.
   4. Très important : n'invente rien et n'oublie rien ce sont des données factuelles clés sur une personne
+  5. Fais des paragraphes pour aérer le texte.
+
   `.trim(),
     },
     profil_sensoriel: {
