@@ -5,13 +5,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  SectionDisponible,
-  type BilanElement,
-} from '@/components/bilanType/SectionDisponible';
+import { SectionDisponible, type BilanElement } from '@/components/bilanType/SectionDisponible';
 import SectionGlimpse from '@/components/SectionGlimpse';
 import { useSectionStore } from '@/store/sections';
 import type { Question as EditQuestion } from '@/types/Typequestion';
+import { useUserProfileStore } from '@/store/userProfile';
+import type { Origin } from '@/components/ui/origin-tag';
 
 interface InspirationPanelProps {
   open: boolean;
@@ -27,6 +26,7 @@ export default function InspirationPanel({
   const items = useSectionStore((s) => s.items);
   const fetchAll = useSectionStore((s) => s.fetchAll);
   const fetchOne = useSectionStore((s) => s.fetchOne);
+  const myProfileId = useUserProfileStore((s) => s.profileId);
 
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(
     null,
@@ -68,14 +68,21 @@ export default function InspirationPanel({
   }, [selectedSectionId, fetchOne]);
 
   const availableElements: BilanElement[] = useMemo(() => {
+    const computeOrigin = (s: (typeof items)[number]): Origin | undefined => {
+      if (s.source === 'BILANPLUME') return 'BILANPLUME';
+      if (s.authorId && myProfileId && s.authorId === myProfileId) return 'MINE';
+      if (s.isPublic) return 'COMMUNITY';
+      return undefined;
+    };
     return items.map((s) => ({
       id: s.id,
       type: s.kind,
       title: s.title,
       description: s.description ?? '',
       metier: s.job?.[0],
+      origin: computeOrigin(s),
     }));
-  }, [items]);
+  }, [items, myProfileId]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

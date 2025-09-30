@@ -33,6 +33,7 @@ import CreationTrame from '@/pages/CreationTrame';
 // ✅ On réutilise les types existants
 import { categories, kindMap, type CategoryId } from '@/types/trame';
 import { Job, jobOptions } from '@/types/job';
+import type { Origin } from '@/components/ui/origin-tag';
 import { hydrateLayout, type LexicalState } from '@/utils/hydrateLayout';
 import { ArrowLeft, FeatherIcon, Loader2, Save } from 'lucide-react';
 import SharePanel from '@/components/SharePanel';
@@ -44,6 +45,7 @@ import { CreationBilan } from '@/components/ui/creation-bilan-modal';
 import { NewPatientModal } from '@/components/ui/new-patient-modal';
 import { usePatientStore } from '@/store/patients';
 import { useAuth } from '@/store/auth';
+import { useUserProfileStore } from '@/store/userProfile';
 import { apiFetch } from '@/utils/api';
 
 // Types d'élément composant la construction
@@ -55,6 +57,7 @@ type SectionElement = {
   description: string;
   metier?: Job;
   order: number;
+  origin?: Origin;
 };
 
 type HeadingElement = {
@@ -127,6 +130,7 @@ export default function BilanTypeBuilder(props?: BilanTypeBuilderProps) {
 
   const sections = useSectionStore((s) => s.items);
   const fetchSections = useSectionStore((s) => s.fetchAll);
+  const myProfileId = useUserProfileStore((s) => s.profileId);
   const createBilanType = useBilanTypeStore((s) => s.create);
   const updateBilanType = useBilanTypeStore((s) => s.update);
   const fetchBilanType = useBilanTypeStore((s) => s.fetchOne);
@@ -270,10 +274,19 @@ export default function BilanTypeBuilder(props?: BilanTypeBuilderProps) {
       title: string;
       description: string;
       metier?: Job;
+      origin?: Origin;
     }[]
   >(
-    () =>
-      sections
+    () => {
+      const computeOrigin = (s: Section): Origin | undefined => {
+        if (s.source === 'BILANPLUME') return 'BILANPLUME';
+        if (s.authorId && myProfileId && s.authorId === myProfileId)
+          return 'MINE';
+        if (s.isPublic) return 'COMMUNITY';
+        return undefined;
+      };
+
+      return sections
         .map((s) => {
           const normalized = normalizeKind(s.kind);
           if (!normalized) return null;
@@ -285,6 +298,7 @@ export default function BilanTypeBuilder(props?: BilanTypeBuilderProps) {
             description: s.description ?? '',
             // pas de "general" string — on garde uniquement Job si un ciblage est utile
             metier: undefined as Job | undefined,
+            origin: computeOrigin(s),
           };
         })
         .filter(
@@ -296,9 +310,11 @@ export default function BilanTypeBuilder(props?: BilanTypeBuilderProps) {
             title: string;
             description: string;
             metier?: Job;
+            origin?: Origin;
           } => x !== null,
-        ),
-    [sections, validCategoryIds],
+        );
+    },
+    [sections, validCategoryIds, myProfileId],
   );
 
   const handleExplorerOpenChange = (open: boolean) => {
@@ -442,6 +458,15 @@ export default function BilanTypeBuilder(props?: BilanTypeBuilderProps) {
         title: sec?.title || seg.label || 'Section',
         description: sec?.description ?? '',
         order: i,
+        origin: sec
+          ? (sec.source === 'BILANPLUME'
+              ? 'BILANPLUME'
+              : sec.authorId && myProfileId && sec.authorId === myProfileId
+                ? 'MINE'
+                : sec.isPublic
+                  ? 'COMMUNITY'
+                  : undefined)
+          : undefined,
       } as SectionElement;
     });
     return out;

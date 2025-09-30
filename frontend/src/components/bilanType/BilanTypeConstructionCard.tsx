@@ -13,6 +13,7 @@ import {
   Expand,
 } from 'lucide-react';
 import JobBadge from '@/components/ui/job-badge';
+import OriginTag from '@/components/ui/origin-tag';
 import {
   categories,
   getCategoryLabel,
@@ -127,6 +128,9 @@ export function BilanTypeConstructionCard({
                         job={(element as any).metier}
                         className="bg-ocean-600 text-white"
                       />
+                    )}
+                    {(element as any).origin && (
+                      <OriginTag origin={(element as any).origin} />
                     )}
                   </div>
                   <h4 className="font-medium text-sm text-gray-900 line-clamp-2">
