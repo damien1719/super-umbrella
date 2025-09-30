@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/select';
 import { Plus, Search, Filter, TextSearchIcon } from 'lucide-react';
 import { SectionCardSmall } from './SectionCardSmall';
+import type { Origin } from '@/components/ui/origin-tag';
 
 // ✅ use your shared domain types & data
 import type { CategoryId, Category } from '@/types/trame';
@@ -28,6 +29,8 @@ export interface BilanElement {
   title: string;
   description: string;
   metier?: Job;
+  // Source/origin of the section for filtering + tag
+  origin?: Origin; // MINE | BILANPLUME | COMMUNITY
 }
 
 interface SectionDisponibleProps {
@@ -58,6 +61,9 @@ export function SectionDisponible({
   const [searchText, setSearchText] = useState('');
   const [filterType, setFilterType] = useState<'all' | CategoryId>('all');
   const [filterMetier, setFilterMetier] = useState<'all' | Job>('all');
+  const [filterOrigin, setFilterOrigin] = useState<
+    'all' | 'mine' | 'bilanplume' | 'community'
+  >('all');
   // Afficher tout: plus de pagination locale
 
   const predicate = (element: BilanElement) => {
@@ -67,21 +73,27 @@ export function SectionDisponible({
       element.description.toLowerCase().includes(searchText.toLowerCase());
 
     const matchesType = filterType === 'all' || element.type === filterType;
-    const matchesMetier =
-      filterMetier === 'all' || element.metier === filterMetier;
+    const matchesMetier = filterMetier === 'all' || element.metier === filterMetier;
 
-    return matchesSearch && matchesType && matchesMetier;
+    const matchesOrigin =
+      filterOrigin === 'all' ||
+      (filterOrigin === 'mine' && element.origin === 'MINE') ||
+      (filterOrigin === 'bilanplume' && element.origin === 'BILANPLUME') ||
+      (filterOrigin === 'community' && element.origin === 'COMMUNITY');
+
+    return matchesSearch && matchesType && matchesMetier && matchesOrigin;
   };
 
   const filteredElements = useMemo(
     () => availableElements.filter(predicate),
-    [searchText, filterType, filterMetier, availableElements],
+    [searchText, filterType, filterMetier, filterOrigin, availableElements],
   );
 
   const resetFilters = () => {
     setSearchText('');
     setFilterType('all');
     setFilterMetier('all');
+    setFilterOrigin('all');
   };
 
   return (
@@ -153,9 +165,36 @@ export function SectionDisponible({
                 ))}
               </SelectContent>
             </Select>
+
+            {/* Source / Origine */}
+            <Select
+              value={filterOrigin}
+              onValueChange={(v) =>
+                setFilterOrigin(
+                  v as 'all' | 'mine' | 'bilanplume' | 'community',
+                )
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Source" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes les sources</SelectItem>
+                <SelectItem value="mine">Mes Parties</SelectItem>
+                <SelectItem value="bilanplume">
+                  Partagées par Bilan Plume
+                </SelectItem>
+                <SelectItem value="community">
+                  Partagées par la communauté
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          {(searchText || filterType !== 'all' || filterMetier !== 'all') && (
+          {(searchText ||
+            filterType !== 'all' ||
+            filterMetier !== 'all' ||
+            filterOrigin !== 'all') && (
             <Button
               variant="outline"
               size="sm"

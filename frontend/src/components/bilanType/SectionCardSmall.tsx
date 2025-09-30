@@ -2,6 +2,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import JobBadge from '@/components/ui/job-badge';
+import OriginTag from '@/components/ui/origin-tag';
 import type { BilanElement } from './SectionDisponible';
 import {
   categories,
@@ -93,6 +94,9 @@ export function SectionCardSmall({
               className="bg-ocean-600 text-white"
             />
           )}
+
+          {/* Origin tag */}
+          {element.origin && <OriginTag origin={element.origin} />}
         </div>
 
         {element.description && (
