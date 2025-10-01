@@ -374,7 +374,7 @@ export default function QuestionList({
                     onClick={(e) => e.stopPropagation()}
                   >
                     {/* Coller une réutilisation (visible seulement si un élément est dans le presse-papiers) */}
-                    {clipboardItem && onPasteAfter && !isReadOnly &&  (
+                    {clipboardItem && onPasteAfter && !isReadOnly && (
                       <Button
                         variant="primary"
                         size="sm"
