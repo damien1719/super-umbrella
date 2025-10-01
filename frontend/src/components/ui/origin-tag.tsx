@@ -6,14 +6,14 @@ export type Origin = 'MINE' | 'BILANPLUME' | 'COMMUNITY';
 
 const originLabels: Record<Origin, string> = {
   MINE: 'Ma partie',
-  BILANPLUME: 'Partagée par Bilan Plume',
-  COMMUNITY: 'Partagée par la communauté',
+  BILANPLUME: 'Partagée par Bilan Plume - Lecture seule',
+  COMMUNITY: 'Partagée par la communauté - Lecture seule',
 };
 
 const originClasses: Record<Origin, string> = {
   MINE: 'bg-primary-200 italic',
   BILANPLUME: 'bg-wood-300 italic',
-  COMMUNITY: 'bg-wood-400 italic',
+  COMMUNITY: 'bg-wood-300 italic',
 };
 
 export default function OriginTag({

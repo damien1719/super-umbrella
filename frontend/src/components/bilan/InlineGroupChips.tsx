@@ -59,8 +59,8 @@ export default function InlineGroupChips({ titles, right }: ChipOutlineProps) {
     root.scrollTo({ top, behavior: 'smooth' });
   };
 
-/*   if (titles.length <= 1) return null;
- */
+  /*   if (titles.length <= 1) return null;
+   */
   return (
     <div className="sticky top-0 z-10 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/70 border-b border-wood-200 py-2">
       <div className="relative">

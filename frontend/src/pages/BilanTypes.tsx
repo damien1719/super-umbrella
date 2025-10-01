@@ -66,22 +66,24 @@ export default function BilanTypes() {
                   job: jobs,
                 };
                 const created = await create(payload);
-                const params = new URLSearchParams();
                 if (created?.id) {
-                  params.set('id', created.id);
+                  navigate(`/bilan-types/${created.id}`);
+                } else {
+                  // Fallback: if no id returned, keep prior behavior just in case
+                  const params = new URLSearchParams();
+                  const resolvedName = created?.name ?? name;
+                  if (resolvedName) params.set('name', resolvedName);
+                  const resolvedJobs = created?.job ?? jobs ?? [];
+                  if (resolvedJobs.length) {
+                    params.set('jobs', resolvedJobs.join(','));
+                  }
+                  const search = params.toString();
+                  navigate(
+                    search
+                      ? `/bilan-types/builder?${search}`
+                      : '/bilan-types/builder',
+                  );
                 }
-                const resolvedName = created?.name ?? name;
-                if (resolvedName) params.set('name', resolvedName);
-                const resolvedJobs = created?.job ?? jobs ?? [];
-                if (resolvedJobs.length) {
-                  params.set('jobs', resolvedJobs.join(','));
-                }
-                const search = params.toString();
-                navigate(
-                  search
-                    ? `/bilan-types/builder?${search}`
-                    : '/bilan-types/builder',
-                );
               } catch (error) {
                 console.error(
                   'Erreur lors de la création du bilan type',

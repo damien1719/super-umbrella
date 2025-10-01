@@ -13,7 +13,7 @@ export default function ReadOnlyOverlay({
   active,
   children,
   message = 'Trame en lecture seule',
-  ctaLabel = 'Dupliquer la partie',
+  ctaLabel = 'Création sa version',
   onCta,
   className = '',
 }: ReadOnlyOverlayProps) {

@@ -5,16 +5,18 @@ import type React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { BilanTypeConstructionCard } from './BilanTypeConstructionCard';
+import { SectionCardSmall } from './SectionCardSmall';
+import type { CategoryId } from '@/types/trame';
+import type { Job } from '@/types/job';
 
 type SelectedElement =
   | {
       kind: 'section';
       id: string;
-      type: string;
+      type: CategoryId;
       title: string;
       description: string;
-      metier?: string;
+      metier?: Job;
       order: number;
     }
   | {
@@ -39,6 +41,10 @@ interface BilanTypeConstructionProps {
   onRenameHeading: (index: number, title: string) => void;
   onSave: () => void;
   onOpenSection?: (id: string) => void | Promise<void>;
+  onAfterDuplicate?: (
+    originalId: string,
+    created: import('@/store/sections').Section,
+  ) => void | Promise<void>;
 }
 
 export function BilanTypeConstruction({
@@ -52,6 +58,7 @@ export function BilanTypeConstruction({
   onAddHeading,
   onRenameHeading,
   onOpenSection,
+  onAfterDuplicate,
 }: BilanTypeConstructionProps) {
   return (
     <>
@@ -78,18 +85,24 @@ export function BilanTypeConstruction({
           ) : (
             <div className="space-y-3">
               {selectedElements.map((element, index) => (
-                <BilanTypeConstructionCard
+                <SectionCardSmall
                   key={element.id}
+                  context="builder"
                   element={element}
-                  index={index}
-                  draggedIndex={draggedIndex}
-                  onDragStart={onDragStart}
-                  onDragOver={onDragOver}
-                  onDrop={onDrop}
-                  onDragEnd={onDragEnd}
-                  onRemove={onRemoveElement}
-                  onRenameHeading={onRenameHeading}
-                  onOpenSection={onOpenSection}
+                  dnd={{
+                    index,
+                    draggedIndex,
+                    onDragStart,
+                    onDragOver,
+                    onDrop,
+                    onDragEnd,
+                  }}
+                  actions={{
+                    onRemove: onRemoveElement,
+                    onRenameHeading,
+                    onOpen: onOpenSection,
+                    onAfterDuplicate,
+                  }}
                 />
               ))}
             </div>

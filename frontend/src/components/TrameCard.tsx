@@ -69,7 +69,7 @@ export default function TrameCard({
           {previewLabel}
         </Button>
       )}
-{/*       {showLink && (
+      {/*       {showLink && (
         <a
           href={`/creation-trame/${trame.id}`}
           target="_blank"

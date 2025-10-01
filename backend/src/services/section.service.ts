@@ -49,6 +49,58 @@ async function syncTemplateFromSchema(section: any): Promise<void> {
   };
 }
 
+type LexNode = Record<string, any> & { type?: string; children?: any[] };
+
+/**
+ * Supprime uniquement les nœuds { type: 'section-placeholder', sectionId: targetId }
+ * dans un state Lexical. Ne touche à rien d'autre.
+ */
+function pruneSectionPlaceholders(
+  layout: unknown,
+  targetId: string,
+): unknown {
+  const base = ensureLexicalState(layout);
+
+  // Retourne:
+  // - un nouvel objet nœud si ses enfants ont changé,
+  // - le nœud original s'il est inchangé,
+  // - null si le nœud doit être supprimé.
+  function pruneNode(node: any): any | null {
+    if (!node || typeof node !== 'object') return node;
+
+    // 1) Cas suppression ciblée
+    if (node.type === 'section-placeholder' && node.sectionId === targetId) {
+      return null; // on le retire
+    }
+
+    // 2) Traiter récursivement children (s'il y en a)
+    const hasChildren = Array.isArray(node.children);
+    if (!hasChildren) return node;
+
+    let changed = false;
+    const nextChildren: any[] = [];
+    for (const child of node.children as any[]) {
+      const pruned = pruneNode(child);
+      if (pruned === null) {
+        changed = true; // un enfant supprimé
+        continue;
+      }
+      if (pruned !== child) changed = true; // enfant modifié
+      nextChildren.push(pruned);
+    }
+
+    if (!changed) return node; // rien n'a changé sous ce nœud
+
+    // Recréer seulement si nécessaire (immutabilité)
+    return { ...node, children: nextChildren };
+  }
+
+  const nextRoot = pruneNode((base as any).root);
+  // root n'est jamais supprimé; au pire on garde root tel quel
+  if (nextRoot === (base as any).root) return base;
+  return { ...(base as any), root: nextRoot };
+}
+
 
 export type SectionData = {
   title: string;
@@ -218,7 +270,7 @@ export const SectionService = {
     // No template associated: duplicate as-is without linking to any template
     return db.section.create({
       data: {
-        title: section.title + ' - Copie',
+        title: section.title + ' - Ma version',
         kind: section.kind,
         job: section.job,
         description: section.description,
@@ -283,8 +335,29 @@ export const SectionService = {
   },
 
   async remove(userId: string, id: string) {
+    // Precompute impacted BilanTypes (by join table) before delete cascade
+    const impacted: { bilanTypeId: string }[] = await db.bilanTypeSection.findMany({
+      where: { sectionId: id },
+      select: { bilanTypeId: true },
+    });
+    const impactedIds = Array.from(new Set(impacted.map((r) => r.bilanTypeId)));
+
     if (await isAdminUser(userId)) {
       await db.section.delete({ where: { id } });
+      // After delete, prune layouts for impacted BilanTypes
+      if (impactedIds.length > 0) {
+        const items = await db.bilanType.findMany({
+          where: { id: { in: impactedIds } },
+          select: { id: true, layoutJson: true },
+        });
+        for (const bt of items) {
+          const pruned = pruneSectionPlaceholders(bt.layoutJson, id);
+          // only update if changed
+          if (JSON.stringify(pruned) !== JSON.stringify(bt.layoutJson)) {
+            await db.bilanType.update({ where: { id: bt.id }, data: { layoutJson: pruned } });
+          }
+        }
+      }
       return;
     }
     // Vérifier droits: auteur ou éditeur via partage (userId or email)
@@ -310,5 +383,18 @@ export const SectionService = {
       },
     });
     if (count === 0) throw new NotFoundError();
+    // Prune layouts post-delete for impacted BilanTypes
+    if (impactedIds.length > 0) {
+      const items = await db.bilanType.findMany({
+        where: { id: { in: impactedIds } },
+        select: { id: true, layoutJson: true },
+      });
+      for (const bt of items) {
+        const pruned = pruneSectionPlaceholders(bt.layoutJson, id);
+        if (JSON.stringify(pruned) !== JSON.stringify(bt.layoutJson)) {
+          await db.bilanType.update({ where: { id: bt.id }, data: { layoutJson: pruned } });
+        }
+      }
+    }
   },
 };
