@@ -22,6 +22,7 @@ import { useUserProfileStore } from './store/userProfile';
 import { AppSidebar } from './components/AppSidebar';
 import Onboarding from './pages/Onboarding';
 import Clipboard from './components/Clipboard';
+import Toaster from './components/ui/toaster';
 
 /* function useInitAuth() {
   const { loading, initialize } = useAuth();
@@ -272,6 +273,7 @@ export default function App() {
         </Route>
       </Routes>
       <Clipboard />
+      <Toaster />
     </>
   );
 }

@@ -11,12 +11,15 @@ interface SectionGlimpseProps {
   title?: string;
   questions?: EditQuestion[];
   loading?: boolean;
+  /** Si fourni, active l'insertion directe depuis la liste */
+  onInsertQuestion?: (q: EditQuestion) => void;
 }
 
 export default function SectionGlimpse({
   title,
   questions = [],
   loading = false,
+  onInsertQuestion,
 }: SectionGlimpseProps) {
   const [tab, setTab] = useState<'edition' | 'preview'>('edition');
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -79,6 +82,8 @@ export default function SectionGlimpse({
                     /* read-only */
                   }}
                   isReadOnly={true}
+                  isInsertDirectly={Boolean(onInsertQuestion)}
+                  onInsertDirectly={onInsertQuestion as any}
                 />
               ) : (
                 <div className="h-full flex items-center justify-center text-gray-500 p-4 text-center">

@@ -66,6 +66,10 @@ interface Props {
     saveSnippet: (content: string, previousId?: string | null) => string | null;
     deleteSnippet: (id: string) => void;
   };
+  /** Si true, remplace le bouton copier par un bouton d'insertion directe */
+  isInsertDirectly?: boolean;
+  /** Callback d'insertion directe (utilisé si isInsertDirectly est true) */
+  onInsertDirectly?: (item: Question) => void;
 }
 
 export default function QuestionList({
@@ -80,6 +84,8 @@ export default function QuestionList({
   onPasteAfter,
   isReadOnly = false,
   tableAstHandlers,
+  isInsertDirectly = false,
+  onInsertDirectly,
 }: Props) {
   const dragIndex = useRef<number | null>(null);
   const [jsonDialogOpen, setJsonDialogOpen] = useState(false);
@@ -368,7 +374,7 @@ export default function QuestionList({
                     onClick={(e) => e.stopPropagation()}
                   >
                     {/* Coller une réutilisation (visible seulement si un élément est dans le presse-papiers) */}
-                    {clipboardItem && onPasteAfter && (
+                    {clipboardItem && onPasteAfter && !isReadOnly &&  (
                       <Button
                         variant="primary"
                         size="sm"
@@ -411,23 +417,38 @@ export default function QuestionList({
                         <Copy className="h-4 w-4" />
                       </Button>
                     )}
-                    {/* Copier pour réutiliser */}
-                    <Button
-                      variant={isReadOnly ? 'primary' : 'outline'}
-                      size="sm"
-                      tooltip="Copier pour réutiliser"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        copyToClipboard(question);
-                      }}
-                    >
-                      <ClipboardCopy className="h-4 w-4" />
-                      {isReadOnly && (
-                        <span className="text-base">
-                          Copier pour réutiliser
-                        </span>
-                      )}
-                    </Button>
+                    {/* Copier pour réutiliser ou insérer directement */}
+                    {isInsertDirectly && (
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (onInsertDirectly) {
+                            onInsertDirectly(question);
+                          }
+                        }}
+                      >
+                        <ClipboardPaste className="h-4 w-4 mr-2" />
+                        Insérer la question dans ma partie
+                      </Button>
+                    )}
+                      <Button
+                        className="gap-2"
+                        variant={isReadOnly ? 'primary' : 'outline'}
+                        size="sm"
+                        tooltip="Copier pour réutiliser"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          copyToClipboard(question);
+                        }}
+                      >
+                        <ClipboardCopy className="h-4 w-4" />
+                        {isReadOnly && (
+                          'Copier pour réutiliser'
+                        )}
+                      </Button>
+
                     {/*                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button

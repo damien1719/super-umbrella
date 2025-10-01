@@ -65,7 +65,11 @@ interface SectionCardSmallProps {
   element: ElementLike;
   actions?: Actions;
   dnd?: Dnd;
-  flags?: { hideOpenAction?: boolean; clickAction?: 'preview' | 'add' | 'none' };
+  flags?: {
+    hideOpenAction?: boolean;
+    hideDuplicate?: boolean;
+    clickAction?: 'preview' | 'add' | 'none';
+  };
 }
 
 export function SectionCardSmall({ context, element, actions, dnd, flags }: SectionCardSmallProps) {
@@ -166,7 +170,7 @@ export function SectionCardSmall({ context, element, actions, dnd, flags }: Sect
 
           {/* Actions */}
           <div className="flex items-center gap-1 shrink-0">
-            {isSection(element) && showCreateVersion(element.origin) && (
+            {isSection(element) && showCreateVersion(element.origin) && !flags?.hideDuplicate && (
               <Button
                 className="gap-2"
                 variant="ghost"
