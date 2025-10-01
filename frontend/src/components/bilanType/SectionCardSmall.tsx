@@ -182,7 +182,7 @@ export function SectionCardSmall({ context, element, actions, dnd, flags }: Sect
                 }}
               >
                 <Copy className="h-4 w-4" />
-                {isDuplicating ? 'Création…' : 'Créer sa version'}
+                {isDuplicating ? 'Création…' : 'Créer ma version'}
               </Button>
             )}
 
