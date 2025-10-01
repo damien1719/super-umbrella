@@ -125,7 +125,7 @@ export default function TrameHeader(p?: Partial<Props>) {
             Mode lecture seule
           </span>
           <Button onClick={onDuplicate} variant="primary">
-            Créer sa version
+            Créer ma version
           </Button>
         </div>
       )}
