@@ -19,12 +19,15 @@ interface InspirationPanelProps {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   titleLeft?: string;
+  /** Insertion directe dans la trame en cours */
+  onInsertQuestion?: (q: EditQuestion) => void;
 }
 
 export default function InspirationPanel({
   open,
   onOpenChange,
   titleLeft,
+  onInsertQuestion,
 }: InspirationPanelProps) {
   const items = useSectionStore((s) => s.items);
   const fetchAll = useSectionStore((s) => s.fetchAll);
@@ -100,7 +103,7 @@ export default function InspirationPanel({
             vous correspondent
           </DialogTitle>
         </DialogHeader>
-        <div className="h-[calc(90vh-3.25rem)] flex">
+        <div className="h-[calc(90vh-3.25rem)] flex overflow-x-auto">
           {/* Left - available sections */}
           <div className="w-[38%] min-w-[320px] max-w-[560px] h-full overflow-hidden">
             <div className="h-full overflow-y-auto p-4">
@@ -111,6 +114,7 @@ export default function InspirationPanel({
                 }}
                 onSelectElement={(el) => setSelectedSectionId(el.id)}
                 hideOpenAction
+                hideDuplicateAction
                 titleOverride={titleLeft}
               />
             </div>
@@ -121,6 +125,10 @@ export default function InspirationPanel({
               title={selectedTitle}
               questions={selectedQuestions}
               loading={loading}
+              onInsertQuestion={onInsertQuestion && ((q) => {
+                onInsertQuestion(q);
+                // Fermer le panneau après insertion pour retour rapide à l'édition
+              })}
             />
           </div>
         </div>

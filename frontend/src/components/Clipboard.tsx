@@ -23,12 +23,13 @@ export default function Clipboard() {
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-250">
+    <div className="fixed bottom-4 right-4 z-200">
       <Card className="w-[360px] p-0 shadow-lg">
-        <CardHeader className="py-3 pr-2 pl-4 flex-row items-start justify-between">
+        <CardHeader className="py-3 pr-2 pl-4 flex-row items-start justify-between z-200">
           <CardTitle className="text-lg">
             Presse-papiers
             <Button
+              className="z-250"
               variant="ghost"
               size="sm"
               onClick={() => setDismissed(true)}

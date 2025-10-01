@@ -43,6 +43,8 @@ interface SectionDisponibleProps {
   onSelectElement?: (element: BilanElement) => void;
   /** Hide the "Ouvrir" action button on each card (useful in a modal) */
   hideOpenAction?: boolean;
+  /** Hide the "Créer sa version" duplicate action on each card */
+  hideDuplicateAction?: boolean;
   /** When provided, clicking "Ouvrir" on a card calls this (e.g., save then navigate) */
   onOpenSection?: (id: string) => void | Promise<void>;
   /** Called after a duplicate is created in a card */
@@ -64,6 +66,7 @@ export function SectionDisponible({
   titleOverride,
   onSelectElement,
   hideOpenAction,
+  hideDuplicateAction,
   onOpenSection,
   onAfterDuplicate,
 }: SectionDisponibleProps) {
@@ -128,7 +131,7 @@ export function SectionDisponible({
           )}
         </div>
 
-        <div className="space-y-3 pt-4">
+        <div className="space-y-3 pt-4 min-w-0">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -232,7 +235,7 @@ export function SectionDisponible({
               onOpen: onOpenSection,
               onAfterDuplicate,
             }}
-            flags={{ hideOpenAction }}
+            flags={{ hideOpenAction, hideDuplicate: hideDuplicateAction }}
           />
         ))}
 

@@ -23,6 +23,7 @@ import TemplateEditor from '@/components/TemplateEditor';
 import EmptyTemplateState from '@/components/EmptyTemplateState';
 import Settings from '@/components/Settings';
 import InspirationPanel from '@/components/InspirationPanel';
+import { useToastStore } from '@/store/toast';
 import { useSectionTemplateStore } from '../store/sectionTemplates';
 import type { SectionTemplate, SlotSpec } from '../types/template';
 import { apiFetch } from '@/utils/api';
@@ -1127,6 +1128,15 @@ export default function CreationTrame({
         open={showInspiration}
         onOpenChange={setShowInspiration}
         titleLeft="Cliquer sur une partie pour en voir le détail"
+        onInsertQuestion={(q) => {
+          const targetId = selectedId || questions[questions.length - 1]?.id || '';
+          onPasteAfter(targetId, q);
+          // Toast de confirmation
+          useToastStore.getState().show('Question insérée dans votre partie', {
+            type: 'success',
+            duration: 2000,
+          });
+        }}
       />
       <CreationBilan
         isOpen={isCreationModalOpen}
