@@ -669,7 +669,7 @@ export default function WizardAIRightPanel({
           <DialogTitle className="flex items-center gap-2 text-xl font-bold">
             {headerTitle}
           </DialogTitle>
-{/*           <DialogDescription className="text-lg text-gray-600">
+          {/*           <DialogDescription className="text-lg text-gray-600">
             {headerDescription}
           </DialogDescription> */}
         </DialogHeader>

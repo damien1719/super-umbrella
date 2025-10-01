@@ -137,16 +137,18 @@ export function BilanTypeNotesEditor({
               variant="secondary"
               size="default"
               disabled={!activeSectionId || editDisabledByRights}
-              tooltip={!activeSectionId
-                ? 'Sélectionnez une section'
-                : editDisabledByRights
-                  ? isOfficial
-                    ? 'Édition indisponible: section officielle BilanPlume'
-                    : "Vous n'êtes pas l'auteur de cette section publique"
-                  : undefined}
+              tooltip={
+                !activeSectionId
+                  ? 'Sélectionnez une section'
+                  : editDisabledByRights
+                    ? isOfficial
+                      ? 'Édition indisponible: section officielle BilanPlume'
+                      : "Vous n'êtes pas l'auteur de cette section publique"
+                    : undefined
+              }
               onClick={() => setEditOpen(true)}
             >
-            <PenIcon className="h-4 w-4" />
+              <PenIcon className="h-4 w-4" />
               Editer
             </Button>
           }

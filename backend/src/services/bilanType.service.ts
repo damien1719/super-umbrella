@@ -119,10 +119,19 @@ export const BilanTypeService = {
       data: { ...bilanTypeData, authorId: profile.id },
     });
     if (sections?.length) {
-      for (const section of sections) {
-        await db.bilanTypeSection.create({
-          data: { ...section, bilanTypeId: bilanType.id },
+      const ids = Array.from(new Set(sections.map((s) => s.sectionId)));
+      if (ids.length > 0) {
+        const existing = await db.section.findMany({
+          where: { id: { in: ids } },
+          select: { id: true },
         });
+        const existingSet = new Set((existing || []).map((x: { id: string }) => x.id));
+        const filtered = sections.filter((s) => existingSet.has(s.sectionId));
+        for (const section of filtered) {
+          await db.bilanTypeSection.create({
+            data: { ...section, bilanTypeId: bilanType.id },
+          });
+        }
       }
     }
     return bilanType;
@@ -182,9 +191,10 @@ export const BilanTypeService = {
 
   async update(userId: string, id: string, data: Partial<BilanTypeData>) {
     const { sections, ...bilanTypeData } = data;
-    // Pre-compute diffs if sections are provided
+    // Pre-compute diffs if sections are provided (using only existing Section ids)
     let addedIds: string[] = [];
     let removedIds: string[] = [];
+    let filteredSections: BilanTypeSectionInput[] | undefined = undefined;
     if (sections) {
       const prev = await db.bilanTypeSection.findMany({
         where: { bilanTypeId: id },
@@ -193,7 +203,18 @@ export const BilanTypeService = {
       const oldSet: Set<string> = new Set(
         (prev || []).map((e: { sectionId: string }) => e.sectionId),
       );
-      const newSet: Set<string> = new Set(sections.map((s) => s.sectionId));
+      // Filter input to existing Section ids
+      const incomingIds = Array.from(new Set(sections.map((s) => s.sectionId)));
+      const existing = incomingIds.length
+        ? await db.section.findMany({
+            where: { id: { in: incomingIds } },
+            select: { id: true },
+          })
+        : [];
+      const existingSet = new Set((existing || []).map((x: { id: string }) => x.id));
+      filteredSections = sections.filter((s) => existingSet.has(s.sectionId));
+
+      const newSet: Set<string> = new Set(filteredSections.map((s) => s.sectionId));
       addedIds = Array.from(newSet).filter((sid) => !oldSet.has(sid));
       removedIds = Array.from(oldSet).filter((sid) => !newSet.has(sid));
     }
@@ -230,9 +251,10 @@ export const BilanTypeService = {
 
     if (sections) {
       // Replace all existing sections with provided payload (simple and predictable)
+      const toCreate = filteredSections ?? [];
       await db.$transaction([
         db.bilanTypeSection.deleteMany({ where: { bilanTypeId: id } }),
-        ...sections.map((s) => db.bilanTypeSection.create({ data: { ...s, bilanTypeId: id } })),
+        ...toCreate.map((s) => db.bilanTypeSection.create({ data: { ...s, bilanTypeId: id } })),
       ]);
 
       // Apply share cascade based on diffs

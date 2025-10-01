@@ -33,6 +33,8 @@ import SharePanel from '@/components/SharePanel';
 import ReadOnlyOverlay from '@/components/ReadOnlyOverlay';
 import SourceParam from '@/components/SourceParam';
 import { CreationBilan } from '@/components/ui/creation-bilan-modal';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { Button } from '@/components/ui/button';
 import { NewPatientModal } from '@/components/ui/new-patient-modal';
 import { usePatientStore } from '../store/patients';
 
@@ -79,6 +81,7 @@ export default function CreationTrame({
   const fetchOne = useSectionStore((s) => s.fetchOne);
   const duplicateSection = useSectionStore((s) => s.duplicate);
   const updateSection = useSectionStore((s) => s.update);
+  const removeSection = useSectionStore((s) => s.remove);
   const createExample = useSectionExampleStore((s) => s.create);
 
   const [tab, setTab] = useState<
@@ -98,6 +101,7 @@ export default function CreationTrame({
   const [showAdminImport, setShowAdminImport] = useState(false);
   const [showInspiration, setShowInspiration] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [job, setJob] = useState<Job[]>([Job.PSYCHOMOTRICIEN]);
   const createTemplate = useSectionTemplateStore((s) => s.create);
   const getTemplate = useSectionTemplateStore((s) => s.get);
@@ -698,6 +702,10 @@ export default function CreationTrame({
     }
   };
 
+  const navigateAfterDelete = () => {
+    navigate(-1);
+  };
+
   const isReadOnly = Boolean(
     isPublic && authorId && profileId && profileId !== authorId,
   );
@@ -1091,6 +1099,24 @@ export default function CreationTrame({
               {!isReadOnly && (
                 <SharePanel resourceType="section" resourceId={sectionId} />
               )}
+              {/* Danger zone: suppression de la partie */}
+              {!isReadOnly && profileId && authorId === profileId && (
+                <div className="border rounded-lg p-4 bg-red-50 border-red-200">
+                  <div className="text-sm font-medium text-red-700 mb-2">
+                    Supprimer la partie
+                  </div>
+                  <p className="text-sm text-red-700 mb-4">
+                    Cette action est irréversible. La partie sera
+                    définitivement supprimée.
+                  </p>
+                  <Button
+                    variant="destructive"
+                    onClick={() => setShowDeleteConfirm(true)}
+                  >
+                    Supprimer la partie
+                  </Button>
+                </div>
+              )}
             </div>
           </ReadOnlyOverlay>
         )}
@@ -1241,6 +1267,22 @@ export default function CreationTrame({
         onOpenChange={setShowConfirm}
         onConfirm={saveAndExit}
         onCancel={() => navigate(-1)}
+      />
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        title="Supprimer cette partie ?"
+        confirmText="Supprimer"
+        onConfirm={async () => {
+          if (!sectionId) return;
+          try {
+            await removeSection(sectionId);
+            navigateAfterDelete();
+          } catch (e) {
+            console.error('Failed to delete section', e);
+            alert('Erreur lors de la suppression. Veuillez réessayer.');
+          }
+        }}
       />
     </div>
   );

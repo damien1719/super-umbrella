@@ -162,6 +162,29 @@ export default function BilanTypeBuilder(props?: BilanTypeBuilderProps) {
     };
   }, [fetchSections]);
 
+  // Prune placeholders that target deleted sections to avoid stale display and save errors
+  useEffect(() => {
+    const existingIds = new Set(sections.map((s) => s.id));
+    setLayoutJson((prev) => {
+      const base = (prev as any) ?? { root: { type: 'root', children: [] } };
+      const { segments, prefix, suffix } = computeSegments(base);
+      const hasOrphans = segments.some(
+        (s) => s.kind === 'section' && !existingIds.has(s.sectionId),
+      );
+      if (!hasOrphans) return base;
+      const children = getRootChildren(base);
+      const kept = segments.filter(
+        (s) => s.kind !== 'section' || existingIds.has(s.sectionId),
+      );
+      const nextChildren = [
+        ...prefix,
+        ...kept.flatMap((s) => children.slice(s.start, s.end)),
+        ...suffix,
+      ];
+      return setRootChildren(base, nextChildren);
+    });
+  }, [sections]);
+
   // Pré-charger la liste des patients pour le modal CreationBilan
   useEffect(() => {
     if (token) {
@@ -340,6 +363,31 @@ export default function BilanTypeBuilder(props?: BilanTypeBuilderProps) {
   };
 
   const explorerLoading = isFetchingSections && sections.length === 0;
+
+  // When a section gets duplicated from UI, if the original is present in layout,
+  // also append the newly created section to the current layout
+  const handleAfterDuplicate = (
+    originalId: string,
+    created: Section,
+  ) => {
+    try {
+      const { segments } = computeSegments(layoutJson);
+      const exists = segments.some(
+        (s): s is Extract<Segment, { kind: 'section' }> =>
+          s.kind === 'section' && s.sectionId === originalId,
+      );
+      const normalized = normalizeKind(created.kind);
+      if (!normalized) return;
+      addSectionElement({
+        id: created.id,
+        type: normalized,
+        title: created.title,
+        description: created.description ?? '',
+      });
+    } catch {
+      // no-op
+    }
+  };
 
   const handleDragStart = (e: React.DragEvent, index: number) => {
     setDraggedIndex(index);
@@ -868,6 +916,7 @@ export default function BilanTypeBuilder(props?: BilanTypeBuilderProps) {
               </div>
               <Button
                 onClick={saveBilanType}
+                variant="outline"
                 disabled={isSaving || !bilanName || !isDirty}
               >
                 {isSaving ? (
@@ -883,7 +932,7 @@ export default function BilanTypeBuilder(props?: BilanTypeBuilderProps) {
                 )}
               </Button>
               <Button
-                variant="outline"
+                variant="primary"
                 onClick={async () => {
                   // Ensure we have an id before testing generation
                   if (!currentBilanTypeId) {
@@ -925,6 +974,8 @@ export default function BilanTypeBuilder(props?: BilanTypeBuilderProps) {
                 availableElements={availableElements}
                 onAddElement={addSectionElement}
                 onOpenExplorer={() => handleExplorerOpenChange(true)}
+                onOpenSection={onOpenSection}
+                onAfterDuplicate={handleAfterDuplicate}
               />
             </div>
 
@@ -944,6 +995,7 @@ export default function BilanTypeBuilder(props?: BilanTypeBuilderProps) {
                 onRenameHeading={renameHeadingByIndex}
                 onSave={saveBilanType}
                 onOpenSection={onOpenSection}
+                onAfterDuplicate={handleAfterDuplicate}
               />
             </div>
           </div>
@@ -993,20 +1045,39 @@ export default function BilanTypeBuilder(props?: BilanTypeBuilderProps) {
             <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle>
-                  Layout du Bilan: {bilanName || 'Sans nom'}
+                  Rendu final simplifié du Bilan: {bilanName || 'Sans nom'}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="border rounded">
-                  <RichTextEditor
-                    ref={
-                      layoutEditorRef as unknown as React.RefObject<RichTextEditorHandle>
-                    }
-                    initialStateJson={layoutJson}
-                    readOnly={false}
-                    onChangeStateJson={(st) => setLayoutJson(st)}
-                  />
-                </div>
+                {(() => {
+                  // Empty-state when there is no layout content yet
+                  const children = getRootChildren(layoutJson);
+                  const isEmpty = children.length === 0;
+                  if (isEmpty) {
+                    return (
+                      <div className="flex flex-col items-center justify-center p-8 text-center border border-dashed rounded-md">
+                        <p className="mb-4 text-sm text-gray-600">
+                          Aucun contenu dans l’édition Word pour le moment. Ajoutez des sections dans l’onglet « Construction » puis revenez ici pour organiser la mise en page.
+                        </p>
+                        <Button type="button" onClick={() => setMode('build')}>
+                          Aller à la construction
+                        </Button>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div className="border rounded">
+                      <RichTextEditor
+                        ref={
+                          layoutEditorRef as unknown as React.RefObject<RichTextEditorHandle>
+                        }
+                        initialStateJson={layoutJson}
+                        readOnly={false}
+                        onChangeStateJson={(st) => setLayoutJson(st)}
+                      />
+                    </div>
+                  );
+                })()}
               </CardContent>
             </Card>
           </div>

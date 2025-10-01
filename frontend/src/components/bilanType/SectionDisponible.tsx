@@ -43,6 +43,13 @@ interface SectionDisponibleProps {
   onSelectElement?: (element: BilanElement) => void;
   /** Hide the "Ouvrir" action button on each card (useful in a modal) */
   hideOpenAction?: boolean;
+  /** When provided, clicking "Ouvrir" on a card calls this (e.g., save then navigate) */
+  onOpenSection?: (id: string) => void | Promise<void>;
+  /** Called after a duplicate is created in a card */
+  onAfterDuplicate?: (
+    originalId: string,
+    created: import('@/store/sections').Section,
+  ) => void | Promise<void>;
 }
 
 // Use shared label helper from types
@@ -57,6 +64,8 @@ export function SectionDisponible({
   titleOverride,
   onSelectElement,
   hideOpenAction,
+  onOpenSection,
+  onAfterDuplicate,
 }: SectionDisponibleProps) {
   const [searchText, setSearchText] = useState('');
   const [filterType, setFilterType] = useState<'all' | CategoryId>('all');
@@ -108,7 +117,7 @@ export function SectionDisponible({
           </CardTitle>
           {onOpenExplorer && (
             <Button
-              variant="outline"
+              variant="primary"
               size="sm"
               onClick={onOpenExplorer}
               className="whitespace-nowrap"
@@ -213,12 +222,17 @@ export function SectionDisponible({
         {filteredElements.map((element) => (
           <SectionCardSmall
             key={element.id}
-            element={element}
-            onAdd={onAddElement}
-            onPreview={
-              onSelectElement ? () => onSelectElement(element) : undefined
-            }
-            hideOpenAction={hideOpenAction}
+            context="library"
+            element={{ ...element, kind: 'section' }}
+            actions={{
+              onAdd: (el) => onAddElement(el),
+              onPreview: onSelectElement
+                ? () => onSelectElement(element)
+                : undefined,
+              onOpen: onOpenSection,
+              onAfterDuplicate,
+            }}
+            flags={{ hideOpenAction }}
           />
         ))}
 

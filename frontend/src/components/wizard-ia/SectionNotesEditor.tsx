@@ -64,19 +64,22 @@ export function SectionNotesEditor({
             /* { key: 'import', label: 'Import des notes' }, */
           ]}
         />
-        <Button className="gap-2"
+        <Button
+          className="gap-2"
           variant="secondary"
           disabled={!sectionIdToEdit || editDisabledByRights}
-          tooltip={!sectionIdToEdit
-            ? 'Sélectionnez une section'
-            : editDisabledByRights
-              ? isOfficial
-                ? 'Édition indisponible: section officielle BilanPlume'
-                : "Vous n'êtes pas l'auteur de cette section publique"
-              : undefined}
+          tooltip={
+            !sectionIdToEdit
+              ? 'Sélectionnez une section'
+              : editDisabledByRights
+                ? isOfficial
+                  ? 'Édition indisponible: section officielle BilanPlume'
+                  : "Vous n'êtes pas l'auteur de cette section publique"
+                : undefined
+          }
           onClick={() => setEditOpen(true)}
         >
-        <PenIcon className="h-4 w-4" />
+          <PenIcon className="h-4 w-4" />
           Editer
         </Button>
       </div>

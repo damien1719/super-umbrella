@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import QuestionList from '@/components/QuestionList';
 import RightBarEdition from '@/components/RightBarEdition';
@@ -12,7 +17,11 @@ type Props = {
   sectionId: string;
 };
 
-export default function SectionEditionModal({ open, onOpenChange, sectionId }: Props) {
+export default function SectionEditionModal({
+  open,
+  onOpenChange,
+  sectionId,
+}: Props) {
   const fetchOne = useSectionStore((s) => s.fetchOne);
   const update = useSectionStore((s) => s.update);
 
@@ -31,7 +40,6 @@ export default function SectionEditionModal({ open, onOpenChange, sectionId }: P
         setQuestions(schema);
         setSelectedId(schema[0]?.id ?? null);
       } catch (e) {
-        // eslint-disable-next-line no-console
         console.error('Failed to load section', e);
       }
     })();
@@ -128,7 +136,6 @@ export default function SectionEditionModal({ open, onOpenChange, sectionId }: P
       await update(sectionId, { schema: questions });
       onOpenChange(false);
     } catch (e) {
-      // eslint-disable-next-line no-console
       console.error('Failed to save section', e);
     } finally {
       setSaving(false);
@@ -147,7 +154,7 @@ export default function SectionEditionModal({ open, onOpenChange, sectionId }: P
 
           <div className="flex-1 min-h-0 min-w-0 overflow-y-auto py-2">
             <div className="h-full relative bg-gray-50">
-{/*               <RightBarEdition
+              {/*               <RightBarEdition
                 items={questions}
                 selected={selectedId}
                 onPick={setSelectedId}
@@ -173,7 +180,11 @@ export default function SectionEditionModal({ open, onOpenChange, sectionId }: P
           </div>
 
           <div className="sticky bottom-0 w-full shrink-0 px-4 py-3 border-t border-wood-200 bg-white flex justify-end gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={saving}
+            >
               Fermer
             </Button>
             <Button onClick={handleSave} disabled={saving}>
