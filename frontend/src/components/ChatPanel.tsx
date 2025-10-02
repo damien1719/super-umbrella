@@ -188,7 +188,7 @@ export function ChatPanel({
             {loading ? (
               <div className="text-gray-500 text-sm">Chargement…</div>
             ) : messages.length === 0 ? (
-              <div className="text-gray-500 text-sm">Démarrez la conversation en posant une question.</div>
+              <div className="text-gray-500 text-sm">Démarrez la conversation en posant une question. Astuce: sélectionner du texte pour poser une question sur ce texte, par exemple pour rédiger une conclusion.</div>
             ) : (
               messages.map((m) => renderBubble(m))
             )}
