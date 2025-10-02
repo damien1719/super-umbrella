@@ -1,6 +1,7 @@
 import { createPortal } from 'react-dom';
 import { Button } from './ui/button';
 import { useEditorUi } from '@/store/editorUi';
+import { Wand2 } from 'lucide-react';
 
 export default function SelectionOverlay() {
   const selection = useEditorUi((s) => s.selection);
@@ -23,13 +24,14 @@ export default function SelectionOverlay() {
   };
 
   return createPortal(
-    <Button
+    <Button className="gap-2"
       size="sm"
       style={style}
       onMouseDown={(e) => e.preventDefault()}
       onClick={() => setMode('refine')}
     >
-      Refine
+    <Wand2 className="h-4 w-4" />
+      Parler de ce texte
     </Button>,
     document.body,
   );

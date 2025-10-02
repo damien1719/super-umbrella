@@ -63,6 +63,7 @@ import { scanAndInsertSlots as runScanAndInsertSlots } from '../utils/scanAndIns
 import TableContextMenuPlugin from './TableContextMenuPlugin';
 import { LineHeightPlugin } from '../plugins/LineHeightPlugin';
 import DecorBlockPlugin from '@/plugins/DecorBlockPlugin';
+import SelectionOverlay from './SelectionOverlay';
 
 // Sanitize options that preserve safe inline styles (colors, backgrounds, borders)
 const SANITIZE_OPTIONS: DOMPurify.Config = {
@@ -715,7 +716,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
               </div>
             </div>
           </div>
-          {/* <SelectionOverlay editorRef={editorRef} /> */}
+          <SelectionOverlay />
         </div>
       </LexicalComposer>
     );
