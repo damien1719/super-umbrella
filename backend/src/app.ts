@@ -16,6 +16,7 @@ import { sectionShareRouter } from './routes/sectionShare.routes';
 import { sectionExampleRouter } from './routes/sectionExample.routes';
 import { sectionTemplateRouter } from './routes/sectionTemplate.routes';
 import { importRouter } from './routes/import.routes';
+import { chatRouter } from './routes/chat.routes';
 import { bilanSectionInstanceRouter } from './routes/bilanSectionInstance.routes';
 import { bilanTypeSectionRouter } from './routes/bilanTypeSection.routes';
 import { errorHandler } from './middlewares/error.middleware';
@@ -111,8 +112,8 @@ app.use('/api/v1/section-templates', sectionTemplateRouter);
 app.use('/api/v1/bilan-section-instances', bilanSectionInstanceRouter);
 app.use('/api/v1/bilan-type-sections', bilanTypeSectionRouter);
 app.use('/api/v1/import', importRouter);
+app.use('/api/v1/chat', chatRouter);
 
 app.use(errorHandler);
 
 export default app;
-

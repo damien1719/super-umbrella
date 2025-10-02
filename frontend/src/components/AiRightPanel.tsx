@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSectionStore } from '@/store/sections';
 import { useEditorUi } from '@/store/editorUi';
@@ -9,7 +9,6 @@ import WizardAIRightPanel from './WizardAIRightPanel';
 import WizardAIBilanType from './WizardAIBilanType';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Textarea } from './ui/textarea';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import GeneratingModal from '@/components/ui/generating-modal';
 import type { TrameOption, TrameExample } from './bilan/TrameSelector';
@@ -27,6 +26,8 @@ import { apiFetch } from '@/utils/api';
 import { generateSection } from '@/services/generation';
 import { useAuth } from '@/store/auth';
 import { useBilanTypeStore } from '@/store/bilanTypes';
+import { Tabs } from '@/components/ui/tabs';
+import ChatPanel from '@/components/ChatPanel';
 
 const useTrames = () => {
   const { items, fetchAll } = useSectionStore();
@@ -135,12 +136,9 @@ export default function AiRightPanel({
   const [selectedBilanTypeId, setSelectedBilanTypeId] = useState<
     string | undefined
   >(initialBilanTypeId);
-  const [regenSection, setRegenSection] = useState<string | null>(null);
-  const [regenPrompt, setRegenPrompt] = useState('');
-  const [refinedText, setRefinedText] = useState('');
   const [currentStep, setCurrentStep] = useState<number>(initialStep);
   useEditorUi((s) => s.selection);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [activeTab, setActiveTab] = useState<'sections' | 'chat'>('sections');
 
   // Bulk generation handler (backend orchestrator)
   const generateFullBilanType = async (
@@ -198,11 +196,7 @@ export default function AiRightPanel({
     [bilanTypes],
   );
 
-  useEffect(() => {
-    if (regenSection && textareaRef.current) {
-      textareaRef.current.focus();
-    }
-  }, [regenSection]);
+  
 
   // If requested, open the BilanType wizard directly (step defaults to 2)
   useEffect(() => {
@@ -279,7 +273,6 @@ export default function AiRightPanel({
       setSelectedSection,
       setWizardSection,
       setGenerated,
-      setRegenPrompt,
       onSetEditorStateJson,
       examples: examples as Array<{ sectionId: string; stylePrompt?: string }>,
     });
@@ -412,27 +405,10 @@ export default function AiRightPanel({
     }
   };
 
-  const handleRefine = async () => {
-    if (!selection) return;
-    setIsGenerating(true);
-    try {
-      const body = {
-        selectedText: selection.text,
-        refineInstruction: regenPrompt,
-      };
-      const res = await apiFetch<{ text: string }>(
-        `/api/v1/bilans/${bilanId}/refine`,
-        {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
-          body: JSON.stringify(body),
-        },
-      );
-      setRefinedText(res.text);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
+  // When entering refine mode (from selection overlay), switch to Chat tab
+  useEffect(() => {
+    if (mode === 'refine') setActiveTab('chat');
+  }, [mode]);
 
   const handleConclude = async () => {
     setIsGenerating(true);
@@ -478,28 +454,29 @@ export default function AiRightPanel({
   });
 
   return (
-    <div className="w-full max-w-md bg-wood-50 rounded-lg shadow-lg">
+    <div className="w-full max-w-md h-full bg-wood-50 rounded-lg shadow-lg flex flex-col min-h-0">
       <GeneratingModal open={isGenerating} logoSrc="/logo.png" />
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full min-h-0">
         {/*         {selection?.text && (
           <div className="bg-blue-50 text-blue-800 text-sm p-2 border-b border-blue-100">
             <div className="font-medium mb-1">Texte sélectionné :</div>
             <div className="italic truncate">&quot;{selection.text}&quot;</div>
           </div>
         )} */}
-        <div className="sticky top-0 z-10 flex items-center justify-between bg-wood-50 border-b border-wood-200 px-4 py-2 h-14">
-          <span className="font-medium text-sm">
-            {mode === 'refine'
-              ? 'Raffiner le texte'
-              : wizardSection
-                ? 'Génération de section'
-                : regenSection
-                  ? 'Modifier la section'
-                  : 'Assistant de rédaction'}
-          </span>
+        <div className="flex items-center justify-between bg-wood-50 border-b border-wood-200 px-4 py-2 h-14">
+          <div className="flex min-w-0">
+            <Tabs
+              className="px-1"
+              tabs={[
+                { key: 'sections', label: 'Rédaction' },
+                { key: 'chat', label: 'Chat' },
+              ]}
+              active={activeTab}
+              onChange={(k) => setActiveTab(k as 'sections' | 'chat')}
+            />
+          </div>
           <div className="flex items-center gap-2">
             {!wizardSection &&
-              !regenSection &&
               mode !== 'refine' &&
               lastGeneratedBilanTypeId && (
                 <Button
@@ -519,14 +496,13 @@ export default function AiRightPanel({
                 </Button>
               )}
             {!wizardSection &&
-              !regenSection &&
               mode !== 'refine' &&
               !lastGeneratedBilanTypeId &&
               lastGeneratedSection && (
                 <Button
-                  variant="outline"
+                  variant="primary"
                   size="sm"
-                  className="h-8 px-2 text-xs"
+                  className="h-8 px-2 text-xs bg-accent-500 hover:bg-accent-600"
                   onClick={() => {
                     setWizardStartStep(2);
                     setWizardSection(lastGeneratedSection);
@@ -535,397 +511,258 @@ export default function AiRightPanel({
                   Voir mes réponses
                 </Button>
               )}
-            {(regenSection || mode === 'refine') && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 px-2 text-xs"
-                onClick={() => {
-                  if (regenSection) setRegenSection(null);
-                  if (mode === 'refine') {
-                    setMode('idle');
-                    setRefinedText('');
-                    setRegenPrompt('');
-                    selection?.clear();
-                  }
-                }}
-              >
-                Retour
-              </Button>
-            )}
           </div>
         </div>
-        <div className="p-4 overflow-y-auto flex-1">
-          {mode === 'refine' ? (
-            <div className="space-y-4">
-              {refinedText && (
-                <div className="space-y-2">
-                  <div className="p-2 border rounded bg-white whitespace-pre-wrap text-sm">
-                    {refinedText}
-                  </div>
-                  <div className="flex justify-end">
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        if (selection?.restore()) {
-                          onInsertText?.(refinedText);
-                          selection.clear();
-                        }
-                        setRefinedText('');
-                        setRegenPrompt('');
-                        setMode('idle');
+        <div className="flex-1 flex flex-col min-h-0">
+            {activeTab === 'chat' ? (
+              <div className="flex-1 flex flex-col min-h-0">
+                <ChatPanel bilanId={bilanId} onInsertText={onInsertText} />
+              </div>
+            ) : (
+              <div className="flex-1 px-0 py-2 min-h-0 flex flex-col">
+              <div className="p-4">
+              <ScrollArea className="flex-1">
+                <div className="space-y-4 px-0 py-0">
+              {wizardBilanType && (
+                <Dialog
+                  open={true}
+                  onOpenChange={(open) => !open && setWizardBilanType(false)}
+                >
+                  <DialogContent showCloseButton={false} fullscreen>
+                    <WizardAIBilanType
+                      mode="bilanType"
+                      sectionInfo={{
+                        id: 'bilanType',
+                        title: 'Bilan type',
+                        icon: Brain,
+                        description: '',
                       }}
-                    >
-                      Insérer
-                    </Button>
-                  </div>
-                </div>
+                      trameOptions={bilanTypeOptions}
+                      selectedTrame={
+                        (selectedBilanTypeId
+                          ? (bilanTypeOptions.find(
+                              (b) => b.value === selectedBilanTypeId,
+                            ) as any)
+                          : undefined) ||
+                        (initialBilanTypeId
+                          ? (bilanTypeOptions.find(
+                              (b) => b.value === initialBilanTypeId,
+                            ) as any)
+                          : undefined)
+                      }
+                      onTrameChange={() => {}}
+                      examples={[]}
+                      onAddExample={() => {}}
+                      onRemoveExample={() => {}}
+                      questions={[]}
+                      answers={{}}
+                      onAnswersChange={() => {}}
+                      onGenerate={async () => {}}
+                      onGenerateAll={(bilanTypeId, exclude) =>
+                        generateFullBilanType(bilanTypeId, exclude)
+                      }
+                      isGenerating={false}
+                      bilanId={bilanId}
+                      onCancel={() => setWizardBilanType(false)}
+                      initialStep={wizardStartStep}
+                      currentStep={wizardStartStep}
+                    />
+                  </DialogContent>
+                </Dialog>
               )}
-              <h3 className="text-sm font-medium text-left">
-                Si vous voulez ajuster le contenu sélectionné, précisez les
-                modifications souhaitées
-              </h3>
-              <div className="w-full">
-                <Textarea
-                  ref={textareaRef}
-                  value={regenPrompt}
-                  onChange={(e) => setRegenPrompt(e.target.value)}
-                  onContextMenu={(e) => e.stopPropagation()}
-                  className="min-h-[40vh] w-full text-left"
-                  placeholder="Décrivez les modifications souhaitées..."
-                />
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setMode('idle');
-                    setRefinedText('');
-                    setRegenPrompt('');
-                    selection?.clear();
-                  }}
-                  disabled={isGenerating}
-                >
-                  Annuler
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={handleRefine}
-                  disabled={isGenerating}
-                >
-                  {isGenerating ? 'Génération...' : 'Re-générer'}
-                </Button>
-              </div>
-            </div>
-          ) : regenSection ? (
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-left">
-                Si vous voulez ajuster le contenu généré, vous pouvez préciser
-                ici les éléments que vous souhaitez re-générer
-              </h3>
-              <div className="w-full">
-                <Textarea
-                  ref={textareaRef}
-                  value={regenPrompt}
-                  onChange={(e) => setRegenPrompt(e.target.value)}
-                  onContextMenu={(e) => e.stopPropagation()}
-                  className="min-h-[60vh] w-full text-left"
-                  placeholder="Décrivez les modifications souhaitées..."
-                />
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    const section = sections.find(
-                      (s) => s.id === regenSection,
-                    )!;
-                    handleGenerate(section);
-                  }}
-                  disabled={isGenerating}
-                >
-                  {isGenerating ? 'Génération...' : 'Reformuler ce texte'}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setRegenSection(null)}
-                  disabled={isGenerating}
-                >
-                  Passer à la suite
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <ScrollArea className="h-[calc(100vh-120px)]">
-              <div className="space-y-4">
-                {wizardBilanType && (
-                  <Dialog
-                    open={true}
-                    onOpenChange={(open) => !open && setWizardBilanType(false)}
-                  >
-                    <DialogContent showCloseButton={false} fullscreen>
-                      <WizardAIBilanType
-                        mode="bilanType"
-                        sectionInfo={{
-                          id: 'bilanType',
-                          title: 'Bilan type',
-                          icon: Brain,
-                          description: '',
-                        }}
-                        trameOptions={bilanTypeOptions}
-                        selectedTrame={
-                          (selectedBilanTypeId
-                            ? (bilanTypeOptions.find(
-                                (b) => b.value === selectedBilanTypeId,
-                              ) as any)
-                            : undefined) ||
-                          (initialBilanTypeId
-                            ? (bilanTypeOptions.find(
-                                (b) => b.value === initialBilanTypeId,
-                              ) as any)
-                            : undefined)
-                        }
-                        onTrameChange={() => {}}
-                        examples={[]}
-                        onAddExample={() => {}}
-                        onRemoveExample={() => {}}
-                        questions={[]}
-                        answers={{}}
-                        onAnswersChange={() => {}}
-                        onGenerate={async () => {}}
-                        onGenerateAll={(bilanTypeId, exclude) =>
-                          generateFullBilanType(bilanTypeId, exclude)
-                        }
-                        isGenerating={false}
-                        bilanId={bilanId}
-                        onCancel={() => setWizardBilanType(false)}
-                        initialStep={wizardStartStep}
-                        currentStep={wizardStartStep}
-                      />
-                    </DialogContent>
-                  </Dialog>
-                )}
 
-                <Card key="bilan-type" className="p-4">
-                  <CardContent className="p-2">
-                    <div className="flex items-center gap-2">
-                      <div className="p-1.5 rounded-lg bg-muted/60">
-                        <Brain className="h-4 w-4 text-muted-foreground text-primary-500" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-medium text-base truncate">
-                            Trame de bilan
-                          </h3>
-                          <Button
-                            size="default"
-                            variant="default"
-                            className="ml-auto h-7 px-2 text-sm"
-                            onClick={() => setWizardBilanType(true)}
-                          >
-                            Rédiger
-                            <ArrowRightCircle className="h-4 w-4 ml-1" />
-                          </Button>
-                        </div>
+              <Card key="bilan-type" className="p-4">
+                <CardContent className="p-2">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-muted/60">
+                      <Brain className="h-4 w-4 text-muted-foreground text-primary-500" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-medium text-base truncate">
+                          Trame de bilan
+                        </h3>
+                        <Button
+                          size="default"
+                          variant="default"
+                          className="ml-auto h-7 px-2 text-sm"
+                          onClick={() => setWizardBilanType(true)}
+                        >
+                          Rédiger
+                          <ArrowRightCircle className="h-4 w-4 ml-1" />
+                        </Button>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </CardContent>
+              </Card>
 
-                {wizardSection === 'reponses' ? (
-                  <Dialog
-                    open={true}
-                    onOpenChange={(open) => !open && setWizardSection(null)}
-                  >
-                    <DialogContent showCloseButton={false} fullscreen>
-                      <WizardAIRightPanel
-                        sectionInfo={{
-                          id: 'reponses',
-                          title: 'Mes dernières réponses',
-                          icon: FileText,
-                          description:
-                            'Consultez et modifiez vos réponses précédentes',
-                        }}
-                        trameOptions={[]}
-                        selectedTrame={undefined}
-                        onTrameChange={() => {}}
-                        examples={[]}
-                        onAddExample={() => {}}
-                        onRemoveExample={() => {}}
-                        questions={[]}
-                        answers={{}}
-                        onAnswersChange={() => {}}
-                        onGenerate={async () => {}}
-                        onGenerateFromTemplate={async () => {}}
-                        isGenerating={false}
-                        bilanId={bilanId}
-                        onCancel={() => setWizardSection(null)}
-                      />
-                    </DialogContent>
-                  </Dialog>
-                ) : (
-                  sections.map((section) => {
-                    const trameOpts = trames[section.id];
-                    const selected = trameOpts.find(
-                      (t) => t.value === selectedTrames[section.id],
-                    );
+              {wizardSection === 'reponses' ? (
+                <Dialog
+                  open={true}
+                  onOpenChange={(open) => !open && setWizardSection(null)}
+                >
+                  <DialogContent showCloseButton={false} fullscreen>
+                    <WizardAIRightPanel
+                      sectionInfo={{
+                        id: 'reponses',
+                        title: 'Mes dernières réponses',
+                        icon: FileText,
+                        description:
+                          'Consultez et modifiez vos réponses précédentes',
+                      }}
+                      trameOptions={[]}
+                      selectedTrame={undefined}
+                      onTrameChange={() => {}}
+                      examples={[]}
+                      onAddExample={() => {}}
+                      onRemoveExample={() => {}}
+                      questions={[]}
+                      answers={{}}
+                      onAnswersChange={() => {}}
+                      onGenerate={async () => {}}
+                      onGenerateFromTemplate={async () => {}}
+                      isGenerating={false}
+                      bilanId={bilanId}
+                      onCancel={() => setWizardSection(null)}
+                    />
+                  </DialogContent>
+                </Dialog>
+              ) : (
+                sections.map((section) => {
+                  const trameOpts = trames[section.id];
+                  const selected = trameOpts.find(
+                    (t) => t.value === selectedTrames[section.id],
+                  );
 
-                    if (wizardSection === section.id) {
-                      return (
-                        <Dialog
-                          key={section.id}
-                          open={true}
-                          onOpenChange={(open) =>
-                            !open && setWizardSection(null)
-                          }
-                        >
-                          <DialogContent showCloseButton={false} fullscreen>
-                            <WizardAIRightPanel
-                              sectionInfo={section}
-                              trameOptions={trameOpts}
-                              selectedTrame={selected}
-                              onTrameChange={(v) =>
-                                setSelectedTrames({
-                                  ...selectedTrames,
-                                  [section.id]: v,
-                                })
-                              }
-                              examples={getExamples(
+                  if (wizardSection === section.id) {
+                    return (
+                      <Dialog
+                        key={section.id}
+                        open={true}
+                        onOpenChange={(open) =>
+                          !open && setWizardSection(null)
+                        }
+                      >
+                        <DialogContent showCloseButton={false} fullscreen>
+                          <WizardAIRightPanel
+                            sectionInfo={section}
+                            trameOptions={trameOpts}
+                            selectedTrame={selected}
+                            onTrameChange={(v) =>
+                              setSelectedTrames({
+                                ...selectedTrames,
+                                [section.id]: v,
+                              })
+                            }
+                            examples={getExamples(
+                              section.id,
+                              selectedTrames[section.id],
+                            )}
+                            onAddExample={(ex) =>
+                              addExample(
                                 section.id,
                                 selectedTrames[section.id],
-                              )}
-                              onAddExample={(ex) =>
-                                addExample(
-                                  section.id,
-                                  selectedTrames[section.id],
-                                  ex,
-                                )
-                              }
-                              onRemoveExample={(id) =>
-                                removeExample(
-                                  section.id,
-                                  selectedTrames[section.id],
-                                  id,
-                                )
-                              }
-                              questions={(selected?.schema as Question[]) || []}
-                              answers={answers[section.id] || {}}
-                              onAnswersChange={(a) =>
-                                setAnswers({ ...answers, [section.id]: a })
-                              }
-                              onGenerate={async (latest, notes, imageBase64) =>
-                                await handleGenerate(
-                                  section,
-                                  latest,
-                                  notes,
-                                  imageBase64,
-                                )
-                              }
-                              onGenerateFromTemplate={async (
+                                ex,
+                              )
+                            }
+                            onRemoveExample={(id) =>
+                              removeExample(
+                                section.id,
+                                selectedTrames[section.id],
+                                id,
+                              )
+                            }
+                            questions={(selected?.schema as Question[]) || []}
+                            answers={answers[section.id] || {}}
+                            onAnswersChange={(a) =>
+                              setAnswers({ ...answers, [section.id]: a })
+                            }
+                            onGenerate={async (latest, notes, imageBase64) =>
+                              await handleGenerate(
+                                section,
+                                latest,
+                                notes,
+                                imageBase64,
+                              )
+                            }
+                            onGenerateFromTemplate={async (
+                              latest,
+                              notes,
+                              id,
+                              imageBase64,
+                            ) =>
+                              await handleGenerateFromTemplate(
+                                section,
                                 latest,
                                 notes,
                                 id,
                                 imageBase64,
-                              ) =>
-                                await handleGenerateFromTemplate(
-                                  section,
-                                  latest,
-                                  notes,
-                                  id,
-                                  imageBase64,
-                                )
-                              }
-                              isGenerating={
-                                isGenerating && selectedSection === section.id
-                              }
-                              onCancel={() => setWizardSection(null)}
-                              bilanId={bilanId}
-                              initialStep={wizardStartStep}
-                            />
-                          </DialogContent>
-                        </Dialog>
-                      );
-                    }
-
-                    // Toujours afficher la carte simple, jamais SectionCard
-                    return (
-                      <Card key={section.id} className="p-4">
-                        <CardContent className="p-2">
-                          <div className="flex items-center gap-2">
-                            <div className="p-1.5 rounded-lg bg-muted/60">
-                              <section.icon className="h-4 w-4 text-muted-foreground text-primary-500" />
-                            </div>
-
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <h3 className="font-medium text-base truncate">
-                                  {section.title}
-                                </h3>
-
-                                <Button
-                                  size="default"
-                                  variant="default"
-                                  className="ml-auto h-7 px-2 text-sm"
-                                  onClick={() => {
-                                    setWizardStartStep(1);
-                                    setWizardSection(section.id);
-                                  }}
-                                >
-                                  Rédiger
-                                  <ArrowRightCircle className="h-4 w-4 ml-1" />
-                                </Button>
-                              </div>
-
-                              {/* Optionnel : afficher la description sans prendre de place */}
-                              {/* Mettre showDesc à true/false selon ton besoin */}
-                              {false && (
-                                <p className="text-[11px] text-muted-foreground mt-1 line-clamp-1">
-                                  {section.description}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
+                              )
+                            }
+                            isGenerating={
+                              isGenerating && selectedSection === section.id
+                            }
+                            onCancel={() => setWizardSection(null)}
+                            bilanId={bilanId}
+                            initialStep={wizardStartStep}
+                          />
+                        </DialogContent>
+                      </Dialog>
                     );
-                  })
-                )}
-                {/* <Button className="w-full"
-                    size="default"
-                    variant="default"
-                    onClick={handleConclude}
-                    disabled={isGenerating}
-                  >
-                    {isGenerating ? '...' : 'Rédiger une synthèse du bilan'}
-                </Button>
-                <Button className="w-full"
-                    size="default"
-                    variant="default"
-                    onClick={handleConclude}
-                    disabled={isGenerating}
-                  >
-                    {isGenerating ? '...' : 'Commenter des résultats de'}
-                </Button>
- */}
-                {/*                 <div className="flex flex-col gap-4">
-                  <Button
-                    size="default"
-                    variant="default"
-                    className="h-8 px-2 text-base"
-                    onClick={handleConclude}
-                    disabled={isGenerating}
-                  >
-                    {isGenerating ? '...' : 'Exporter mon bilan'}
-                    <Wand2 className="h-4 w-4 ml-1" />
-                  </Button>
-                </div> */}
+                  }
+
+                  // Toujours afficher la carte simple, jamais SectionCard
+                  return (
+                    <Card key={section.id} className="p-4">
+                      <CardContent className="p-2">
+                        <div className="flex items-center gap-2">
+                          <div className="p-1.5 rounded-lg bg-muted/60">
+                            <section.icon className="h-4 w-4 text-muted-foreground text-primary-500" />
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-medium text-base truncate">
+                                {section.title}
+                              </h3>
+
+                              <Button
+                                size="default"
+                                variant="default"
+                                className="ml-auto h-7 px-2 text-sm"
+                                onClick={() => {
+                                  setWizardStartStep(1);
+                                  setWizardSection(section.id);
+                                }}
+                              >
+                                Rédiger
+                                <ArrowRightCircle className="h-4 w-4 ml-1" />
+                              </Button>
+                            </div>
+
+                            {/* Optionnel : afficher la description sans prendre de place */}
+                            {/* Mettre showDesc à true/false selon ton besoin */}
+                            {false && (
+                              <p className="text-[11px] text-muted-foreground mt-1 line-clamp-1">
+                                {section.description}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })
+              )}
               </div>
-            </ScrollArea>
-          )}
-        </div>
+              </ScrollArea>
+              </div>
+              </div>
+            )}
       </div>
+      
     </div>
-  );
+  </div>
+);
 }

@@ -3,6 +3,7 @@ import { useEditorUi } from '../store/editorUi';
 
 export function useVirtualSelection(editorRef: React.RefObject<HTMLElement>) {
   const setSelection = useEditorUi((s) => s.setSelection);
+  const setMode = useEditorUi((s) => s.setMode);
 
   React.useEffect(() => {
     const onChange = () => {
@@ -21,6 +22,12 @@ export function useVirtualSelection(editorRef: React.RefObject<HTMLElement>) {
       if (!editorRef.current?.contains(r.commonAncestorContainer)) {
         if (mode !== 'refine') setSelection(null);
         return;
+      }
+
+      // If user re-selects text while in refine mode, exit refine
+      // so the overlay button becomes available again.
+      if (mode === 'refine' && !sel.isCollapsed) {
+        setMode('idle');
       }
 
       const clone = r.cloneRange();

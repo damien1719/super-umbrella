@@ -65,8 +65,6 @@ export async function generateSection(opts: {
   setGenerated?: (
     fn: (prev: Record<string, boolean>) => Record<string, boolean>,
   ) => void;
-  setRegenSection?: (id: string | null) => void;
-  setRegenPrompt?: (s: string) => void;
   onSetEditorStateJson?: (state: unknown) => void;
 
   examples: Array<{ sectionId: string; stylePrompt?: string }>;
@@ -88,8 +86,6 @@ export async function generateSection(opts: {
     setSelectedSection,
     setWizardSection,
     setGenerated,
-    setRegenSection,
-    setRegenPrompt,
     onSetEditorStateJson,
 
     examples,
