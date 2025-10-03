@@ -11,7 +11,10 @@ export interface ToastItem {
 
 interface ToastState {
   toasts: ToastItem[];
-  show: (message: string, opts?: { type?: ToastType; duration?: number }) => string;
+  show: (
+    message: string,
+    opts?: { type?: ToastType; duration?: number },
+  ) => string;
   dismiss: (id: string) => void;
   clear: () => void;
 }
@@ -29,7 +32,7 @@ export const useToastStore = create<ToastState>((set, get) => ({
     set((s) => ({ toasts: [...s.toasts, item] }));
     return id;
   },
-  dismiss: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
+  dismiss: (id) =>
+    set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
   clear: () => set({ toasts: [] }),
 }));
-

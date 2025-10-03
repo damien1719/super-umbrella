@@ -132,8 +132,8 @@ export default function Bilan() {
         onExport={handleExport}
       />
 
-      <div className="flex-1 overflow-hidden">
-        <div className="flex h-full overflow-hidden">
+      <div className="flex flex-col h-full min-h-0 overflow-hidden">
+        <div className="flex h-full min-h-0 overflow-hidden">
           <div className="flex-1 min-w-0">
             <Suspense fallback="Chargement...">
               <RichTextEditor
@@ -146,7 +146,7 @@ export default function Bilan() {
             </Suspense>
             <SelectionOverlay />
           </div>
-          <div className="block w-[26rem] min-w-[26rem] flex-shrink-0 border-l border-wood-300 overflow-auto shadow-sm ">
+          <div className="w-[26rem] min-w-[26rem] h-full min-h-0 flex flex-col border-l border-wood-300 shadow-sm overflow-hidden">
             <Suspense fallback="Chargement...">
               {bilanId && (
                 <AiRightPanel

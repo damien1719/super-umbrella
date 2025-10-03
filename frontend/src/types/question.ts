@@ -215,6 +215,9 @@ export const DEFAULT_TITLE_PRESETS: TitlePresetRegistry = {
   },
 };
 
+// Sentinel ID used when a custom title format override is active
+export const CUSTOM_PRESET_ID = '_custom';
+
 // ---- nouveaux types pour le formatage de titre ----
 export type TitleAlign = 'left' | 'center' | 'right' | 'justify';
 export type TitleCase = 'none' | 'uppercase' | 'capitalize' | 'lowercase';
@@ -260,6 +263,7 @@ export interface TitleFormatSpec {
    * Si non fourni, on applique le style global au texte entier.
    */
   fontSize?: string | number; // ex: '1.5rem' ou 24
+  fontColor?: string; // 'black' | 'gray' | '#RRGGBB'…
   runs?: Array<{
     // Le texte est fourni au runtime; ici on ne stocke que le style.
     // Utiliser 'label' | 'suffix' | 'prefix' comme clefs d’assignation est possible côté UI.

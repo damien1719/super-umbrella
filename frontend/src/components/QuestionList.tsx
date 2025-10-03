@@ -374,7 +374,7 @@ export default function QuestionList({
                     onClick={(e) => e.stopPropagation()}
                   >
                     {/* Coller une réutilisation (visible seulement si un élément est dans le presse-papiers) */}
-                    {clipboardItem && onPasteAfter && !isReadOnly &&  (
+                    {clipboardItem && onPasteAfter && !isReadOnly && (
                       <Button
                         variant="primary"
                         size="sm"
@@ -433,21 +433,19 @@ export default function QuestionList({
                         Insérer la question dans ma partie
                       </Button>
                     )}
-                      <Button
-                        className="gap-2"
-                        variant={isReadOnly ? 'primary' : 'outline'}
-                        size="sm"
-                        tooltip="Copier pour réutiliser"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          copyToClipboard(question);
-                        }}
-                      >
-                        <ClipboardCopy className="h-4 w-4" />
-                        {isReadOnly && (
-                          'Copier pour réutiliser'
-                        )}
-                      </Button>
+                    <Button
+                      className="gap-2"
+                      variant={isReadOnly ? 'primary' : 'outline'}
+                      size="sm"
+                      tooltip="Copier pour réutiliser"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        copyToClipboard(question);
+                      }}
+                    >
+                      <ClipboardCopy className="h-4 w-4" />
+                      {isReadOnly && 'Copier pour réutiliser'}
+                    </Button>
 
                     {/*                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

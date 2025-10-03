@@ -128,6 +128,8 @@ const DEFAULT_TITLE_PRESET_FORMAT: TitleFormatSpec = {
   bold: true,
 };
 
+const CUSTOM_PRESET_ID = '_custom';
+
 const TITLE_PRESET_REGISTRY: TitlePresetRegistry = {
   't11-italic': {
     kind: 'paragraph',
@@ -235,15 +237,24 @@ function applyCaseTransform(text: string, desiredCase?: TitleFormatSpec['case'])
   }
 }
 
-function computeFontSizeStyle(fontSize?: TitleFormatSpec['fontSize']): string {
+function computeTextStyle(
+  fontSize?: TitleFormatSpec['fontSize'],
+  fontColor?: string,
+): string {
+  const styles: string[] = [];
   if (typeof fontSize === 'number' && Number.isFinite(fontSize)) {
-    return `font-size: ${fontSize}pt`;
-  }
-  if (typeof fontSize === 'string') {
+    styles.push(`font-size: ${fontSize}pt`);
+  } else if (typeof fontSize === 'string') {
     const trimmed = fontSize.trim();
-    if (trimmed) return `font-size: ${trimmed}`;
+    if (trimmed) styles.push(`font-size: ${trimmed}`);
   }
-  return '';
+
+  if (typeof fontColor === 'string') {
+    const trimmed = fontColor.trim();
+    if (trimmed) styles.push(`color: ${trimmed}`);
+  }
+
+  return styles.join('; ');
 }
 
 function wrapWithDecor(nodes: LexicalNode[], decor?: TitleFormatSpec['decor']): LexicalNode[] {
@@ -303,7 +314,8 @@ function buildTitleNodes(text: string, format: TitleFormatSpec): LexicalNode[] {
       italic: format.italic,
       underline: format.underline,
     },
-    computeFontSizeStyle(format.fontSize),
+    // support both new `fontColor` and legacy `textColor` if present
+    computeTextStyle(format.fontSize, (format as any)?.fontColor ?? (format as any)?.textColor),
   );
 
   if (format.kind === 'heading') {
@@ -374,15 +386,19 @@ function resolveTitleFormat(
   anchor: TitlePresetAnchorSpec,
   question: Question | undefined,
 ): TitleFormatSpec {
-  const override = question?.titreFormatOverride;
+  const override = (question as any)?.titreFormatOverride as TitleFormatSpec | undefined;
   if (override) return override;
 
-  const presetId = anchor.presetId || question?.titrePresetId;
+  const presetId = anchor.presetId || (question as any)?.titrePresetId;
+  if (presetId === CUSTOM_PRESET_ID) {
+    // Custom style sentinel without override set: fall back without warning
+    return DEFAULT_TITLE_PRESET_FORMAT;
+  }
   if (presetId && TITLE_PRESET_REGISTRY[presetId]) {
     return TITLE_PRESET_REGISTRY[presetId];
   }
 
-  if (presetId) {
+  if (presetId && presetId !== CUSTOM_PRESET_ID) {
     console.warn('[ANCHOR] LexicalAssembler - unknown title preset, falling back', {
       presetId,
       anchorId: anchor.id,

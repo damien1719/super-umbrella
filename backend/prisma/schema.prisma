@@ -57,6 +57,7 @@ model Profile {
   onboardingDone     Boolean     @default(false)
   onboardingVersion  String      @default("1")
   job                Job?
+  messages           Message[]
 
 
   @@map("profile")
@@ -244,9 +245,76 @@ model Bilan {
   bilanType       BilanType?             @relation(fields: [bilanTypeId], references: [id])
   patient         Patient?               @relation(fields: [patientId], references: [id])
   sections        BilanSectionInstance[]
+  conversations   Conversation[]
 
   @@schema("psychomot")
 }
+
+model Conversation {
+  id        String    @id @default(uuid())
+  bilanId   String    @unique
+  bilan     Bilan     @relation(fields: [bilanId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  messages  Message[]
+
+  createdAt DateTime  @default(now())
+
+  @@index([createdAt])
+  @@schema("psychomot")
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  authorId       String       @db.Uuid  
+  author         Profile      @relation(fields: [authorId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  // Bonne version :
+  body           String       @db.Text
+
+  role           MessageRole
+
+  createdAt      DateTime     @default(now())
+  deletedAt      DateTime?
+
+  @@index([createdAt])
+  @@index([conversationId, createdAt])
+  @@schema("psychomot")
+
+}
+
+model StylePreset {
+  id        String   @id @default(uuid())
+  target    PresetTarget
+  style     Json
+  styleHash  String?  @db.VarChar(32)
+  visibility PresetVisibility @default(PUBLIC)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isArchived Boolean @default(false)
+
+  @@unique([target, styleHash])
+  @@schema("psychomot")
+}
+
+enum PresetTarget {
+  TITLE
+  SUBTITLE
+  PARAGRAPH
+  @@schema("psychomot")
+
+}
+
+enum PresetVisibility {
+  PUBLIC
+  PRIVATE
+  @@schema("psychomot")
+}
+
+
 
 model BilanSectionInstance {
   id                String  @id @default(uuid())
@@ -271,6 +339,14 @@ model BilanSectionInstance {
   section           Section @relation(fields: [sectionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@index([bilanId, order])
+  @@schema("psychomot")
+}
+
+enum MessageRole { 
+  USER
+  ASSISTANT
+  SYSTEM 
+
   @@schema("psychomot")
 }
 

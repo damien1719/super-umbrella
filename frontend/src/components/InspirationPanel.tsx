@@ -125,10 +125,13 @@ export default function InspirationPanel({
               title={selectedTitle}
               questions={selectedQuestions}
               loading={loading}
-              onInsertQuestion={onInsertQuestion && ((q) => {
-                onInsertQuestion(q);
-                // Fermer le panneau après insertion pour retour rapide à l'édition
-              })}
+              onInsertQuestion={
+                onInsertQuestion &&
+                ((q) => {
+                  onInsertQuestion(q);
+                  // Fermer le panneau après insertion pour retour rapide à l'édition
+                })
+              }
             />
           </div>
         </div>
