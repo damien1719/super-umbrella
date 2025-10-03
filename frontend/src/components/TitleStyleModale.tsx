@@ -649,6 +649,7 @@ export default function TitleStyleModale({
                           '10',
                           '11',
                           '12',
+                          '13',
                           '14',
                           '16',
                           '18',
