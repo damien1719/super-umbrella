@@ -935,15 +935,26 @@ function TitlePresetPreview({
   const { format } = preset;
   const textClasses = getTextClasses(preset.format);
   const displayText = buildSampleText(sampleText, preset.format);
+  // Inline style to reflect numeric font size and text color
+  const style: React.CSSProperties = {};
+  if (typeof format.fontSize === 'number') {
+    style.fontSize = `${format.fontSize}pt`;
+  } else if (typeof format.fontSize === 'string' && format.fontSize.trim()) {
+    style.fontSize = format.fontSize.trim();
+  }
+  const colorPref = (format as any)?.fontColor ?? (format as any)?.textColor;
+  if (typeof colorPref === 'string' && colorPref.trim()) {
+    style.color = colorPref.trim();
+  }
 
   const inner =
     preset.format.kind === 'list-item' ? (
       <div className="flex items-start gap-2 text-left">
         <span className="mt-2 block h-1.5 w-1.5 shrink-0 rounded-full bg-gray-400" />
-        <span className={textClasses}>{displayText}</span>
+        <span className={textClasses} style={style}>{displayText}</span>
       </div>
     ) : (
-      <span className={textClasses}>{displayText}</span>
+      <span className={textClasses} style={style}>{displayText}</span>
     );
 
   const decor = format.decor;

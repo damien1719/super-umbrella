@@ -263,6 +263,7 @@ export interface TitleFormatSpec {
    * Si non fourni, on applique le style global au texte entier.
    */
   fontSize?: string | number; // ex: '1.5rem' ou 24
+  fontColor?: string; // 'black' | 'gray' | '#RRGGBB'…
   runs?: Array<{
     // Le texte est fourni au runtime; ici on ne stocke que le style.
     // Utiliser 'label' | 'suffix' | 'prefix' comme clefs d’assignation est possible côté UI.
