@@ -93,10 +93,10 @@ function Preview({ format }: { format: TitleFormatSpec }) {
   } else if (typeof format.fontSize === 'string' && format.fontSize.trim()) {
     style.fontSize = format.fontSize.trim();
   }
-  // text color (optional)
-  if ((format as any)?.textColor) {
-    const color = String((format as any).textColor).trim();
-    if (color) style.color = color;
+  // text color (optional) – prefer new `fontColor`, fallback to legacy `textColor`
+  const colorPref = (format as any)?.fontColor ?? (format as any)?.textColor;
+  if (typeof colorPref === 'string' && colorPref.trim()) {
+    style.color = colorPref.trim();
   }
 
   const textClasses = [
@@ -401,6 +401,21 @@ export default function TitleStyleModale({
                       format: it.format,
                     };
                     const textClasses = getTextClasses(previewPreset.format);
+                    const style: React.CSSProperties = {};
+                    if (typeof previewPreset.format.fontSize === 'number') {
+                      style.fontSize = `${previewPreset.format.fontSize}pt`;
+                    } else if (
+                      typeof previewPreset.format.fontSize === 'string' &&
+                      previewPreset.format.fontSize.trim()
+                    ) {
+                      style.fontSize = previewPreset.format.fontSize.trim();
+                    }
+                    const colorPref =
+                      (previewPreset.format as any)?.fontColor ??
+                      (previewPreset.format as any)?.textColor;
+                    if (typeof colorPref === 'string' && colorPref.trim()) {
+                      style.color = colorPref.trim();
+                    }
                     const displayText = buildSampleText(
                       TITLE_SAMPLE_TEXT,
                       previewPreset.format,
@@ -410,13 +425,15 @@ export default function TitleStyleModale({
                         <div className="w-full">
                           <div className="inline-flex items-start gap-2">
                             <span className="mt-2 block h-1.5 w-1.5 shrink-0 rounded-full bg-gray-400" />
-                            <div className={[textClasses, 'flex-1'].join(' ')}>
+                            <div className={[textClasses, 'flex-1'].join(' ')} style={style}>
                               {displayText}
                             </div>
                           </div>
                         </div>
                       ) : (
-                        <span className={textClasses}>{displayText}</span>
+                        <span className={textClasses} style={style}>
+                          {displayText}
+                        </span>
                       );
                     const decor = previewPreset.format.decor;
                     const preview = decor ? (
@@ -689,15 +706,22 @@ export default function TitleStyleModale({
                 {/* Couleur du texte */}
                 <ColorDropdown
                   label="Couleur du texte"
-                  selectedHex={(format as any)?.textColor ?? null}
+                  selectedHex={
+                    (typeof (format as any)?.fontColor === 'string' && (format as any).fontColor)
+                      ? (format as any).fontColor
+                      : ((format as any)?.textColor ?? null)
+                  }
                   onSelectHex={(hex) =>
-                    setFormat(
-                      (prev) =>
-                        ({
-                          ...(prev as any),
-                          textColor: hex ?? '',
-                        }) as unknown as TitleFormatSpec,
-                    )
+                    setFormat((prev) => {
+                      const next: any = { ...(prev as any) };
+                      // migrate to `fontColor`
+                      next.fontColor = hex ?? '';
+                      // keep legacy key clean if present
+                      if ('textColor' in next && next.textColor && hex) {
+                        delete next.textColor;
+                      }
+                      return next as TitleFormatSpec;
+                    })
                   }
                 />
 

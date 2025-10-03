@@ -38,6 +38,8 @@ export type TitleFormatSpec = {
   underline?: boolean;
   case?: TitleCase;
   fontSize?: string | number;
+  // Couleur de police optionnelle. Exemple: 'black' | 'gray' | '#RRGGBB'
+  fontColor?: string;
   runs?: Array<{
     bold?: boolean;
     italic?: boolean;

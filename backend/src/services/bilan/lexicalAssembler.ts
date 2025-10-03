@@ -237,15 +237,24 @@ function applyCaseTransform(text: string, desiredCase?: TitleFormatSpec['case'])
   }
 }
 
-function computeFontSizeStyle(fontSize?: TitleFormatSpec['fontSize']): string {
+function computeTextStyle(
+  fontSize?: TitleFormatSpec['fontSize'],
+  fontColor?: string,
+): string {
+  const styles: string[] = [];
   if (typeof fontSize === 'number' && Number.isFinite(fontSize)) {
-    return `font-size: ${fontSize}pt`;
-  }
-  if (typeof fontSize === 'string') {
+    styles.push(`font-size: ${fontSize}pt`);
+  } else if (typeof fontSize === 'string') {
     const trimmed = fontSize.trim();
-    if (trimmed) return `font-size: ${trimmed}`;
+    if (trimmed) styles.push(`font-size: ${trimmed}`);
   }
-  return '';
+
+  if (typeof fontColor === 'string') {
+    const trimmed = fontColor.trim();
+    if (trimmed) styles.push(`color: ${trimmed}`);
+  }
+
+  return styles.join('; ');
 }
 
 function wrapWithDecor(nodes: LexicalNode[], decor?: TitleFormatSpec['decor']): LexicalNode[] {
@@ -305,7 +314,8 @@ function buildTitleNodes(text: string, format: TitleFormatSpec): LexicalNode[] {
       italic: format.italic,
       underline: format.underline,
     },
-    computeFontSizeStyle(format.fontSize),
+    // support both new `fontColor` and legacy `textColor` if present
+    computeTextStyle(format.fontSize, (format as any)?.fontColor ?? (format as any)?.textColor),
   );
 
   if (format.kind === 'heading') {
