@@ -13,11 +13,13 @@ function Toast({ item }: { item: ToastItem }) {
     item.type === 'error'
       ? 'bg-red-600'
       : item.type === 'info'
-      ? 'bg-gray-800'
-      : 'bg-green-600';
+        ? 'bg-gray-800'
+        : 'bg-green-600';
 
   return (
-    <div className={`pointer-events-auto shadow-lg rounded-md px-3 py-2 text-white text-sm ${color}`}>
+    <div
+      className={`pointer-events-auto shadow-lg rounded-md px-3 py-2 text-white text-sm ${color}`}
+    >
       {item.message}
     </div>
   );
@@ -34,4 +36,3 @@ export default function Toaster() {
     </div>
   );
 }
-

@@ -196,8 +196,6 @@ export default function AiRightPanel({
     [bilanTypes],
   );
 
-  
-
   // If requested, open the BilanType wizard directly (step defaults to 2)
   useEffect(() => {
     if (openWizardBilanType) {
@@ -514,255 +512,263 @@ export default function AiRightPanel({
           </div>
         </div>
         <div className="flex-1 flex flex-col min-h-0">
-            {activeTab === 'chat' ? (
-              <div className="flex-1 flex flex-col min-h-0">
-                <ChatPanel bilanId={bilanId} onInsertText={onInsertText} />
-              </div>
-            ) : (
-              <div className="flex-1 px-0 py-2 min-h-0 flex flex-col">
+          {activeTab === 'chat' ? (
+            <div className="flex-1 flex flex-col min-h-0">
+              <ChatPanel bilanId={bilanId} onInsertText={onInsertText} />
+            </div>
+          ) : (
+            <div className="flex-1 px-0 py-2 min-h-0 flex flex-col">
               <div className="p-4">
-              <ScrollArea className="flex-1">
-                <div className="space-y-4 px-0 py-0">
-              {wizardBilanType && (
-                <Dialog
-                  open={true}
-                  onOpenChange={(open) => !open && setWizardBilanType(false)}
-                >
-                  <DialogContent showCloseButton={false} fullscreen>
-                    <WizardAIBilanType
-                      mode="bilanType"
-                      sectionInfo={{
-                        id: 'bilanType',
-                        title: 'Bilan type',
-                        icon: Brain,
-                        description: '',
-                      }}
-                      trameOptions={bilanTypeOptions}
-                      selectedTrame={
-                        (selectedBilanTypeId
-                          ? (bilanTypeOptions.find(
-                              (b) => b.value === selectedBilanTypeId,
-                            ) as any)
-                          : undefined) ||
-                        (initialBilanTypeId
-                          ? (bilanTypeOptions.find(
-                              (b) => b.value === initialBilanTypeId,
-                            ) as any)
-                          : undefined)
-                      }
-                      onTrameChange={() => {}}
-                      examples={[]}
-                      onAddExample={() => {}}
-                      onRemoveExample={() => {}}
-                      questions={[]}
-                      answers={{}}
-                      onAnswersChange={() => {}}
-                      onGenerate={async () => {}}
-                      onGenerateAll={(bilanTypeId, exclude) =>
-                        generateFullBilanType(bilanTypeId, exclude)
-                      }
-                      isGenerating={false}
-                      bilanId={bilanId}
-                      onCancel={() => setWizardBilanType(false)}
-                      initialStep={wizardStartStep}
-                      currentStep={wizardStartStep}
-                    />
-                  </DialogContent>
-                </Dialog>
-              )}
-
-              <Card key="bilan-type" className="p-4">
-                <CardContent className="p-2">
-                  <div className="flex items-center gap-2">
-                    <div className="p-1.5 rounded-lg bg-muted/60">
-                      <Brain className="h-4 w-4 text-muted-foreground text-primary-500" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-medium text-base truncate">
-                          Trame de bilan
-                        </h3>
-                        <Button
-                          size="default"
-                          variant="default"
-                          className="ml-auto h-7 px-2 text-sm"
-                          onClick={() => setWizardBilanType(true)}
-                        >
-                          Rédiger
-                          <ArrowRightCircle className="h-4 w-4 ml-1" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {wizardSection === 'reponses' ? (
-                <Dialog
-                  open={true}
-                  onOpenChange={(open) => !open && setWizardSection(null)}
-                >
-                  <DialogContent showCloseButton={false} fullscreen>
-                    <WizardAIRightPanel
-                      sectionInfo={{
-                        id: 'reponses',
-                        title: 'Mes dernières réponses',
-                        icon: FileText,
-                        description:
-                          'Consultez et modifiez vos réponses précédentes',
-                      }}
-                      trameOptions={[]}
-                      selectedTrame={undefined}
-                      onTrameChange={() => {}}
-                      examples={[]}
-                      onAddExample={() => {}}
-                      onRemoveExample={() => {}}
-                      questions={[]}
-                      answers={{}}
-                      onAnswersChange={() => {}}
-                      onGenerate={async () => {}}
-                      onGenerateFromTemplate={async () => {}}
-                      isGenerating={false}
-                      bilanId={bilanId}
-                      onCancel={() => setWizardSection(null)}
-                    />
-                  </DialogContent>
-                </Dialog>
-              ) : (
-                sections.map((section) => {
-                  const trameOpts = trames[section.id];
-                  const selected = trameOpts.find(
-                    (t) => t.value === selectedTrames[section.id],
-                  );
-
-                  if (wizardSection === section.id) {
-                    return (
+                <ScrollArea className="flex-1">
+                  <div className="space-y-4 px-0 py-0">
+                    {wizardBilanType && (
                       <Dialog
-                        key={section.id}
                         open={true}
                         onOpenChange={(open) =>
-                          !open && setWizardSection(null)
+                          !open && setWizardBilanType(false)
                         }
                       >
                         <DialogContent showCloseButton={false} fullscreen>
-                          <WizardAIRightPanel
-                            sectionInfo={section}
-                            trameOptions={trameOpts}
-                            selectedTrame={selected}
-                            onTrameChange={(v) =>
-                              setSelectedTrames({
-                                ...selectedTrames,
-                                [section.id]: v,
-                              })
+                          <WizardAIBilanType
+                            mode="bilanType"
+                            sectionInfo={{
+                              id: 'bilanType',
+                              title: 'Bilan type',
+                              icon: Brain,
+                              description: '',
+                            }}
+                            trameOptions={bilanTypeOptions}
+                            selectedTrame={
+                              (selectedBilanTypeId
+                                ? (bilanTypeOptions.find(
+                                    (b) => b.value === selectedBilanTypeId,
+                                  ) as any)
+                                : undefined) ||
+                              (initialBilanTypeId
+                                ? (bilanTypeOptions.find(
+                                    (b) => b.value === initialBilanTypeId,
+                                  ) as any)
+                                : undefined)
                             }
-                            examples={getExamples(
-                              section.id,
-                              selectedTrames[section.id],
-                            )}
-                            onAddExample={(ex) =>
-                              addExample(
-                                section.id,
-                                selectedTrames[section.id],
-                                ex,
-                              )
+                            onTrameChange={() => {}}
+                            examples={[]}
+                            onAddExample={() => {}}
+                            onRemoveExample={() => {}}
+                            questions={[]}
+                            answers={{}}
+                            onAnswersChange={() => {}}
+                            onGenerate={async () => {}}
+                            onGenerateAll={(bilanTypeId, exclude) =>
+                              generateFullBilanType(bilanTypeId, exclude)
                             }
-                            onRemoveExample={(id) =>
-                              removeExample(
-                                section.id,
-                                selectedTrames[section.id],
-                                id,
-                              )
-                            }
-                            questions={(selected?.schema as Question[]) || []}
-                            answers={answers[section.id] || {}}
-                            onAnswersChange={(a) =>
-                              setAnswers({ ...answers, [section.id]: a })
-                            }
-                            onGenerate={async (latest, notes, imageBase64) =>
-                              await handleGenerate(
-                                section,
-                                latest,
-                                notes,
-                                imageBase64,
-                              )
-                            }
-                            onGenerateFromTemplate={async (
-                              latest,
-                              notes,
-                              id,
-                              imageBase64,
-                            ) =>
-                              await handleGenerateFromTemplate(
-                                section,
-                                latest,
-                                notes,
-                                id,
-                                imageBase64,
-                              )
-                            }
-                            isGenerating={
-                              isGenerating && selectedSection === section.id
-                            }
-                            onCancel={() => setWizardSection(null)}
+                            isGenerating={false}
                             bilanId={bilanId}
+                            onCancel={() => setWizardBilanType(false)}
                             initialStep={wizardStartStep}
+                            currentStep={wizardStartStep}
                           />
                         </DialogContent>
                       </Dialog>
-                    );
-                  }
+                    )}
 
-                  // Toujours afficher la carte simple, jamais SectionCard
-                  return (
-                    <Card key={section.id} className="p-4">
+                    <Card key="bilan-type" className="p-4">
                       <CardContent className="p-2">
                         <div className="flex items-center gap-2">
                           <div className="p-1.5 rounded-lg bg-muted/60">
-                            <section.icon className="h-4 w-4 text-muted-foreground text-primary-500" />
+                            <Brain className="h-4 w-4 text-muted-foreground text-primary-500" />
                           </div>
-
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
                               <h3 className="font-medium text-base truncate">
-                                {section.title}
+                                Trame de bilan
                               </h3>
-
                               <Button
                                 size="default"
                                 variant="default"
                                 className="ml-auto h-7 px-2 text-sm"
-                                onClick={() => {
-                                  setWizardStartStep(1);
-                                  setWizardSection(section.id);
-                                }}
+                                onClick={() => setWizardBilanType(true)}
                               >
                                 Rédiger
                                 <ArrowRightCircle className="h-4 w-4 ml-1" />
                               </Button>
                             </div>
-
-                            {/* Optionnel : afficher la description sans prendre de place */}
-                            {/* Mettre showDesc à true/false selon ton besoin */}
-                            {false && (
-                              <p className="text-[11px] text-muted-foreground mt-1 line-clamp-1">
-                                {section.description}
-                              </p>
-                            )}
                           </div>
                         </div>
                       </CardContent>
                     </Card>
-                  );
-                })
-              )}
+
+                    {wizardSection === 'reponses' ? (
+                      <Dialog
+                        open={true}
+                        onOpenChange={(open) => !open && setWizardSection(null)}
+                      >
+                        <DialogContent showCloseButton={false} fullscreen>
+                          <WizardAIRightPanel
+                            sectionInfo={{
+                              id: 'reponses',
+                              title: 'Mes dernières réponses',
+                              icon: FileText,
+                              description:
+                                'Consultez et modifiez vos réponses précédentes',
+                            }}
+                            trameOptions={[]}
+                            selectedTrame={undefined}
+                            onTrameChange={() => {}}
+                            examples={[]}
+                            onAddExample={() => {}}
+                            onRemoveExample={() => {}}
+                            questions={[]}
+                            answers={{}}
+                            onAnswersChange={() => {}}
+                            onGenerate={async () => {}}
+                            onGenerateFromTemplate={async () => {}}
+                            isGenerating={false}
+                            bilanId={bilanId}
+                            onCancel={() => setWizardSection(null)}
+                          />
+                        </DialogContent>
+                      </Dialog>
+                    ) : (
+                      sections.map((section) => {
+                        const trameOpts = trames[section.id];
+                        const selected = trameOpts.find(
+                          (t) => t.value === selectedTrames[section.id],
+                        );
+
+                        if (wizardSection === section.id) {
+                          return (
+                            <Dialog
+                              key={section.id}
+                              open={true}
+                              onOpenChange={(open) =>
+                                !open && setWizardSection(null)
+                              }
+                            >
+                              <DialogContent showCloseButton={false} fullscreen>
+                                <WizardAIRightPanel
+                                  sectionInfo={section}
+                                  trameOptions={trameOpts}
+                                  selectedTrame={selected}
+                                  onTrameChange={(v) =>
+                                    setSelectedTrames({
+                                      ...selectedTrames,
+                                      [section.id]: v,
+                                    })
+                                  }
+                                  examples={getExamples(
+                                    section.id,
+                                    selectedTrames[section.id],
+                                  )}
+                                  onAddExample={(ex) =>
+                                    addExample(
+                                      section.id,
+                                      selectedTrames[section.id],
+                                      ex,
+                                    )
+                                  }
+                                  onRemoveExample={(id) =>
+                                    removeExample(
+                                      section.id,
+                                      selectedTrames[section.id],
+                                      id,
+                                    )
+                                  }
+                                  questions={
+                                    (selected?.schema as Question[]) || []
+                                  }
+                                  answers={answers[section.id] || {}}
+                                  onAnswersChange={(a) =>
+                                    setAnswers({ ...answers, [section.id]: a })
+                                  }
+                                  onGenerate={async (
+                                    latest,
+                                    notes,
+                                    imageBase64,
+                                  ) =>
+                                    await handleGenerate(
+                                      section,
+                                      latest,
+                                      notes,
+                                      imageBase64,
+                                    )
+                                  }
+                                  onGenerateFromTemplate={async (
+                                    latest,
+                                    notes,
+                                    id,
+                                    imageBase64,
+                                  ) =>
+                                    await handleGenerateFromTemplate(
+                                      section,
+                                      latest,
+                                      notes,
+                                      id,
+                                      imageBase64,
+                                    )
+                                  }
+                                  isGenerating={
+                                    isGenerating &&
+                                    selectedSection === section.id
+                                  }
+                                  onCancel={() => setWizardSection(null)}
+                                  bilanId={bilanId}
+                                  initialStep={wizardStartStep}
+                                />
+                              </DialogContent>
+                            </Dialog>
+                          );
+                        }
+
+                        // Toujours afficher la carte simple, jamais SectionCard
+                        return (
+                          <Card key={section.id} className="p-4">
+                            <CardContent className="p-2">
+                              <div className="flex items-center gap-2">
+                                <div className="p-1.5 rounded-lg bg-muted/60">
+                                  <section.icon className="h-4 w-4 text-muted-foreground text-primary-500" />
+                                </div>
+
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <h3 className="font-medium text-base truncate">
+                                      {section.title}
+                                    </h3>
+
+                                    <Button
+                                      size="default"
+                                      variant="default"
+                                      className="ml-auto h-7 px-2 text-sm"
+                                      onClick={() => {
+                                        setWizardStartStep(1);
+                                        setWizardSection(section.id);
+                                      }}
+                                    >
+                                      Rédiger
+                                      <ArrowRightCircle className="h-4 w-4 ml-1" />
+                                    </Button>
+                                  </div>
+
+                                  {/* Optionnel : afficher la description sans prendre de place */}
+                                  {/* Mettre showDesc à true/false selon ton besoin */}
+                                  {false && (
+                                    <p className="text-[11px] text-muted-foreground mt-1 line-clamp-1">
+                                      {section.description}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })
+                    )}
+                  </div>
+                </ScrollArea>
               </div>
-              </ScrollArea>
-              </div>
-              </div>
-            )}
+            </div>
+          )}
+        </div>
       </div>
-      
     </div>
-  </div>
-);
+  );
 }

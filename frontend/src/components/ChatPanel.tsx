@@ -122,7 +122,7 @@ export function ChatPanel({
       await navigator.clipboard.writeText(text);
       showToast('Message copié dans le presse-papier', { type: 'success' });
     } catch (e) {
-      showToast("Impossible de copier le message", { type: 'error' });
+      showToast('Impossible de copier le message', { type: 'error' });
     }
   };
 
@@ -182,42 +182,46 @@ export function ChatPanel({
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-        {/* Scrollable messages + selection highlight area */}
-        <div className="flex-1 min-h-0 overflow-y-auto bg-white">
-          <div className="px-4 py-3">
-            {loading ? (
-              <div className="text-gray-500 text-sm">Chargement…</div>
-            ) : messages.length === 0 ? (
-              <div className="text-gray-500 text-sm">Démarrez la conversation en posant une question. Astuce: sélectionner du texte pour poser une question sur ce texte, par exemple pour rédiger une conclusion.</div>
-            ) : (
-              messages.map((m) => renderBubble(m))
-            )}
-          </div>
-{/*           <div ref={bottomRef} className="h-0" />
- */}        </div>
-          {selection?.text ? (
-            <div className="mb-3 rounded-md bg-amber-300 px-3 py-2 text-sm">
-              <div className="text-coral-600 mb-1">Texte sélectionné :</div>
-              <div className="italic truncate">"{selection.text}"</div>
+      {/* Scrollable messages + selection highlight area */}
+      <div className="flex-1 min-h-0 overflow-y-auto bg-white">
+        <div className="px-4 py-3">
+          {loading ? (
+            <div className="text-gray-500 text-sm">Chargement…</div>
+          ) : messages.length === 0 ? (
+            <div className="text-gray-500">
+              Astuce: sélectionner du texte pour poser une question sur ce texte, par
+              exemple pour rédiger une conclusion.
             </div>
-          ) : null}
-        {/* Sticky footer composer */}
-        <div className="shrink-0 border-t border-wood-200 bg-white p-3 flex gap-2">
-            <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={onKeyDown}
-                placeholder={
-                  mode === 'refine' && selection?.text
-                    ? 'Précisez les modifications à appliquer…'
-                    : 'Écrivez votre message…'
-                }
-                disabled={sending}
-              />
-              <Button onClick={handleSend} disabled={sending || !input.trim()}>
-                {sending ? 'Envoi…' : 'Envoyer'}
-              </Button>
-          </div>
+          ) : (
+            messages.map((m) => renderBubble(m))
+          )}
+        </div>
+        {/*           <div ref={bottomRef} className="h-0" />
+         */}{' '}
+      </div>
+      {selection?.text ? (
+        <div className="mb-3 rounded-md bg-amber-300 px-3 py-2 text-sm">
+          <div className="text-coral-600 mb-1">Texte sélectionné :</div>
+          <div className="italic truncate">"{selection.text}"</div>
+        </div>
+      ) : null}
+      {/* Sticky footer composer */}
+      <div className="shrink-0 border-t border-wood-200 bg-white p-3 flex gap-2">
+        <Input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={onKeyDown}
+          placeholder={
+            mode === 'refine' && selection?.text
+              ? 'Précisez les modifications à appliquer…'
+              : 'Écrivez votre message…'
+          }
+          disabled={sending}
+        />
+        <Button onClick={handleSend} disabled={sending || !input.trim()}>
+          {sending ? 'Envoi…' : 'Envoyer'}
+        </Button>
+      </div>
     </div>
   );
 }

@@ -10,7 +10,7 @@ import type {
   RowsGroup,
   TitlePreset,
 } from '@/types/question';
-import { DEFAULT_TITLE_PRESETS } from '@/types/question';
+import { DEFAULT_TITLE_PRESETS, CUSTOM_PRESET_ID } from '@/types/question';
 import { X, Settings, GripVertical, ChevronDown, Check } from 'lucide-react';
 import {
   DropdownMenu,
@@ -32,6 +32,7 @@ import {
   AlertDialogOverlay,
 } from './ui/alert-dialog';
 import AstInsertModal from './AstInsertModal';
+import TitleStyleModale from './TitleStyleModale';
 
 export type EditorProps = {
   q: Question;
@@ -828,6 +829,9 @@ type TitlePresetDropdownProps = {
   value?: string;
   onChange: (value: string) => void;
   disabled?: boolean;
+  onOpenCustom?: () => void;
+  // When a custom style is active, show its preview in the trigger
+  overrideFormat?: TitlePreset['format'];
 };
 
 function getHeadingSizeClass(level?: number) {
@@ -982,6 +986,8 @@ function TitlePresetDropdown({
   value: propValue,
   onChange,
   disabled,
+  onOpenCustom,
+  overrideFormat,
 }: TitlePresetDropdownProps) {
   const selectedPreset = React.useMemo(() => {
     if (!presets.length) return undefined;
@@ -989,7 +995,20 @@ function TitlePresetDropdown({
     return presets.find((preset) => preset.id === currentId) ?? presets[0];
   }, [presets, propValue]);
 
-  const value = selectedPreset?.id;
+  // Use the raw prop value for selection state so no preset is
+  // checked when a custom style is active (CUSTOM_PRESET_ID).
+  const value = propValue;
+  // If a custom format override is active, synthesize a pseudo-preset for preview
+  const displayPreset: TitlePreset | undefined = React.useMemo(() => {
+    if (overrideFormat) {
+      return {
+        id: '__custom__',
+        label: 'Style personnalisé',
+        format: overrideFormat,
+      };
+    }
+    return selectedPreset;
+  }, [overrideFormat, selectedPreset]);
 
   return (
     <DropdownMenu>
@@ -998,11 +1017,11 @@ function TitlePresetDropdown({
           type="button"
           variant="outline"
           className="h-auto w-full items-start justify-between gap-2 px-3 py-2 text-left"
-          disabled={!selectedPreset || disabled}
+          disabled={disabled}
         >
           <div className="flex-1 text-left">
-            {selectedPreset ? (
-              <TitlePresetPreview preset={selectedPreset} className="flex-1" />
+            {displayPreset ? (
+              <TitlePresetPreview preset={displayPreset} className="flex-1" />
             ) : (
               <span className="text-sm text-gray-500">
                 Aucun preset disponible
@@ -1036,6 +1055,28 @@ function TitlePresetDropdown({
             </DropdownMenuItem>
           ))}
         </div>
+        <div className="border-t my-1" />
+        <DropdownMenuItem
+          className="items-start font-medium text-primary-700"
+          onSelect={(e) => {
+            if (disabled) {
+              e.preventDefault();
+              return;
+            }
+            e.preventDefault();
+            onOpenCustom?.();
+          }}
+        >
+          <Check
+            className={cn(
+              'h-4 w-4 text-primary-600 transition-opacity',
+              overrideFormat || propValue === CUSTOM_PRESET_ID
+                ? 'opacity-100'
+                : 'opacity-0',
+            )}
+          />
+          <span>Style personnalisé …</span>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -1045,17 +1086,55 @@ export function TitleEditor({ q, onPatch, isReadOnly }: EditorProps) {
   const presets = React.useMemo(() => Object.values(DEFAULT_TITLE_PRESETS), []);
   const defaultPresetId = 't12-underline';
 
+  const selectedPreset = React.useMemo(() => {
+    const currentId = q.titrePresetId ?? defaultPresetId;
+    return presets.find((p) => p.id === currentId) ?? presets[0];
+  }, [presets, q.titrePresetId]);
+
+  const selectedId = React.useMemo(() => {
+    if (q.titreFormatOverride) return CUSTOM_PRESET_ID;
+    return q.titrePresetId ?? defaultPresetId;
+  }, [q.titreFormatOverride, q.titrePresetId]);
+
+  const [customOpen, setCustomOpen] = React.useState(false);
+  const [customInitial, setCustomInitial] = React.useState<
+    TitlePreset['format'] | undefined
+  >(undefined);
+
   React.useEffect(() => {
     if (!defaultPresetId || isReadOnly) return;
     const currentId = q.titrePresetId?.trim();
-    if (!currentId) {
+    const hasOverride = !!q.titreFormatOverride;
+    if (!currentId && !hasOverride) {
       onPatch({ titrePresetId: defaultPresetId } as Partial<Question>);
     }
-  }, [defaultPresetId, q.titrePresetId, onPatch, isReadOnly]);
+  }, [defaultPresetId, q.titrePresetId, q.titreFormatOverride, onPatch, isReadOnly]);
 
   const handleChange = React.useCallback(
     (value: string) => {
-      onPatch({ titrePresetId: value } as Partial<Question>);
+      if (value === CUSTOM_PRESET_ID) return; // selection is driven via the custom modal
+      onPatch({ titrePresetId: value, titreFormatOverride: undefined } as Partial<Question>);
+    },
+    [onPatch],
+  );
+
+  const openCustom = React.useCallback(() => {
+    const initial = q.titreFormatOverride ??
+      selectedPreset?.format ?? {
+        kind: 'paragraph',
+        fontSize: 12,
+        bold: true,
+        align: 'left',
+        case: 'none',
+      };
+    setCustomInitial(initial);
+    setCustomOpen(true);
+  }, [q.titreFormatOverride, selectedPreset]);
+
+  const handleCustomSave = React.useCallback(
+    (format: TitlePreset['format']) => {
+      onPatch({ titrePresetId: CUSTOM_PRESET_ID, titreFormatOverride: format } as Partial<Question>);
+      setCustomOpen(false);
     },
     [onPatch],
   );
@@ -1065,9 +1144,17 @@ export function TitleEditor({ q, onPatch, isReadOnly }: EditorProps) {
       <label className="block text-gray-700">Format du titre</label>
       <TitlePresetDropdown
         presets={presets}
-        value={q.titrePresetId ?? defaultPresetId}
+        value={selectedId}
         onChange={handleChange}
         disabled={isReadOnly}
+        onOpenCustom={isReadOnly ? undefined : openCustom}
+        overrideFormat={q.titreFormatOverride}
+      />
+      <TitleStyleModale
+        open={customOpen}
+        initial={customInitial}
+        onCancel={() => setCustomOpen(false)}
+        onSave={handleCustomSave}
       />
     </div>
   );
