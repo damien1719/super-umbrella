@@ -128,6 +128,8 @@ const DEFAULT_TITLE_PRESET_FORMAT: TitleFormatSpec = {
   bold: true,
 };
 
+const CUSTOM_PRESET_ID = '_custom';
+
 const TITLE_PRESET_REGISTRY: TitlePresetRegistry = {
   't11-italic': {
     kind: 'paragraph',
@@ -374,15 +376,19 @@ function resolveTitleFormat(
   anchor: TitlePresetAnchorSpec,
   question: Question | undefined,
 ): TitleFormatSpec {
-  const override = question?.titreFormatOverride;
+  const override = (question as any)?.titreFormatOverride as TitleFormatSpec | undefined;
   if (override) return override;
 
-  const presetId = anchor.presetId || question?.titrePresetId;
+  const presetId = anchor.presetId || (question as any)?.titrePresetId;
+  if (presetId === CUSTOM_PRESET_ID) {
+    // Custom style sentinel without override set: fall back without warning
+    return DEFAULT_TITLE_PRESET_FORMAT;
+  }
   if (presetId && TITLE_PRESET_REGISTRY[presetId]) {
     return TITLE_PRESET_REGISTRY[presetId];
   }
 
-  if (presetId) {
+  if (presetId && presetId !== CUSTOM_PRESET_ID) {
     console.warn('[ANCHOR] LexicalAssembler - unknown title preset, falling back', {
       presetId,
       anchorId: anchor.id,

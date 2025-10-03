@@ -215,6 +215,9 @@ export const DEFAULT_TITLE_PRESETS: TitlePresetRegistry = {
   },
 };
 
+// Sentinel ID used when a custom title format override is active
+export const CUSTOM_PRESET_ID = '_custom';
+
 // ---- nouveaux types pour le formatage de titre ----
 export type TitleAlign = 'left' | 'center' | 'right' | 'justify';
 export type TitleCase = 'none' | 'uppercase' | 'capitalize' | 'lowercase';

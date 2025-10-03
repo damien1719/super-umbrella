@@ -24,13 +24,14 @@ export default function SelectionOverlay() {
   };
 
   return createPortal(
-    <Button className="gap-2"
+    <Button
+      className="gap-2"
       size="sm"
       style={style}
       onMouseDown={(e) => e.preventDefault()}
       onClick={() => setMode('refine')}
     >
-    <Wand2 className="h-4 w-4" />
+      <Wand2 className="h-4 w-4" />
       Parler de ce texte
     </Button>,
     document.body,

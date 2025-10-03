@@ -1107,8 +1107,8 @@ export default function CreationTrame({
                     Supprimer la partie
                   </div>
                   <p className="text-sm text-red-700 mb-4">
-                    Cette action est irréversible. La partie sera
-                    définitivement supprimée.
+                    Cette action est irréversible. La partie sera définitivement
+                    supprimée.
                   </p>
                   <Button
                     variant="destructive"
@@ -1129,7 +1129,8 @@ export default function CreationTrame({
         onOpenChange={setShowInspiration}
         titleLeft="Cliquer sur une partie pour en voir le détail"
         onInsertQuestion={(q) => {
-          const targetId = selectedId || questions[questions.length - 1]?.id || '';
+          const targetId =
+            selectedId || questions[questions.length - 1]?.id || '';
           onPasteAfter(targetId, q);
           // Toast de confirmation
           useToastStore.getState().show('Question insérée dans votre partie', {

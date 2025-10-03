@@ -366,10 +366,7 @@ export default function BilanTypeBuilder(props?: BilanTypeBuilderProps) {
 
   // When a section gets duplicated from UI, if the original is present in layout,
   // also append the newly created section to the current layout
-  const handleAfterDuplicate = (
-    originalId: string,
-    created: Section,
-  ) => {
+  const handleAfterDuplicate = (originalId: string, created: Section) => {
     try {
       const { segments } = computeSegments(layoutJson);
       const exists = segments.some(
@@ -1057,7 +1054,9 @@ export default function BilanTypeBuilder(props?: BilanTypeBuilderProps) {
                     return (
                       <div className="flex flex-col items-center justify-center p-8 text-center border border-dashed rounded-md">
                         <p className="mb-4 text-sm text-gray-600">
-                          Aucun contenu dans l’édition Word pour le moment. Ajoutez des sections dans l’onglet « Construction » puis revenez ici pour organiser la mise en page.
+                          Aucun contenu dans l’édition Word pour le moment.
+                          Ajoutez des sections dans l’onglet « Construction »
+                          puis revenez ici pour organiser la mise en page.
                         </p>
                         <Button type="button" onClick={() => setMode('build')}>
                           Aller à la construction
