@@ -249,36 +249,42 @@ const ImperativeHandlePlugin = forwardRef<RichTextEditorHandle, object>(
           try {
             const stateString =
               typeof state === 'string' ? state.trim() : JSON.stringify(state);
-        
+
             const sourceState = editor.parseEditorState(stateString);
 
-            console.log("sourceState", sourceState);
-        
+            console.log('sourceState', sourceState);
+
             // 1) On prend le JSON complet pour garder *tous* les enfants (text nodes inclus)
             const { root } = sourceState.toJSON();
-            const serializedChildren = Array.isArray(root?.children) ? root.children : [];
-        
-            console.log("serializedChildren", serializedChildren);
+            const serializedChildren = Array.isArray(root?.children)
+              ? root.children
+              : [];
+
+            console.log('serializedChildren', serializedChildren);
             // 2) On régénère de vrais nodes dans CET éditeur et on append
             editor.update(() => {
               const nodes = $generateNodesFromSerializedNodes(
-                serializedChildren as any
+                serializedChildren as any,
               );
 
               console.log('[gen] nodes.length =', nodes.length);
               console.log('[gen] nodes[0].__type =', (nodes[0] as any)?.__type);
-              console.log('[gen] textContent 0 =', (nodes[0] as any)?.getTextContent?.());
-
+              console.log(
+                '[gen] textContent 0 =',
+                (nodes[0] as any)?.getTextContent?.(),
+              );
 
               if (nodes.length) {
                 $getRoot().append(...nodes);
               }
               editor.focus();
-        
+
               const after = editor.getEditorState().toJSON();
               console.log(
                 '[append] after append text =',
-                after.root.children?.map(c => c.children?.map(t => t.text).join('')).join('\n')
+                after.root.children
+                  ?.map((c) => c.children?.map((t) => t.text).join(''))
+                  .join('\n'),
               );
             });
           } catch (e) {

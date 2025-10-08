@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface UseAutosaveOptions<T> {
   data: T;
@@ -10,6 +10,13 @@ interface UseAutosaveOptions<T> {
 
 interface UseAutosaveReturn<T> {
   markSaved: (data: T) => void;
+  saveNow: () => Promise<void>;
+  isDirty: boolean;
+  isSaving: boolean;
+  hasError: boolean;
+  lastSavedAt: Date | null;
+  statusLabel: string;
+  saveOrNotify: () => Promise<void>;
 }
 
 const defaultSerialize = <T>(value: T) => JSON.stringify(value ?? {}) ?? '';
@@ -23,44 +30,168 @@ export function useAutosave<T>({
 }: UseAutosaveOptions<T>): UseAutosaveReturn<T> {
   const lastSerializedRef = useRef<string>('');
   const inFlightRef = useRef(false);
+  const timeoutRef = useRef<number | null>(null);
+  const transientRef = useRef<number | null>(null);
+
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasError, setHasError] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
+  const [snapshotInitialized, setSnapshotInitialized] = useState(false);
+  const [transientLabel, setTransientLabel] = useState<string | null>(null);
 
   const markSaved = useCallback(
     (payload: T) => {
       lastSerializedRef.current = serialize(payload);
+      setSnapshotInitialized(true);
+      setIsDirty(false);
     },
     [serialize],
   );
 
-  useEffect(() => {
-    if (!enabled) return;
+  const performSave = useCallback(
+    async (serialized: string, payload: T) => {
+      if (!enabled) return;
+      // prevent duplicate saves for same snapshot
+      if (inFlightRef.current) return;
+      inFlightRef.current = true;
+      setIsSaving(true);
+      setHasError(false);
+      try {
+        await Promise.resolve(save(payload));
+        lastSerializedRef.current = serialized;
+        setLastSavedAt(new Date());
+        setIsDirty(false);
+        setSnapshotInitialized(true);
+      } catch {
+        // Keep dirty state so user can retry
+        setHasError(true);
+      } finally {
+        inFlightRef.current = false;
+        setIsSaving(false);
+      }
+    },
+    [enabled, save],
+  );
 
+  const saveNow = useCallback(async () => {
     const serialized = serialize(data);
-    if (serialized === lastSerializedRef.current && !inFlightRef.current) {
+    if (!enabled) return;
+    if (serialized === lastSerializedRef.current) {
+      setIsDirty(false);
+      return;
+    }
+    await performSave(serialized, data);
+  }, [data, enabled, performSave, serialize]);
+
+  const flash = useCallback((message: string, ms = 1800) => {
+    if (transientRef.current) window.clearTimeout(transientRef.current);
+    setTransientLabel(message);
+    transientRef.current = window.setTimeout(() => {
+      setTransientLabel(null);
+      transientRef.current = null;
+    }, ms);
+  }, []);
+
+  const saveOrNotify = useCallback(async () => {
+    const serialized = serialize(data);
+    const sameAsLast = serialized === lastSerializedRef.current;
+    if (!enabled) return;
+    if (!snapshotInitialized) {
+      flash('Aucune modification à enregistrer.');
+      return;
+    }
+    if (sameAsLast) {
+      flash(
+        lastSavedAt
+          ? 'Tout est déjà enregistré.'
+          : 'Aucune modification à enregistrer.',
+      );
+      return;
+    }
+    await performSave(serialized, data);
+  }, [
+    data,
+    enabled,
+    flash,
+    lastSavedAt,
+    performSave,
+    serialize,
+    snapshotInitialized,
+  ]);
+
+  useEffect(() => {
+    if (!enabled) {
+      if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
       return;
     }
 
-    console.log('useAutosave', data);
+    const serialized = serialize(data);
+    const sameAsLast = serialized === lastSerializedRef.current;
+    if (!snapshotInitialized) {
+      // Wait for server snapshot (markSaved) before tracking dirtiness
+      setIsDirty(false);
+      return;
+    }
 
-    const timeout = window.setTimeout(() => {
-      inFlightRef.current = true;
-      Promise.resolve(save(data))
-        .then(() => {
-          lastSerializedRef.current = serialized;
-        })
-        .catch(() => {
-          /* mute autosave errors */
-        })
-        .finally(() => {
-          inFlightRef.current = false;
-        });
+    if (!sameAsLast || inFlightRef.current) {
+      setIsDirty(!sameAsLast);
+    }
+    if (sameAsLast && !inFlightRef.current) {
+      return;
+    }
+
+    if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
+    timeoutRef.current = window.setTimeout(() => {
+      void performSave(serialized, data);
     }, delay);
 
     return () => {
-      window.clearTimeout(timeout);
+      if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
     };
-  }, [data, enabled, delay, save, serialize]);
+  }, [data, enabled, delay, performSave, serialize, snapshotInitialized]);
 
-  return { markSaved };
+  const statusLabel = useMemo(() => {
+    if (!enabled) return 'Sauvegarde désactivée';
+    if (transientLabel) return transientLabel;
+    if (!snapshotInitialized) return 'Prêt';
+    if (isSaving) return 'Enregistrement en cours…';
+    if (hasError) return 'Erreur — Réessayer';
+    if (isDirty) return 'Modifications non enregistrées';
+    if (lastSavedAt) {
+      try {
+        const time = lastSavedAt.toLocaleTimeString('fr-FR', {
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+        return `Enregistré à ${time}`;
+      } catch {
+        return 'Enregistré';
+      }
+    }
+    return 'Aucune modification';
+  }, [
+    enabled,
+    hasError,
+    isDirty,
+    isSaving,
+    lastSavedAt,
+    snapshotInitialized,
+    transientLabel,
+  ]);
+
+  return {
+    markSaved,
+    saveNow,
+    isDirty,
+    isSaving,
+    hasError,
+    lastSavedAt,
+    statusLabel,
+    saveOrNotify,
+  };
 }
 
 export type { UseAutosaveOptions, UseAutosaveReturn };

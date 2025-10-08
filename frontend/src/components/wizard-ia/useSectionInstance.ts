@@ -88,7 +88,7 @@ export function useSectionInstance({
     } catch (error) {
       if ((error as Error).name === 'AbortError') {
         setStatus('idle');
-        return null;
+        throw error;
       }
       setInstanceId(null);
       setError(error as Error);
@@ -138,7 +138,7 @@ export function useSectionInstance({
       } catch (error) {
         if ((error as Error).name === 'AbortError') {
           setStatus('idle');
-          return null;
+          throw error;
         }
         setError(error as Error);
         setStatus('error');
