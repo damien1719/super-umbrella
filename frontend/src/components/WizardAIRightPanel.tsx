@@ -230,7 +230,8 @@ export default function WizardAIRightPanel({
         await bilanTypeInstance.save(currentAnswers, {
           sectionId: activeBilanSectionId,
         });
-        bilanTypeMarkSaved(currentAnswers);
+        // Mark autosave as up-to-date for the active bilanType section
+        bilanTypeAutosave.markSaved(currentAnswers);
       }
     } catch {}
     setActiveBilanSectionId(id);
@@ -529,7 +530,10 @@ export default function WizardAIRightPanel({
   };
 
   // Centralized current-generation handler so it can be called from UI and external events
-  const triggerGenerateCurrentWithMode = async (mode: 'replace' | 'append') => {
+  // genMode refers to how to insert the generated text; avoid shadowing wizard "mode"
+  const triggerGenerateCurrentWithMode = async (
+    genMode: 'replace' | 'append',
+  ) => {
     console.log('[DEBUG] WizardAIRightPanel - triggerGenerateCurrent');
     const isTemplateMode =
       !!selectedTrame?.templateRefId && !!onGenerateFromTemplate;
@@ -548,9 +552,9 @@ export default function WizardAIRightPanel({
       const id = await sectionInstance.save(currentAnswers);
       if (notesMode === 'manual') {
         if (mode === 'bilanType') {
-          bilanTypeMarkSaved(currentAnswers);
+          bilanTypeAutosave.markSaved(currentAnswers);
         } else {
-          sectionMarkSaved(currentAnswers);
+          sectionAutosave.markSaved(currentAnswers);
         }
       }
       onGenerateFromTemplate?.(
@@ -558,23 +562,23 @@ export default function WizardAIRightPanel({
         rawNotes,
         id || undefined,
         imageBase64,
-        mode,
+        genMode,
       );
       onCancel();
     } else {
       await sectionInstance.save(currentAnswers);
       if (notesMode === 'manual') {
         if (mode === 'bilanType') {
-          bilanTypeMarkSaved(currentAnswers);
+          bilanTypeAutosave.markSaved(currentAnswers);
         } else {
-          sectionMarkSaved(currentAnswers);
+          sectionAutosave.markSaved(currentAnswers);
         }
       }
       onGenerate(
         notesMode === 'manual' ? currentAnswers : undefined,
         rawNotes,
         imageBase64,
-        mode,
+        genMode,
       );
       // Close the wizard after direct generation to keep UX consistent
       onCancel();

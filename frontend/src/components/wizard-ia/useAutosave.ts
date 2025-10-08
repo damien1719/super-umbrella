@@ -98,14 +98,14 @@ export function useAutosave<T>({
     const sameAsLast = serialized === lastSerializedRef.current;
     if (!enabled) return;
     if (!snapshotInitialized) {
-      flash('Aucune modification à enregistrer.');
+      flash('Enregistré');
       return;
     }
     if (sameAsLast) {
       flash(
         lastSavedAt
-          ? 'Tout est déjà enregistré.'
-          : 'Aucune modification à enregistrer.',
+          ? 'Enregistré'
+          : 'Enregistré',
       );
       return;
     }
@@ -171,7 +171,7 @@ export function useAutosave<T>({
         return 'Enregistré';
       }
     }
-    return 'Aucune modification';
+    return '';
   }, [
     enabled,
     hasError,
