@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { ArrowLeft, FileDown } from 'lucide-react';
+import AutosaveBadge from './AutosaveBadge';
 import {
   Tooltip,
   TooltipContent,
@@ -14,6 +15,13 @@ interface Props {
   onBack: () => void;
   onSaveTitle: (newTitle: string) => Promise<void> | void;
   onExport: () => void | Promise<void>;
+  autosaveBadgeProps?: {
+    statusLabel: string;
+    isSaving: boolean;
+    hasError: boolean;
+    isDirty: boolean;
+    onClickSave: () => void | Promise<void>;
+  };
 }
 
 export default function TopBarEditeurBilan({
@@ -21,6 +29,7 @@ export default function TopBarEditeurBilan({
   onBack,
   onSaveTitle,
   onExport,
+  autosaveBadgeProps,
 }: Props) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(title);
@@ -96,7 +105,16 @@ export default function TopBarEditeurBilan({
           )}
         </div>
 
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-end gap-3">
+          {autosaveBadgeProps && (
+            <AutosaveBadge
+              statusLabel={autosaveBadgeProps.statusLabel}
+              isSaving={autosaveBadgeProps.isSaving}
+              hasError={autosaveBadgeProps.hasError}
+              isDirty={autosaveBadgeProps.isDirty}
+              onClickSave={autosaveBadgeProps.onClickSave}
+            />
+          )}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
