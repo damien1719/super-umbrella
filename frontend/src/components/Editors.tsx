@@ -951,10 +951,14 @@ function TitlePresetPreview({
     preset.format.kind === 'list-item' ? (
       <div className="flex items-start gap-2 text-left">
         <span className="mt-2 block h-1.5 w-1.5 shrink-0 rounded-full bg-gray-400" />
-        <span className={textClasses} style={style}>{displayText}</span>
+        <span className={textClasses} style={style}>
+          {displayText}
+        </span>
       </div>
     ) : (
-      <span className={textClasses} style={style}>{displayText}</span>
+      <span className={textClasses} style={style}>
+        {displayText}
+      </span>
     );
 
   const decor = format.decor;
@@ -1119,12 +1123,21 @@ export function TitleEditor({ q, onPatch, isReadOnly }: EditorProps) {
     if (!currentId && !hasOverride) {
       onPatch({ titrePresetId: defaultPresetId } as Partial<Question>);
     }
-  }, [defaultPresetId, q.titrePresetId, q.titreFormatOverride, onPatch, isReadOnly]);
+  }, [
+    defaultPresetId,
+    q.titrePresetId,
+    q.titreFormatOverride,
+    onPatch,
+    isReadOnly,
+  ]);
 
   const handleChange = React.useCallback(
     (value: string) => {
       if (value === CUSTOM_PRESET_ID) return; // selection is driven via the custom modal
-      onPatch({ titrePresetId: value, titreFormatOverride: undefined } as Partial<Question>);
+      onPatch({
+        titrePresetId: value,
+        titreFormatOverride: undefined,
+      } as Partial<Question>);
     },
     [onPatch],
   );
@@ -1144,7 +1157,10 @@ export function TitleEditor({ q, onPatch, isReadOnly }: EditorProps) {
 
   const handleCustomSave = React.useCallback(
     (format: TitlePreset['format']) => {
-      onPatch({ titrePresetId: CUSTOM_PRESET_ID, titreFormatOverride: format } as Partial<Question>);
+      onPatch({
+        titrePresetId: CUSTOM_PRESET_ID,
+        titreFormatOverride: format,
+      } as Partial<Question>);
       setCustomOpen(false);
     },
     [onPatch],

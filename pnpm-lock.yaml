@@ -144,6 +144,9 @@ importers:
 
   frontend:
     dependencies:
+      '@lexical/clipboard':
+        specifier: ^0.33.1
+        version: 0.33.1
       '@lexical/html':
         specifier: ^0.33.1
         version: 0.33.1
@@ -163,6 +166,9 @@ importers:
         specifier: ^0.33.1
         version: 0.33.1
       '@lexical/table':
+        specifier: 0.33.1
+        version: 0.33.1
+      '@lexical/utils':
         specifier: 0.33.1
         version: 0.33.1
       '@radix-ui/react-alert-dialog':

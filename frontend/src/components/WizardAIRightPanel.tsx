@@ -40,12 +40,14 @@ export interface WizardAIRightPanelProps {
     latest?: Answers,
     rawNotes?: string,
     imageBase64?: string,
+    mode?: 'replace' | 'append',
   ) => void;
   onGenerateFromTemplate?: (
     latest?: Answers,
     rawNotes?: string,
     instanceId?: string,
     imageBase64?: string,
+    mode?: 'replace' | 'append',
   ) => void;
   // Optional bulk generation hook used by WizardAIBilanType footer
   onGenerateAll?: (bilanTypeId: string, excludeSectionIds?: string[]) => void;
@@ -522,7 +524,7 @@ export default function WizardAIRightPanel({
   };
 
   // Centralized current-generation handler so it can be called from UI and external events
-  const triggerGenerateCurrent = async () => {
+  const triggerGenerateCurrentWithMode = async (mode: 'replace' | 'append') => {
     console.log('[DEBUG] WizardAIRightPanel - triggerGenerateCurrent');
     const isTemplateMode =
       !!selectedTrame?.templateRefId && !!onGenerateFromTemplate;
@@ -551,6 +553,7 @@ export default function WizardAIRightPanel({
         rawNotes,
         id || undefined,
         imageBase64,
+        mode,
       );
       onCancel();
     } else {
@@ -566,11 +569,16 @@ export default function WizardAIRightPanel({
         notesMode === 'manual' ? currentAnswers : undefined,
         rawNotes,
         imageBase64,
+        mode,
       );
       // Close the wizard after direct generation to keep UX consistent
       onCancel();
     }
   };
+  const triggerGenerateCurrent = async () =>
+    triggerGenerateCurrentWithMode('replace');
+  const triggerGenerateCurrentAppend = async () =>
+    triggerGenerateCurrentWithMode('append');
 
   // Batch generation across all tests (sections) for bilanType mode
   const triggerGenerateAll = async () => {
@@ -712,7 +720,7 @@ export default function WizardAIRightPanel({
               ) : (
                 <div className="flex gap-2">
                   <Button
-                    onClick={triggerGenerateCurrent}
+                    onClick={triggerGenerateCurrentAppend}
                     disabled={isGenerating}
                     type="button"
                   >
@@ -724,7 +732,25 @@ export default function WizardAIRightPanel({
                     ) : (
                       <>
                         <Wand2 className="h-5 w-5 mr-2" />
-                        Générer
+                        Générer et insérer à la suite
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    onClick={triggerGenerateCurrent}
+                    disabled={isGenerating}
+                    type="button"
+                    variant="outline"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                        Génération...
+                      </>
+                    ) : (
+                      <>
+                        <Wand2 className="h-5 w-5 mr-2" />
+                        Générer et remplacer le contenu
                       </>
                     )}
                   </Button>

@@ -30,7 +30,6 @@ import { useToastStore } from '@/store/toast';
 import { cn } from '@/lib/utils';
 import { Check, Pencil, Plus, ArrowLeft, List as ListIcon } from 'lucide-react';
 
-
 type Props = {
   open: boolean;
   initial?: TitleFormatSpec;
@@ -131,7 +130,12 @@ function Preview({ format }: { format: TitleFormatSpec }) {
         </div>
       </div>
     ) : (
-      <div className={[alignClass, 'w-full', textClasses].filter(Boolean).join(' ')} style={style}>
+      <div
+        className={[alignClass, 'w-full', textClasses]
+          .filter(Boolean)
+          .join(' ')}
+        style={style}
+      >
         {content}
       </div>
     );
@@ -425,7 +429,10 @@ export default function TitleStyleModale({
                         <div className="w-full">
                           <div className="inline-flex items-start gap-2">
                             <span className="mt-2 block h-1.5 w-1.5 shrink-0 rounded-full bg-gray-400" />
-                            <div className={[textClasses, 'flex-1'].join(' ')} style={style}>
+                            <div
+                              className={[textClasses, 'flex-1'].join(' ')}
+                              style={style}
+                            >
                               {displayText}
                             </div>
                           </div>
@@ -708,7 +715,8 @@ export default function TitleStyleModale({
                 <ColorDropdown
                   label="Couleur du texte"
                   selectedHex={
-                    (typeof (format as any)?.fontColor === 'string' && (format as any).fontColor)
+                    typeof (format as any)?.fontColor === 'string' &&
+                    (format as any).fontColor
                       ? (format as any).fontColor
                       : ((format as any)?.textColor ?? null)
                   }
@@ -770,7 +778,9 @@ export default function TitleStyleModale({
                       }
                       onSelectToken={(token) =>
                         updateDecor({
-                          fill: token ? { kind: 'token', token } : { kind: 'none' },
+                          fill: token
+                            ? { kind: 'token', token }
+                            : { kind: 'none' },
                         })
                       }
                       onSelectHex={(hex) =>
