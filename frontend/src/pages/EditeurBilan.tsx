@@ -159,6 +159,13 @@ export default function Bilan() {
                     );
                     editorRef.current?.setEditorStateJson(st);
                   }}
+                  onAppendEditorStateJson={(st) => {
+                    console.log(
+                      '[EditeurBilan] onAppendEditorStateJson called with:',
+                      st,
+                    );
+                    editorRef.current?.appendEditorStateJson?.(st);
+                  }}
                   onSave={save}
                   initialWizardSection={state?.wizardSection}
                   initialTrameId={state?.trameId}

@@ -122,7 +122,7 @@ test('saves notes when generating with template', async () => {
   mockedApiFetch.mockClear();
   mockedApiFetch.mockResolvedValueOnce({ id: 'inst1' });
 
-  fireEvent.click(screen.getByText('Générer'));
+  fireEvent.click(screen.getByText('Générer et remplacer le contenu'));
 
   await waitFor(() => expect(mockedApiFetch).toHaveBeenCalled());
   expect(mockedApiFetch).toHaveBeenCalledWith(
@@ -161,7 +161,7 @@ test('calls direct generate when no template', async () => {
   mockedApiFetch.mockClear();
   mockedApiFetch.mockResolvedValueOnce({ id: 'inst2' });
 
-  fireEvent.click(screen.getByText('Générer'));
+  fireEvent.click(screen.getByText('Générer et remplacer le contenu'));
 
   await waitFor(() => expect(mockedApiFetch).toHaveBeenCalled());
   expect(onGenerate).toHaveBeenCalled();

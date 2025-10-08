@@ -69,6 +69,7 @@ interface AiRightPanelProps {
   bilanId: string;
   onInsertText?: (text: string) => void;
   onSetEditorStateJson?: (state: unknown) => void;
+  onAppendEditorStateJson?: (state: unknown) => void;
   initialWizardSection?: string;
   initialTrameId?: string;
   onSave?: () => Promise<void>; // Ajout de la prop onSave
@@ -84,6 +85,7 @@ export default function AiRightPanel({
   bilanId,
   onInsertText,
   onSetEditorStateJson,
+  onAppendEditorStateJson,
   initialWizardSection,
   initialTrameId,
   onSave,
@@ -252,6 +254,7 @@ export default function AiRightPanel({
     newAnswers?: Answers,
     rawNotes?: string,
     imageBase64?: string,
+    mode: 'replace' | 'append' = 'replace',
   ) => {
     setLastGeneratedSection(section.id);
     await generateSection({
@@ -272,6 +275,8 @@ export default function AiRightPanel({
       setWizardSection,
       setGenerated,
       onSetEditorStateJson,
+      onAppendEditorStateJson,
+      mode,
       examples: examples as Array<{ sectionId: string; stylePrompt?: string }>,
     });
   };
@@ -282,6 +287,7 @@ export default function AiRightPanel({
     rawNotes?: string,
     instId?: string,
     imageBase64?: string,
+    mode: 'replace' | 'append' = 'replace',
   ) => {
     console.log('newAnswers', newAnswers);
     console.log(
@@ -378,7 +384,11 @@ export default function AiRightPanel({
       );
 
       setLastGeneratedSection(section.id);
-      await generateSection(generationParams);
+      await generateSection({
+        ...generationParams,
+        mode,
+        onAppendEditorStateJson,
+      });
 
       console.log(
         '[AiRightPanel] handleGenerateFromTemplate - generateSection completed successfully',
@@ -684,12 +694,14 @@ export default function AiRightPanel({
                                     latest,
                                     notes,
                                     imageBase64,
+                                    mode,
                                   ) =>
                                     await handleGenerate(
                                       section,
                                       latest,
                                       notes,
                                       imageBase64,
+                                      mode,
                                     )
                                   }
                                   onGenerateFromTemplate={async (
@@ -697,6 +709,7 @@ export default function AiRightPanel({
                                     notes,
                                     id,
                                     imageBase64,
+                                    mode,
                                   ) =>
                                     await handleGenerateFromTemplate(
                                       section,
@@ -704,6 +717,7 @@ export default function AiRightPanel({
                                       notes,
                                       id,
                                       imageBase64,
+                                      mode,
                                     )
                                   }
                                   isGenerating={

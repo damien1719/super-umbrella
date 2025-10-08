@@ -66,6 +66,8 @@ export async function generateSection(opts: {
     fn: (prev: Record<string, boolean>) => Record<string, boolean>,
   ) => void;
   onSetEditorStateJson?: (state: unknown) => void;
+  onAppendEditorStateJson?: (state: unknown) => void;
+  mode?: 'append' | 'replace';
 
   examples: Array<{ sectionId: string; stylePrompt?: string }>;
 }) {
@@ -87,6 +89,8 @@ export async function generateSection(opts: {
     setWizardSection,
     setGenerated,
     onSetEditorStateJson,
+    onAppendEditorStateJson,
+    mode,
 
     examples,
   } = opts;
@@ -162,7 +166,19 @@ export async function generateSection(opts: {
       isFunction: typeof onSetEditorStateJson === 'function',
     });
 
-    if (onSetEditorStateJson) {
+    if (mode === 'append' && onAppendEditorStateJson) {
+      try {
+        onAppendEditorStateJson(result.state);
+        console.log(
+          '[DEBUG] Generation - onAppendEditorStateJson called successfully - EDITOR STATE APPENDED',
+        );
+      } catch (error) {
+        console.error(
+          '[DEBUG] Generation - ERROR calling onAppendEditorStateJson:',
+          error,
+        );
+      }
+    } else if (onSetEditorStateJson) {
       console.log(
         '[DEBUG] Generation - onSetEditorStateJson is available, preparing to call it',
       );
