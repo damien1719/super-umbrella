@@ -14,27 +14,27 @@ type ThemeColor = {
 };
 
 const THEME_COLORS: ThemeColor[] = [
-  { key: 'red', hex: '#EF4444' },     // rouge atténué, pour signaler ou mettre en valeur sans agressivité
-  { key: 'orange', hex: '#F97316' },  // orange chaleureux, énergie douce
-  { key: 'yellow', hex: '#FACC15' },  // jaune soleil clair, lisible en surlignage
-  { key: 'green', hex: '#22C55E' },   // vert équilibré, santé, validation
+  { key: 'red', hex: '#EF4444' }, // rouge atténué, pour signaler ou mettre en valeur sans agressivité
+  { key: 'orange', hex: '#F97316' }, // orange chaleureux, énergie douce
+  { key: 'yellow', hex: '#FACC15' }, // jaune soleil clair, lisible en surlignage
+  { key: 'green', hex: '#22C55E' }, // vert équilibré, santé, validation
   { key: 'emerald', hex: '#34D399' }, // vert-bleuté apaisant
-  { key: 'teal', hex: '#2DD4BF' },    // turquoise frais, vivant sans être saturé
-  { key: 'blue', hex: '#3B82F6' },    // bleu clair, classique, rassurant
-  { key: 'indigo', hex: '#6366F1' },  // indigo doux, sérieux mais moderne
-  { key: 'violet', hex: '#8B5CF6' },  // violet lumineux mais non agressif
-  { key: 'pink', hex: '#EC4899' },    // rose chaleureux, humanité, relationnel
-  { key: 'slate', hex: '#64748B' },   // gris ardoise neutre, excellent pour du texte discret
-  { key: 'stone', hex: '#78716C' },   // neutre chaud, alternatif au gris froid
-  { key: 'cyan', hex: '#06B6D4' },     // cyan clair, dynamisme et clarté
-  { key: 'sky', hex: '#0EA5E9' },      // bleu ciel, légèreté et ouverture
-  { key: 'lime', hex: '#84CC16' },     // vert citron doux, vitalité
-  { key: 'rose', hex: '#F43F5E' },     // rose corail, chaleureux et humain
-  { key: 'amber', hex: '#F59E0B' },    // ambre doré, chaleureux et rassurant
-  { key: 'soft-blue', hex: '#93C5FD' },   // bleu pastel, calme et rassurant
-  { key: 'soft-green', hex: '#A7F3D0' },  // vert menthe très doux, sérénité
+  { key: 'teal', hex: '#2DD4BF' }, // turquoise frais, vivant sans être saturé
+  { key: 'blue', hex: '#3B82F6' }, // bleu clair, classique, rassurant
+  { key: 'indigo', hex: '#6366F1' }, // indigo doux, sérieux mais moderne
+  { key: 'violet', hex: '#8B5CF6' }, // violet lumineux mais non agressif
+  { key: 'pink', hex: '#EC4899' }, // rose chaleureux, humanité, relationnel
+  { key: 'slate', hex: '#64748B' }, // gris ardoise neutre, excellent pour du texte discret
+  { key: 'stone', hex: '#78716C' }, // neutre chaud, alternatif au gris froid
+  { key: 'cyan', hex: '#06B6D4' }, // cyan clair, dynamisme et clarté
+  { key: 'sky', hex: '#0EA5E9' }, // bleu ciel, légèreté et ouverture
+  { key: 'lime', hex: '#84CC16' }, // vert citron doux, vitalité
+  { key: 'rose', hex: '#F43F5E' }, // rose corail, chaleureux et humain
+  { key: 'amber', hex: '#F59E0B' }, // ambre doré, chaleureux et rassurant
+  { key: 'soft-blue', hex: '#93C5FD' }, // bleu pastel, calme et rassurant
+  { key: 'soft-green', hex: '#A7F3D0' }, // vert menthe très doux, sérénité
   { key: 'soft-yellow', hex: '#FEF08A' }, // jaune pâle, lumineux mais non agressif
-  { key: 'soft-pink', hex: '#FBCFE8' },   // rose pastel, relationnel, chaleureux
+  { key: 'soft-pink', hex: '#FBCFE8' }, // rose pastel, relationnel, chaleureux
   { key: 'soft-violet', hex: '#DDD6FE' }, // violet lavande clair, apaisant
 ];
 
@@ -57,7 +57,7 @@ export function ColorSquare({
       className={cn(
         'relative h-8 w-8 rounded border transition-colors',
         selected ? 'ring-2 ring-primary-500 ring-offset-1' : 'ring-0',
-        'border-gray-300'
+        'border-gray-300',
       )}
       style={{ backgroundColor: color ?? 'transparent' }}
     >
@@ -133,7 +133,12 @@ export function ThemeColorPanel({
           ))}
         </div>
         <div className="mt-3">
-          <Button type="button" variant="ghost" size="sm" onClick={handleCustomPick}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleCustomPick}
+          >
             {customLabel}
           </Button>
           <input
@@ -176,7 +181,8 @@ export function ColorDropdown({
 
   const activeHex = React.useMemo(() => {
     if (selectedHex && selectedHex.trim()) return selectedHex;
-    if (selectedToken && tokenToHex[selectedToken]) return tokenToHex[selectedToken];
+    if (selectedToken && tokenToHex[selectedToken])
+      return tokenToHex[selectedToken];
     return null as string | null;
   }, [selectedHex, selectedToken, tokenToHex]);
 

@@ -7,7 +7,14 @@ import { DataEntry, type DataEntryHandle } from '../bilan/DataEntry';
 import ImportNotes from '../ImportNotes';
 import type { Question, Answers } from '@/types/question';
 import type { DraftIdentifier } from '@/store/draft';
-import { PenIcon } from 'lucide-react';
+import {
+  PenIcon,
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
+  Circle,
+  Save,
+} from 'lucide-react';
 import SectionEditionModal from '@/components/SectionEditionModal';
 import { useUserProfileStore } from '@/store/userProfile';
 import { useSectionStore } from '@/store/sections';
@@ -34,6 +41,14 @@ interface BilanTypeNotesEditorProps {
   onRawNotesChange: (value: string) => void;
   onImageChange: (value: string | undefined) => void;
   draftKey: DraftIdentifier;
+  autosave?: {
+    statusLabel: string;
+    isSaving: boolean;
+    hasError: boolean;
+    isDirty: boolean;
+    saveNow: () => Promise<void>;
+    saveOrNotify?: () => Promise<void>;
+  };
 }
 
 export function BilanTypeNotesEditor({
@@ -50,6 +65,7 @@ export function BilanTypeNotesEditor({
   onRawNotesChange,
   onImageChange,
   draftKey,
+  autosave,
 }: BilanTypeNotesEditorProps) {
   const [editOpen, setEditOpen] = useState(false);
   const profileId = useUserProfileStore((s) => s.profileId);
@@ -132,25 +148,65 @@ export function BilanTypeNotesEditor({
         <InlineGroupChips
           titles={groupTitles}
           right={
-            <Button
-              className="gap-2"
-              variant="secondary"
-              size="default"
-              disabled={!activeSectionId || editDisabledByRights}
-              tooltip={
-                !activeSectionId
-                  ? 'Sélectionnez une section'
-                  : editDisabledByRights
-                    ? isOfficial
-                      ? 'Édition indisponible: section officielle BilanPlume'
-                      : "Vous n'êtes pas l'auteur de cette section publique"
-                    : undefined
-              }
-              onClick={() => setEditOpen(true)}
-            >
-              <PenIcon className="h-4 w-4" />
-              Editer
-            </Button>
+            <div className="flex items-center gap-4">
+              {autosave && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    autosave.saveOrNotify
+                      ? autosave.saveOrNotify()
+                      : autosave.saveNow()
+                  }
+                  className="flex items-center gap-2 text-sm text-gray-600"
+                  title={autosave.statusLabel}
+                >
+                  {autosave.isSaving ? (
+                    <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
+                  ) : autosave.hasError ? (
+                    <AlertCircle className="h-4 w-4 text-red-500" />
+                  ) : autosave.isDirty ? (
+                    <Circle className="h-4 w-4 text-amber-500" />
+                  ) : (
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  )}
+                  <span>{autosave.statusLabel}</span>
+                </button>
+              )}
+              {autosave && (
+                <Button
+                  className="gap-2"
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    autosave.saveOrNotify
+                      ? autosave.saveOrNotify()
+                      : autosave.saveNow()
+                  }
+                >
+                  <Save className="h-4 w-4" />
+                  Enregistrer
+                </Button>
+              )}
+              <Button
+                className="gap-2"
+                variant="secondary"
+                size="default"
+                disabled={!activeSectionId || editDisabledByRights}
+                tooltip={
+                  !activeSectionId
+                    ? 'Sélectionnez une section'
+                    : editDisabledByRights
+                      ? isOfficial
+                        ? 'Édition indisponible: section officielle BilanPlume'
+                        : "Vous n'êtes pas l'auteur de cette section publique"
+                      : undefined
+                }
+                onClick={() => setEditOpen(true)}
+              >
+                <PenIcon className="h-4 w-4" />
+                Editer
+              </Button>
+            </div>
           }
         />
 

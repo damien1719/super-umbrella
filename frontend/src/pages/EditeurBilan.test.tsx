@@ -17,14 +17,37 @@ vi.mock('../components/AiRightPanel', () => ({
 vi.mock('../components/RichTextEditor', () => ({
   default: ({
     onChange,
+    onChangeStateJson,
     onSave,
   }: {
-    onChange: (v: string) => void;
+    onChange?: (v: string) => void;
+    onChangeStateJson?: (v: unknown) => void;
     onSave: () => void;
   }) => (
     <div>
       <button onClick={onSave}>Save</button>
-      <textarea onChange={(e) => onChange(e.target.value)} />
+      <textarea
+        onChange={(e) => {
+          onChange?.(e.target.value);
+          // emit a lexically-shaped JSON state when typing, to mark dirty
+          onChangeStateJson?.({
+            root: {
+              type: 'root',
+              version: 1,
+              children: [
+                {
+                  type: 'paragraph',
+                  version: 1,
+                  indent: 0,
+                  format: '',
+                  direction: null,
+                  children: [],
+                },
+              ],
+            },
+          });
+        }}
+      />
     </div>
   ),
 }));
@@ -97,6 +120,11 @@ describe('Bilan page', () => {
     );
 
     await screen.findByText(/mon bilan/i);
+    // type something to trigger dirty state and autosave.saveOrNotify path
+    const textarea = await screen.findByRole('textbox');
+    await act(async () => {
+      fireEvent.change(textarea, { target: { value: 'hello' } });
+    });
     const saveBtn = await screen.findByRole('button', { name: 'Save' });
     saveBtn.click();
 
@@ -146,7 +174,22 @@ describe('Bilan page', () => {
     await screen.findByText(/mon bilan/i);
     act(() => {
       useBilanDraft.setState({
-        descriptionJson: { root: { type: 'root', version: 1, children: [] } },
+        descriptionJson: {
+          root: {
+            type: 'root',
+            version: 1,
+            children: [
+              {
+                type: 'paragraph',
+                version: 1,
+                indent: 0,
+                format: '',
+                direction: null,
+                children: [],
+              },
+            ],
+          },
+        },
       });
     });
 

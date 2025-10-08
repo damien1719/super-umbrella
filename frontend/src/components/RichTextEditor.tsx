@@ -7,11 +7,7 @@ import React, {
   useEffect,
   useState,
 } from 'react';
-
-// Debug React import
-console.log('[RichTextEditor] React import:', React);
-console.log('[RichTextEditor] useRef function:', useRef);
-console.log('[RichTextEditor] React.useRef:', React?.useRef);
+import { $generateNodesFromSerializedNodes } from '@lexical/clipboard';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
@@ -30,6 +26,7 @@ import {
   PASTE_COMMAND,
   type EditorState,
   type LexicalNode,
+  ParagraphNode,
 } from 'lexical';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { ToolbarPlugin } from './RichTextToolbar';
@@ -55,7 +52,7 @@ import {
   SectionPlaceholderNode,
   $createSectionPlaceholderNode,
 } from '../nodes/SectionPlaceholderNode';
-import { DecorBlockNode } from '../nodes/DecorBlockNode';
+import { BorderBlockNode, DecorBlockNode } from '../nodes/DecorBlockNode';
 import { GenPartPlaceholderNode } from '../nodes/GenPartPlaceholderNode';
 import { AnchorNode } from '../nodes/AnchorNode';
 import type { SlotType, FieldSpec } from '../types/template';
@@ -139,6 +136,7 @@ export interface RichTextEditorHandle {
   importHtml: (html: string) => void;
   insertHtml: (html: string) => void;
   setEditorStateJson: (state: unknown) => void;
+  appendEditorStateJson?: (state: unknown) => void;
   getEditorStateJson?: () => unknown;
   getEditorState?: () => EditorState;
   getPlainText?: () => string;
@@ -245,6 +243,52 @@ const ImperativeHandlePlugin = forwardRef<RichTextEditorHandle, object>(
             editor.setEditorState(next); // pas besoin de editor.update()
           } catch (e) {
             console.error('[Lexical] Failed to set editor state JSON:', e);
+          }
+        },
+        appendEditorStateJson(state: unknown) {
+          try {
+            const stateString =
+              typeof state === 'string' ? state.trim() : JSON.stringify(state);
+
+            const sourceState = editor.parseEditorState(stateString);
+
+            console.log('sourceState', sourceState);
+
+            // 1) On prend le JSON complet pour garder *tous* les enfants (text nodes inclus)
+            const { root } = sourceState.toJSON();
+            const serializedChildren = Array.isArray(root?.children)
+              ? root.children
+              : [];
+
+            console.log('serializedChildren', serializedChildren);
+            // 2) On régénère de vrais nodes dans CET éditeur et on append
+            editor.update(() => {
+              const nodes = $generateNodesFromSerializedNodes(
+                serializedChildren as any,
+              );
+
+              console.log('[gen] nodes.length =', nodes.length);
+              console.log('[gen] nodes[0].__type =', (nodes[0] as any)?.__type);
+              console.log(
+                '[gen] textContent 0 =',
+                (nodes[0] as any)?.getTextContent?.(),
+              );
+
+              if (nodes.length) {
+                $getRoot().append(...nodes);
+              }
+              editor.focus();
+
+              const after = editor.getEditorState().toJSON();
+              console.log(
+                '[append] after append text =',
+                after.root.children
+                  ?.map((c) => c.children?.map((t) => t.text).join(''))
+                  .join('\n'),
+              );
+            });
+          } catch (e) {
+            console.error('[Lexical] Failed to append editor state JSON:', e);
           }
         },
         insertSlot(
@@ -620,6 +664,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(
         TableNode,
         TableRowNode,
         TableCellNode,
+        ParagraphNode,
         SlotNode,
         SectionPlaceholderNode,
         GenPartPlaceholderNode,

@@ -40,12 +40,14 @@ export interface WizardAIRightPanelProps {
     latest?: Answers,
     rawNotes?: string,
     imageBase64?: string,
+    mode?: 'replace' | 'append',
   ) => void;
   onGenerateFromTemplate?: (
     latest?: Answers,
     rawNotes?: string,
     instanceId?: string,
     imageBase64?: string,
+    mode?: 'replace' | 'append',
   ) => void;
   // Optional bulk generation hook used by WizardAIBilanType footer
   onGenerateAll?: (bilanTypeId: string, excludeSectionIds?: string[]) => void;
@@ -228,7 +230,8 @@ export default function WizardAIRightPanel({
         await bilanTypeInstance.save(currentAnswers, {
           sectionId: activeBilanSectionId,
         });
-        bilanTypeMarkSaved(currentAnswers);
+        // Mark autosave as up-to-date for the active bilanType section
+        bilanTypeAutosave.markSaved(currentAnswers);
       }
     } catch {}
     setActiveBilanSectionId(id);
@@ -310,7 +313,7 @@ export default function WizardAIRightPanel({
   );
 
   // Autosave for section mode
-  const { markSaved: sectionMarkSaved } = useAutosave<Answers>({
+  const sectionAutosave = useAutosave<Answers>({
     data: sectionDraftAnswers,
     enabled:
       step === 2 &&
@@ -321,7 +324,7 @@ export default function WizardAIRightPanel({
     save: (data) => sectionInstance.save(data),
   });
   // Autosave for bilanType mode (active section)
-  const { markSaved: bilanTypeMarkSaved } = useAutosave<Answers>({
+  const bilanTypeAutosave = useAutosave<Answers>({
     data: bilanDraftAnswers,
     enabled:
       step === 2 &&
@@ -356,7 +359,7 @@ export default function WizardAIRightPanel({
             [activeBilanSectionId]: content,
           }));
           dataEntryRef.current?.load?.(content);
-          bilanTypeMarkSaved(content);
+          bilanTypeAutosave.markSaved(content);
         } else {
           if (!selectedTrame?.value) {
             setEditorReady(true);
@@ -367,8 +370,8 @@ export default function WizardAIRightPanel({
           console.log('content', content);
           onAnswersChange(content);
           dataEntryRef.current?.load?.(content);
-          sectionMarkSaved(content);
-          console.log('sectionMarkSaved', sectionMarkSaved);
+          sectionAutosave.markSaved(content);
+          console.log('sectionMarkSaved', sectionAutosave.markSaved);
         }
       } catch (e) {
         if ((e as Error)?.name === 'AbortError') return;
@@ -388,20 +391,9 @@ export default function WizardAIRightPanel({
     console.log('flush', notesMode, step);
     try {
       if (mode === 'bilanType' && activeBilanSectionId) {
-        const currentDraftKey = { bilanId, sectionId: activeBilanSectionId };
-        const currentAnswers =
-          getDraftStore(currentDraftKey).getState().answers;
-        await sectionInstance.save(currentAnswers, {
-          sectionId: activeBilanSectionId,
-        });
-        bilanTypeMarkSaved(currentAnswers);
+        await bilanTypeAutosave.saveNow();
       } else if (mode === 'section' && selectedTrame?.value) {
-        const currentAnswers =
-          getDraftStore(sectionDraftKey).getState().answers;
-        await sectionInstance.save(currentAnswers, {
-          sectionId: selectedTrame.value,
-        });
-        sectionMarkSaved(currentAnswers);
+        await sectionAutosave.saveNow();
       }
     } catch {
       /* ignore */
@@ -495,6 +487,14 @@ export default function WizardAIRightPanel({
           onRawNotesChange={setRawNotes}
           onImageChange={setImageBase64}
           draftKey={activeBilanDraftKey}
+          autosave={{
+            statusLabel: bilanTypeAutosave.statusLabel,
+            isSaving: bilanTypeAutosave.isSaving,
+            hasError: bilanTypeAutosave.hasError,
+            isDirty: bilanTypeAutosave.isDirty,
+            saveNow: bilanTypeAutosave.saveNow,
+            saveOrNotify: bilanTypeAutosave.saveOrNotify,
+          }}
         />
       );
     } else {
@@ -511,6 +511,14 @@ export default function WizardAIRightPanel({
           onImageChange={setImageBase64}
           draftKey={{ bilanId, sectionId: sectionInfo.id }}
           sectionIdToEdit={selectedTrame?.value}
+          autosave={{
+            statusLabel: sectionAutosave.statusLabel,
+            isSaving: sectionAutosave.isSaving,
+            hasError: sectionAutosave.hasError,
+            isDirty: sectionAutosave.isDirty,
+            saveNow: sectionAutosave.saveNow,
+            saveOrNotify: sectionAutosave.saveOrNotify,
+          }}
         />
       );
     }
@@ -522,7 +530,10 @@ export default function WizardAIRightPanel({
   };
 
   // Centralized current-generation handler so it can be called from UI and external events
-  const triggerGenerateCurrent = async () => {
+  // genMode refers to how to insert the generated text; avoid shadowing wizard "mode"
+  const triggerGenerateCurrentWithMode = async (
+    genMode: 'replace' | 'append',
+  ) => {
     console.log('[DEBUG] WizardAIRightPanel - triggerGenerateCurrent');
     const isTemplateMode =
       !!selectedTrame?.templateRefId && !!onGenerateFromTemplate;
@@ -541,9 +552,9 @@ export default function WizardAIRightPanel({
       const id = await sectionInstance.save(currentAnswers);
       if (notesMode === 'manual') {
         if (mode === 'bilanType') {
-          bilanTypeMarkSaved(currentAnswers);
+          bilanTypeAutosave.markSaved(currentAnswers);
         } else {
-          sectionMarkSaved(currentAnswers);
+          sectionAutosave.markSaved(currentAnswers);
         }
       }
       onGenerateFromTemplate?.(
@@ -551,26 +562,32 @@ export default function WizardAIRightPanel({
         rawNotes,
         id || undefined,
         imageBase64,
+        genMode,
       );
       onCancel();
     } else {
       await sectionInstance.save(currentAnswers);
       if (notesMode === 'manual') {
         if (mode === 'bilanType') {
-          bilanTypeMarkSaved(currentAnswers);
+          bilanTypeAutosave.markSaved(currentAnswers);
         } else {
-          sectionMarkSaved(currentAnswers);
+          sectionAutosave.markSaved(currentAnswers);
         }
       }
       onGenerate(
         notesMode === 'manual' ? currentAnswers : undefined,
         rawNotes,
         imageBase64,
+        genMode,
       );
       // Close the wizard after direct generation to keep UX consistent
       onCancel();
     }
   };
+  const triggerGenerateCurrent = async () =>
+    triggerGenerateCurrentWithMode('replace');
+  const triggerGenerateCurrentAppend = async () =>
+    triggerGenerateCurrentWithMode('append');
 
   // Batch generation across all tests (sections) for bilanType mode
   const triggerGenerateAll = async () => {
@@ -712,7 +729,7 @@ export default function WizardAIRightPanel({
               ) : (
                 <div className="flex gap-2">
                   <Button
-                    onClick={triggerGenerateCurrent}
+                    onClick={triggerGenerateCurrentAppend}
                     disabled={isGenerating}
                     type="button"
                   >
@@ -724,7 +741,25 @@ export default function WizardAIRightPanel({
                     ) : (
                       <>
                         <Wand2 className="h-5 w-5 mr-2" />
-                        Générer
+                        Générer et insérer à la suite
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    onClick={triggerGenerateCurrent}
+                    disabled={isGenerating}
+                    type="button"
+                    variant="outline"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                        Génération...
+                      </>
+                    ) : (
+                      <>
+                        <Wand2 className="h-5 w-5 mr-2" />
+                        Générer et remplacer le contenu
                       </>
                     )}
                   </Button>

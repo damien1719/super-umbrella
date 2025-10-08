@@ -708,7 +708,7 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
     ),
   });
 
-  toolbarItems.push({
+/*   toolbarItems.push({
     key: 'sep-1',
     element: <div className="w-px self-stretch bg-wood-200 mx-1" />,
   });
@@ -729,7 +729,7 @@ export function ToolbarPlugin({ onSave, exportFileName }: Props) {
         </Button>,
       ),
     });
-  }
+  } */
 
   toolbarItems.push({
     key: 'export',

@@ -8,6 +8,8 @@ import { useBilanDraft } from '../store/bilanDraft';
 import SelectionOverlay from '../components/SelectionOverlay';
 import { useEditorUi } from '../store/editorUi';
 import { exportToDocxFromNodes } from '@/lib/exportToDocxFromNodes';
+import { useAutosave } from '@/components/wizard-ia/useAutosave';
+import { hashJson } from '@/utils/stableHash';
 
 const RichTextEditor = lazy(() => import('../components/RichTextEditor'));
 const AiRightPanel = lazy(() => import('../components/AiRightPanel'));
@@ -42,15 +44,24 @@ export default function Bilan() {
   const setMode = useEditorUi((s) => s.setMode);
   const setSelection = useEditorUi((s) => s.setSelection);
 
-  const hasChanges =
-    JSON.stringify(bilan?.descriptionJson ?? null) !==
-    JSON.stringify(descriptionJson ?? null);
+  // Autosave integration
+  const saveDescriptionJson = async (_payload: unknown) => {
+    await save();
+  };
+
+  const autosave = useAutosave<unknown>({
+    data: descriptionJson ?? null,
+    enabled: !!bilan && !!token,
+    delay: 1200,
+    save: saveDescriptionJson,
+    serialize: hashJson,
+  });
 
   const handleBack = async () => {
-    if (hasChanges) {
+    if (autosave.isDirty) {
       setShowConfirm(true);
     } else {
-      await save();
+      await autosave.saveNow();
       reset();
       navigate(-1);
     }
@@ -67,13 +78,15 @@ export default function Bilan() {
       .then((data) => {
         setBilan(data);
         setStateJson(data.descriptionJson ?? null);
+        // initialize autosave baseline snapshot from server state
+        autosave.markSaved(data.descriptionJson ?? null);
       })
       .catch((e) => {
         console.error('[EditeurBilan] fetch bilan failed', e);
         // Allow retry on next render in case of error
         fetchKeyRef.current = null;
       });
-  }, [bilanId, token, setStateJson]);
+  }, [bilanId, token, setStateJson, autosave.markSaved]);
 
   useEffect(() => {
     return () => {
@@ -130,6 +143,13 @@ export default function Bilan() {
         onBack={handleBack}
         onSaveTitle={handleSaveTitle}
         onExport={handleExport}
+        autosaveBadgeProps={{
+          statusLabel: autosave.statusLabel,
+          isSaving: autosave.isSaving,
+          hasError: autosave.hasError,
+          isDirty: autosave.isDirty,
+          onClickSave: () => autosave.saveOrNotify(),
+        }}
       />
 
       <div className="flex flex-col h-full min-h-0 overflow-hidden">
@@ -140,7 +160,7 @@ export default function Bilan() {
                 ref={editorRef}
                 initialStateJson={descriptionJson ?? null}
                 onChangeStateJson={setStateJson}
-                onSave={save}
+                onSave={() => autosave.saveOrNotify()}
                 exportFileName={bilan.title || 'Bilan'}
               />
             </Suspense>
@@ -159,7 +179,14 @@ export default function Bilan() {
                     );
                     editorRef.current?.setEditorStateJson(st);
                   }}
-                  onSave={save}
+                  onAppendEditorStateJson={(st) => {
+                    console.log(
+                      '[EditeurBilan] onAppendEditorStateJson called with:',
+                      st,
+                    );
+                    editorRef.current?.appendEditorStateJson?.(st);
+                  }}
+                  onSave={() => autosave.saveOrNotify()}
                   initialWizardSection={state?.wizardSection}
                   initialTrameId={state?.trameId}
                   openWizardBilanType={state?.wizardBilanType}
@@ -177,7 +204,7 @@ export default function Bilan() {
         open={showConfirm}
         onOpenChange={setShowConfirm}
         onConfirm={async () => {
-          await save();
+          await autosave.saveNow();
           navigate('/');
         }}
         onCancel={() => navigate('/')}
