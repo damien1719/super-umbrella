@@ -68,6 +68,7 @@ export default function WizardAIRightPanel({
   mode = 'section',
   onGenerate,
   onGenerateFromTemplate,
+  onGenerateAll,
   isGenerating,
   bilanId,
   onCancel,
@@ -335,6 +336,19 @@ export default function WizardAIRightPanel({
     save: (data) => bilanTypeInstance.save(data),
   });
 
+  // Publish autosave status for outer wrapper (WizardAIBilanType) to react (e.g., disable buttons)
+  useEffect(() => {
+    if (mode !== 'bilanType') return;
+    try {
+      const detail = {
+        isSaving: bilanTypeAutosave.isSaving,
+        isDirty: bilanTypeAutosave.isDirty,
+      };
+      const evt = new CustomEvent('bilan-type:autosave-status', { detail });
+      window.dispatchEvent(evt);
+    } catch {}
+  }, [mode, bilanTypeAutosave.isSaving, bilanTypeAutosave.isDirty]);
+
   // Load latest on entering editor or switching active section, then hydrate draft and mount editor
   const loadLatestInstance = sectionInstance.loadLatest;
 
@@ -391,9 +405,9 @@ export default function WizardAIRightPanel({
     console.log('flush', notesMode, step);
     try {
       if (mode === 'bilanType' && activeBilanSectionId) {
-        await bilanTypeAutosave.saveNow();
+        await bilanTypeAutosave.flush();
       } else if (mode === 'section' && selectedTrame?.value) {
-        await sectionAutosave.saveNow();
+        await sectionAutosave.flush();
       }
     } catch {
       /* ignore */
