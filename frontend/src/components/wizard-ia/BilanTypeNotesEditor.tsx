@@ -218,16 +218,22 @@ export function BilanTypeNotesEditor({
           />
         )}
 
-        <DataEntry
-          ref={dataEntryRef}
-          questions={activeQuestions}
-          draftKey={draftKey}
-          answers={answers}
-          onChange={onAnswersChange}
-          inline
-          showGroupNav={false}
-          defaultGroupTitle={activeSection?.title}
-        />
+        {activeSectionId ? (
+          <DataEntry
+            ref={dataEntryRef}
+            questions={activeQuestions}
+            draftKey={draftKey}
+            answers={answers}
+            onChange={onAnswersChange}
+            inline
+            showGroupNav={false}
+            defaultGroupTitle={activeSection?.title}
+          />
+        ) : (
+          <div className="p-4 text-sm text-gray-500">
+            Sélectionnez une section pour saisir des notes
+          </div>
+        )}
       </div>
     </div>
   );
