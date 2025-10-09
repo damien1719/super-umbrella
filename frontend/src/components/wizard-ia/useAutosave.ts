@@ -11,6 +11,8 @@ interface UseAutosaveOptions<T> {
 interface UseAutosaveReturn<T> {
   markSaved: (data: T) => void;
   saveNow: () => Promise<void>;
+  // Ensures latest data is persisted before continuing critical actions
+  flush: () => Promise<void>;
   isDirty: boolean;
   isSaving: boolean;
   hasError: boolean;
@@ -32,6 +34,7 @@ export function useAutosave<T>({
   const inFlightRef = useRef(false);
   const timeoutRef = useRef<number | null>(null);
   const transientRef = useRef<number | null>(null);
+  const waitersRef = useRef<Array<() => void>>([]);
 
   const [isSaving, setIsSaving] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -58,6 +61,7 @@ export function useAutosave<T>({
       setIsSaving(true);
       setHasError(false);
       try {
+        console.log("payload", payload);
         await Promise.resolve(save(payload));
         lastSerializedRef.current = serialized;
         setLastSavedAt(new Date());
@@ -69,6 +73,14 @@ export function useAutosave<T>({
       } finally {
         inFlightRef.current = false;
         setIsSaving(false);
+        // resolve any waiters queued to be notified when a save completes
+        const waiters = waitersRef.current;
+        waitersRef.current = [];
+        for (const w of waiters) {
+          try {
+            w();
+          } catch {}
+        }
       }
     },
     [enabled, save],
@@ -82,6 +94,27 @@ export function useAutosave<T>({
       return;
     }
     await performSave(serialized, data);
+  }, [data, enabled, performSave, serialize]);
+
+  // Force immediate persistence of the latest snapshot.
+  // Waits for any in-flight save, cancels debounce, then saves if needed.
+  const flush = useCallback(async () => {
+    if (!enabled) return;
+    // cancel pending debounce
+    if (timeoutRef.current) {
+      window.clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    // wait for any ongoing save to complete
+    if (inFlightRef.current) {
+      await new Promise<void>((resolve) => {
+        waitersRef.current.push(resolve);
+      });
+    }
+    const serialized = serialize(data);
+    if (serialized !== lastSerializedRef.current) {
+      await performSave(serialized, data);
+    }
   }, [data, enabled, performSave, serialize]);
 
   const flash = useCallback((message: string, ms = 1800) => {
@@ -185,6 +218,7 @@ export function useAutosave<T>({
   return {
     markSaved,
     saveNow,
+    flush,
     isDirty,
     isSaving,
     hasError,

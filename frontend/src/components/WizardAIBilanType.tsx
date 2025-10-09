@@ -58,8 +58,9 @@ export default function WizardAIBilanType({
   // Track active test (section) name from inner panel to label the button
   const [activeTestTitle, setActiveTestTitle] =
     useState<string>('test sélectionné');
-  const [excludedIds, setExcludedIds] = useState<string[]>([]);
+  const [, setExcludedIds] = useState<string[]>([]);
   const [isFooterGenerating, setIsFooterGenerating] = useState<boolean>(false);
+  const [isAutosaveBusy, setIsAutosaveBusy] = useState<boolean>(false);
   const [currentStep, setCurrentStep] = useState<number>(1);
   useEffect(() => {
     const onActiveChanged = (e: Event) => {
@@ -87,6 +88,21 @@ export default function WizardAIBilanType({
       'bilan-type:step-changed',
       onStepChanged as EventListener,
     );
+    const onAutosaveStatus = (e: Event) => {
+      try {
+        const { isSaving, isDirty } = (e as CustomEvent<{
+          isSaving: boolean;
+          isDirty: boolean;
+        }>).detail || { isSaving: false, isDirty: false };
+        setIsAutosaveBusy(Boolean(isSaving) || Boolean(isDirty));
+      } catch {
+        setIsAutosaveBusy(false);
+      }
+    };
+    window.addEventListener(
+      'bilan-type:autosave-status',
+      onAutosaveStatus as EventListener,
+    );
     return () => {
       window.removeEventListener(
         'bilan-type:active-changed',
@@ -99,6 +115,10 @@ export default function WizardAIBilanType({
       window.removeEventListener(
         'bilan-type:step-changed',
         onStepChanged as EventListener,
+      );
+      window.removeEventListener(
+        'bilan-type:autosave-status',
+        onAutosaveStatus as EventListener,
       );
     };
   }, []);
@@ -127,7 +147,7 @@ export default function WizardAIBilanType({
                 window.dispatchEvent(evt);
               }}
               type="button"
-              disabled={isFooterGenerating}
+              disabled={isFooterGenerating || isAutosaveBusy}
             >
               Précédent
             </Button>
@@ -154,20 +174,13 @@ export default function WizardAIBilanType({
               </Button> */}
               <Button
                 onClick={() => {
+                  // Delegate to inner panel so it can flush autosave first
                   setIsFooterGenerating(true);
-                  // Save current section before bulk generation
-                  const saveEvt = new Event('bilan-type:save-current');
-                  window.dispatchEvent(saveEvt);
-                  // Prefer direct callback if provided, else fallback to legacy event
-                  if (rest.onGenerateAll && selectedTrame?.value) {
-                    rest.onGenerateAll(selectedTrame.value, excludedIds);
-                  } else {
-                    const evt = new Event('bilan-type:generate-all');
-                    window.dispatchEvent(evt);
-                  }
+                  const evt = new Event('bilan-type:generate-all');
+                  window.dispatchEvent(evt);
                 }}
                 type="button"
-                disabled={isFooterGenerating}
+                disabled={isFooterGenerating || isAutosaveBusy}
               >
                 {isFooterGenerating ? (
                   <>
@@ -175,7 +188,9 @@ export default function WizardAIBilanType({
                     Génération...
                   </>
                 ) : (
-                  <>Générer tous les tests</>
+                  <>
+                    {isAutosaveBusy ? 'Enregistrement en cours…' : 'Générer tous les tests'}
+                  </>
                 )}
               </Button>
             </div>
