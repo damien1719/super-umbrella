@@ -405,8 +405,16 @@ export default function WizardAIRightPanel({
     console.log('flush', notesMode, step);
     try {
       if (mode === 'bilanType' && activeBilanSectionId) {
+        const key = { bilanId, sectionId: activeBilanSectionId } as const;
+        const draftAnswers = getDraftStore(key).getState().answers || {};
+        const hasData = Object.keys(draftAnswers).length > 0;
+        if (!bilanTypeAutosave.isDirty && !hasData) return;
         await bilanTypeAutosave.flush();
       } else if (mode === 'section' && selectedTrame?.value) {
+        const key = { bilanId, sectionId: sectionInfo.id } as const;
+        const draftAnswers = getDraftStore(key).getState().answers || {};
+        const hasData = Object.keys(draftAnswers).length > 0;
+        if (!sectionAutosave.isDirty && !hasData) return;
         await sectionAutosave.flush();
       }
     } catch {
@@ -603,6 +611,13 @@ export default function WizardAIRightPanel({
   const triggerGenerateCurrentAppend = async () =>
     triggerGenerateCurrentWithMode('append');
 
+  // Keep latest handlers in a ref to avoid stale closures in window event listeners
+  const latestHandlersRef = useRef({
+    triggerGenerateCurrent: async () => {},
+    triggerGenerateAll: async () => {},
+    flushCurrent: async () => {},
+  });
+
   // Batch generation across all tests (sections) for bilanType mode
   const triggerGenerateAll = async () => {
     if (mode !== 'bilanType') return;
@@ -645,13 +660,18 @@ export default function WizardAIRightPanel({
       }
     }
   };
+  // Update latest handlers ref each render
+  latestHandlersRef.current.triggerGenerateCurrent = () =>
+    triggerGenerateCurrent();
+  latestHandlersRef.current.triggerGenerateAll = () => triggerGenerateAll();
+  latestHandlersRef.current.flushCurrent = () => flushCurrent();
 
   // External event listeners from wrapper (WizardAIBilanType)
   useEffect(() => {
-    const onGenSelected = () => void triggerGenerateCurrent();
-    const onGenAll = () => void triggerGenerateAll();
+    const onGenSelected = () => void latestHandlersRef.current.triggerGenerateCurrent();
+    const onGenAll = () => void latestHandlersRef.current.triggerGenerateAll();
     const onSaveCurrent = () => {
-      void flushCurrent();
+      void latestHandlersRef.current.flushCurrent();
     };
     window.addEventListener('bilan-type:generate-selected', onGenSelected);
     window.addEventListener('bilan-type:generate-all', onGenAll);
@@ -661,20 +681,8 @@ export default function WizardAIRightPanel({
       window.removeEventListener('bilan-type:generate-all', onGenAll);
       window.removeEventListener('bilan-type:save-current', onSaveCurrent);
     };
-  }, [
-    notesMode,
-    rawNotes,
-    imageBase64,
-    bilanAnswers,
-    navItems,
-    selectedTrame,
-    onGenerateFromTemplate,
-    onGenerate,
-    mode,
-    token,
-    bilanId,
-    excludedSectionIds,
-  ]);
+    // Empty dependency array on purpose: handlers read latest values from ref
+  }, []);
 
   return (
     <div className="h-full flex flex-col overflow-hidden relative">
